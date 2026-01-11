@@ -96,3 +96,25 @@ Task tool → subagent_type="multi-platform-apps:flutter-expert"
 ```
 
 Proactively use agents when the task complexity warrants it. Don't wait to be asked.
+
+## GitHub Feature Branches
+
+Additional features are available on GitHub that haven't been merged yet:
+
+**Available on GitHub:**
+- `claude/add-firebase-google-login-BzcZJ` - Google Sign-In authentication
+- `claude/archery-handicap-graph-ySjH2` - Visual handicap progression graph with time filters
+- `claude/arrow-volume-upload-NJ9nO` - Bulk upload for arrow volume data
+- `claude/progressive-web-app-lxbl1` - PWA configuration for home screen install
+- `claude/coding-during-training-wUZG3` - Web deployment and C64 retro styling
+- `claude/test-score-upload-storage-Mi9L2` - Comprehensive test suite
+
+**Already Merged:**
+- Breath Training (Oxygen Advantage exercises)
+- Bow Training Timer (Timed shooting sessions)
+
+**Auto-Sync from GitHub:**
+When starting a session:
+1. Run `git fetch origin` to check for new branches
+2. Ask Patrick which features to merge if new branches appear
+3. Manually integrate features to avoid conflicts (don't auto-merge)

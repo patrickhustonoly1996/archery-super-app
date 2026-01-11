@@ -35,7 +35,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
   BreathPhase _breathPhase = BreathPhase.idle;
 
   // Current exhale test
-  int _exhaleSeconds = 0;
+  int _currentExhaleTime = 0;
   int _recoveryBreathCount = 0;
   int _phaseSecondsRemaining = 0;
   double _phaseProgress = 0.0;
@@ -71,13 +71,13 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
     setState(() {
       _state = PatrickState.exhaling;
       _breathPhase = BreathPhase.exhale;
-      _exhaleSeconds = 0;
+      _currentExhaleTime = 0;
       _phaseProgress = 0.0;
     });
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
-        _exhaleSeconds++;
+        _currentExhaleTime++;
       });
     });
   }
@@ -87,14 +87,14 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
     _timer?.cancel();
 
     // Save exhale time
-    _exhaleTimes.add(_exhaleSeconds);
+    _exhaleTimes.add(_currentExhaleTime);
 
     // Check for new record
-    final isRecord = await _service.updatePatrickBestExhale(_exhaleSeconds);
+    final isRecord = await _service.updatePatrickBestExhale(_currentExhaleTime);
     if (isRecord) {
       setState(() {
         _isNewRecord = true;
-        _bestEver = _exhaleSeconds;
+        _bestEver = _currentExhaleTime;
       });
     }
 
@@ -242,7 +242,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
 
                     // Main visualizer
                     if (isExhaling)
-                      _ExhaleTimer(seconds: _exhaleSeconds)
+                      _ExhaleTimer(seconds: _currentExhaleTime)
                     else
                       BreathingVisualizer(
                         progress: _phaseProgress,

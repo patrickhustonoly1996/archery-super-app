@@ -66,7 +66,10 @@
       "Bash(start ms-settings:developers)",
       "Bash(claude plugin:*)",
       "Bash(git fetch:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(for branch in origin/claude/add-firebase-google-login-BzcZJ origin/claude/archery-handicap-graph-ySjH2 origin/claude/arrow-volume-upload-NJ9nO origin/claude/coding-during-training-wUZG3 origin/claude/progressive-web-app-lxbl1 origin/claude/test-score-upload-storage-Mi9L2)",
+      "Bash(do echo \"=== $branch ===\")",
+      "Bash(done)"
     ]
   }
 }

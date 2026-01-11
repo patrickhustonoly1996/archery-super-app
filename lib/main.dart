@@ -7,6 +7,7 @@ import 'db/database.dart';
 import 'theme/app_theme.dart';
 import 'providers/session_provider.dart';
 import 'providers/equipment_provider.dart';
+import 'providers/bow_training_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 
@@ -148,6 +149,9 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
           ChangeNotifierProvider(
             create: (context) =>
                 EquipmentProvider(context.read<AppDatabase>())..loadEquipment(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => BowTrainingProvider(context.read<AppDatabase>()),
           ),
         ],
         child: MaterialApp(
