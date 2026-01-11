@@ -163,6 +163,20 @@ class VolumeEntries extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Imported volume data batches (preserves original raw data)
+class VolumeImports extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()(); // User-provided name or filename
+  TextColumn get rawData => text()(); // Original CSV/text data as-is
+  TextColumn get columnMapping => text().nullable()(); // JSON: {"date": 0, "arrows": 1, "notes": 2}
+  IntColumn get rowCount => integer()(); // Number of data rows
+  IntColumn get importedCount => integer().withDefault(const Constant(0))(); // Rows successfully imported
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // DATABASE
 // ============================================================================
@@ -178,12 +192,13 @@ class VolumeEntries extends Table {
   Quivers,
   Shafts,
   VolumeEntries,
+  VolumeImports,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -207,6 +222,10 @@ class AppDatabase extends _$AppDatabase {
         if (from <= 2) {
           // Add volume tracking table
           await m.createTable(volumeEntries);
+        }
+        if (from <= 3) {
+          // Add volume imports table for raw data preservation
+          await m.createTable(volumeImports);
         }
       },
     );
@@ -544,6 +563,31 @@ class AppDatabase extends _$AppDatabase {
       );
     }
   }
+
+  // ===========================================================================
+  // VOLUME IMPORTS (raw data preservation)
+  // ===========================================================================
+
+  Future<List<VolumeImport>> getAllVolumeImports() => (select(volumeImports)
+        ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+      .get();
+
+  Future<VolumeImport?> getVolumeImport(String id) =>
+      (select(volumeImports)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<int> insertVolumeImport(VolumeImportsCompanion import_) =>
+      into(volumeImports).insert(import_);
+
+  Future<bool> updateVolumeImport(VolumeImportsCompanion import_) =>
+      update(volumeImports).replace(import_);
+
+  Future<int> deleteVolumeImport(String id) =>
+      (delete(volumeImports)..where((t) => t.id.equals(id))).go();
+
+  Future<int> updateVolumeImportCount(String id, int importedCount) =>
+      (update(volumeImports)..where((t) => t.id.equals(id))).write(
+        VolumeImportsCompanion(importedCount: Value(importedCount)),
+      );
 }
 
 QueryExecutor _openConnection() {

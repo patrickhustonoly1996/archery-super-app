@@ -5026,6 +5026,458 @@ class VolumeEntriesCompanion extends UpdateCompanion<VolumeEntry> {
   }
 }
 
+class $VolumeImportsTable extends VolumeImports
+    with TableInfo<$VolumeImportsTable, VolumeImport> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VolumeImportsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _rawDataMeta = const VerificationMeta(
+    'rawData',
+  );
+  @override
+  late final GeneratedColumn<String> rawData = GeneratedColumn<String>(
+    'raw_data',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _columnMappingMeta = const VerificationMeta(
+    'columnMapping',
+  );
+  @override
+  late final GeneratedColumn<String> columnMapping = GeneratedColumn<String>(
+    'column_mapping',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _rowCountMeta = const VerificationMeta(
+    'rowCount',
+  );
+  @override
+  late final GeneratedColumn<int> rowCount = GeneratedColumn<int>(
+    'row_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _importedCountMeta = const VerificationMeta(
+    'importedCount',
+  );
+  @override
+  late final GeneratedColumn<int> importedCount = GeneratedColumn<int>(
+    'imported_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    rawData,
+    columnMapping,
+    rowCount,
+    importedCount,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'volume_imports';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<VolumeImport> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('raw_data')) {
+      context.handle(
+        _rawDataMeta,
+        rawData.isAcceptableOrUnknown(data['raw_data']!, _rawDataMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_rawDataMeta);
+    }
+    if (data.containsKey('column_mapping')) {
+      context.handle(
+        _columnMappingMeta,
+        columnMapping.isAcceptableOrUnknown(data['column_mapping']!, _columnMappingMeta),
+      );
+    }
+    if (data.containsKey('row_count')) {
+      context.handle(
+        _rowCountMeta,
+        rowCount.isAcceptableOrUnknown(data['row_count']!, _rowCountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_rowCountMeta);
+    }
+    if (data.containsKey('imported_count')) {
+      context.handle(
+        _importedCountMeta,
+        importedCount.isAcceptableOrUnknown(data['imported_count']!, _importedCountMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  VolumeImport map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VolumeImport(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      rawData: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}raw_data'],
+      )!,
+      columnMapping: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}column_mapping'],
+      ),
+      rowCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}row_count'],
+      )!,
+      importedCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}imported_count'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $VolumeImportsTable createAlias(String alias) {
+    return $VolumeImportsTable(attachedDatabase, alias);
+  }
+}
+
+class VolumeImport extends DataClass implements Insertable<VolumeImport> {
+  final String id;
+  final String name;
+  final String rawData;
+  final String? columnMapping;
+  final int rowCount;
+  final int importedCount;
+  final DateTime createdAt;
+  const VolumeImport({
+    required this.id,
+    required this.name,
+    required this.rawData,
+    this.columnMapping,
+    required this.rowCount,
+    required this.importedCount,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['raw_data'] = Variable<String>(rawData);
+    if (!nullToAbsent || columnMapping != null) {
+      map['column_mapping'] = Variable<String>(columnMapping);
+    }
+    map['row_count'] = Variable<int>(rowCount);
+    map['imported_count'] = Variable<int>(importedCount);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  VolumeImportsCompanion toCompanion(bool nullToAbsent) {
+    return VolumeImportsCompanion(
+      id: Value(id),
+      name: Value(name),
+      rawData: Value(rawData),
+      columnMapping: columnMapping == null && nullToAbsent
+          ? const Value.absent()
+          : Value(columnMapping),
+      rowCount: Value(rowCount),
+      importedCount: Value(importedCount),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory VolumeImport.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VolumeImport(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      rawData: serializer.fromJson<String>(json['rawData']),
+      columnMapping: serializer.fromJson<String?>(json['columnMapping']),
+      rowCount: serializer.fromJson<int>(json['rowCount']),
+      importedCount: serializer.fromJson<int>(json['importedCount']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'rawData': serializer.toJson<String>(rawData),
+      'columnMapping': serializer.toJson<String?>(columnMapping),
+      'rowCount': serializer.toJson<int>(rowCount),
+      'importedCount': serializer.toJson<int>(importedCount),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  VolumeImport copyWith({
+    String? id,
+    String? name,
+    String? rawData,
+    Value<String?> columnMapping = const Value.absent(),
+    int? rowCount,
+    int? importedCount,
+    DateTime? createdAt,
+  }) => VolumeImport(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    rawData: rawData ?? this.rawData,
+    columnMapping: columnMapping.present ? columnMapping.value : this.columnMapping,
+    rowCount: rowCount ?? this.rowCount,
+    importedCount: importedCount ?? this.importedCount,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  VolumeImport copyWithCompanion(VolumeImportsCompanion data) {
+    return VolumeImport(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      rawData: data.rawData.present ? data.rawData.value : this.rawData,
+      columnMapping: data.columnMapping.present ? data.columnMapping.value : this.columnMapping,
+      rowCount: data.rowCount.present ? data.rowCount.value : this.rowCount,
+      importedCount: data.importedCount.present ? data.importedCount.value : this.importedCount,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VolumeImport(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('rawData: $rawData, ')
+          ..write('columnMapping: $columnMapping, ')
+          ..write('rowCount: $rowCount, ')
+          ..write('importedCount: $importedCount, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, name, rawData, columnMapping, rowCount, importedCount, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VolumeImport &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.rawData == this.rawData &&
+          other.columnMapping == this.columnMapping &&
+          other.rowCount == this.rowCount &&
+          other.importedCount == this.importedCount &&
+          other.createdAt == this.createdAt);
+}
+
+class VolumeImportsCompanion extends UpdateCompanion<VolumeImport> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String> rawData;
+  final Value<String?> columnMapping;
+  final Value<int> rowCount;
+  final Value<int> importedCount;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const VolumeImportsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.rawData = const Value.absent(),
+    this.columnMapping = const Value.absent(),
+    this.rowCount = const Value.absent(),
+    this.importedCount = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  VolumeImportsCompanion.insert({
+    required String id,
+    required String name,
+    required String rawData,
+    this.columnMapping = const Value.absent(),
+    required int rowCount,
+    this.importedCount = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       rawData = Value(rawData),
+       rowCount = Value(rowCount);
+  static Insertable<VolumeImport> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? rawData,
+    Expression<String>? columnMapping,
+    Expression<int>? rowCount,
+    Expression<int>? importedCount,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (rawData != null) 'raw_data': rawData,
+      if (columnMapping != null) 'column_mapping': columnMapping,
+      if (rowCount != null) 'row_count': rowCount,
+      if (importedCount != null) 'imported_count': importedCount,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  VolumeImportsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String>? rawData,
+    Value<String?>? columnMapping,
+    Value<int>? rowCount,
+    Value<int>? importedCount,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return VolumeImportsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      rawData: rawData ?? this.rawData,
+      columnMapping: columnMapping ?? this.columnMapping,
+      rowCount: rowCount ?? this.rowCount,
+      importedCount: importedCount ?? this.importedCount,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (rawData.present) {
+      map['raw_data'] = Variable<String>(rawData.value);
+    }
+    if (columnMapping.present) {
+      map['column_mapping'] = Variable<String>(columnMapping.value);
+    }
+    if (rowCount.present) {
+      map['row_count'] = Variable<int>(rowCount.value);
+    }
+    if (importedCount.present) {
+      map['imported_count'] = Variable<int>(importedCount.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VolumeImportsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('rawData: $rawData, ')
+          ..write('columnMapping: $columnMapping, ')
+          ..write('rowCount: $rowCount, ')
+          ..write('importedCount: $importedCount, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5041,6 +5493,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $ShaftsTable shafts = $ShaftsTable(this);
   late final $VolumeEntriesTable volumeEntries = $VolumeEntriesTable(this);
+  late final $VolumeImportsTable volumeImports = $VolumeImportsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5056,6 +5509,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     userPreferences,
     shafts,
     volumeEntries,
+    volumeImports,
   ];
 }
 
