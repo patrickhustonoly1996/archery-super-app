@@ -1,0 +1,57 @@
+name: archery_super_app
+description: "Archery performance tracking and arrow plotting app"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.10.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  provider: ^6.1.2
+
+  # Local database
+  drift: ^2.30.0
+  sqlite3_flutter_libs: ^0.5.31
+  drift_flutter: ^0.2.0
+  path_provider: ^2.1.5
+  path: ^1.9.1
+
+  # File handling
+  file_picker: ^10.3.8
+  csv: ^6.0.0
+  share_plus: ^10.1.4
+
+  # UI
+  cupertino_icons: ^1.0.8
+  fl_chart: ^0.69.0
+
+  # Firebase Authentication
+  firebase_core: ^3.8.1
+  firebase_auth: ^5.3.4
+  cloud_firestore: ^5.6.0
+  sqlite3: 2.9.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # Drift code generation
+  drift_dev: ^2.30.0
+  build_runner: ^2.4.15
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/logo.png
+
+  fonts:
+    # VT323 - terminal-style font for score displays (subtle retro nod)
+    - family: VT323
+      fonts:
+        - asset: assets/fonts/VT323-Regular.ttf

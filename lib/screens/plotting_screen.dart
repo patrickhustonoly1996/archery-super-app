@@ -1,0 +1,392 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../theme/app_theme.dart';
+import '../providers/session_provider.dart';
+import '../providers/equipment_provider.dart';
+import '../widgets/target_face.dart';
+import '../widgets/rolling_average_widget.dart';
+import '../widgets/scorecard_widget.dart';
+import '../widgets/shaft_selector_bottom_sheet.dart';
+import 'session_complete_screen.dart';
+import 'home_screen.dart';
+
+class PlottingScreen extends StatelessWidget {
+  const PlottingScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<SessionProvider>(
+      builder: (context, provider, _) {
+        if (provider.isSessionComplete) {
+          // Navigate to completion screen
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const SessionCompleteScreen()),
+            );
+          });
+          return const SizedBox.shrink();
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(provider.roundType?.name ?? 'Session'),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              tooltip: 'Leave session (progress saved)',
+              onPressed: () {
+                // Simply navigate back - session persists in database
+                Navigator.of(context).pop();
+              },
+            ),
+            actions: [
+              // End counter
+              Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.md),
+                child: Center(
+                  child: Text(
+                    'End ${provider.currentEndNumber}/${provider.totalEnds}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                  ),
+                ),
+              ),
+              // Menu with abandon option
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                onSelected: (value) {
+                  if (value == 'abandon') {
+                    _showAbandonDialog(context, provider);
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'abandon',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline, color: AppColors.error),
+                        SizedBox(width: AppSpacing.sm),
+                        Text('Abandon session'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          body: SafeArea(
+            child: Column(
+              children: [
+                // Score summary bar
+                _ScoreSummaryBar(provider: provider),
+
+                const SizedBox(height: AppSpacing.md),
+
+                // Target face with rolling average overlay
+                Expanded(
+                  child: Stack(
+                    children: [
+                      // Main target
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppSpacing.lg),
+                          child: FutureBuilder(
+                            future: provider.getAllSessionArrows(),
+                            builder: (context, snapshot) {
+                              final allArrows = snapshot.data ?? [];
+                              return LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final size = constraints.maxWidth < constraints.maxHeight
+                                      ? constraints.maxWidth
+                                      : constraints.maxHeight - 120; // Leave room for zoom
+                                  final isTriSpot = (provider.roundType?.faceCount ?? 1) == 3;
+                                  return InteractiveTargetFace(
+                                    arrows: allArrows,
+                                    size: size.clamp(200.0, 400.0),
+                                    enabled: !provider.isEndComplete,
+                                    isIndoor: provider.roundType?.isIndoor ?? false,
+                                    triSpot: isTriSpot,
+                                    onArrowPlotted: (x, y) async {
+                                      // Check if shaft tagging is enabled
+                                      if (provider.shaftTaggingEnabled &&
+                                          provider.selectedQuiverId != null) {
+                                        // Show shaft selector bottom sheet
+                                        final equipmentProvider =
+                                            context.read<EquipmentProvider>();
+                                        final shafts = equipmentProvider
+                                            .getShaftsForQuiver(
+                                                provider.selectedQuiverId!);
+
+                                        await showModalBottomSheet(
+                                          context: context,
+                                          backgroundColor: Colors.transparent,
+                                          builder: (_) =>
+                                              ShaftSelectorBottomSheet(
+                                            shafts: shafts,
+                                            onShaftSelected: (shaftNumber) {
+                                              provider.plotArrow(
+                                                x: x,
+                                                y: y,
+                                                shaftNumber: shaftNumber,
+                                              );
+                                            },
+                                            onSkip: () {
+                                              provider.plotArrow(x: x, y: y);
+                                            },
+                                          ),
+                                        );
+                                      } else {
+                                        // No shaft tagging - plot directly
+                                        provider.plotArrow(x: x, y: y);
+                                      }
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+
+                      // Rolling 12-arrow average widget (top-left)
+                      Positioned(
+                        top: AppSpacing.md,
+                        left: AppSpacing.md,
+                        child: FutureBuilder(
+                          future: provider.getLastNArrows(12),
+                          builder: (context, snapshot) {
+                            final arrows = snapshot.data ?? [];
+                            return RollingAverageWidget(
+                              arrows: arrows,
+                              maxArrows: 12,
+                              size: 80,
+                            );
+                          },
+                        ),
+                      ),
+
+                      // Mini target overview (top-right) - zoomed to scoring zone
+                      Positioned(
+                        top: AppSpacing.md,
+                        right: AppSpacing.md,
+                        child: FutureBuilder(
+                          future: provider.getAllSessionArrows(),
+                          builder: (context, snapshot) {
+                            final allArrows = snapshot.data ?? [];
+                            final isTriSpot = (provider.roundType?.faceCount ?? 1) == 3;
+                            const miniSize = 100.0;
+                            const zoomFactor = 2.5; // Show inner 40% of target
+                            return Container(
+                              width: miniSize,
+                              height: miniSize,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.surfaceLight,
+                                  width: 2,
+                                ),
+                                color: AppColors.backgroundDark,
+                              ),
+                              child: ClipOval(
+                                child: Transform.scale(
+                                  scale: zoomFactor,
+                                  child: TargetFace(
+                                    arrows: allArrows,
+                                    size: miniSize,
+                                    triSpot: isTriSpot,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Official scorecard
+                FutureBuilder(
+                  future: provider.getAllCompletedEndArrows(),
+                  builder: (context, snapshot) {
+                    final completedArrows = snapshot.data ?? [];
+                    return ScorecardWidget(
+                      completedEnds: provider.ends,
+                      completedEndArrows: completedArrows,
+                      currentEndArrows: provider.currentEndArrows,
+                      currentEndNumber: provider.currentEndNumber,
+                      arrowsPerEnd: provider.arrowsPerEnd,
+                      totalEnds: provider.totalEnds,
+                      roundName: provider.roundType?.name ?? '',
+                    );
+                  },
+                ),
+
+                // Action buttons
+                _ActionButtons(provider: provider),
+
+                const SizedBox(height: AppSpacing.md),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAbandonDialog(BuildContext context, SessionProvider provider) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        title: const Text('Abandon Session?'),
+        content: const Text(
+          'This will delete all arrows from this session. This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await provider.abandonSession();
+              if (context.mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const HomeScreen()),
+                  (route) => false,
+                );
+              }
+            },
+            child: Text(
+              'Abandon',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScoreSummaryBar extends StatelessWidget {
+  final SessionProvider provider;
+
+  const _ScoreSummaryBar({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
+      color: AppColors.surfaceDark,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _ScoreItem(
+            label: 'Total',
+            value: provider.totalScore.toString(),
+            highlight: true,
+          ),
+          _ScoreItem(
+            label: 'Xs',
+            value: provider.totalXs.toString(),
+          ),
+          _ScoreItem(
+            label: 'This End',
+            value: provider.currentEndScore.toString(),
+          ),
+          _ScoreItem(
+            label: 'Arrows',
+            value: '${provider.arrowsInCurrentEnd}/${provider.arrowsPerEnd}',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScoreItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool highlight;
+
+  const _ScoreItem({
+    required this.label,
+    required this.value,
+    this.highlight = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          value,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: highlight ? AppColors.gold : AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+}
+
+class _ActionButtons extends StatelessWidget {
+  final SessionProvider provider;
+
+  const _ActionButtons({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Row(
+        children: [
+          // Undo button
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed:
+                  provider.arrowsInCurrentEnd > 0 ? provider.undoLastArrow : null,
+              icon: const Icon(Icons.undo),
+              label: const Text('Undo'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.textSecondary,
+                side: BorderSide(color: AppColors.surfaceLight),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+              ),
+            ),
+          ),
+
+          const SizedBox(width: AppSpacing.md),
+
+          // Next End / Complete button
+          Expanded(
+            flex: 2,
+            child: ElevatedButton(
+              onPressed:
+                  provider.arrowsInCurrentEnd > 0 ? provider.commitEnd : null,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                child: Text(
+                  provider.currentEndNumber >= provider.totalEnds
+                      ? 'Complete Session'
+                      : 'Next End',
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

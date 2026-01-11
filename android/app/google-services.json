@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "546685392296",
+    "project_id": "archery-super-app",
+    "storage_bucket": "archery-super-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:546685392296:android:d712f679a9a2049255399d",
+        "android_client_info": {
+          "package_name": "com.archery.archery_super_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVWbCoDXsKWOd70BYHcUQ_MdGSM97HWzA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,47 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "archery-super-app",
+          "appId": "1:546685392296:android:d712f679a9a2049255399d",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "archery-super-app",
+          "configurations": {
+            "android": "1:546685392296:android:d712f679a9a2049255399d",
+            "web": "1:546685392296:web:3bf1d12bfe55aeae55399d"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "headers": [
+      {
+        "source": "**/*.wasm",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/wasm"
+          }
+        ]
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "!(**/*.@(js|wasm|css|png|jpg|jpeg|gif|ico|json|ttf|woff|woff2|map))",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
