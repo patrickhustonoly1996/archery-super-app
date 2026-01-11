@@ -250,7 +250,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             Expanded(
               child: _buildStatCard(
                 '7-Day Avg',
-                avg7Days.toStringAsFixed(0),
+                avg7Days.toStringAsFixed(1),
                 'per day',
                 AppColors.textSecondary,
               ),
@@ -263,27 +263,27 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             Expanded(
               child: _buildStatCard(
                 '7-Day EMA',
-                current7EMA.toStringAsFixed(0),
+                current7EMA.toStringAsFixed(1),
                 'arrows',
-                Colors.blue,
+                Colors.red,
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: _buildStatCard(
                 '28-Day EMA',
-                current28EMA.toStringAsFixed(0),
+                current28EMA.toStringAsFixed(1),
                 'arrows',
-                Colors.green,
+                Colors.black,
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: _buildStatCard(
                 '90-Day EMA',
-                current90EMA.toStringAsFixed(0),
+                current90EMA.toStringAsFixed(1),
                 'arrows',
-                Colors.orange,
+                Colors.green,
               ),
             ),
           ],
@@ -334,18 +334,23 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     // Calculate bar width based on number of entries
     final barWidth = entries.length > 60 ? 4.0 : entries.length > 30 ? 6.0 : 10.0;
 
+    // Round EMA values to whole numbers
+    final ema7Rounded = metrics.ema7.map((v) => v.roundToDouble()).toList();
+    final ema28Rounded = metrics.ema28.map((v) => v.roundToDouble()).toList();
+    final ema90Rounded = metrics.ema90.map((v) => v.roundToDouble()).toList();
+
     // Find max value for Y axis scaling
     double maxY = 0;
     for (final entry in entries) {
       if (entry.arrowCount > maxY) maxY = entry.arrowCount.toDouble();
     }
-    for (final val in metrics.ema7) {
+    for (final val in ema7Rounded) {
       if (val > maxY) maxY = val;
     }
-    for (final val in metrics.ema28) {
+    for (final val in ema28Rounded) {
       if (val > maxY) maxY = val;
     }
-    for (final val in metrics.ema90) {
+    for (final val in ema90Rounded) {
       if (val > maxY) maxY = val;
     }
     // Round up to nearest 50 for clean intervals
@@ -369,11 +374,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   ),
                 ),
                 const Spacer(),
-                _buildLegendItem('7d', Colors.blue),
+                _buildLegendItem('7d', Colors.red),
                 const SizedBox(width: AppSpacing.sm),
-                _buildLegendItem('28d', Colors.green),
+                _buildLegendItem('28d', Colors.black),
                 const SizedBox(width: AppSpacing.sm),
-                _buildLegendItem('90d', Colors.orange),
+                _buildLegendItem('90d', Colors.green, isArea: true),
               ],
             ),
             const SizedBox(height: AppSpacing.md),
@@ -381,7 +386,39 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               height: 280,
               child: Stack(
                 children: [
-                  // Bar chart layer (bottom)
+                  // Line/Area chart layer (bottom) - 90d area behind everything
+                  Padding(
+                    padding: const EdgeInsets.only(left: 40),
+                    child: LineChart(
+                      LineChartData(
+                        maxY: maxY,
+                        minY: 0,
+                        gridData: FlGridData(show: false),
+                        titlesData: FlTitlesData(show: false),
+                        borderData: FlBorderData(show: false),
+                        lineTouchData: LineTouchData(enabled: false),
+                        lineBarsData: [
+                          // 90-day EMA as area chart (green fill)
+                          if (ema90Rounded.isNotEmpty)
+                            LineChartBarData(
+                              spots: ema90Rounded.asMap().entries.map((entry) {
+                                return FlSpot(entry.key.toDouble(), entry.value);
+                              }).toList(),
+                              isCurved: true,
+                              color: Colors.green,
+                              barWidth: 2,
+                              isStrokeCapRound: true,
+                              dotData: FlDotData(show: false),
+                              belowBarData: BarAreaData(
+                                show: true,
+                                color: Colors.green.withOpacity(0.25),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Bar chart layer (middle)
                   BarChart(
                     BarChartData(
                       maxY: maxY,
@@ -391,7 +428,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                           barRods: [
                             BarChartRodData(
                               toY: entry.value.arrowCount.toDouble(),
-                              color: AppColors.gold.withValues(alpha: 0.6),
+                              color: AppColors.gold.withOpacity(0.7),
                               width: barWidth,
                               borderRadius: BorderRadius.only(
                                 topLeft: Radius.circular(2),
@@ -457,9 +494,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       ),
                     ),
                   ),
-                  // Line chart layer (top) - EMAs overlaid
+                  // Line chart layer (top) - 7d and 28d EMAs
                   Padding(
-                    padding: const EdgeInsets.only(left: 40), // Match left axis reserved size
+                    padding: const EdgeInsets.only(left: 40),
                     child: LineChart(
                       LineChartData(
                         maxY: maxY,
@@ -469,39 +506,27 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                         borderData: FlBorderData(show: false),
                         lineTouchData: LineTouchData(enabled: false),
                         lineBarsData: [
-                          // 7-day EMA
-                          if (metrics.ema7.isNotEmpty)
+                          // 28-day EMA (black line)
+                          if (ema28Rounded.isNotEmpty)
                             LineChartBarData(
-                              spots: metrics.ema7.asMap().entries.map((entry) {
+                              spots: ema28Rounded.asMap().entries.map((entry) {
                                 return FlSpot(entry.key.toDouble(), entry.value);
                               }).toList(),
                               isCurved: true,
-                              color: Colors.blue,
-                              barWidth: 2,
+                              color: Colors.black,
+                              barWidth: 2.5,
                               isStrokeCapRound: true,
                               dotData: FlDotData(show: false),
                             ),
-                          // 28-day EMA
-                          if (metrics.ema28.isNotEmpty)
+                          // 7-day EMA (red line)
+                          if (ema7Rounded.isNotEmpty)
                             LineChartBarData(
-                              spots: metrics.ema28.asMap().entries.map((entry) {
+                              spots: ema7Rounded.asMap().entries.map((entry) {
                                 return FlSpot(entry.key.toDouble(), entry.value);
                               }).toList(),
                               isCurved: true,
-                              color: Colors.green,
-                              barWidth: 2,
-                              isStrokeCapRound: true,
-                              dotData: FlDotData(show: false),
-                            ),
-                          // 90-day EMA
-                          if (metrics.ema90.isNotEmpty)
-                            LineChartBarData(
-                              spots: metrics.ema90.asMap().entries.map((entry) {
-                                return FlSpot(entry.key.toDouble(), entry.value);
-                              }).toList(),
-                              isCurved: true,
-                              color: Colors.orange,
-                              barWidth: 2,
+                              color: Colors.red,
+                              barWidth: 2.5,
                               isStrokeCapRound: true,
                               dotData: FlDotData(show: false),
                             ),
@@ -518,14 +543,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 
-  Widget _buildLegendItem(String label, Color color) {
+  Widget _buildLegendItem(String label, Color color, {bool isArea = false}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           width: 12,
-          height: 2,
-          color: color,
+          height: isArea ? 8 : 2,
+          decoration: BoxDecoration(
+            color: isArea ? color.withOpacity(0.4) : color,
+            border: isArea ? Border.all(color: color, width: 1) : null,
+          ),
         ),
         const SizedBox(width: 4),
         Text(
