@@ -10,6 +10,7 @@ import 'statistics_screen.dart';
 import 'import_screen.dart';
 import 'equipment_screen.dart';
 import 'login_screen.dart';
+import 'breath_training/breath_training_home_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -312,6 +313,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           context,
                           MaterialPageRoute(
                             builder: (_) => const StatisticsScreen(),
+                          ),
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: AppSpacing.md),
+
+                    // Breath Training button
+                    _HomeButton(
+                      icon: Icons.air,
+                      label: 'Breath Training',
+                      description: 'Oxygen Advantage exercises',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const BreathTrainingHomeScreen(),
                           ),
                         );
                       },
