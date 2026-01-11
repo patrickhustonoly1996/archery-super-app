@@ -5,7 +5,7 @@ import '../theme/app_theme.dart';
 import '../utils/handicap_calculator.dart';
 
 /// Full-screen scores graph showing handicap progression over time
-/// Similar to Archr's scores graph with indoor/outdoor differentiation
+/// with customizable time ranges and milestone markers
 class ScoresGraphScreen extends StatefulWidget {
   const ScoresGraphScreen({super.key});
 
@@ -15,8 +15,11 @@ class ScoresGraphScreen extends StatefulWidget {
 
 class _ScoresGraphScreenState extends State<ScoresGraphScreen> {
   List<_ScorePoint> _allPoints = [];
+  List<Milestone> _milestones = [];
   bool _isLoading = true;
-  String _timeFilter = 'all'; // 'all', '1y', '2y', '5y'
+  String _timeFilter = 'all'; // 'all', '1m', '3m', '6m', '9m', '12m', '2y', '5y', 'custom'
+  DateTime? _customStartDate;
+  DateTime? _customEndDate;
 
   @override
   void initState() {
@@ -29,6 +32,7 @@ class _ScoresGraphScreenState extends State<ScoresGraphScreen> {
     final sessions = await db.getCompletedSessions();
     final imported = await db.getAllImportedScores();
     final roundTypes = await db.getAllRoundTypes();
+    final milestones = await db.getAllMilestones();
 
     final roundTypesMap = <String, RoundType>{};
     for (final rt in roundTypes) {
@@ -86,6 +90,7 @@ class _ScoresGraphScreenState extends State<ScoresGraphScreen> {
 
     setState(() {
       _allPoints = points;
+      _milestones = milestones;
       _isLoading = false;
     });
   }
@@ -93,15 +98,36 @@ class _ScoresGraphScreenState extends State<ScoresGraphScreen> {
   List<_ScorePoint> get _filteredPoints {
     if (_timeFilter == 'all') return _allPoints;
 
+    if (_timeFilter == 'custom' && _customStartDate != null && _customEndDate != null) {
+      return _allPoints.where((p) =>
+          p.date.isAfter(_customStartDate!.subtract(const Duration(days: 1))) &&
+          p.date.isBefore(_customEndDate!.add(const Duration(days: 1)))).toList();
+    }
+
     final now = DateTime.now();
     final cutoff = switch (_timeFilter) {
-      '1y' => DateTime(now.year - 1, now.month, now.day),
+      '1m' => DateTime(now.year, now.month - 1, now.day),
+      '3m' => DateTime(now.year, now.month - 3, now.day),
+      '6m' => DateTime(now.year, now.month - 6, now.day),
+      '9m' => DateTime(now.year, now.month - 9, now.day),
+      '12m' => DateTime(now.year - 1, now.month, now.day),
       '2y' => DateTime(now.year - 2, now.month, now.day),
       '5y' => DateTime(now.year - 5, now.month, now.day),
       _ => DateTime(1900),
     };
 
     return _allPoints.where((p) => p.date.isAfter(cutoff)).toList();
+  }
+
+  List<Milestone> get _filteredMilestones {
+    if (_filteredPoints.isEmpty) return [];
+
+    final minDate = _filteredPoints.first.date;
+    final maxDate = _filteredPoints.last.date;
+
+    return _milestones.where((m) =>
+        m.date.isAfter(minDate.subtract(const Duration(days: 1))) &&
+        m.date.isBefore(maxDate.add(const Duration(days: 1)))).toList();
   }
 
   bool _isIndoorRound(String roundTypeId) {
@@ -159,11 +185,235 @@ class _ScoresGraphScreenState extends State<ScoresGraphScreen> {
     return null;
   }
 
+  Future<void> _showCustomDateRangePicker() async {
+    final now = DateTime.now();
+    final initialRange = DateTimeRange(
+      start: _customStartDate ?? now.subtract(const Duration(days: 90)),
+      end: _customEndDate ?? now,
+    );
+
+    final result = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: now,
+      initialDateRange: initialRange,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: AppColors.gold,
+              onPrimary: AppColors.backgroundDark,
+              surface: AppColors.surfaceDark,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (result != null) {
+      setState(() {
+        _customStartDate = result.start;
+        _customEndDate = result.end;
+        _timeFilter = 'custom';
+      });
+    }
+  }
+
+  Future<void> _showAddMilestoneDialog() async {
+    final titleController = TextEditingController();
+    final descController = TextEditingController();
+    DateTime selectedDate = DateTime.now();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: AppColors.surfaceDark,
+          title: const Text('Add Milestone'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(
+                    labelText: 'Title',
+                    hintText: 'e.g., First Competition',
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                TextField(
+                  controller: descController,
+                  decoration: const InputDecoration(
+                    labelText: 'Description (optional)',
+                  ),
+                  maxLines: 2,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  'Date',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                InkWell(
+                  onTap: () async {
+                    final date = await showDatePicker(
+                      context: context,
+                      initialDate: selectedDate,
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime.now(),
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: const ColorScheme.dark(
+                              primary: AppColors.gold,
+                              onPrimary: AppColors.backgroundDark,
+                              surface: AppColors.surfaceDark,
+                              onSurface: AppColors.textPrimary,
+                            ),
+                          ),
+                          child: child!,
+                        );
+                      },
+                    );
+                    if (date != null) {
+                      setDialogState(() => selectedDate = date);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.surfaceLight),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                        ),
+                        const Icon(Icons.calendar_today, size: 18),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Add', style: TextStyle(color: AppColors.gold)),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result == true && titleController.text.isNotEmpty) {
+      final db = context.read<AppDatabase>();
+      await db.insertMilestone(MilestonesCompanion.insert(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        date: selectedDate,
+        title: titleController.text,
+        description: descController.text.isEmpty
+            ? const Value.absent()
+            : Value(descController.text),
+      ));
+      _loadData();
+    }
+  }
+
+  Future<void> _showMilestonesListDialog() async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        title: const Text('Milestones'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: _milestones.isEmpty
+              ? const Text(
+                  'No milestones yet.\nTap + to add one.',
+                  style: TextStyle(color: AppColors.textMuted),
+                )
+              : ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _milestones.length,
+                  itemBuilder: (context, index) {
+                    final m = _milestones[index];
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        width: 4,
+                        height: 40,
+                        color: _parseColor(m.color),
+                      ),
+                      title: Text(m.title),
+                      subtitle: Text(
+                        '${m.date.day}/${m.date.month}/${m.date.year}',
+                        style: const TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 12,
+                        ),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 20),
+                        onPressed: () async {
+                          final db = context.read<AppDatabase>();
+                          await db.deleteMilestone(m.id);
+                          Navigator.pop(context);
+                          _loadData();
+                        },
+                      ),
+                    );
+                  },
+                ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _parseColor(String hexColor) {
+    try {
+      return Color(int.parse(hexColor.replaceFirst('#', '0xFF')));
+    } catch (_) {
+      return AppColors.gold;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scores Graph'),
+        title: const Text('Handicap Graph'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.flag_outlined),
+            onPressed: _showMilestonesListDialog,
+            tooltip: 'View Milestones',
+          ),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: _showAddMilestoneDialog,
+            tooltip: 'Add Milestone',
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(
@@ -173,34 +423,70 @@ class _ScoresGraphScreenState extends State<ScoresGraphScreen> {
               ? _EmptyState()
               : Column(
                   children: [
-                    // Time filter
-                    Padding(
-                      padding: const EdgeInsets.all(AppSpacing.md),
+                    // Time filter - scrollable row
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           _FilterChip(
-                            label: 'All Time',
+                            label: 'All',
                             selected: _timeFilter == 'all',
                             onTap: () => setState(() => _timeFilter = 'all'),
                           ),
-                          const SizedBox(width: AppSpacing.sm),
+                          const SizedBox(width: AppSpacing.xs),
                           _FilterChip(
-                            label: '5Y',
-                            selected: _timeFilter == '5y',
-                            onTap: () => setState(() => _timeFilter = '5y'),
+                            label: '1M',
+                            selected: _timeFilter == '1m',
+                            onTap: () => setState(() => _timeFilter = '1m'),
                           ),
-                          const SizedBox(width: AppSpacing.sm),
+                          const SizedBox(width: AppSpacing.xs),
+                          _FilterChip(
+                            label: '3M',
+                            selected: _timeFilter == '3m',
+                            onTap: () => setState(() => _timeFilter = '3m'),
+                          ),
+                          const SizedBox(width: AppSpacing.xs),
+                          _FilterChip(
+                            label: '6M',
+                            selected: _timeFilter == '6m',
+                            onTap: () => setState(() => _timeFilter = '6m'),
+                          ),
+                          const SizedBox(width: AppSpacing.xs),
+                          _FilterChip(
+                            label: '9M',
+                            selected: _timeFilter == '9m',
+                            onTap: () => setState(() => _timeFilter = '9m'),
+                          ),
+                          const SizedBox(width: AppSpacing.xs),
+                          _FilterChip(
+                            label: '12M',
+                            selected: _timeFilter == '12m',
+                            onTap: () => setState(() => _timeFilter = '12m'),
+                          ),
+                          const SizedBox(width: AppSpacing.xs),
                           _FilterChip(
                             label: '2Y',
                             selected: _timeFilter == '2y',
                             onTap: () => setState(() => _timeFilter = '2y'),
                           ),
-                          const SizedBox(width: AppSpacing.sm),
+                          const SizedBox(width: AppSpacing.xs),
                           _FilterChip(
-                            label: '1Y',
-                            selected: _timeFilter == '1y',
-                            onTap: () => setState(() => _timeFilter = '1y'),
+                            label: '5Y',
+                            selected: _timeFilter == '5y',
+                            onTap: () => setState(() => _timeFilter = '5y'),
+                          ),
+                          const SizedBox(width: AppSpacing.xs),
+                          _FilterChip(
+                            label: _timeFilter == 'custom' && _customStartDate != null
+                                ? '${_customStartDate!.day}/${_customStartDate!.month} - ${_customEndDate!.day}/${_customEndDate!.month}'
+                                : 'Custom',
+                            selected: _timeFilter == 'custom',
+                            onTap: _showCustomDateRangePicker,
+                            icon: Icons.date_range,
                           ),
                         ],
                       ),
@@ -223,6 +509,14 @@ class _ScoresGraphScreenState extends State<ScoresGraphScreen> {
                             color: const Color(0xFF42A5F5), // Blue
                             label: 'Outdoor',
                           ),
+                          if (_filteredMilestones.isNotEmpty) ...[
+                            const SizedBox(width: AppSpacing.lg),
+                            _LegendItem(
+                              color: AppColors.gold,
+                              label: 'Milestone',
+                              isDashed: true,
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -238,7 +532,10 @@ class _ScoresGraphScreenState extends State<ScoresGraphScreen> {
                           AppSpacing.md,
                           AppSpacing.md,
                         ),
-                        child: _ScoresGraph(points: _filteredPoints),
+                        child: _ScoresGraph(
+                          points: _filteredPoints,
+                          milestones: _filteredMilestones,
+                        ),
                       ),
                     ),
 
@@ -254,11 +551,13 @@ class _FilterChip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final IconData? icon;
 
   const _FilterChip({
     required this.label,
     required this.selected,
     required this.onTap,
+    this.icon,
   });
 
   @override
@@ -274,13 +573,26 @@ class _FilterChip extends StatelessWidget {
           color: selected ? AppColors.gold : AppColors.surfaceLight,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-            color: selected ? AppColors.backgroundDark : AppColors.textSecondary,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: 14,
+                color: selected ? AppColors.backgroundDark : AppColors.textSecondary,
+              ),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                color: selected ? AppColors.backgroundDark : AppColors.textSecondary,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -290,25 +602,33 @@ class _FilterChip extends StatelessWidget {
 class _LegendItem extends StatelessWidget {
   final Color color;
   final String label;
+  final bool isDashed;
 
   const _LegendItem({
     required this.color,
     required this.label,
+    this.isDashed = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.3),
-            border: Border.all(color: color, width: 2),
-            shape: BoxShape.circle,
+        if (isDashed)
+          CustomPaint(
+            size: const Size(16, 12),
+            painter: _DashedLinePainter(color: color),
+          )
+        else
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.3),
+              border: Border.all(color: color, width: 2),
+              shape: BoxShape.circle,
+            ),
           ),
-        ),
         const SizedBox(width: 6),
         Text(
           label,
@@ -319,10 +639,44 @@ class _LegendItem extends StatelessWidget {
   }
 }
 
+class _DashedLinePainter extends CustomPainter {
+  final Color color;
+
+  _DashedLinePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    const dashWidth = 4.0;
+    const dashSpace = 2.0;
+    double startX = 0;
+
+    while (startX < size.width) {
+      canvas.drawLine(
+        Offset(startX, size.height / 2),
+        Offset(startX + dashWidth, size.height / 2),
+        paint,
+      );
+      startX += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
 class _ScoresGraph extends StatefulWidget {
   final List<_ScorePoint> points;
+  final List<Milestone> milestones;
 
-  const _ScoresGraph({required this.points});
+  const _ScoresGraph({
+    required this.points,
+    required this.milestones,
+  });
 
   @override
   State<_ScoresGraph> createState() => _ScoresGraphState();
@@ -330,6 +684,7 @@ class _ScoresGraph extends StatefulWidget {
 
 class _ScoresGraphState extends State<_ScoresGraph> {
   _ScorePoint? _selectedPoint;
+  Milestone? _selectedMilestone;
 
   @override
   Widget build(BuildContext context) {
@@ -338,11 +693,16 @@ class _ScoresGraphState extends State<_ScoresGraph> {
         return GestureDetector(
           onTapUp: (details) => _handleTap(details, constraints),
           onPanUpdate: (details) => _handlePan(details, constraints),
-          onPanEnd: (_) => setState(() => _selectedPoint = null),
+          onPanEnd: (_) => setState(() {
+            _selectedPoint = null;
+            _selectedMilestone = null;
+          }),
           child: CustomPaint(
             painter: _ScoresGraphPainter(
               points: widget.points,
+              milestones: widget.milestones,
               selectedPoint: _selectedPoint,
+              selectedMilestone: _selectedMilestone,
             ),
             size: Size(constraints.maxWidth, constraints.maxHeight),
           ),
@@ -352,19 +712,25 @@ class _ScoresGraphState extends State<_ScoresGraph> {
   }
 
   void _handleTap(TapUpDetails details, BoxConstraints constraints) {
-    final point = _findNearestPoint(details.localPosition, constraints);
-    setState(() => _selectedPoint = point);
+    final result = _findNearest(details.localPosition, constraints);
+    setState(() {
+      _selectedPoint = result.$1;
+      _selectedMilestone = result.$2;
+    });
   }
 
   void _handlePan(DragUpdateDetails details, BoxConstraints constraints) {
-    final point = _findNearestPoint(details.localPosition, constraints);
-    if (point != _selectedPoint) {
-      setState(() => _selectedPoint = point);
+    final result = _findNearest(details.localPosition, constraints);
+    if (result.$1 != _selectedPoint || result.$2 != _selectedMilestone) {
+      setState(() {
+        _selectedPoint = result.$1;
+        _selectedMilestone = result.$2;
+      });
     }
   }
 
-  _ScorePoint? _findNearestPoint(Offset position, BoxConstraints constraints) {
-    if (widget.points.isEmpty) return null;
+  (_ScorePoint?, Milestone?) _findNearest(Offset position, BoxConstraints constraints) {
+    if (widget.points.isEmpty) return (null, null);
 
     final size = Size(constraints.maxWidth, constraints.maxHeight);
     const leftPadding = 40.0;
@@ -376,6 +742,16 @@ class _ScoresGraphState extends State<_ScoresGraph> {
     final minDate = widget.points.first.date;
     final maxDate = widget.points.last.date;
     final dateRange = maxDate.difference(minDate).inDays;
+
+    // Check milestones first (they're vertical lines, easier to hit)
+    for (final milestone in widget.milestones) {
+      final dayOffset = milestone.date.difference(minDate).inDays;
+      final x = leftPadding + (dateRange > 0 ? (dayOffset / dateRange) * graphWidth : graphWidth / 2);
+
+      if ((position.dx - x).abs() < 15) {
+        return (null, milestone);
+      }
+    }
 
     // Find handicap range
     final minHc = widget.points.map((p) => p.handicap).reduce((a, b) => a < b ? a : b);
@@ -401,20 +777,24 @@ class _ScoresGraphState extends State<_ScoresGraph> {
       }
     }
 
-    return nearest;
+    return (nearest, null);
   }
 }
 
 class _ScoresGraphPainter extends CustomPainter {
   final List<_ScorePoint> points;
+  final List<Milestone> milestones;
   final _ScorePoint? selectedPoint;
+  final Milestone? selectedMilestone;
 
   static const Color indoorColor = Color(0xFFE53935); // Red
   static const Color outdoorColor = Color(0xFF42A5F5); // Blue
 
   _ScoresGraphPainter({
     required this.points,
+    required this.milestones,
     this.selectedPoint,
+    this.selectedMilestone,
   });
 
   @override
@@ -441,8 +821,11 @@ class _ScoresGraphPainter extends CustomPainter {
     // Draw grid lines and Y-axis labels (handicap)
     _drawGrid(canvas, size, graphWidth, graphHeight, leftPadding, paddedMin, paddedMax, paddedRange);
 
-    // Draw X-axis labels (years)
+    // Draw X-axis labels (dates)
     _drawXAxis(canvas, size, graphWidth, graphHeight, leftPadding, bottomPadding, minDate, maxDate, dateRange);
+
+    // Draw milestone lines
+    _drawMilestones(canvas, graphWidth, graphHeight, leftPadding, minDate, dateRange);
 
     // Draw year separator lines
     _drawYearLines(canvas, graphWidth, graphHeight, leftPadding, minDate, maxDate, dateRange);
@@ -475,6 +858,11 @@ class _ScoresGraphPainter extends CustomPainter {
     // Draw tooltip for selected point
     if (selectedPoint != null) {
       _drawTooltip(canvas, size, graphWidth, graphHeight, leftPadding, paddedMin, paddedMax, paddedRange, minDate, dateRange);
+    }
+
+    // Draw milestone tooltip
+    if (selectedMilestone != null) {
+      _drawMilestoneTooltip(canvas, size, graphWidth, graphHeight, leftPadding, minDate, dateRange);
     }
   }
 
@@ -517,7 +905,43 @@ class _ScoresGraphPainter extends CustomPainter {
       fontSize: 10,
     );
 
-    // Draw year labels
+    // Determine appropriate labeling based on date range
+    if (dateRange <= 90) {
+      // For short ranges, show months
+      _drawMonthLabels(canvas, size, graphWidth, graphHeight, leftPadding, minDate, maxDate, dateRange, textStyle);
+    } else {
+      // For longer ranges, show years
+      _drawYearLabels(canvas, size, graphWidth, graphHeight, leftPadding, minDate, maxDate, dateRange, textStyle);
+    }
+  }
+
+  void _drawMonthLabels(Canvas canvas, Size size, double graphWidth, double graphHeight,
+      double leftPadding, DateTime minDate, DateTime maxDate, int dateRange, TextStyle textStyle) {
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    DateTime current = DateTime(minDate.year, minDate.month, 1);
+    while (current.isBefore(maxDate)) {
+      if (current.isAfter(minDate.subtract(const Duration(days: 1)))) {
+        final dayOffset = current.difference(minDate).inDays;
+        final x = leftPadding + (dateRange > 0 ? (dayOffset / dateRange) * graphWidth : 0);
+
+        if (x >= leftPadding && x <= size.width - 30) {
+          final label = '${months[current.month - 1]}';
+          final textSpan = TextSpan(text: label, style: textStyle);
+          final textPainter = TextPainter(
+            text: textSpan,
+            textDirection: TextDirection.ltr,
+          );
+          textPainter.layout();
+          textPainter.paint(canvas, Offset(x - textPainter.width / 2, graphHeight + 8));
+        }
+      }
+      current = DateTime(current.year, current.month + 1, 1);
+    }
+  }
+
+  void _drawYearLabels(Canvas canvas, Size size, double graphWidth, double graphHeight,
+      double leftPadding, DateTime minDate, DateTime maxDate, int dateRange, TextStyle textStyle) {
     final startYear = minDate.year;
     final endYear = maxDate.year;
 
@@ -574,6 +998,47 @@ class _ScoresGraphPainter extends CustomPainter {
     }
   }
 
+  void _drawMilestones(Canvas canvas, double graphWidth, double graphHeight,
+      double leftPadding, DateTime minDate, int dateRange) {
+    for (final milestone in milestones) {
+      final dayOffset = milestone.date.difference(minDate).inDays;
+      final x = leftPadding + (dateRange > 0 ? (dayOffset / dateRange) * graphWidth : graphWidth / 2);
+
+      final isSelected = selectedMilestone == milestone;
+
+      Color lineColor;
+      try {
+        lineColor = Color(int.parse(milestone.color.replaceFirst('#', '0xFF')));
+      } catch (_) {
+        lineColor = AppColors.gold;
+      }
+
+      final linePaint = Paint()
+        ..color = isSelected ? lineColor : lineColor.withValues(alpha: 0.7)
+        ..strokeWidth = isSelected ? 2 : 1.5
+        ..style = PaintingStyle.stroke;
+
+      // Draw dashed vertical line
+      const dashHeight = 6.0;
+      const gapHeight = 4.0;
+      double y = 0;
+      while (y < graphHeight) {
+        canvas.drawLine(
+          Offset(x, y),
+          Offset(x, (y + dashHeight).clamp(0, graphHeight)),
+          linePaint,
+        );
+        y += dashHeight + gapHeight;
+      }
+
+      // Draw small marker at top
+      final markerPaint = Paint()
+        ..color = lineColor
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset(x, 4), isSelected ? 5 : 4, markerPaint);
+    }
+  }
+
   void _drawTooltip(Canvas canvas, Size size, double graphWidth, double graphHeight,
       double leftPadding, int paddedMin, int paddedMax, int paddedRange,
       DateTime minDate, int dateRange) {
@@ -625,9 +1090,66 @@ class _ScoresGraphPainter extends CustomPainter {
     textPainter.paint(canvas, Offset(tooltipX + 8, tooltipY + 6));
   }
 
+  void _drawMilestoneTooltip(Canvas canvas, Size size, double graphWidth, double graphHeight,
+      double leftPadding, DateTime minDate, int dateRange) {
+    final milestone = selectedMilestone!;
+
+    final dayOffset = milestone.date.difference(minDate).inDays;
+    final x = leftPadding + (dateRange > 0 ? (dayOffset / dateRange) * graphWidth : graphWidth / 2);
+
+    Color lineColor;
+    try {
+      lineColor = Color(int.parse(milestone.color.replaceFirst('#', '0xFF')));
+    } catch (_) {
+      lineColor = AppColors.gold;
+    }
+
+    // Tooltip text
+    final tooltipText = '${milestone.title}\n${milestone.date.day}/${milestone.date.month}/${milestone.date.year}${milestone.description != null ? '\n${milestone.description}' : ''}';
+    final textStyle = TextStyle(
+      color: AppColors.textPrimary,
+      fontSize: 11,
+    );
+    final textSpan = TextSpan(text: tooltipText, style: textStyle);
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout(maxWidth: 150);
+
+    final tooltipWidth = textPainter.width + 16;
+    final tooltipHeight = textPainter.height + 12;
+
+    // Position tooltip
+    var tooltipX = x - tooltipWidth / 2;
+    const tooltipY = 20.0;
+
+    if (tooltipX < leftPadding) tooltipX = leftPadding;
+    if (tooltipX + tooltipWidth > size.width) tooltipX = size.width - tooltipWidth;
+
+    final tooltipRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(tooltipX, tooltipY, tooltipWidth, tooltipHeight),
+      const Radius.circular(4),
+    );
+
+    final tooltipPaint = Paint()..color = AppColors.surfaceDark;
+    final borderPaint = Paint()
+      ..color = lineColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    canvas.drawRRect(tooltipRect, tooltipPaint);
+    canvas.drawRRect(tooltipRect, borderPaint);
+
+    textPainter.paint(canvas, Offset(tooltipX + 8, tooltipY + 6));
+  }
+
   @override
   bool shouldRepaint(_ScoresGraphPainter oldDelegate) {
-    return oldDelegate.points != points || oldDelegate.selectedPoint != selectedPoint;
+    return oldDelegate.points != points ||
+        oldDelegate.milestones != milestones ||
+        oldDelegate.selectedPoint != selectedPoint ||
+        oldDelegate.selectedMilestone != selectedMilestone;
   }
 }
 
