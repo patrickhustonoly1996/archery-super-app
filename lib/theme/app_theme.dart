@@ -26,7 +26,7 @@ class AppColors {
   // Text
   static const textPrimary = Color(0xFFFFFFFF);
   static const textSecondary = Color(0xFFB0B0B0);
-  static const textMuted = Color(0xFF707070);
+  static const textMuted = Color(0xFF8A8A8A); // Improved contrast (5.5:1 vs background)
 
   // Semantic
   static const error = Color(0xFFCF6679);

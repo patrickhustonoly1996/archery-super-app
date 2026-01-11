@@ -162,6 +162,7 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
 }
 
 /// Checks auth state and shows login or home screen
+/// Offline-first: Uses cached auth state, doesn't block on network
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
 
@@ -172,20 +173,31 @@ class AuthGate extends StatefulWidget {
 class _AuthGateState extends State<AuthGate> {
   bool _timedOut = false;
   bool _hasReceivedData = false;
+  User? _cachedUser;
 
   @override
   void initState() {
     super.initState();
-    // Timeout after 3 seconds - if auth check hangs, show login
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted && !_hasReceivedData) {
-        setState(() => _timedOut = true);
-      }
-    });
+    // Check cached auth state immediately (works offline)
+    _cachedUser = FirebaseAuth.instance.currentUser;
+
+    // Only set timeout if no cached user - need to wait for stream
+    if (_cachedUser == null) {
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted && !_hasReceivedData) {
+          setState(() => _timedOut = true);
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // If we have a cached user, go straight to home (offline-first)
+    if (_cachedUser != null) {
+      return const HomeScreen();
+    }
+
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
@@ -204,12 +216,12 @@ class _AuthGateState extends State<AuthGate> {
           );
         }
 
-        // User is logged in
+        // User is logged in (stream confirmed)
         if (snapshot.hasData) {
           return const HomeScreen();
         }
 
-        // User is not logged in (or timed out)
+        // User is not logged in (or timed out with no cached user)
         return const LoginScreen();
       },
     );

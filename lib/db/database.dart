@@ -266,15 +266,20 @@ class AppDatabase extends _$AppDatabase {
       );
 
   Future<int> deleteSession(String sessionId) async {
-    // Delete arrows first
-    final sessionEnds = await getEndsForSession(sessionId);
-    for (final end in sessionEnds) {
-      await (delete(arrows)..where((t) => t.endId.equals(end.id))).go();
-    }
-    // Delete ends
-    await (delete(ends)..where((t) => t.sessionId.equals(sessionId))).go();
-    // Delete session
-    return (delete(sessions)..where((t) => t.id.equals(sessionId))).go();
+    return transaction(() async {
+      // Get end IDs for batch delete
+      final sessionEnds = await getEndsForSession(sessionId);
+      final endIds = sessionEnds.map((e) => e.id).toList();
+
+      // Batch delete all arrows for all ends
+      if (endIds.isNotEmpty) {
+        await (delete(arrows)..where((t) => t.endId.isIn(endIds))).go();
+      }
+      // Delete ends
+      await (delete(ends)..where((t) => t.sessionId.equals(sessionId))).go();
+      // Delete session
+      return (delete(sessions)..where((t) => t.id.equals(sessionId))).go();
+    });
   }
 
   // ===========================================================================

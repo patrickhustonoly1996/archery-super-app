@@ -1,7 +1,7 @@
 name: archery_super_app
 description: "Archery performance tracking and arrow plotting app"
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: '>=3.10.0 <4.0.0'

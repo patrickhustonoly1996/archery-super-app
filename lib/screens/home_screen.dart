@@ -205,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 child: Text(
-                  'v1.0.0',
+                  'v1.0.1 (Build: Jan 11, 2026 - 23:00)',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.textMuted,
                       ),

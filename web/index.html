@@ -1,38 +1,120 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="Archery Super App - Training companion for archers">
 
-  <!-- iOS meta tags & icons -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="archery_super_app">
+  <!-- iOS PWA meta tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Archery">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/Icon-192.png">
+
+  <!-- Android/Chrome PWA -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#1a1a1a">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>archery_super_app</title>
+  <title>Archery Super App</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Cache busting version - updated by build script -->
+  <meta name="app-version" content="__APP_VERSION__">
+
+  <style>
+    /* Prevent flash of white during load */
+    html, body {
+      background-color: #1a1a1a;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+    /* iOS safe area handling */
+    body {
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    /* Update notification banner */
+    #update-banner {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(90deg, #FFD700, #FFA500);
+      color: #1a1a1a;
+      padding: 12px 16px;
+      text-align: center;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 999999;
+      cursor: pointer;
+      padding-top: calc(12px + env(safe-area-inset-top));
+    }
+    #update-banner:hover {
+      background: linear-gradient(90deg, #FFA500, #FF8C00);
+    }
+  </style>
 </head>
 <body>
+  <!-- Update notification banner -->
+  <div id="update-banner" onclick="location.reload(true)">
+    New version available! Tap to update.
+  </div>
+
+  <script>
+    // Service Worker Registration with Update Handling
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', async function() {
+        try {
+          const registration = await navigator.serviceWorker.register('flutter_service_worker.js');
+
+          // Check for updates immediately
+          registration.update();
+
+          // Check for updates every 60 seconds while app is open
+          setInterval(() => registration.update(), 60000);
+
+          // Handle update found
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // New version available - show update banner
+                  document.getElementById('update-banner').style.display = 'block';
+
+                  // Tell the new service worker to take over immediately
+                  newWorker.postMessage('skipWaiting');
+                }
+              });
+            }
+          });
+
+          // When controller changes (new SW activated), reload
+          let refreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+              refreshing = true;
+              window.location.reload(true);
+            }
+          });
+
+        } catch (error) {
+          console.error('Service Worker registration failed:', error);
+        }
+      });
+    }
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

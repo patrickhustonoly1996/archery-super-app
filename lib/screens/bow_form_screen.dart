@@ -130,7 +130,7 @@ class _BowFormScreenState extends State<BowFormScreen> {
             ),
             const SizedBox(height: AppSpacing.lg),
             DropdownButtonFormField<String>(
-              value: _bowType,
+              initialValue: _bowType,
               decoration: const InputDecoration(
                 labelText: 'Bow Type',
               ),
@@ -149,7 +149,7 @@ class _BowFormScreenState extends State<BowFormScreen> {
               title: const Text('Set as default bow'),
               subtitle: const Text('Use this bow by default for new sessions'),
               value: _setAsDefault,
-              activeColor: AppColors.gold,
+              activeThumbColor: AppColors.gold,
               onChanged: (value) {
                 setState(() => _setAsDefault = value);
               },

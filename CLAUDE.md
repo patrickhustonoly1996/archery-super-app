@@ -57,3 +57,42 @@ Hard to reverse → ask ONE question. Reversible → do it, state what you did.
 * Get foundations right before layering features
 * Test core interactions work reliably before adding complexity
 * Simple and correct beats feature-rich and flaky
+
+## Multi-Agent Orchestration
+
+This project uses specialized AI agents from `./agents/plugins/`. Use the Task tool with these subagent types:
+
+**Flutter/Mobile Development:**
+- `multi-platform-apps:flutter-expert` - Flutter architecture, Dart, state management, cross-platform
+- `multi-platform-apps:mobile-developer` - General mobile patterns, offline-first
+- `multi-platform-apps:ios-developer` - Native iOS/Swift when needed
+- `multi-platform-apps:ui-ux-designer` - Design systems, accessibility, wireframes
+- `multi-platform-apps:backend-architect` - API design, data sync patterns
+- `multi-platform-apps:frontend-developer` - Web/PWA components
+
+**Code Quality & Review:**
+When reviewing code or before major commits, spawn review agents in sequence:
+1. Read `./agents/plugins/comprehensive-review/commands/full-review.md` for the workflow
+2. Use code-reviewer, architect-review, and security-auditor agents
+3. Prioritize findings as P0 (critical) through P3 (backlog)
+
+**Feature Development Orchestration:**
+For complex features spanning multiple layers:
+1. Read `./agents/plugins/full-stack-orchestration/commands/full-stack-feature.md`
+2. Follow the 4-phase workflow: Architecture → Implementation → Testing → Deployment
+3. Coordinate agents in sequence, passing context between phases
+
+**When to Orchestrate:**
+- New feature development → full-stack-orchestration workflow
+- Pre-commit/PR → comprehensive-review workflow
+- Performance issues → spawn performance-engineer agent
+- Security concerns → spawn security-auditor agent
+- Architecture decisions → spawn backend-architect + flutter-expert together
+
+**Agent Invocation Pattern:**
+```
+Task tool → subagent_type="multi-platform-apps:flutter-expert"
+         → prompt="[specific task with context from previous agents]"
+```
+
+Proactively use agents when the task complexity warrants it. Don't wait to be asked.

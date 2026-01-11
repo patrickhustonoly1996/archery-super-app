@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../db/database.dart';
 import '../theme/app_theme.dart';
 
@@ -20,28 +21,43 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
   List<End> _ends = [];
   Map<String, List<Arrow>> _arrowsByEnd = {};
   bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _loadSessionData();
+    // Use addPostFrameCallback to access context after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadSessionData();
+    });
   }
 
   Future<void> _loadSessionData() async {
-    final db = AppDatabase();
-    final ends = await db.getEndsForSession(widget.session.id);
-    final arrowsByEnd = <String, List<Arrow>>{};
+    try {
+      final db = context.read<AppDatabase>();
+      final ends = await db.getEndsForSession(widget.session.id);
+      final arrowsByEnd = <String, List<Arrow>>{};
 
-    for (final end in ends) {
-      final arrows = await db.getArrowsForEnd(end.id);
-      arrowsByEnd[end.id] = arrows;
+      for (final end in ends) {
+        final arrows = await db.getArrowsForEnd(end.id);
+        arrowsByEnd[end.id] = arrows;
+      }
+
+      if (mounted) {
+        setState(() {
+          _ends = ends;
+          _arrowsByEnd = arrowsByEnd;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Failed to load session data';
+          _isLoading = false;
+        });
+      }
     }
-
-    setState(() {
-      _ends = ends;
-      _arrowsByEnd = arrowsByEnd;
-      _isLoading = false;
-    });
   }
 
   @override
@@ -62,7 +78,31 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
           ? const Center(
               child: CircularProgressIndicator(color: AppColors.gold),
             )
-          : SingleChildScrollView(
+          : _error != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline,
+                           size: 48, color: AppColors.error),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(_error!,
+                           style: TextStyle(color: AppColors.error)),
+                      const SizedBox(height: AppSpacing.md),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _isLoading = true;
+                            _error = null;
+                          });
+                          _loadSessionData();
+                        },
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
+              : SingleChildScrollView(
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

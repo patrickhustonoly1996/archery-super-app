@@ -136,7 +136,7 @@ class _QuiverFormScreenState extends State<QuiverFormScreen> {
             const SizedBox(height: AppSpacing.lg),
             if (bows.isNotEmpty)
               DropdownButtonFormField<String?>(
-                value: _selectedBowId,
+                initialValue: _selectedBowId,
                 decoration: const InputDecoration(
                   labelText: 'Link to Bow (Optional)',
                   hintText: 'Select a bow',
@@ -209,7 +209,7 @@ class _QuiverFormScreenState extends State<QuiverFormScreen> {
               title: const Text('Set as default quiver'),
               subtitle: const Text('Use this quiver by default for new sessions'),
               value: _setAsDefault,
-              activeColor: AppColors.gold,
+              activeThumbColor: AppColors.gold,
               onChanged: (value) {
                 setState(() => _setAsDefault = value);
               },
