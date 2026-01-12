@@ -151,6 +151,74 @@ class BowTrainingProvider extends ChangeNotifier {
   // SESSION CONTROLS
   // ===========================================================================
 
+  /// Start a quick session with custom duration and work/rest ratio
+  /// This generates a simple session on-the-fly without following the structured plan
+  void startQuickSession({
+    required int durationMinutes,
+    required double workRatio,
+  }) {
+    // Calculate hold and rest times based on ratio
+    // Using 40s total cycle as base
+    const cycleTime = 40.0;
+    final holdSeconds = (workRatio / (1 + workRatio) * cycleTime).round();
+    final restSeconds = (cycleTime - holdSeconds).round();
+
+    // Calculate number of reps to fill duration
+    final cycleSeconds = holdSeconds + restSeconds;
+    final totalSeconds = durationMinutes * 60;
+    final numReps = (totalSeconds / cycleSeconds).floor();
+    final volumeLoad = holdSeconds * numReps;
+
+    // Create a virtual session template
+    _activeSession = OlySessionTemplate(
+      id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
+      version: 'Quick',
+      name: '$durationMinutes min Quick Session',
+      focus: 'Custom training session',
+      durationMinutes: durationMinutes,
+      volumeLoad: volumeLoad,
+      adjustedVolumeLoad: volumeLoad, // Same as volumeLoad for quick sessions
+      workRatio: workRatio,
+      adjustedWorkRatio: workRatio, // Same as workRatio for quick sessions
+      equipment: 'Bow, elbow sling',
+      sortOrder: 0,
+      createdAt: DateTime.now(),
+    );
+
+    // Create a single exercise with all the reps
+    _exercises = [
+      OlySessionExercise(
+        id: 'quick_ex_${DateTime.now().millisecondsSinceEpoch}',
+        sessionTemplateId: _activeSession!.id,
+        exerciseTypeId: 'static_reversals', // Default exercise type
+        exerciseOrder: 1,
+        reps: numReps,
+        workSeconds: holdSeconds,
+        restSeconds: restSeconds,
+      ),
+    ];
+
+    _currentExerciseIndex = 0;
+    _currentRep = 1;
+    _phase = TimerPhase.hold;
+    _timerState = TimerState.running;
+    _secondsRemaining = holdSeconds;
+    _sessionStartedAt = DateTime.now();
+    _totalHoldSecondsActual = 0;
+    _totalRestSecondsActual = 0;
+    _completedExercises = 0;
+
+    _startTimer();
+    _playStartBeep();
+    notifyListeners();
+  }
+
+  /// Set the user's current level (called after max hold test)
+  Future<void> setUserLevel(String level) async {
+    await _db.updateUserLevel(level);
+    await loadData();
+  }
+
   /// Start a new OLY training session
   Future<void> startSession(OlySessionTemplate template) async {
     _activeSession = template;
