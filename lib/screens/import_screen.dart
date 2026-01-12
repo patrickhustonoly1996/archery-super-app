@@ -109,27 +109,48 @@ class _ImportScreenState extends State<ImportScreen> {
     if (rows.isEmpty) return [];
 
     // Try to detect header row
-    final firstRow = rows.first.map((e) => e.toString().toLowerCase()).toList();
+    final firstRow = rows.first.map((e) => e.toString().toLowerCase().trim()).toList();
     final hasHeader = firstRow.any((h) =>
         h.contains('date') || h.contains('score') || h.contains('round'));
 
     final dataRows = hasHeader ? rows.skip(1) : rows;
 
-    // Try to find columns
-    int dateCol = -1;
-    int scoreCol = -1;
-    int roundCol = -1;
-    int locationCol = -1;
+    // Column aliases for flexible matching
+    const dateAliases = ['date', 'shot_date', 'event_date', 'competition_date', 'when', 'day'];
+    const scoreAliases = ['score', 'total', 'total_score', 'points', 'result', 'final_score'];
+    const roundAliases = ['round', 'round_name', 'round_type', 'format'];
+    const locationAliases = ['location', 'venue', 'club', 'eventname', 'event_name', 'competition', 'place', 'site'];
+    const handicapAliases = ['handicap', 'hc', 'handicap_score'];
+    const hitsAliases = ['hits', 'arrows', 'arrows_shot'];
+    const goldsAliases = ['golds', '10s', 'tens'];
+    const xsAliases = ['xs', 'x_count', 'x'];
 
-    if (hasHeader) {
-      for (int i = 0; i < firstRow.length; i++) {
-        final h = firstRow[i];
-        if (h.contains('date')) dateCol = i;
-        if (h.contains('score') || h.contains('total')) scoreCol = i;
-        if (h.contains('round') || h.contains('name')) roundCol = i;
-        if (h.contains('location') || h.contains('venue')) locationCol = i;
+    // Find column index using aliases (exact match first, then contains)
+    int findColumn(List<String> aliases) {
+      // Exact match
+      for (final alias in aliases) {
+        final idx = firstRow.indexOf(alias);
+        if (idx >= 0) return idx;
       }
+      // Contains match for longer aliases only
+      for (final alias in aliases) {
+        if (alias.length >= 4) {
+          for (int i = 0; i < firstRow.length; i++) {
+            if (firstRow[i].contains(alias)) return i;
+          }
+        }
+      }
+      return -1;
     }
+
+    int dateCol = hasHeader ? findColumn(dateAliases) : -1;
+    int scoreCol = hasHeader ? findColumn(scoreAliases) : -1;
+    int roundCol = hasHeader ? findColumn(roundAliases) : -1;
+    int locationCol = hasHeader ? findColumn(locationAliases) : -1;
+    int handicapCol = hasHeader ? findColumn(handicapAliases) : -1;
+    int hitsCol = hasHeader ? findColumn(hitsAliases) : -1;
+    int goldsCol = hasHeader ? findColumn(goldsAliases) : -1;
+    int xsCol = hasHeader ? findColumn(xsAliases) : -1;
 
     // Default column positions if not found
     if (dateCol < 0) dateCol = 0;
@@ -145,25 +166,45 @@ class _ImportScreenState extends State<ImportScreen> {
         final dateStr = dateCol < row.length ? row[dateCol].toString() : '';
         final scoreStr = scoreCol < row.length ? row[scoreCol].toString() : '';
         final roundName =
-            roundCol < row.length ? row[roundCol].toString() : 'Unknown';
+            roundCol < row.length ? row[roundCol].toString().trim() : 'Unknown';
         final location =
             locationCol >= 0 && locationCol < row.length
-                ? row[locationCol].toString()
+                ? row[locationCol].toString().trim()
                 : null;
 
         // Parse date
         final date = _parseDate(dateStr);
         if (date == null) continue;
 
-        // Parse score
+        // Parse score - handle commas (e.g., "1,296" -> 1296)
         final score = int.tryParse(scoreStr.replaceAll(RegExp(r'[^0-9]'), ''));
-        if (score == null) continue;
+        if (score == null || score <= 0) continue;
+
+        // Build notes from extra fields
+        final notesParts = <String>[];
+        if (handicapCol >= 0 && handicapCol < row.length) {
+          final hc = row[handicapCol].toString().trim();
+          if (hc.isNotEmpty && hc != '0') notesParts.add('HC: $hc');
+        }
+        if (hitsCol >= 0 && hitsCol < row.length) {
+          final hits = row[hitsCol].toString().trim();
+          if (hits.isNotEmpty && hits != '0') notesParts.add('Hits: $hits');
+        }
+        if (goldsCol >= 0 && goldsCol < row.length) {
+          final golds = row[goldsCol].toString().trim();
+          if (golds.isNotEmpty && golds != '0') notesParts.add('Golds: $golds');
+        }
+        if (xsCol >= 0 && xsCol < row.length) {
+          final xs = row[xsCol].toString().trim();
+          if (xs.isNotEmpty && xs != '0') notesParts.add('Xs: $xs');
+        }
 
         drafts.add(_ImportDraft(
           date: date,
           score: score,
           roundName: roundName,
-          location: location,
+          location: location?.isEmpty == true ? null : location,
+          notes: notesParts.isEmpty ? null : notesParts.join(', '),
         ));
       } catch (_) {
         // Skip invalid rows
@@ -638,11 +679,13 @@ class _ImportDraft {
   final int score;
   final String roundName;
   final String? location;
+  final String? notes;
 
   _ImportDraft({
     required this.date,
     required this.score,
     required this.roundName,
     this.location,
+    this.notes,
   });
 }
