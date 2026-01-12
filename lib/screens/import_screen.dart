@@ -222,9 +222,10 @@ class _ImportScreenState extends State<ImportScreen> {
         continue;
       }
 
-      // Insert
+      // Insert - use unique ID with timestamp and index to avoid collisions
+      final uniqueId = '${DateTime.now().millisecondsSinceEpoch}_${draft.date.millisecondsSinceEpoch}_${draft.score}_$imported';
       await db.insertImportedScore(ImportedScoresCompanion.insert(
-        id: '${draft.date.millisecondsSinceEpoch}_${draft.score}',
+        id: uniqueId,
         date: draft.date,
         roundName: draft.roundName,
         score: draft.score,

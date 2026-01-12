@@ -6,11 +6,11 @@ import '../db/database.dart';
 
 /// Timer phases for bow training
 enum TimerPhase {
-  idle,      // Not started
-  hold,      // Holding at draw
-  rest,      // Resting between holds
-  breaking,  // Taking a longer break
-  complete,  // Session finished
+  idle,           // Not started
+  hold,           // Holding at draw
+  rest,           // Resting between reps
+  exerciseBreak,  // Transition between exercises
+  complete,       // Session finished
 }
 
 /// State of the timer
@@ -25,17 +25,35 @@ class BowTrainingProvider extends ChangeNotifier {
 
   BowTrainingProvider(this._db);
 
-  // Cached presets
-  List<BowTrainingPreset> _presets = [];
-  List<BowTrainingPreset> get presets => _presets;
+  // ===========================================================================
+  // CACHED DATA
+  // ===========================================================================
 
-  // Recent logs
-  List<BowTrainingLog> _recentLogs = [];
-  List<BowTrainingLog> get recentLogs => _recentLogs;
+  List<OlySessionTemplate> _sessionTemplates = [];
+  List<OlySessionTemplate> get sessionTemplates => _sessionTemplates;
 
-  // Active session state
-  BowTrainingPreset? _activePreset;
-  BowTrainingPreset? get activePreset => _activePreset;
+  Map<String, OlyExerciseType> _exerciseTypesMap = {};
+  List<OlyTrainingLog> _recentLogs = [];
+  List<OlyTrainingLog> get recentLogs => _recentLogs;
+
+  UserTrainingProgressData? _userProgress;
+  UserTrainingProgressData? get userProgress => _userProgress;
+
+  // ===========================================================================
+  // ACTIVE SESSION STATE
+  // ===========================================================================
+
+  OlySessionTemplate? _activeSession;
+  OlySessionTemplate? get activeSession => _activeSession;
+
+  List<OlySessionExercise> _exercises = [];
+  List<OlySessionExercise> get exercises => _exercises;
+
+  int _currentExerciseIndex = 0;
+  int get currentExerciseIndex => _currentExerciseIndex;
+
+  int _currentRep = 0;
+  int get currentRep => _currentRep;
 
   TimerPhase _phase = TimerPhase.idle;
   TimerPhase get phase => _phase;
@@ -46,105 +64,113 @@ class BowTrainingProvider extends ChangeNotifier {
   int _secondsRemaining = 0;
   int get secondsRemaining => _secondsRemaining;
 
-  int _currentSet = 0;
-  int get currentSet => _currentSet;
-
   // Session tracking
   DateTime? _sessionStartedAt;
   int _totalHoldSecondsActual = 0;
   int _totalRestSecondsActual = 0;
-  int _completedSets = 0;
-  int get completedSets => _completedSets;
-  int get totalHoldSecondsActual => _totalHoldSecondsActual;
+  int _completedExercises = 0;
 
   Timer? _timer;
 
   // ===========================================================================
-  // PRESET MANAGEMENT
+  // GETTERS
   // ===========================================================================
 
-  /// Load all presets from database
-  Future<void> loadPresets() async {
-    _presets = await _db.getAllBowTrainingPresets();
-    _recentLogs = await _db.getRecentBowTrainingLogs(limit: 5);
+  OlySessionExercise? get currentExercise {
+    if (_exercises.isEmpty || _currentExerciseIndex >= _exercises.length) {
+      return null;
+    }
+    return _exercises[_currentExerciseIndex];
+  }
+
+  OlyExerciseType? get currentExerciseType {
+    final exercise = currentExercise;
+    if (exercise == null) return null;
+    return _exerciseTypesMap[exercise.exerciseTypeId];
+  }
+
+  String get currentExerciseName {
+    return currentExerciseType?.name ?? 'Unknown';
+  }
+
+  String? get currentExerciseDetails {
+    return currentExercise?.details;
+  }
+
+  int get currentExerciseNumber => _currentExerciseIndex + 1;
+  int get totalExercises => _exercises.length;
+
+  int get currentExerciseReps => currentExercise?.reps ?? 0;
+
+  bool get isActive => _timerState != TimerState.stopped;
+
+  int get totalHoldSecondsActual => _totalHoldSecondsActual;
+  int get completedExercisesCount => _completedExercises;
+
+  // ===========================================================================
+  // DATA LOADING
+  // ===========================================================================
+
+  /// Load all session templates, exercise types, and user progress
+  Future<void> loadData() async {
+    await _db.ensureUserTrainingProgressExists();
+    await _db.ensureOlyTrainingDataExists();
+
+    _sessionTemplates = await _db.getAllOlySessionTemplates();
+    _recentLogs = await _db.getRecentOlyTrainingLogs(limit: 5);
+    _userProgress = await _db.getUserTrainingProgress();
+
+    // Load exercise types into a map for quick lookup
+    final exerciseTypes = await _db.getAllOlyExerciseTypes();
+    _exerciseTypesMap = {for (var et in exerciseTypes) et.id: et};
+
     notifyListeners();
   }
 
-  /// Create a new custom preset
-  Future<void> createPreset({
-    required String name,
-    required int holdSeconds,
-    required int restSeconds,
-    required int sets,
-    int? breakAfterSets,
-    int? breakDurationSeconds,
-  }) async {
-    final id = 'preset_${DateTime.now().millisecondsSinceEpoch}';
-    await _db.insertBowTrainingPreset(BowTrainingPresetsCompanion.insert(
-      id: id,
-      name: name,
-      holdSeconds: holdSeconds,
-      restSeconds: restSeconds,
-      sets: sets,
-      breakAfterSets: Value(breakAfterSets),
-      breakDurationSeconds: Value(breakDurationSeconds),
-    ));
-    await loadPresets();
+  /// Get sessions grouped by level (1.x, 2.x)
+  Map<String, List<OlySessionTemplate>> get sessionsByLevel {
+    final grouped = <String, List<OlySessionTemplate>>{};
+    for (final session in _sessionTemplates) {
+      final level = session.version.split('.').first;
+      grouped.putIfAbsent('Level $level', () => []).add(session);
+    }
+    return grouped;
   }
 
-  /// Update an existing preset
-  /// Set hasBreaks to false to remove breaks, or provide breakAfterSets/breakDurationSeconds to set them
-  Future<void> updatePreset({
-    required String id,
-    String? name,
-    int? holdSeconds,
-    int? restSeconds,
-    int? sets,
-    bool hasBreaks = true,
-    int? breakAfterSets,
-    int? breakDurationSeconds,
-  }) async {
-    final existing = await _db.getBowTrainingPreset(id);
-    if (existing == null) return;
+  /// Get the suggested next session based on user progress
+  OlySessionTemplate? get suggestedSession {
+    if (_userProgress == null || _sessionTemplates.isEmpty) return null;
 
-    // If hasBreaks is false, explicitly set break fields to null
-    final newBreakAfterSets = hasBreaks ? (breakAfterSets ?? existing.breakAfterSets) : null;
-    final newBreakDuration = hasBreaks ? (breakDurationSeconds ?? existing.breakDurationSeconds) : null;
-
-    await _db.updateBowTrainingPreset(BowTrainingPresetsCompanion(
-      id: Value(id),
-      name: Value(name ?? existing.name),
-      holdSeconds: Value(holdSeconds ?? existing.holdSeconds),
-      restSeconds: Value(restSeconds ?? existing.restSeconds),
-      sets: Value(sets ?? existing.sets),
-      breakAfterSets: Value(newBreakAfterSets),
-      breakDurationSeconds: Value(newBreakDuration),
-      updatedAt: Value(DateTime.now()),
-    ));
-    await loadPresets();
-  }
-
-  /// Delete a preset (hides system presets, deletes user presets)
-  Future<void> deletePreset(String id) async {
-    await _db.deleteBowTrainingPreset(id);
-    await loadPresets();
+    return _sessionTemplates.firstWhere(
+      (s) => s.version == _userProgress!.currentLevel,
+      orElse: () => _sessionTemplates.first,
+    );
   }
 
   // ===========================================================================
-  // TIMER CONTROLS
+  // SESSION CONTROLS
   // ===========================================================================
 
-  /// Start a new training session with the given preset
-  void startSession(BowTrainingPreset preset) {
-    _activePreset = preset;
+  /// Start a new OLY training session
+  Future<void> startSession(OlySessionTemplate template) async {
+    _activeSession = template;
+    _exercises = await _db.getOlySessionExercises(template.id);
+
+    if (_exercises.isEmpty) {
+      // No exercises - shouldn't happen but handle gracefully
+      _activeSession = null;
+      return;
+    }
+
+    _currentExerciseIndex = 0;
+    _currentRep = 1;
     _phase = TimerPhase.hold;
     _timerState = TimerState.running;
-    _currentSet = 1;
-    _secondsRemaining = preset.holdSeconds;
+    _secondsRemaining = _exercises.first.workSeconds;
     _sessionStartedAt = DateTime.now();
     _totalHoldSecondsActual = 0;
     _totalRestSecondsActual = 0;
-    _completedSets = 0;
+    _completedExercises = 0;
 
     _startTimer();
     _playStartBeep();
@@ -180,27 +206,53 @@ class BowTrainingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Complete the session and log it
-  Future<void> completeSession({String? notes}) async {
-    if (_activePreset == null || _sessionStartedAt == null) return;
+  /// Complete the session and log it with feedback
+  Future<void> completeSession({
+    int? feedbackShaking,
+    int? feedbackStructure,
+    int? feedbackRest,
+    String? notes,
+  }) async {
+    if (_activeSession == null || _sessionStartedAt == null) return;
 
-    final log = BowTrainingLogsCompanion.insert(
+    // Calculate progression suggestion
+    final suggestion = _calculateProgressionSuggestion(
+      feedbackShaking: feedbackShaking,
+      feedbackStructure: feedbackStructure,
+      feedbackRest: feedbackRest,
+    );
+
+    final log = OlyTrainingLogsCompanion.insert(
       id: 'log_${DateTime.now().millisecondsSinceEpoch}',
-      presetId: Value(_activePreset!.id),
-      presetName: _activePreset!.name,
-      holdSeconds: _activePreset!.holdSeconds,
-      restSeconds: _activePreset!.restSeconds,
-      plannedSets: _activePreset!.sets,
-      completedSets: _completedSets,
+      sessionTemplateId: Value(_activeSession!.id),
+      sessionVersion: _activeSession!.version,
+      sessionName: _activeSession!.name,
+      plannedDurationSeconds: _activeSession!.durationMinutes * 60,
+      actualDurationSeconds: DateTime.now().difference(_sessionStartedAt!).inSeconds,
+      plannedExercises: _exercises.length,
+      completedExercises: _completedExercises,
       totalHoldSeconds: _totalHoldSecondsActual,
       totalRestSeconds: _totalRestSecondsActual,
+      feedbackShaking: Value(feedbackShaking),
+      feedbackStructure: Value(feedbackStructure),
+      feedbackRest: Value(feedbackRest),
+      progressionSuggestion: Value(suggestion.suggestion),
+      suggestedNextVersion: Value(suggestion.nextVersion),
       notes: Value(notes),
       startedAt: _sessionStartedAt!,
       completedAt: DateTime.now(),
     );
 
-    await _db.insertBowTrainingLog(log);
-    await loadPresets(); // Refresh logs
+    await _db.insertOlyTrainingLog(log);
+
+    // Update user progress
+    await _db.updateProgressAfterSession(
+      completedVersion: _activeSession!.version,
+      suggestedNextVersion: suggestion.nextVersion,
+      progressionSuggestion: suggestion.suggestion,
+    );
+
+    await loadData(); // Refresh data
     _resetState();
     notifyListeners();
   }
@@ -222,7 +274,7 @@ class BowTrainingProvider extends ChangeNotifier {
     // Track actual time
     if (_phase == TimerPhase.hold) {
       _totalHoldSecondsActual++;
-    } else if (_phase == TimerPhase.rest || _phase == TimerPhase.breaking) {
+    } else if (_phase == TimerPhase.rest || _phase == TimerPhase.exerciseBreak) {
       _totalRestSecondsActual++;
     }
 
@@ -239,48 +291,58 @@ class BowTrainingProvider extends ChangeNotifier {
   }
 
   void _advancePhase() {
-    if (_activePreset == null) return;
+    final exercise = currentExercise;
+    if (exercise == null || _activeSession == null) return;
 
     switch (_phase) {
       case TimerPhase.hold:
-        _completedSets++;
-
-        // Check if session is complete
-        if (_currentSet >= _activePreset!.sets) {
-          _timer?.cancel();
-          _phase = TimerPhase.complete;
-          _timerState = TimerState.stopped;
-          _playCompleteSound();
-          notifyListeners();
-          return;
-        }
-
-        // Check if we need a break
-        if (_activePreset!.breakAfterSets != null &&
-            _currentSet % _activePreset!.breakAfterSets! == 0 &&
-            _activePreset!.breakDurationSeconds != null &&
-            _activePreset!.breakDurationSeconds! > 0) {
-          _phase = TimerPhase.breaking;
-          _secondsRemaining = _activePreset!.breakDurationSeconds!;
-          _playBreakBeep();
-        } else if (_activePreset!.restSeconds > 0) {
-          _phase = TimerPhase.rest;
-          _secondsRemaining = _activePreset!.restSeconds;
-          _playRestBeep();
+        // Finished a hold rep
+        if (_currentRep < exercise.reps) {
+          // More reps to go - start rest
+          if (exercise.restSeconds > 0) {
+            _phase = TimerPhase.rest;
+            _secondsRemaining = exercise.restSeconds;
+            _playRestBeep();
+          } else {
+            // No rest - go directly to next rep
+            _currentRep++;
+            _secondsRemaining = exercise.workSeconds;
+            _playHoldBeep();
+          }
         } else {
-          // Zero rest - go directly to next hold
-          _currentSet++;
-          _phase = TimerPhase.hold;
-          _secondsRemaining = _activePreset!.holdSeconds;
-          _playHoldBeep();
+          // Finished all reps for this exercise
+          _completedExercises++;
+
+          if (_currentExerciseIndex < _exercises.length - 1) {
+            // More exercises - transition to next
+            _phase = TimerPhase.exerciseBreak;
+            _secondsRemaining = 3; // 3 second transition
+            _playExerciseCompleteBeep();
+          } else {
+            // Session complete
+            _timer?.cancel();
+            _phase = TimerPhase.complete;
+            _timerState = TimerState.stopped;
+            _playCompleteSound();
+          }
         }
         break;
 
       case TimerPhase.rest:
-      case TimerPhase.breaking:
-        _currentSet++;
+        // Finished resting - start next rep
+        _currentRep++;
         _phase = TimerPhase.hold;
-        _secondsRemaining = _activePreset!.holdSeconds;
+        _secondsRemaining = exercise.workSeconds;
+        _playHoldBeep();
+        break;
+
+      case TimerPhase.exerciseBreak:
+        // Transition complete - start next exercise
+        _currentExerciseIndex++;
+        _currentRep = 1;
+        _phase = TimerPhase.hold;
+        final nextExercise = currentExercise;
+        _secondsRemaining = nextExercise?.workSeconds ?? 0;
         _playHoldBeep();
         break;
 
@@ -295,15 +357,110 @@ class BowTrainingProvider extends ChangeNotifier {
 
   void _resetState() {
     _timer?.cancel();
-    _activePreset = null;
+    _activeSession = null;
+    _exercises = [];
+    _currentExerciseIndex = 0;
+    _currentRep = 0;
     _phase = TimerPhase.idle;
     _timerState = TimerState.stopped;
     _secondsRemaining = 0;
-    _currentSet = 0;
     _sessionStartedAt = null;
     _totalHoldSecondsActual = 0;
     _totalRestSecondsActual = 0;
-    _completedSets = 0;
+    _completedExercises = 0;
+  }
+
+  // ===========================================================================
+  // PROGRESSION LOGIC
+  // ===========================================================================
+
+  ({String suggestion, String? nextVersion}) _calculateProgressionSuggestion({
+    int? feedbackShaking,
+    int? feedbackStructure,
+    int? feedbackRest,
+  }) {
+    if (_activeSession == null) {
+      return (suggestion: 'repeat', nextVersion: null);
+    }
+
+    final currentVersion = _activeSession!.version;
+
+    // Calculate completion rate
+    final completionRate = _exercises.isNotEmpty
+        ? _completedExercises / _exercises.length
+        : 0.0;
+
+    // If feedback is not provided, suggest repeat
+    if (feedbackShaking == null ||
+        feedbackStructure == null ||
+        feedbackRest == null) {
+      return (suggestion: 'repeat', nextVersion: currentVersion);
+    }
+
+    final avgScore = (feedbackShaking + feedbackStructure + feedbackRest) / 3;
+    final maxScore = [feedbackShaking, feedbackStructure, feedbackRest]
+        .reduce((a, b) => a > b ? a : b);
+
+    // Regress conditions
+    if (completionRate < 0.7 || maxScore > 7 || avgScore > 6) {
+      final previousVersion = _getPreviousVersion(currentVersion);
+      return (suggestion: 'regress', nextVersion: previousVersion);
+    }
+
+    // Progress conditions
+    if (avgScore < 4 && completionRate >= 1.0) {
+      final nextVersion = _getNextVersion(currentVersion);
+      return (suggestion: 'progress', nextVersion: nextVersion);
+    }
+
+    // Default: repeat
+    return (suggestion: 'repeat', nextVersion: currentVersion);
+  }
+
+  String _getNextVersion(String current) {
+    final parts = current.split('.');
+    if (parts.length != 2) return current;
+
+    final major = int.tryParse(parts[0]) ?? 1;
+    final minor = int.tryParse(parts[1]) ?? 0;
+
+    // Find next available version
+    final nextMinor = '$major.${minor + 1}';
+    final nextMajor = '${major + 1}.0';
+
+    // Check if next minor exists
+    if (_sessionTemplates.any((s) => s.version == nextMinor)) {
+      return nextMinor;
+    }
+    // Check if next major exists
+    if (_sessionTemplates.any((s) => s.version == nextMajor)) {
+      return nextMajor;
+    }
+
+    return current; // Stay at current if no next version
+  }
+
+  String _getPreviousVersion(String current) {
+    final parts = current.split('.');
+    if (parts.length != 2) return current;
+
+    final major = int.tryParse(parts[0]) ?? 1;
+    final minor = int.tryParse(parts[1]) ?? 0;
+
+    if (minor > 0) {
+      return '$major.${minor - 1}';
+    } else if (major > 1) {
+      // Find highest minor in previous major
+      final prevMajorSessions = _sessionTemplates
+          .where((s) => s.version.startsWith('${major - 1}.'))
+          .toList();
+      if (prevMajorSessions.isNotEmpty) {
+        prevMajorSessions.sort((a, b) => b.version.compareTo(a.version));
+        return prevMajorSessions.first.version;
+      }
+    }
+
+    return '1.0'; // Minimum version
   }
 
   // ===========================================================================
@@ -315,18 +472,18 @@ class BowTrainingProvider extends ChangeNotifier {
   }
 
   void _playHoldBeep() {
-    // Single beep for hold start
     HapticFeedback.heavyImpact();
   }
 
   void _playRestBeep() {
-    // Double beep for rest
     HapticFeedback.mediumImpact();
   }
 
-  void _playBreakBeep() {
-    // Triple beep for break
-    HapticFeedback.lightImpact();
+  void _playExerciseCompleteBeep() {
+    HapticFeedback.heavyImpact();
+    Future.delayed(const Duration(milliseconds: 100), () {
+      HapticFeedback.heavyImpact();
+    });
   }
 
   void _playTickBeep() {
@@ -335,6 +492,12 @@ class BowTrainingProvider extends ChangeNotifier {
 
   void _playCompleteSound() {
     HapticFeedback.heavyImpact();
+    Future.delayed(const Duration(milliseconds: 100), () {
+      HapticFeedback.heavyImpact();
+    });
+    Future.delayed(const Duration(milliseconds: 200), () {
+      HapticFeedback.heavyImpact();
+    });
   }
 
   // ===========================================================================
@@ -357,71 +520,73 @@ class BowTrainingProvider extends ChangeNotifier {
         return 'HOLD';
       case TimerPhase.rest:
         return 'Rest';
-      case TimerPhase.breaking:
-        return 'Break';
+      case TimerPhase.exerciseBreak:
+        return 'Next Exercise';
       case TimerPhase.complete:
         return 'Complete';
     }
   }
 
-  /// Get progress as fraction (0.0 to 1.0)
+  /// Get progress within current phase (0.0 to 1.0)
   double get phaseProgress {
-    if (_activePreset == null) return 0;
+    final exercise = currentExercise;
+    if (exercise == null) return 0;
 
     int totalSeconds;
     switch (_phase) {
       case TimerPhase.hold:
-        totalSeconds = _activePreset!.holdSeconds;
+        totalSeconds = exercise.workSeconds;
         break;
       case TimerPhase.rest:
-        totalSeconds = _activePreset!.restSeconds;
+        totalSeconds = exercise.restSeconds;
         break;
-      case TimerPhase.breaking:
-        totalSeconds = _activePreset!.breakDurationSeconds ?? 60;
+      case TimerPhase.exerciseBreak:
+        totalSeconds = 3;
         break;
       default:
         return 0;
     }
 
-    // Guard against division by zero
     if (totalSeconds <= 0) return 1.0;
-
     return 1 - (_secondsRemaining / totalSeconds);
   }
 
   /// Get overall session progress (0.0 to 1.0)
   double get sessionProgress {
-    if (_activePreset == null || _activePreset!.sets == 0) return 0;
-    return _completedSets / _activePreset!.sets;
-  }
+    if (_exercises.isEmpty) return 0;
 
-  /// Check if timer is active
-  bool get isActive => _timerState != TimerState.stopped;
+    int totalReps = _exercises.fold(0, (sum, e) => sum + e.reps);
+    if (totalReps == 0) return 0;
+
+    int completedReps = 0;
+    for (int i = 0; i < _currentExerciseIndex; i++) {
+      completedReps += _exercises[i].reps;
+    }
+    completedReps += _currentRep - 1; // Current rep in progress
+
+    return completedReps / totalReps;
+  }
 
   /// Format duration for display
   static String formatDuration(int totalSeconds) {
     final minutes = totalSeconds ~/ 60;
     final seconds = totalSeconds % 60;
     if (minutes > 0) {
-      return '$minutes min ${seconds > 0 ? '$seconds sec' : ''}';
+      return '$minutes min${seconds > 0 ? ' $seconds sec' : ''}';
     }
     return '$seconds sec';
   }
 
-  /// Calculate total session duration for a preset
-  static int calculateTotalDuration(BowTrainingPreset preset) {
-    int total = preset.sets * (preset.holdSeconds + preset.restSeconds);
+  /// Get intensity for current exercise (from exercise type or override)
+  double get currentExerciseIntensity {
+    final exercise = currentExercise;
+    if (exercise == null) return 1.0;
 
-    // Subtract rest from last set (no rest after final hold)
-    total -= preset.restSeconds;
-
-    // Add break time
-    if (preset.breakAfterSets != null && preset.breakDurationSeconds != null) {
-      final breakCount = (preset.sets - 1) ~/ preset.breakAfterSets!;
-      total += breakCount * preset.breakDurationSeconds!;
+    if (exercise.intensityOverride != null) {
+      return exercise.intensityOverride!;
     }
 
-    return total;
+    return currentExerciseType?.intensity ?? 1.0;
   }
 
   @override

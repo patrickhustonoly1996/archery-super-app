@@ -27,10 +27,11 @@ class SessionCompleteScreen extends StatelessWidget {
           body: SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Column(
+              child: SingleChildScrollView(
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Spacer(),
+                  const SizedBox(height: AppSpacing.xxl),
 
                   // Completion icon
                   Container(
@@ -66,7 +67,7 @@ class SessionCompleteScreen extends StatelessWidget {
                         ),
                   ),
 
-                  const Spacer(),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Score display
                   Text(
@@ -108,7 +109,7 @@ class SessionCompleteScreen extends StatelessWidget {
                     ],
                   ),
 
-                  const Spacer(),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // End scores summary
                   Container(
@@ -149,7 +150,7 @@ class SessionCompleteScreen extends StatelessWidget {
                     ),
                   ),
 
-                  const Spacer(),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Done button
                   SizedBox(
@@ -168,7 +169,10 @@ class SessionCompleteScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+
+                  const SizedBox(height: AppSpacing.lg),
                 ],
+                ),
               ),
             ),
           ),

@@ -3,13 +3,12 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/bow_training_provider.dart';
 import '../db/database.dart';
-import 'bow_training_presets_screen.dart';
 
-/// Main bow training timer screen
+/// Main OLY bow training screen
 class BowTrainingScreen extends StatefulWidget {
-  final BowTrainingPreset? initialPreset;
+  final OlySessionTemplate? initialSession;
 
-  const BowTrainingScreen({super.key, this.initialPreset});
+  const BowTrainingScreen({super.key, this.initialSession});
 
   @override
   State<BowTrainingScreen> createState() => _BowTrainingScreenState();
@@ -18,16 +17,21 @@ class BowTrainingScreen extends StatefulWidget {
 class _BowTrainingScreenState extends State<BowTrainingScreen> {
   final TextEditingController _notesController = TextEditingController();
 
+  // Feedback slider values
+  int _feedbackShaking = 5;
+  int _feedbackStructure = 5;
+  int _feedbackRest = 5;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<BowTrainingProvider>();
-      provider.loadPresets();
+      provider.loadData();
 
-      // Auto-start if preset provided
-      if (widget.initialPreset != null && !provider.isActive) {
-        provider.startSession(widget.initialPreset!);
+      // Auto-start if session provided
+      if (widget.initialSession != null && !provider.isActive) {
+        provider.startSession(widget.initialSession!);
       }
     });
   }
@@ -39,7 +43,6 @@ class _BowTrainingScreenState extends State<BowTrainingScreen> {
   }
 
   Future<bool> _onWillPop(BowTrainingProvider provider) async {
-    // If timer is active, show confirmation dialog
     if (provider.isActive) {
       final shouldPop = await showDialog<bool>(
         context: context,
@@ -70,24 +73,40 @@ class _BowTrainingScreenState extends State<BowTrainingScreen> {
     return true;
   }
 
+  void _resetFeedback() {
+    _feedbackShaking = 5;
+    _feedbackStructure = 5;
+    _feedbackRest = 5;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<BowTrainingProvider>(
       builder: (context, provider, _) {
-        // Show preset selection if no active session
+        // Show session selection if no active session
         if (!provider.isActive && provider.phase != TimerPhase.complete) {
-          return _PresetSelectionView(provider: provider);
+          return _SessionSelectionView(provider: provider);
         }
 
-        // Show completion screen
+        // Show completion screen with feedback
         if (provider.phase == TimerPhase.complete) {
           return _CompletionView(
             provider: provider,
             notesController: _notesController,
+            feedbackShaking: _feedbackShaking,
+            feedbackStructure: _feedbackStructure,
+            feedbackRest: _feedbackRest,
+            onShakingChanged: (v) => setState(() => _feedbackShaking = v),
+            onStructureChanged: (v) => setState(() => _feedbackStructure = v),
+            onRestChanged: (v) => setState(() => _feedbackRest = v),
+            onComplete: () {
+              _notesController.clear();
+              _resetFeedback();
+            },
           );
         }
 
-        // Show active timer with back button handling
+        // Show active timer
         return PopScope(
           canPop: false,
           onPopInvokedWithResult: (didPop, result) async {
@@ -104,11 +123,11 @@ class _BowTrainingScreenState extends State<BowTrainingScreen> {
   }
 }
 
-/// Preset selection view
-class _PresetSelectionView extends StatelessWidget {
+/// Session selection view - shows OLY sessions grouped by level
+class _SessionSelectionView extends StatelessWidget {
   final BowTrainingProvider provider;
 
-  const _PresetSelectionView({required this.provider});
+  const _SessionSelectionView({required this.provider});
 
   @override
   Widget build(BuildContext context) {
@@ -117,77 +136,75 @@ class _PresetSelectionView extends StatelessWidget {
         title: const Text('Bow Training'),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const BowTrainingPresetsScreen(),
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: SafeArea(
-        child: provider.presets.isEmpty
-            ? _EmptyPresetsView()
-            : _PresetsList(provider: provider),
+        child: provider.sessionTemplates.isEmpty
+            ? _LoadingView()
+            : _SessionsList(provider: provider),
       ),
     );
   }
 }
 
-class _EmptyPresetsView extends StatelessWidget {
+class _LoadingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.timer_outlined,
-            size: 64,
-            color: AppColors.textMuted,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            'No presets available',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColors.textMuted,
-                ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const BowTrainingPresetsScreen(),
-                ),
-              );
-            },
-            child: const Text('Create Preset'),
-          ),
+          CircularProgressIndicator(color: AppColors.gold),
+          SizedBox(height: AppSpacing.md),
+          Text('Loading sessions...'),
         ],
       ),
     );
   }
 }
 
-class _PresetsList extends StatelessWidget {
+class _SessionsList extends StatelessWidget {
   final BowTrainingProvider provider;
 
-  const _PresetsList({required this.provider});
+  const _SessionsList({required this.provider});
 
   @override
   Widget build(BuildContext context) {
+    final suggested = provider.suggestedSession;
+    final sessionsByLevel = provider.sessionsByLevel;
+
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
-        // Recent sessions header
+        // User progress summary
+        if (provider.userProgress != null) ...[
+          _ProgressSummary(progress: provider.userProgress!),
+          const SizedBox(height: AppSpacing.lg),
+        ],
+
+        // Suggested next session
+        if (suggested != null) ...[
+          Padding(
+            padding: const EdgeInsets.only(
+              left: AppSpacing.sm,
+              bottom: AppSpacing.sm,
+            ),
+            child: Text(
+              'Recommended',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.gold,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ),
+          _SessionCard(
+            session: suggested,
+            isRecommended: true,
+            onTap: () => provider.startSession(suggested),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+        ],
+
+        // Recent sessions
         if (provider.recentLogs.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.only(
@@ -206,48 +223,198 @@ class _PresetsList extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
         ],
 
-        // Presets header
-        Padding(
-          padding: const EdgeInsets.only(
-            left: AppSpacing.sm,
-            bottom: AppSpacing.sm,
-          ),
-          child: Text(
-            'Training Presets',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textMuted,
-                  fontWeight: FontWeight.w500,
-                ),
-          ),
-        ),
-
-        // Preset cards
-        ...provider.presets.map((preset) => _PresetCard(
-              preset: preset,
-              onTap: () => provider.startSession(preset),
+        // All sessions grouped by level
+        ...sessionsByLevel.entries.map((entry) => _SessionLevelGroup(
+              levelName: entry.key,
+              sessions: entry.value,
+              suggestedId: suggested?.id,
+              provider: provider,
             )),
       ],
     );
   }
 }
 
-class _PresetCard extends StatelessWidget {
-  final BowTrainingPreset preset;
+class _ProgressSummary extends StatelessWidget {
+  final UserTrainingProgressData progress;
+
+  const _ProgressSummary({required this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark,
+        borderRadius: BorderRadius.circular(AppSpacing.sm),
+        border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.gold.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(AppSpacing.sm),
+            ),
+            child: Center(
+              child: Text(
+                progress.currentLevel,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: AppColors.gold,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Current Level',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                ),
+                Text(
+                  'Session ${progress.currentLevel}',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${progress.totalSessionsCompleted}',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: AppColors.gold,
+                    ),
+              ),
+              Text(
+                'total sessions',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textMuted,
+                    ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SessionLevelGroup extends StatefulWidget {
+  final String levelName;
+  final List<OlySessionTemplate> sessions;
+  final String? suggestedId;
+  final BowTrainingProvider provider;
+
+  const _SessionLevelGroup({
+    required this.levelName,
+    required this.sessions,
+    required this.suggestedId,
+    required this.provider,
+  });
+
+  @override
+  State<_SessionLevelGroup> createState() => _SessionLevelGroupState();
+}
+
+class _SessionLevelGroupState extends State<_SessionLevelGroup> {
+  bool _expanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-expand if contains suggested session
+    if (widget.sessions.any((s) => s.id == widget.suggestedId)) {
+      _expanded = true;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () => setState(() => _expanded = !_expanded),
+          borderRadius: BorderRadius.circular(AppSpacing.sm),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.sm,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  _expanded ? Icons.expand_less : Icons.expand_more,
+                  color: AppColors.textMuted,
+                  size: 20,
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Text(
+                  widget.levelName,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  '${widget.sessions.length} sessions',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (_expanded) ...[
+          ...widget.sessions
+              .where((s) => s.id != widget.suggestedId) // Skip recommended
+              .map((session) => _SessionCard(
+                    session: session,
+                    isRecommended: false,
+                    onTap: () => widget.provider.startSession(session),
+                  )),
+          const SizedBox(height: AppSpacing.md),
+        ],
+      ],
+    );
+  }
+}
+
+class _SessionCard extends StatelessWidget {
+  final OlySessionTemplate session;
+  final bool isRecommended;
   final VoidCallback onTap;
 
-  const _PresetCard({
-    required this.preset,
+  const _SessionCard({
+    required this.session,
+    required this.isRecommended,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final totalDuration = BowTrainingProvider.calculateTotalDuration(preset);
-    final durationStr = BowTrainingProvider.formatDuration(totalDuration);
-
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      color: AppColors.surfaceDark,
+      color: isRecommended
+          ? AppColors.gold.withOpacity(0.1)
+          : AppColors.surfaceDark,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSpacing.sm),
+        side: isRecommended
+            ? BorderSide(color: AppColors.gold.withOpacity(0.5))
+            : BorderSide.none,
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.sm),
@@ -255,17 +422,26 @@ class _PresetCard extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Row(
             children: [
-              // Icon
+              // Version badge
               Container(
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.gold.withOpacity(0.1),
+                  color: isRecommended
+                      ? AppColors.gold.withOpacity(0.2)
+                      : AppColors.surfaceLight,
                   borderRadius: BorderRadius.circular(AppSpacing.sm),
                 ),
-                child: Icon(
-                  preset.isDefault ? Icons.timer : Icons.timer_outlined,
-                  color: AppColors.gold,
+                child: Center(
+                  child: Text(
+                    session.version,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: isRecommended
+                              ? AppColors.gold
+                              : AppColors.textSecondary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -276,31 +452,43 @@ class _PresetCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      preset.name,
-                      style: Theme.of(context).textTheme.labelLarge,
+                      session.name,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            color: isRecommended
+                                ? AppColors.gold
+                                : AppColors.textPrimary,
+                          ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${preset.holdSeconds}s hold / ${preset.restSeconds}s rest / ${preset.sets} sets',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
+                    if (session.focus != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        session.focus!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                      ),
+                    ],
                   ],
                 ),
               ),
 
-              // Duration
+              // Duration and play
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    durationStr,
+                    '${session.durationMinutes} min',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.gold,
+                          color: isRecommended
+                              ? AppColors.gold
+                              : AppColors.textSecondary,
                         ),
                   ),
-                  const Icon(
+                  Icon(
                     Icons.play_arrow,
-                    color: AppColors.textMuted,
+                    color: isRecommended
+                        ? AppColors.gold
+                        : AppColors.textMuted,
                     size: 20,
                   ),
                 ],
@@ -314,15 +502,15 @@ class _PresetCard extends StatelessWidget {
 }
 
 class _RecentLogCard extends StatelessWidget {
-  final BowTrainingLog log;
+  final OlyTrainingLog log;
 
   const _RecentLogCard({required this.log});
 
   @override
   Widget build(BuildContext context) {
     final dateStr = _formatDate(log.completedAt);
-    final completionRate = log.plannedSets > 0
-        ? (log.completedSets / log.plannedSets * 100).round()
+    final completionRate = log.plannedExercises > 0
+        ? (log.completedExercises / log.plannedExercises * 100).round()
         : 0;
 
     return Card(
@@ -335,15 +523,15 @@ class _RecentLogCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(
-              Icons.check_circle_outline,
-              color: AppColors.success,
+            Icon(
+              _getSuggestionIcon(log.progressionSuggestion),
+              color: _getSuggestionColor(log.progressionSuggestion),
               size: 16,
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
-                log.presetName,
+                log.sessionName,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
@@ -366,6 +554,28 @@ class _RecentLogCard extends StatelessWidget {
     );
   }
 
+  IconData _getSuggestionIcon(String? suggestion) {
+    switch (suggestion) {
+      case 'progress':
+        return Icons.arrow_upward;
+      case 'regress':
+        return Icons.arrow_downward;
+      default:
+        return Icons.check_circle_outline;
+    }
+  }
+
+  Color _getSuggestionColor(String? suggestion) {
+    switch (suggestion) {
+      case 'progress':
+        return AppColors.success;
+      case 'regress':
+        return AppColors.error;
+      default:
+        return AppColors.textMuted;
+    }
+  }
+
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final diff = now.difference(date);
@@ -382,7 +592,7 @@ class _RecentLogCard extends StatelessWidget {
   }
 }
 
-/// Active timer view
+/// Active timer view - shows current exercise and countdown
 class _ActiveTimerView extends StatelessWidget {
   final BowTrainingProvider provider;
 
@@ -391,14 +601,19 @@ class _ActiveTimerView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isHold = provider.phase == TimerPhase.hold;
-    final phaseColor = isHold ? AppColors.gold : AppColors.textSecondary;
+    final isBreak = provider.phase == TimerPhase.exerciseBreak;
+    final phaseColor = isHold
+        ? AppColors.gold
+        : isBreak
+            ? const Color(0xFF26C6DA) // Cyan for exercise transitions
+            : AppColors.textSecondary;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
       body: SafeArea(
         child: Column(
           children: [
-            // Top bar with cancel button
+            // Top bar
             Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Row(
@@ -411,13 +626,49 @@ class _ActiveTimerView extends StatelessWidget {
                       style: TextStyle(color: AppColors.textMuted),
                     ),
                   ),
-                  Text(
-                    provider.activePreset?.name ?? '',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                  Column(
+                    children: [
+                      Text(
+                        provider.activeSession?.name ?? '',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                      ),
+                      Text(
+                        'Exercise ${provider.currentExerciseNumber} of ${provider.totalExercises}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 60), // Balance
+                  const SizedBox(width: 60),
+                ],
+              ),
+            ),
+
+            // Exercise info
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: Column(
+                children: [
+                  Text(
+                    provider.currentExerciseName,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: AppColors.textPrimary,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  if (provider.currentExerciseDetails != null) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      provider.currentExerciseDetails!,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -435,7 +686,7 @@ class _ActiveTimerView extends StatelessWidget {
 
             const SizedBox(height: AppSpacing.lg),
 
-            // Main countdown display
+            // Countdown display
             _CountdownDisplay(
               time: provider.formattedTime,
               progress: provider.phaseProgress,
@@ -444,9 +695,9 @@ class _ActiveTimerView extends StatelessWidget {
 
             const SizedBox(height: AppSpacing.xl),
 
-            // Set progress
+            // Rep progress
             Text(
-              'Set ${provider.currentSet} of ${provider.activePreset?.sets ?? 0}',
+              'Rep ${provider.currentRep} of ${provider.currentExerciseReps}',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -454,7 +705,7 @@ class _ActiveTimerView extends StatelessWidget {
 
             const SizedBox(height: AppSpacing.sm),
 
-            // Progress bar
+            // Session progress bar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
               child: LinearProgressIndicator(
@@ -520,7 +771,6 @@ class _CountdownDisplay extends StatelessWidget {
     return Stack(
       alignment: Alignment.center,
       children: [
-        // Progress ring
         SizedBox(
           width: 240,
           height: 240,
@@ -531,7 +781,6 @@ class _CountdownDisplay extends StatelessWidget {
             valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
         ),
-        // Time display
         Text(
           time,
           style: TextStyle(
@@ -558,17 +807,13 @@ class _TimerControls extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Skip button
         IconButton(
           onPressed: provider.skipPhase,
           icon: const Icon(Icons.skip_next),
           iconSize: 32,
           color: AppColors.textMuted,
         ),
-
         const SizedBox(width: AppSpacing.lg),
-
-        // Play/Pause button
         Container(
           width: 72,
           height: 72,
@@ -585,33 +830,45 @@ class _TimerControls extends StatelessWidget {
             iconSize: 40,
           ),
         ),
-
         const SizedBox(width: AppSpacing.lg),
-
-        // Empty space for balance
         const SizedBox(width: 48),
       ],
     );
   }
 }
 
-/// Completion view
+/// Completion view with feedback sliders
 class _CompletionView extends StatelessWidget {
   final BowTrainingProvider provider;
   final TextEditingController notesController;
+  final int feedbackShaking;
+  final int feedbackStructure;
+  final int feedbackRest;
+  final ValueChanged<int> onShakingChanged;
+  final ValueChanged<int> onStructureChanged;
+  final ValueChanged<int> onRestChanged;
+  final VoidCallback onComplete;
 
   const _CompletionView({
     required this.provider,
     required this.notesController,
+    required this.feedbackShaking,
+    required this.feedbackStructure,
+    required this.feedbackRest,
+    required this.onShakingChanged,
+    required this.onStructureChanged,
+    required this.onRestChanged,
+    required this.onComplete,
   });
 
   @override
   Widget build(BuildContext context) {
-    final preset = provider.activePreset;
-    if (preset == null) return const SizedBox.shrink();
+    final session = provider.activeSession;
+    if (session == null) return const SizedBox.shrink();
 
-    final completionRate = preset.sets > 0
-        ? (provider.completedSets / preset.sets * 100).round()
+    final completionRate = provider.totalExercises > 0
+        ? (provider.completedExercisesCount / provider.totalExercises * 100)
+            .round()
         : 0;
 
     return Scaffold(
@@ -622,7 +879,7 @@ class _CompletionView extends StatelessWidget {
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -636,9 +893,9 @@ class _CompletionView extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.lg),
 
-              // Preset name
+              // Session name
               Text(
-                preset.name,
+                session.name,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: AppColors.gold,
                     ),
@@ -647,22 +904,55 @@ class _CompletionView extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.xl),
 
-              // Stats - use actual tracked values
+              // Stats
               _StatRow(
-                label: 'Completed Sets',
-                value: '${provider.completedSets} / ${preset.sets}',
+                label: 'Exercises Completed',
+                value:
+                    '${provider.completedExercisesCount} / ${provider.totalExercises}',
                 highlight: completionRate >= 100,
               ),
               _StatRow(
                 label: 'Total Hold Time',
                 value: BowTrainingProvider.formatDuration(
-                  provider.totalHoldSecondsActual,
-                ),
+                    provider.totalHoldSecondsActual),
               ),
               _StatRow(
                 label: 'Completion',
                 value: '$completionRate%',
                 highlight: completionRate >= 100,
+              ),
+
+              const SizedBox(height: AppSpacing.xl),
+
+              // Feedback section
+              Text(
+                'How did it feel?',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: AppSpacing.md),
+
+              _FeedbackSlider(
+                label: 'Shaking',
+                value: feedbackShaking,
+                onChanged: onShakingChanged,
+                lowLabel: 'None',
+                highLabel: 'Severe',
+              ),
+
+              _FeedbackSlider(
+                label: 'Structure',
+                value: feedbackStructure,
+                onChanged: onStructureChanged,
+                lowLabel: 'Perfect',
+                highLabel: 'Collapsing',
+              ),
+
+              _FeedbackSlider(
+                label: 'Rest',
+                value: feedbackRest,
+                onChanged: onRestChanged,
+                lowLabel: 'Too much',
+                highLabel: 'Not enough',
               ),
 
               const SizedBox(height: AppSpacing.xl),
@@ -677,17 +967,20 @@ class _CompletionView extends StatelessWidget {
                 maxLines: 3,
               ),
 
-              const Spacer(),
+              const SizedBox(height: AppSpacing.xl),
 
               // Log session button
               ElevatedButton(
                 onPressed: () async {
                   await provider.completeSession(
+                    feedbackShaking: feedbackShaking,
+                    feedbackStructure: feedbackStructure,
+                    feedbackRest: feedbackRest,
                     notes: notesController.text.isEmpty
                         ? null
                         : notesController.text,
                   );
-                  notesController.clear();
+                  onComplete();
                   if (context.mounted) {
                     Navigator.pop(context);
                   }
@@ -701,7 +994,7 @@ class _CompletionView extends StatelessWidget {
               TextButton(
                 onPressed: () {
                   provider.cancelSession();
-                  notesController.clear();
+                  onComplete();
                   Navigator.pop(context);
                 },
                 child: Text(
@@ -714,6 +1007,89 @@ class _CompletionView extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _FeedbackSlider extends StatelessWidget {
+  final String label;
+  final int value;
+  final ValueChanged<int> onChanged;
+  final String lowLabel;
+  final String highLabel;
+
+  const _FeedbackSlider({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    required this.lowLabel,
+    required this.highLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              Text(
+                '$value',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: _getValueColor(value),
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          SliderTheme(
+            data: SliderThemeData(
+              activeTrackColor: _getValueColor(value),
+              inactiveTrackColor: AppColors.surfaceDark,
+              thumbColor: _getValueColor(value),
+              overlayColor: _getValueColor(value).withOpacity(0.2),
+            ),
+            child: Slider(
+              value: value.toDouble(),
+              min: 1,
+              max: 10,
+              divisions: 9,
+              onChanged: (v) => onChanged(v.round()),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                lowLabel,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textMuted,
+                    ),
+              ),
+              Text(
+                highLabel,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textMuted,
+                    ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getValueColor(int value) {
+    if (value <= 3) return AppColors.success;
+    if (value <= 6) return AppColors.gold;
+    return AppColors.error;
   }
 }
 

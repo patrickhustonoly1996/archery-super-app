@@ -9,6 +9,8 @@ class AppFonts {
   static const String display = '.SF Pro Display'; // Falls back to system default
   // VT323 for data readouts, scores, technical info - subtle retro nod
   static const String mono = 'VT323';
+  // PressStart2P for chunky pixel titles - arcade vibe
+  static const String pixel = 'PressStart2P';
   // Body uses system default for maximum readability
   static const String body = '.SF Pro Text';
 }

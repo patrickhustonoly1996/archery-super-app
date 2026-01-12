@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../widgets/volume_chart.dart';
 import '../widgets/handicap_chart.dart';
 import 'session_detail_screen.dart';
+import 'import_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -49,7 +50,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('History'),
+        title: const Text('Scores Record'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.file_upload_outlined),
+            tooltip: 'Import Scores',
+            onPressed: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ImportScreen()),
+              );
+              // Refresh after returning from import
+              _loadHistory();
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(

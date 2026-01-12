@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../theme/app_theme.dart';
 import '../../services/breath_training_service.dart';
 import '../../widgets/breathing_visualizer.dart';
+import '../../widgets/breathing_reminder.dart';
 
 /// Patrick's long exhale test
 /// Test: Hold start to time your exhale, release to stop
@@ -18,6 +19,7 @@ class PatrickBreathScreen extends StatefulWidget {
 
 enum PatrickState {
   idle,
+  warmup,   // 2 sets of paced breathing before first test
   exhaling, // Timing the exhale
   recovery, // Paced breathing after exhale
   complete, // Session finished, showing results
@@ -27,6 +29,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
   static const int _inhaleSeconds = 4;
   static const int _exhaleSeconds = 6;
   static const int _recoveryBreaths = 4;
+  static const int _warmupBreaths = 2; // 2 sets of paced breathing before test
 
   final _service = BreathTrainingService();
 
@@ -37,13 +40,17 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
   // Current exhale test
   int _currentExhaleTime = 0;
   int _recoveryBreathCount = 0;
+  int _warmupBreathCount = 0;
   int _phaseSecondsRemaining = 0;
   double _phaseProgress = 0.0;
 
   // Session stats
-  List<int> _exhaleTimes = [];
+  final List<int> _exhaleTimes = [];
   int _bestEver = 0;
   bool _isNewRecord = false;
+
+  // Tick counter for smooth animation
+  int _tickCount = 0;
 
   @override
   void initState() {
@@ -62,6 +69,65 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  void _startWarmup() {
+    HapticFeedback.mediumImpact();
+    _timer?.cancel();
+
+    setState(() {
+      _state = PatrickState.warmup;
+      _breathPhase = BreathPhase.inhale;
+      _warmupBreathCount = 0;
+      _phaseSecondsRemaining = _inhaleSeconds;
+      _phaseProgress = 0.0;
+      _tickCount = 0;
+    });
+
+    _timer = Timer.periodic(const Duration(milliseconds: 100), _tickWarmup);
+  }
+
+  void _tickWarmup(Timer timer) {
+    _tickCount++;
+
+    if (_tickCount % 10 != 0) {
+      // Update progress smoothly with sub-second interpolation
+      final totalMs =
+          (_breathPhase == BreathPhase.inhale ? _inhaleSeconds : _exhaleSeconds) *
+              1000;
+      final subSecondMs = (_tickCount % 10) * 100;
+      final elapsedMs = totalMs - (_phaseSecondsRemaining * 1000) + subSecondMs;
+      setState(() {
+        _phaseProgress = (elapsedMs / totalMs).clamp(0.0, 1.0);
+      });
+      return;
+    }
+
+    setState(() {
+      _phaseSecondsRemaining--;
+
+      if (_phaseSecondsRemaining <= 0) {
+        HapticFeedback.lightImpact();
+
+        if (_breathPhase == BreathPhase.inhale) {
+          _breathPhase = BreathPhase.exhale;
+          _phaseSecondsRemaining = _exhaleSeconds;
+        } else {
+          _warmupBreathCount++;
+
+          if (_warmupBreathCount >= _warmupBreaths) {
+            // Warmup complete - ready for exhale test
+            _timer?.cancel();
+            _state = PatrickState.idle;
+            _breathPhase = BreathPhase.idle;
+          } else {
+            _breathPhase = BreathPhase.inhale;
+            _phaseSecondsRemaining = _inhaleSeconds;
+          }
+        }
+        _phaseProgress = 0.0;
+      }
+    });
   }
 
   void _startExhale() {
@@ -105,18 +171,22 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
       _phaseSecondsRemaining = _inhaleSeconds;
       _recoveryBreathCount = 0;
       _phaseProgress = 0.0;
+      _tickCount = 0;
     });
 
     _timer = Timer.periodic(const Duration(milliseconds: 100), _tickRecovery);
   }
 
   void _tickRecovery(Timer timer) {
-    if (timer.tick % 10 != 0) {
-      // Update progress smoothly
+    _tickCount++;
+
+    if (_tickCount % 10 != 0) {
+      // Update progress smoothly with sub-second interpolation
       final totalMs =
           (_breathPhase == BreathPhase.inhale ? _inhaleSeconds : _exhaleSeconds) *
               1000;
-      final elapsedMs = totalMs - (_phaseSecondsRemaining * 1000);
+      final subSecondMs = (_tickCount % 10) * 100;
+      final elapsedMs = totalMs - (_phaseSecondsRemaining * 1000) + subSecondMs;
       setState(() {
         _phaseProgress = (elapsedMs / totalMs).clamp(0.0, 1.0);
       });
@@ -162,6 +232,8 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
     switch (_state) {
       case PatrickState.idle:
         return _exhaleTimes.isEmpty ? 'Ready' : 'Ready for Another';
+      case PatrickState.warmup:
+        return _breathPhase == BreathPhase.inhale ? 'Breathe In' : 'Breathe Out';
       case PatrickState.exhaling:
         return 'Exhaling';
       case PatrickState.recovery:
@@ -175,8 +247,10 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
     switch (_state) {
       case PatrickState.idle:
         return _exhaleTimes.isEmpty
-            ? 'Hold the button and exhale slowly'
+            ? 'Tap Start to warm up'
             : 'Hold button to test again, or tap Done';
+      case PatrickState.warmup:
+        return 'Warmup breath ${_warmupBreathCount + 1}/$_warmupBreaths';
       case PatrickState.exhaling:
         return 'Keep going... release when empty';
       case PatrickState.recovery:
@@ -195,6 +269,9 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
   Widget build(BuildContext context) {
     final isExhaling = _state == PatrickState.exhaling;
     final isRecovering = _state == PatrickState.recovery;
+    final isWarmup = _state == PatrickState.warmup;
+    final isIdle = _state == PatrickState.idle;
+    final needsWarmup = _exhaleTimes.isEmpty && isIdle;
 
     return Scaffold(
       appBar: AppBar(
@@ -206,7 +283,16 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: _state == PatrickState.complete
               ? _buildCompleteView()
-              : Column(
+              : SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: MediaQuery.of(context).size.height -
+                          MediaQuery.of(context).padding.top -
+                          MediaQuery.of(context).padding.bottom -
+                          kToolbarHeight - 48,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // Best time display
                     if (_bestEver > 0)
@@ -238,7 +324,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
                         ),
                       ),
 
-                    const Spacer(),
+                    const SizedBox(height: AppSpacing.xl),
 
                     // Main visualizer
                     if (isExhaling)
@@ -247,7 +333,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
                       BreathingVisualizer(
                         progress: _phaseProgress,
                         phase: _breathPhase,
-                        centerText: isRecovering ? '$_phaseSecondsRemaining' : null,
+                        centerText: (isRecovering || isWarmup) ? '$_phaseSecondsRemaining' : null,
                         secondaryText: _statusText,
                       ),
 
@@ -294,7 +380,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
                       textAlign: TextAlign.center,
                     ),
 
-                    const Spacer(),
+                    const SizedBox(height: AppSpacing.xl),
 
                     // Session stats
                     if (_exhaleTimes.isNotEmpty && !isExhaling && !isRecovering)
@@ -336,11 +422,49 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
                     const SizedBox(height: AppSpacing.lg),
 
                     // Control buttons
-                    if (!isRecovering) ...[
+                    if (isWarmup) ...[
+                      // Warmup in progress - no buttons
+                      const SizedBox(
+                        height: 80,
+                        child: Center(
+                          child: Text(
+                            'Warming up...',
+                            style: TextStyle(color: AppColors.textMuted),
+                          ),
+                        ),
+                      ),
+                    ] else if (needsWarmup) ...[
+                      // First test - show Start button for warmup
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: _startWarmup,
+                          child: const Text(
+                            'Start',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ] else if (isRecovering) ...[
+                      // Recovery in progress - no buttons
+                      const SizedBox(
+                        height: 80,
+                        child: Center(
+                          child: Text(
+                            'Recovering...',
+                            style: TextStyle(color: AppColors.textMuted),
+                          ),
+                        ),
+                      ),
+                    ] else ...[
                       // Main exhale button
                       GestureDetector(
                         onLongPressStart: (_) {
-                          if (!isRecovering) _startExhale();
+                          if (!isRecovering && !isWarmup) _startExhale();
                         },
                         onLongPressEnd: (_) {
                           if (isExhaling) _stopExhale();
@@ -388,28 +512,17 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
                             ),
                           ),
                         ),
-                    ] else ...[
-                      // Recovery in progress - no buttons
-                      const SizedBox(
-                        height: 80,
-                        child: Center(
-                          child: Text(
-                            'Recovering...',
-                            style: TextStyle(color: AppColors.textMuted),
-                          ),
-                        ),
-                      ),
                     ],
 
                     const SizedBox(height: AppSpacing.md),
 
-                    Text(
-                      'Nose breathing only',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textMuted,
-                          ),
+                    BreathingReminder(
+                      isActive: _state != PatrickState.idle && _state != PatrickState.complete,
+                      isPostHold: _state == PatrickState.recovery,
                     ),
                   ],
+                    ),
+                  ),
                 ),
         ),
       ),
@@ -420,8 +533,8 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
     final avgTime =
         _exhaleTimes.reduce((a, b) => a + b) / _exhaleTimes.length;
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return SingleChildScrollView(
+      child: Column(
       children: [
         const Icon(
           Icons.check_circle_outline,
@@ -489,7 +602,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
           ),
         ),
 
-        const Spacer(),
+        const SizedBox(height: AppSpacing.xl),
 
         SizedBox(
           width: double.infinity,
@@ -506,6 +619,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
           ),
         ),
       ],
+      ),
     );
   }
 }

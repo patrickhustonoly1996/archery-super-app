@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/breathing_visualizer.dart';
+import '../../widgets/breathing_reminder.dart';
 
 /// Paced breathing session - inhale for 4, exhale for 6
 /// Continuous session until user stops
@@ -112,7 +113,16 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom -
+                    kToolbarHeight - 48,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // Info bar
               Container(
@@ -143,7 +153,7 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
                 ),
               ),
 
-              const Spacer(),
+              const SizedBox(height: AppSpacing.xl),
 
               // Breathing visualizer
               BreathingVisualizer(
@@ -153,7 +163,7 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
                 secondaryText: _isRunning ? _phaseText : 'Tap Start',
               ),
 
-              const Spacer(),
+              const SizedBox(height: AppSpacing.xl),
 
               // Stats
               if (_totalBreaths > 0 || _totalSeconds > 0)
@@ -208,13 +218,12 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
               const SizedBox(height: AppSpacing.md),
 
               // Reminder
-              Text(
-                'Nose breathing only',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textMuted,
-                    ),
+              BreathingReminder(
+                isActive: _isRunning,
               ),
             ],
+              ),
+            ),
           ),
         ),
       ),

@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'round_types_seed.dart';
+import 'oly_training_seed.dart';
 
 part 'database.g.dart';
 
@@ -164,6 +165,111 @@ class VolumeEntries extends Table {
 }
 
 // ============================================================================
+// OLY BOW TRAINING SYSTEM
+// ============================================================================
+
+/// Exercise types for OLY bow training with intensity multipliers
+class OlyExerciseTypes extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()(); // "Static reversals", "Back end movement", etc.
+  TextColumn get description => text().nullable()(); // Detailed instructions
+  RealColumn get intensity => real().withDefault(const Constant(1.0))(); // Intensity multiplier
+  TextColumn get category => text().withDefault(const Constant('static'))(); // static, movement, aimed, hold
+  TextColumn get firstIntroducedAt => text().nullable()(); // Which session level introduces this
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// OLY session templates (S1.0 through S2.5)
+class OlySessionTemplates extends Table {
+  TextColumn get id => text()();
+  TextColumn get version => text()(); // "1.0", "1.5", "2.5", etc.
+  TextColumn get name => text()(); // "Session 1.0", "Session 1.5", etc.
+  TextColumn get focus => text().nullable()(); // "Intro", "Increased holds", "Aiming intro"
+  IntColumn get durationMinutes => integer()(); // Approximate duration in minutes
+  IntColumn get volumeLoad => integer()(); // Calculated volume load
+  IntColumn get adjustedVolumeLoad => integer()(); // Volume load adjusted for intensity
+  RealColumn get workRatio => real()(); // Work ratio (work time / rest time)
+  RealColumn get adjustedWorkRatio => real()(); // Adjusted work ratio
+  TextColumn get requirements => text().nullable()(); // "Minimum 3 weeks at previous level"
+  TextColumn get equipment => text().withDefault(const Constant('Bow, elbow sling, stabilisers'))();
+  TextColumn get notes => text().nullable()(); // Additional notes for the session
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Exercises within each OLY session template
+class OlySessionExercises extends Table {
+  TextColumn get id => text()();
+  TextColumn get sessionTemplateId => text().references(OlySessionTemplates, #id)();
+  TextColumn get exerciseTypeId => text().references(OlyExerciseTypes, #id)();
+  IntColumn get exerciseOrder => integer()(); // Order within session
+  IntColumn get reps => integer()(); // Number of repetitions
+  IntColumn get workSeconds => integer()(); // Hold time per rep
+  IntColumn get restSeconds => integer()(); // Rest time between reps
+  TextColumn get details => text().nullable()(); // Specific instructions like "Push arm forward 3x5s"
+  RealColumn get intensityOverride => real().nullable()(); // Override exercise type intensity if different
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Session logs for OLY bow training (with feedback)
+class OlyTrainingLogs extends Table {
+  TextColumn get id => text()();
+  TextColumn get sessionTemplateId => text().nullable()(); // Which OLY session was done
+  TextColumn get sessionVersion => text()(); // Session version like "1.5"
+  TextColumn get sessionName => text()(); // Name at time of session
+
+  // Planned vs actual
+  IntColumn get plannedDurationSeconds => integer()();
+  IntColumn get actualDurationSeconds => integer()();
+  IntColumn get plannedExercises => integer()();
+  IntColumn get completedExercises => integer()();
+  IntColumn get totalHoldSeconds => integer()();
+  IntColumn get totalRestSeconds => integer()();
+
+  // Feedback (1-10 scales)
+  IntColumn get feedbackShaking => integer().nullable()(); // 1=none, 10=severe
+  IntColumn get feedbackStructure => integer().nullable()(); // 1=perfect, 10=collapsing
+  IntColumn get feedbackRest => integer().nullable()(); // 1=too much rest, 10=not enough
+
+  // Progression suggestion
+  TextColumn get progressionSuggestion => text().nullable()(); // "progress", "repeat", "regress"
+  TextColumn get suggestedNextVersion => text().nullable()(); // e.g., "1.6"
+
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get startedAt => dateTime()();
+  DateTimeColumn get completedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// User training progress tracking
+class UserTrainingProgress extends Table {
+  TextColumn get id => text()();
+  TextColumn get currentLevel => text().withDefault(const Constant('1.0'))();
+  IntColumn get sessionsAtCurrentLevel => integer().withDefault(const Constant(0))();
+  DateTimeColumn get lastSessionAt => dateTime().nullable()();
+  TextColumn get lastSessionVersion => text().nullable()();
+  IntColumn get totalSessionsCompleted => integer().withDefault(const Constant(0))();
+  BoolColumn get hasCompletedAssessment => boolean().withDefault(const Constant(false))();
+  IntColumn get assessmentMaxHoldSeconds => integer().nullable()();
+  DateTimeColumn get assessmentDate => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// ============================================================================
 // DATABASE
 // ============================================================================
 
@@ -178,12 +284,18 @@ class VolumeEntries extends Table {
   Quivers,
   Shafts,
   VolumeEntries,
+  // OLY Bow Training System
+  OlyExerciseTypes,
+  OlySessionTemplates,
+  OlySessionExercises,
+  OlyTrainingLogs,
+  UserTrainingProgress,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -191,6 +303,7 @@ class AppDatabase extends _$AppDatabase {
       onCreate: (Migrator m) async {
         await m.createAll();
         await _seedRoundTypes();
+        await _seedOlyTrainingData();
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from == 1) {
@@ -207,6 +320,15 @@ class AppDatabase extends _$AppDatabase {
         if (from <= 2) {
           // Add volume tracking table
           await m.createTable(volumeEntries);
+        }
+        if (from <= 3) {
+          // Add OLY bow training tables
+          await m.createTable(olyExerciseTypes);
+          await m.createTable(olySessionTemplates);
+          await m.createTable(olySessionExercises);
+          await m.createTable(olyTrainingLogs);
+          await m.createTable(userTrainingProgress);
+          await _seedOlyTrainingData();
         }
       },
     );
@@ -547,6 +669,153 @@ class AppDatabase extends _$AppDatabase {
           notes: Value(notes),
         ),
       );
+    }
+  }
+
+  // ===========================================================================
+  // OLY BOW TRAINING - EXERCISE TYPES
+  // ===========================================================================
+
+  Future<List<OlyExerciseType>> getAllOlyExerciseTypes() =>
+      (select(olyExerciseTypes)..orderBy([(t) => OrderingTerm.asc(t.sortOrder)])).get();
+
+  Future<OlyExerciseType?> getOlyExerciseType(String id) =>
+      (select(olyExerciseTypes)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<int> insertOlyExerciseType(OlyExerciseTypesCompanion exerciseType) =>
+      into(olyExerciseTypes).insert(exerciseType, mode: InsertMode.insertOrIgnore);
+
+  // ===========================================================================
+  // OLY BOW TRAINING - SESSION TEMPLATES
+  // ===========================================================================
+
+  Future<List<OlySessionTemplate>> getAllOlySessionTemplates() =>
+      (select(olySessionTemplates)..orderBy([(t) => OrderingTerm.asc(t.sortOrder)])).get();
+
+  Future<OlySessionTemplate?> getOlySessionTemplate(String id) =>
+      (select(olySessionTemplates)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<OlySessionTemplate?> getOlySessionTemplateByVersion(String version) =>
+      (select(olySessionTemplates)..where((t) => t.version.equals(version))).getSingleOrNull();
+
+  Future<int> insertOlySessionTemplate(OlySessionTemplatesCompanion template) =>
+      into(olySessionTemplates).insert(template, mode: InsertMode.insertOrIgnore);
+
+  // ===========================================================================
+  // OLY BOW TRAINING - SESSION EXERCISES
+  // ===========================================================================
+
+  Future<List<OlySessionExercise>> getOlySessionExercises(String sessionTemplateId) =>
+      (select(olySessionExercises)
+            ..where((t) => t.sessionTemplateId.equals(sessionTemplateId))
+            ..orderBy([(t) => OrderingTerm.asc(t.exerciseOrder)]))
+          .get();
+
+  Future<int> insertOlySessionExercise(OlySessionExercisesCompanion exercise) =>
+      into(olySessionExercises).insert(exercise, mode: InsertMode.insertOrIgnore);
+
+  // ===========================================================================
+  // OLY BOW TRAINING - TRAINING LOGS
+  // ===========================================================================
+
+  Future<List<OlyTrainingLog>> getAllOlyTrainingLogs() =>
+      (select(olyTrainingLogs)..orderBy([(t) => OrderingTerm.desc(t.completedAt)])).get();
+
+  Future<List<OlyTrainingLog>> getRecentOlyTrainingLogs({int limit = 10}) =>
+      (select(olyTrainingLogs)
+            ..orderBy([(t) => OrderingTerm.desc(t.completedAt)])
+            ..limit(limit))
+          .get();
+
+  Future<OlyTrainingLog?> getOlyTrainingLog(String id) =>
+      (select(olyTrainingLogs)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<int> insertOlyTrainingLog(OlyTrainingLogsCompanion log) =>
+      into(olyTrainingLogs).insert(log);
+
+  Future<bool> updateOlyTrainingLog(OlyTrainingLogsCompanion log) =>
+      update(olyTrainingLogs).replace(log);
+
+  // ===========================================================================
+  // OLY BOW TRAINING - USER PROGRESS
+  // ===========================================================================
+
+  Future<UserTrainingProgressData?> getUserTrainingProgress() =>
+      (select(userTrainingProgress)..limit(1)).getSingleOrNull();
+
+  Future<int> insertUserTrainingProgress(UserTrainingProgressCompanion progress) =>
+      into(userTrainingProgress).insert(progress);
+
+  Future<bool> updateUserTrainingProgress(UserTrainingProgressCompanion progress) =>
+      update(userTrainingProgress).replace(progress);
+
+  Future<void> ensureUserTrainingProgressExists() async {
+    final existing = await getUserTrainingProgress();
+    if (existing == null) {
+      await insertUserTrainingProgress(
+        UserTrainingProgressCompanion.insert(
+          id: 'user_progress',
+        ),
+      );
+    }
+  }
+
+  Future<void> updateProgressAfterSession({
+    required String completedVersion,
+    required String? suggestedNextVersion,
+    required String progressionSuggestion,
+  }) async {
+    final existing = await getUserTrainingProgress();
+    if (existing == null) return;
+
+    final newSessionsAtLevel = suggestedNextVersion == existing.currentLevel
+        ? existing.sessionsAtCurrentLevel + 1
+        : 1;
+
+    await updateUserTrainingProgress(
+      UserTrainingProgressCompanion(
+        id: Value(existing.id),
+        currentLevel: Value(suggestedNextVersion ?? existing.currentLevel),
+        sessionsAtCurrentLevel: Value(newSessionsAtLevel),
+        lastSessionAt: Value(DateTime.now()),
+        lastSessionVersion: Value(completedVersion),
+        totalSessionsCompleted: Value(existing.totalSessionsCompleted + 1),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // OLY TRAINING DATA SEED
+  // ===========================================================================
+
+  /// Public method to ensure OLY training data exists (re-seeds if missing)
+  Future<void> ensureOlyTrainingDataExists() async {
+    final templates = await getAllOlySessionTemplates();
+    if (templates.isEmpty) {
+      await _seedOlyTrainingData();
+    }
+  }
+
+  Future<void> _seedOlyTrainingData() async {
+    await _seedOlyExerciseTypes();
+    await _seedOlySessionTemplates();
+  }
+
+  Future<void> _seedOlyExerciseTypes() async {
+    final exerciseTypes = getOlyExerciseTypesSeed();
+    for (final et in exerciseTypes) {
+      await insertOlyExerciseType(et);
+    }
+  }
+
+  Future<void> _seedOlySessionTemplates() async {
+    final sessions = getOlySessionTemplatesSeed();
+    for (final session in sessions) {
+      await insertOlySessionTemplate(session.template);
+      for (final exercise in session.exercises) {
+        await insertOlySessionExercise(exercise);
+      }
     }
   }
 }

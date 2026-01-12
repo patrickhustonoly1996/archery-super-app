@@ -926,7 +926,7 @@ class _ScoresGraphPainter extends CustomPainter {
         final x = leftPadding + (dateRange > 0 ? (dayOffset / dateRange) * graphWidth : 0);
 
         if (x >= leftPadding && x <= size.width - 30) {
-          final label = '${months[current.month - 1]}';
+          final label = months[current.month - 1];
           final textSpan = TextSpan(text: label, style: textStyle);
           final textPainter = TextPainter(
             text: textSpan,

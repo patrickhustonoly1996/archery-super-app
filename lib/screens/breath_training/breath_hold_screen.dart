@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../theme/app_theme.dart';
 import '../../services/breath_training_service.dart';
 import '../../widgets/breathing_visualizer.dart';
+import '../../widgets/breathing_reminder.dart';
 
 /// Breath hold session with progressive difficulty
 /// Structure: paced breaths -> exhale hold -> paced recovery -> repeat
@@ -16,12 +17,18 @@ class BreathHoldScreen extends StatefulWidget {
 }
 
 enum SessionState {
-  idle,
+  setup,      // Initial setup screen
+  idle,       // Ready to start session
   pacedBreathing,
-  holdCountdown,
   holding,
   recovery,
   complete,
+}
+
+enum DifficultyLevel {
+  beginner,     // +10% per round
+  intermediate, // +20% per round
+  advanced,     // +30% per round
 }
 
 class _BreathHoldScreenState extends State<BreathHoldScreen> {
@@ -33,12 +40,16 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
   final _service = BreathTrainingService();
 
   Timer? _timer;
-  SessionState _state = SessionState.idle;
+  SessionState _state = SessionState.setup;
   BreathPhase _breathPhase = BreathPhase.idle;
 
-  // Settings
+  // Settings - configured in setup
   int _baseHoldDuration = 15;
   int _totalRounds = 5;
+  DifficultyLevel _difficulty = DifficultyLevel.intermediate;
+
+  // Available start durations
+  static const List<int> _startDurations = [5, 10, 15, 20, 25, 30];
 
   // Session progress
   int _currentRound = 0;
@@ -47,10 +58,24 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
   double _phaseProgress = 0.0;
   int _totalHoldTime = 0;
 
-  // Current hold target (increases each round)
+  // Tick counter for smooth animation
+  int _tickCount = 0;
+
+  // Get progression increment based on difficulty
+  double get _progressionIncrement {
+    switch (_difficulty) {
+      case DifficultyLevel.beginner:
+        return 0.1; // +10% per round
+      case DifficultyLevel.intermediate:
+        return 0.2; // +20% per round
+      case DifficultyLevel.advanced:
+        return 0.3; // +30% per round
+    }
+  }
+
+  // Current hold target (increases each round based on difficulty)
   int get _currentHoldTarget {
-    // Progressive: round 1 = base, each round adds ~20%
-    final progressionFactor = 1.0 + (_currentRound * 0.2);
+    final progressionFactor = 1.0 + (_currentRound * _progressionIncrement);
     return (_baseHoldDuration * progressionFactor).round();
   }
 
@@ -87,6 +112,7 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
       _phaseSecondsRemaining = _inhaleSeconds;
       _phaseProgress = 0.0;
       _totalHoldTime = 0;
+      _tickCount = 0;
     });
     _timer = Timer.periodic(const Duration(milliseconds: 100), _tick);
   }
@@ -101,7 +127,9 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
   }
 
   void _tick(Timer timer) {
-    if (timer.tick % 10 != 0) {
+    _tickCount++;
+
+    if (_tickCount % 10 != 0) {
       // Update progress smoothly between seconds
       _updateProgress();
       return;
@@ -113,9 +141,6 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
       switch (_state) {
         case SessionState.pacedBreathing:
           _handlePacedBreathing();
-          break;
-        case SessionState.holdCountdown:
-          _handleHoldCountdown();
           break;
         case SessionState.holding:
           _handleHolding();
@@ -138,9 +163,6 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
             (_breathPhase == BreathPhase.inhale ? _inhaleSeconds : _exhaleSeconds) *
                 1000;
         break;
-      case SessionState.holdCountdown:
-        totalPhaseMs = 3000; // 3 second countdown
-        break;
       case SessionState.holding:
         totalPhaseMs = _currentHoldTarget * 1000;
         break;
@@ -148,7 +170,9 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
         return;
     }
 
-    final elapsedMs = totalPhaseMs - (_phaseSecondsRemaining * 1000);
+    // Calculate elapsed time including sub-second ticks for smooth animation
+    final subSecondMs = (_tickCount % 10) * 100;
+    final elapsedMs = totalPhaseMs - (_phaseSecondsRemaining * 1000) + subSecondMs;
     setState(() {
       _phaseProgress = (elapsedMs / totalPhaseMs).clamp(0.0, 1.0);
     });
@@ -165,26 +189,17 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
         _pacedBreathCount++;
 
         if (_pacedBreathCount >= _pacedBreathsPerCycle) {
-          // Move to hold countdown
-          _state = SessionState.holdCountdown;
-          _breathPhase = BreathPhase.exhale;
-          _phaseSecondsRemaining = 3; // 3 second countdown
+          // Move directly to holding after final exhale
+          HapticFeedback.mediumImpact();
+          _state = SessionState.holding;
+          _breathPhase = BreathPhase.hold;
+          _phaseSecondsRemaining = _currentHoldTarget;
           _pacedBreathCount = 0;
         } else {
           _breathPhase = BreathPhase.inhale;
           _phaseSecondsRemaining = _inhaleSeconds;
         }
       }
-      _phaseProgress = 0.0;
-    }
-  }
-
-  void _handleHoldCountdown() {
-    if (_phaseSecondsRemaining <= 0) {
-      HapticFeedback.mediumImpact();
-      _state = SessionState.holding;
-      _breathPhase = BreathPhase.hold;
-      _phaseSecondsRemaining = _currentHoldTarget;
       _phaseProgress = 0.0;
     }
   }
@@ -238,12 +253,12 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
 
   String get _statusText {
     switch (_state) {
+      case SessionState.setup:
+        return 'Setup';
       case SessionState.idle:
         return 'Ready';
       case SessionState.pacedBreathing:
         return _breathPhase == BreathPhase.inhale ? 'Breathe In' : 'Breathe Out';
-      case SessionState.holdCountdown:
-        return 'Exhale and Hold';
       case SessionState.holding:
         return 'Hold';
       case SessionState.recovery:
@@ -255,12 +270,12 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
 
   String get _secondaryText {
     switch (_state) {
+      case SessionState.setup:
+        return 'Configure your session';
       case SessionState.idle:
         return 'Tap Start to begin';
       case SessionState.pacedBreathing:
         return 'Preparing for hold';
-      case SessionState.holdCountdown:
-        return 'Get ready';
       case SessionState.holding:
         return 'Target: ${_currentHoldTarget}s';
       case SessionState.recovery:
@@ -270,9 +285,22 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
     }
   }
 
+  String get _difficultyLabel {
+    switch (_difficulty) {
+      case DifficultyLevel.beginner:
+        return 'Beginner (+10%/round)';
+      case DifficultyLevel.intermediate:
+        return 'Intermediate (+20%/round)';
+      case DifficultyLevel.advanced:
+        return 'Advanced (+30%/round)';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isActive = _state != SessionState.idle && _state != SessionState.complete;
+    final isActive = _state != SessionState.idle &&
+                     _state != SessionState.complete &&
+                     _state != SessionState.setup;
 
     return Scaffold(
       appBar: AppBar(
@@ -282,7 +310,18 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
+          child: _state == SessionState.setup
+              ? _buildSetupView()
+              : SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom -
+                    kToolbarHeight - 48,
+              ),
+              child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // Progress indicator
               _RoundProgress(
@@ -291,7 +330,7 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
                 isComplete: _state == SessionState.complete,
               ),
 
-              const Spacer(),
+              const SizedBox(height: AppSpacing.lg),
 
               // Breathing visualizer
               BreathingVisualizer(
@@ -309,7 +348,7 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
 
-              const Spacer(),
+              const SizedBox(height: AppSpacing.xl),
 
               // Stats bar
               if (_currentRound > 0 || _state == SessionState.complete)
@@ -389,15 +428,190 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
 
               const SizedBox(height: AppSpacing.md),
 
+              BreathingReminder(
+                isActive: isActive,
+                isPostHold: _state == SessionState.recovery,
+              ),
+            ],
+          ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSetupView() {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: AppSpacing.lg),
+
+          // Title
+          Text(
+            'Configure Your Session',
+            style: Theme.of(context).textTheme.headlineSmall,
+            textAlign: TextAlign.center,
+          ),
+
+        const SizedBox(height: AppSpacing.xxl),
+
+        // Start Duration Selection
+        Text(
+          'Starting Hold Duration',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: AppColors.gold,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: _startDurations.map((duration) {
+            final isSelected = _baseHoldDuration == duration;
+            return ChoiceChip(
+              label: Text('${duration}s'),
+              selected: isSelected,
+              onSelected: (selected) {
+                if (selected) {
+                  setState(() => _baseHoldDuration = duration);
+                }
+              },
+              selectedColor: AppColors.gold,
+              backgroundColor: AppColors.surfaceDark,
+              labelStyle: TextStyle(
+                color: isSelected ? AppColors.backgroundDark : AppColors.textPrimary,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            );
+          }).toList(),
+        ),
+
+        const SizedBox(height: AppSpacing.xl),
+
+        // Difficulty Selection
+        Text(
+          'Difficulty Level',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: AppColors.gold,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        ...DifficultyLevel.values.map((level) {
+          final isSelected = _difficulty == level;
+          String label;
+          String description;
+          switch (level) {
+            case DifficultyLevel.beginner:
+              label = 'Beginner';
+              description = 'Hold increases by 10% each round';
+            case DifficultyLevel.intermediate:
+              label = 'Intermediate';
+              description = 'Hold increases by 20% each round';
+            case DifficultyLevel.advanced:
+              label = 'Advanced';
+              description = 'Hold increases by 30% each round';
+          }
+          return Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: InkWell(
+              onTap: () => setState(() => _difficulty = level),
+              borderRadius: BorderRadius.circular(AppSpacing.sm),
+              child: Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.gold.withValues(alpha: 0.15) : AppColors.surfaceDark,
+                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                  border: Border.all(
+                    color: isSelected ? AppColors.gold : Colors.transparent,
+                    width: 2,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Radio<DifficultyLevel>(
+                      value: level,
+                      groupValue: _difficulty,
+                      onChanged: (value) {
+                        if (value != null) setState(() => _difficulty = value);
+                      },
+                      activeColor: AppColors.gold,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            label,
+                            style: TextStyle(
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                              color: isSelected ? AppColors.gold : AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            description,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+
+        const SizedBox(height: AppSpacing.xl),
+
+        // Summary
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceDark,
+            borderRadius: BorderRadius.circular(AppSpacing.sm),
+          ),
+          child: Column(
+            children: [
               Text(
-                'Nose breathing only',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textMuted,
+                'Session Preview',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                '$_totalRounds rounds: ${_baseHoldDuration}s → ${(_baseHoldDuration * (1.0 + (_totalRounds - 1) * _progressionIncrement)).round()}s',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.gold,
                     ),
               ),
             ],
           ),
         ),
+
+        const SizedBox(height: AppSpacing.lg),
+
+        // Start button
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: () {
+              setState(() => _state = SessionState.idle);
+            },
+            child: const Text(
+              'Continue',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: AppSpacing.lg),
+      ],
       ),
     );
   }

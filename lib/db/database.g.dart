@@ -5026,6 +5026,3745 @@ class VolumeEntriesCompanion extends UpdateCompanion<VolumeEntry> {
   }
 }
 
+class $OlyExerciseTypesTable extends OlyExerciseTypes
+    with TableInfo<$OlyExerciseTypesTable, OlyExerciseType> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OlyExerciseTypesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _intensityMeta = const VerificationMeta(
+    'intensity',
+  );
+  @override
+  late final GeneratedColumn<double> intensity = GeneratedColumn<double>(
+    'intensity',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1.0),
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('static'),
+  );
+  static const VerificationMeta _firstIntroducedAtMeta = const VerificationMeta(
+    'firstIntroducedAt',
+  );
+  @override
+  late final GeneratedColumn<String> firstIntroducedAt =
+      GeneratedColumn<String>(
+        'first_introduced_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    description,
+    intensity,
+    category,
+    firstIntroducedAt,
+    sortOrder,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'oly_exercise_types';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OlyExerciseType> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('intensity')) {
+      context.handle(
+        _intensityMeta,
+        intensity.isAcceptableOrUnknown(data['intensity']!, _intensityMeta),
+      );
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    }
+    if (data.containsKey('first_introduced_at')) {
+      context.handle(
+        _firstIntroducedAtMeta,
+        firstIntroducedAt.isAcceptableOrUnknown(
+          data['first_introduced_at']!,
+          _firstIntroducedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  OlyExerciseType map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OlyExerciseType(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      intensity: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}intensity'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      firstIntroducedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}first_introduced_at'],
+      ),
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+    );
+  }
+
+  @override
+  $OlyExerciseTypesTable createAlias(String alias) {
+    return $OlyExerciseTypesTable(attachedDatabase, alias);
+  }
+}
+
+class OlyExerciseType extends DataClass implements Insertable<OlyExerciseType> {
+  final String id;
+  final String name;
+  final String? description;
+  final double intensity;
+  final String category;
+  final String? firstIntroducedAt;
+  final int sortOrder;
+  const OlyExerciseType({
+    required this.id,
+    required this.name,
+    this.description,
+    required this.intensity,
+    required this.category,
+    this.firstIntroducedAt,
+    required this.sortOrder,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    map['intensity'] = Variable<double>(intensity);
+    map['category'] = Variable<String>(category);
+    if (!nullToAbsent || firstIntroducedAt != null) {
+      map['first_introduced_at'] = Variable<String>(firstIntroducedAt);
+    }
+    map['sort_order'] = Variable<int>(sortOrder);
+    return map;
+  }
+
+  OlyExerciseTypesCompanion toCompanion(bool nullToAbsent) {
+    return OlyExerciseTypesCompanion(
+      id: Value(id),
+      name: Value(name),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      intensity: Value(intensity),
+      category: Value(category),
+      firstIntroducedAt: firstIntroducedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(firstIntroducedAt),
+      sortOrder: Value(sortOrder),
+    );
+  }
+
+  factory OlyExerciseType.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OlyExerciseType(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      description: serializer.fromJson<String?>(json['description']),
+      intensity: serializer.fromJson<double>(json['intensity']),
+      category: serializer.fromJson<String>(json['category']),
+      firstIntroducedAt: serializer.fromJson<String?>(
+        json['firstIntroducedAt'],
+      ),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'description': serializer.toJson<String?>(description),
+      'intensity': serializer.toJson<double>(intensity),
+      'category': serializer.toJson<String>(category),
+      'firstIntroducedAt': serializer.toJson<String?>(firstIntroducedAt),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+    };
+  }
+
+  OlyExerciseType copyWith({
+    String? id,
+    String? name,
+    Value<String?> description = const Value.absent(),
+    double? intensity,
+    String? category,
+    Value<String?> firstIntroducedAt = const Value.absent(),
+    int? sortOrder,
+  }) => OlyExerciseType(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    description: description.present ? description.value : this.description,
+    intensity: intensity ?? this.intensity,
+    category: category ?? this.category,
+    firstIntroducedAt: firstIntroducedAt.present
+        ? firstIntroducedAt.value
+        : this.firstIntroducedAt,
+    sortOrder: sortOrder ?? this.sortOrder,
+  );
+  OlyExerciseType copyWithCompanion(OlyExerciseTypesCompanion data) {
+    return OlyExerciseType(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      intensity: data.intensity.present ? data.intensity.value : this.intensity,
+      category: data.category.present ? data.category.value : this.category,
+      firstIntroducedAt: data.firstIntroducedAt.present
+          ? data.firstIntroducedAt.value
+          : this.firstIntroducedAt,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OlyExerciseType(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('intensity: $intensity, ')
+          ..write('category: $category, ')
+          ..write('firstIntroducedAt: $firstIntroducedAt, ')
+          ..write('sortOrder: $sortOrder')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    description,
+    intensity,
+    category,
+    firstIntroducedAt,
+    sortOrder,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OlyExerciseType &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.description == this.description &&
+          other.intensity == this.intensity &&
+          other.category == this.category &&
+          other.firstIntroducedAt == this.firstIntroducedAt &&
+          other.sortOrder == this.sortOrder);
+}
+
+class OlyExerciseTypesCompanion extends UpdateCompanion<OlyExerciseType> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String?> description;
+  final Value<double> intensity;
+  final Value<String> category;
+  final Value<String?> firstIntroducedAt;
+  final Value<int> sortOrder;
+  final Value<int> rowid;
+  const OlyExerciseTypesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.description = const Value.absent(),
+    this.intensity = const Value.absent(),
+    this.category = const Value.absent(),
+    this.firstIntroducedAt = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OlyExerciseTypesCompanion.insert({
+    required String id,
+    required String name,
+    this.description = const Value.absent(),
+    this.intensity = const Value.absent(),
+    this.category = const Value.absent(),
+    this.firstIntroducedAt = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name);
+  static Insertable<OlyExerciseType> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? description,
+    Expression<double>? intensity,
+    Expression<String>? category,
+    Expression<String>? firstIntroducedAt,
+    Expression<int>? sortOrder,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (intensity != null) 'intensity': intensity,
+      if (category != null) 'category': category,
+      if (firstIntroducedAt != null) 'first_introduced_at': firstIntroducedAt,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OlyExerciseTypesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String?>? description,
+    Value<double>? intensity,
+    Value<String>? category,
+    Value<String?>? firstIntroducedAt,
+    Value<int>? sortOrder,
+    Value<int>? rowid,
+  }) {
+    return OlyExerciseTypesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      intensity: intensity ?? this.intensity,
+      category: category ?? this.category,
+      firstIntroducedAt: firstIntroducedAt ?? this.firstIntroducedAt,
+      sortOrder: sortOrder ?? this.sortOrder,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (intensity.present) {
+      map['intensity'] = Variable<double>(intensity.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (firstIntroducedAt.present) {
+      map['first_introduced_at'] = Variable<String>(firstIntroducedAt.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OlyExerciseTypesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('intensity: $intensity, ')
+          ..write('category: $category, ')
+          ..write('firstIntroducedAt: $firstIntroducedAt, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $OlySessionTemplatesTable extends OlySessionTemplates
+    with TableInfo<$OlySessionTemplatesTable, OlySessionTemplate> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OlySessionTemplatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<String> version = GeneratedColumn<String>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _focusMeta = const VerificationMeta('focus');
+  @override
+  late final GeneratedColumn<String> focus = GeneratedColumn<String>(
+    'focus',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _durationMinutesMeta = const VerificationMeta(
+    'durationMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> durationMinutes = GeneratedColumn<int>(
+    'duration_minutes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _volumeLoadMeta = const VerificationMeta(
+    'volumeLoad',
+  );
+  @override
+  late final GeneratedColumn<int> volumeLoad = GeneratedColumn<int>(
+    'volume_load',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _adjustedVolumeLoadMeta =
+      const VerificationMeta('adjustedVolumeLoad');
+  @override
+  late final GeneratedColumn<int> adjustedVolumeLoad = GeneratedColumn<int>(
+    'adjusted_volume_load',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _workRatioMeta = const VerificationMeta(
+    'workRatio',
+  );
+  @override
+  late final GeneratedColumn<double> workRatio = GeneratedColumn<double>(
+    'work_ratio',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _adjustedWorkRatioMeta = const VerificationMeta(
+    'adjustedWorkRatio',
+  );
+  @override
+  late final GeneratedColumn<double> adjustedWorkRatio =
+      GeneratedColumn<double>(
+        'adjusted_work_ratio',
+        aliasedName,
+        false,
+        type: DriftSqlType.double,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _requirementsMeta = const VerificationMeta(
+    'requirements',
+  );
+  @override
+  late final GeneratedColumn<String> requirements = GeneratedColumn<String>(
+    'requirements',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _equipmentMeta = const VerificationMeta(
+    'equipment',
+  );
+  @override
+  late final GeneratedColumn<String> equipment = GeneratedColumn<String>(
+    'equipment',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('Bow, elbow sling, stabilisers'),
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    version,
+    name,
+    focus,
+    durationMinutes,
+    volumeLoad,
+    adjustedVolumeLoad,
+    workRatio,
+    adjustedWorkRatio,
+    requirements,
+    equipment,
+    notes,
+    sortOrder,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'oly_session_templates';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OlySessionTemplate> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_versionMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('focus')) {
+      context.handle(
+        _focusMeta,
+        focus.isAcceptableOrUnknown(data['focus']!, _focusMeta),
+      );
+    }
+    if (data.containsKey('duration_minutes')) {
+      context.handle(
+        _durationMinutesMeta,
+        durationMinutes.isAcceptableOrUnknown(
+          data['duration_minutes']!,
+          _durationMinutesMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_durationMinutesMeta);
+    }
+    if (data.containsKey('volume_load')) {
+      context.handle(
+        _volumeLoadMeta,
+        volumeLoad.isAcceptableOrUnknown(data['volume_load']!, _volumeLoadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_volumeLoadMeta);
+    }
+    if (data.containsKey('adjusted_volume_load')) {
+      context.handle(
+        _adjustedVolumeLoadMeta,
+        adjustedVolumeLoad.isAcceptableOrUnknown(
+          data['adjusted_volume_load']!,
+          _adjustedVolumeLoadMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_adjustedVolumeLoadMeta);
+    }
+    if (data.containsKey('work_ratio')) {
+      context.handle(
+        _workRatioMeta,
+        workRatio.isAcceptableOrUnknown(data['work_ratio']!, _workRatioMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_workRatioMeta);
+    }
+    if (data.containsKey('adjusted_work_ratio')) {
+      context.handle(
+        _adjustedWorkRatioMeta,
+        adjustedWorkRatio.isAcceptableOrUnknown(
+          data['adjusted_work_ratio']!,
+          _adjustedWorkRatioMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_adjustedWorkRatioMeta);
+    }
+    if (data.containsKey('requirements')) {
+      context.handle(
+        _requirementsMeta,
+        requirements.isAcceptableOrUnknown(
+          data['requirements']!,
+          _requirementsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('equipment')) {
+      context.handle(
+        _equipmentMeta,
+        equipment.isAcceptableOrUnknown(data['equipment']!, _equipmentMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  OlySessionTemplate map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OlySessionTemplate(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}version'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      focus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}focus'],
+      ),
+      durationMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_minutes'],
+      )!,
+      volumeLoad: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}volume_load'],
+      )!,
+      adjustedVolumeLoad: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}adjusted_volume_load'],
+      )!,
+      workRatio: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}work_ratio'],
+      )!,
+      adjustedWorkRatio: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}adjusted_work_ratio'],
+      )!,
+      requirements: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}requirements'],
+      ),
+      equipment: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}equipment'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $OlySessionTemplatesTable createAlias(String alias) {
+    return $OlySessionTemplatesTable(attachedDatabase, alias);
+  }
+}
+
+class OlySessionTemplate extends DataClass
+    implements Insertable<OlySessionTemplate> {
+  final String id;
+  final String version;
+  final String name;
+  final String? focus;
+  final int durationMinutes;
+  final int volumeLoad;
+  final int adjustedVolumeLoad;
+  final double workRatio;
+  final double adjustedWorkRatio;
+  final String? requirements;
+  final String equipment;
+  final String? notes;
+  final int sortOrder;
+  final DateTime createdAt;
+  const OlySessionTemplate({
+    required this.id,
+    required this.version,
+    required this.name,
+    this.focus,
+    required this.durationMinutes,
+    required this.volumeLoad,
+    required this.adjustedVolumeLoad,
+    required this.workRatio,
+    required this.adjustedWorkRatio,
+    this.requirements,
+    required this.equipment,
+    this.notes,
+    required this.sortOrder,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['version'] = Variable<String>(version);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || focus != null) {
+      map['focus'] = Variable<String>(focus);
+    }
+    map['duration_minutes'] = Variable<int>(durationMinutes);
+    map['volume_load'] = Variable<int>(volumeLoad);
+    map['adjusted_volume_load'] = Variable<int>(adjustedVolumeLoad);
+    map['work_ratio'] = Variable<double>(workRatio);
+    map['adjusted_work_ratio'] = Variable<double>(adjustedWorkRatio);
+    if (!nullToAbsent || requirements != null) {
+      map['requirements'] = Variable<String>(requirements);
+    }
+    map['equipment'] = Variable<String>(equipment);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  OlySessionTemplatesCompanion toCompanion(bool nullToAbsent) {
+    return OlySessionTemplatesCompanion(
+      id: Value(id),
+      version: Value(version),
+      name: Value(name),
+      focus: focus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(focus),
+      durationMinutes: Value(durationMinutes),
+      volumeLoad: Value(volumeLoad),
+      adjustedVolumeLoad: Value(adjustedVolumeLoad),
+      workRatio: Value(workRatio),
+      adjustedWorkRatio: Value(adjustedWorkRatio),
+      requirements: requirements == null && nullToAbsent
+          ? const Value.absent()
+          : Value(requirements),
+      equipment: Value(equipment),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      sortOrder: Value(sortOrder),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory OlySessionTemplate.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OlySessionTemplate(
+      id: serializer.fromJson<String>(json['id']),
+      version: serializer.fromJson<String>(json['version']),
+      name: serializer.fromJson<String>(json['name']),
+      focus: serializer.fromJson<String?>(json['focus']),
+      durationMinutes: serializer.fromJson<int>(json['durationMinutes']),
+      volumeLoad: serializer.fromJson<int>(json['volumeLoad']),
+      adjustedVolumeLoad: serializer.fromJson<int>(json['adjustedVolumeLoad']),
+      workRatio: serializer.fromJson<double>(json['workRatio']),
+      adjustedWorkRatio: serializer.fromJson<double>(json['adjustedWorkRatio']),
+      requirements: serializer.fromJson<String?>(json['requirements']),
+      equipment: serializer.fromJson<String>(json['equipment']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'version': serializer.toJson<String>(version),
+      'name': serializer.toJson<String>(name),
+      'focus': serializer.toJson<String?>(focus),
+      'durationMinutes': serializer.toJson<int>(durationMinutes),
+      'volumeLoad': serializer.toJson<int>(volumeLoad),
+      'adjustedVolumeLoad': serializer.toJson<int>(adjustedVolumeLoad),
+      'workRatio': serializer.toJson<double>(workRatio),
+      'adjustedWorkRatio': serializer.toJson<double>(adjustedWorkRatio),
+      'requirements': serializer.toJson<String?>(requirements),
+      'equipment': serializer.toJson<String>(equipment),
+      'notes': serializer.toJson<String?>(notes),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  OlySessionTemplate copyWith({
+    String? id,
+    String? version,
+    String? name,
+    Value<String?> focus = const Value.absent(),
+    int? durationMinutes,
+    int? volumeLoad,
+    int? adjustedVolumeLoad,
+    double? workRatio,
+    double? adjustedWorkRatio,
+    Value<String?> requirements = const Value.absent(),
+    String? equipment,
+    Value<String?> notes = const Value.absent(),
+    int? sortOrder,
+    DateTime? createdAt,
+  }) => OlySessionTemplate(
+    id: id ?? this.id,
+    version: version ?? this.version,
+    name: name ?? this.name,
+    focus: focus.present ? focus.value : this.focus,
+    durationMinutes: durationMinutes ?? this.durationMinutes,
+    volumeLoad: volumeLoad ?? this.volumeLoad,
+    adjustedVolumeLoad: adjustedVolumeLoad ?? this.adjustedVolumeLoad,
+    workRatio: workRatio ?? this.workRatio,
+    adjustedWorkRatio: adjustedWorkRatio ?? this.adjustedWorkRatio,
+    requirements: requirements.present ? requirements.value : this.requirements,
+    equipment: equipment ?? this.equipment,
+    notes: notes.present ? notes.value : this.notes,
+    sortOrder: sortOrder ?? this.sortOrder,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  OlySessionTemplate copyWithCompanion(OlySessionTemplatesCompanion data) {
+    return OlySessionTemplate(
+      id: data.id.present ? data.id.value : this.id,
+      version: data.version.present ? data.version.value : this.version,
+      name: data.name.present ? data.name.value : this.name,
+      focus: data.focus.present ? data.focus.value : this.focus,
+      durationMinutes: data.durationMinutes.present
+          ? data.durationMinutes.value
+          : this.durationMinutes,
+      volumeLoad: data.volumeLoad.present
+          ? data.volumeLoad.value
+          : this.volumeLoad,
+      adjustedVolumeLoad: data.adjustedVolumeLoad.present
+          ? data.adjustedVolumeLoad.value
+          : this.adjustedVolumeLoad,
+      workRatio: data.workRatio.present ? data.workRatio.value : this.workRatio,
+      adjustedWorkRatio: data.adjustedWorkRatio.present
+          ? data.adjustedWorkRatio.value
+          : this.adjustedWorkRatio,
+      requirements: data.requirements.present
+          ? data.requirements.value
+          : this.requirements,
+      equipment: data.equipment.present ? data.equipment.value : this.equipment,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OlySessionTemplate(')
+          ..write('id: $id, ')
+          ..write('version: $version, ')
+          ..write('name: $name, ')
+          ..write('focus: $focus, ')
+          ..write('durationMinutes: $durationMinutes, ')
+          ..write('volumeLoad: $volumeLoad, ')
+          ..write('adjustedVolumeLoad: $adjustedVolumeLoad, ')
+          ..write('workRatio: $workRatio, ')
+          ..write('adjustedWorkRatio: $adjustedWorkRatio, ')
+          ..write('requirements: $requirements, ')
+          ..write('equipment: $equipment, ')
+          ..write('notes: $notes, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    version,
+    name,
+    focus,
+    durationMinutes,
+    volumeLoad,
+    adjustedVolumeLoad,
+    workRatio,
+    adjustedWorkRatio,
+    requirements,
+    equipment,
+    notes,
+    sortOrder,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OlySessionTemplate &&
+          other.id == this.id &&
+          other.version == this.version &&
+          other.name == this.name &&
+          other.focus == this.focus &&
+          other.durationMinutes == this.durationMinutes &&
+          other.volumeLoad == this.volumeLoad &&
+          other.adjustedVolumeLoad == this.adjustedVolumeLoad &&
+          other.workRatio == this.workRatio &&
+          other.adjustedWorkRatio == this.adjustedWorkRatio &&
+          other.requirements == this.requirements &&
+          other.equipment == this.equipment &&
+          other.notes == this.notes &&
+          other.sortOrder == this.sortOrder &&
+          other.createdAt == this.createdAt);
+}
+
+class OlySessionTemplatesCompanion extends UpdateCompanion<OlySessionTemplate> {
+  final Value<String> id;
+  final Value<String> version;
+  final Value<String> name;
+  final Value<String?> focus;
+  final Value<int> durationMinutes;
+  final Value<int> volumeLoad;
+  final Value<int> adjustedVolumeLoad;
+  final Value<double> workRatio;
+  final Value<double> adjustedWorkRatio;
+  final Value<String?> requirements;
+  final Value<String> equipment;
+  final Value<String?> notes;
+  final Value<int> sortOrder;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const OlySessionTemplatesCompanion({
+    this.id = const Value.absent(),
+    this.version = const Value.absent(),
+    this.name = const Value.absent(),
+    this.focus = const Value.absent(),
+    this.durationMinutes = const Value.absent(),
+    this.volumeLoad = const Value.absent(),
+    this.adjustedVolumeLoad = const Value.absent(),
+    this.workRatio = const Value.absent(),
+    this.adjustedWorkRatio = const Value.absent(),
+    this.requirements = const Value.absent(),
+    this.equipment = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OlySessionTemplatesCompanion.insert({
+    required String id,
+    required String version,
+    required String name,
+    this.focus = const Value.absent(),
+    required int durationMinutes,
+    required int volumeLoad,
+    required int adjustedVolumeLoad,
+    required double workRatio,
+    required double adjustedWorkRatio,
+    this.requirements = const Value.absent(),
+    this.equipment = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       version = Value(version),
+       name = Value(name),
+       durationMinutes = Value(durationMinutes),
+       volumeLoad = Value(volumeLoad),
+       adjustedVolumeLoad = Value(adjustedVolumeLoad),
+       workRatio = Value(workRatio),
+       adjustedWorkRatio = Value(adjustedWorkRatio);
+  static Insertable<OlySessionTemplate> custom({
+    Expression<String>? id,
+    Expression<String>? version,
+    Expression<String>? name,
+    Expression<String>? focus,
+    Expression<int>? durationMinutes,
+    Expression<int>? volumeLoad,
+    Expression<int>? adjustedVolumeLoad,
+    Expression<double>? workRatio,
+    Expression<double>? adjustedWorkRatio,
+    Expression<String>? requirements,
+    Expression<String>? equipment,
+    Expression<String>? notes,
+    Expression<int>? sortOrder,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (version != null) 'version': version,
+      if (name != null) 'name': name,
+      if (focus != null) 'focus': focus,
+      if (durationMinutes != null) 'duration_minutes': durationMinutes,
+      if (volumeLoad != null) 'volume_load': volumeLoad,
+      if (adjustedVolumeLoad != null)
+        'adjusted_volume_load': adjustedVolumeLoad,
+      if (workRatio != null) 'work_ratio': workRatio,
+      if (adjustedWorkRatio != null) 'adjusted_work_ratio': adjustedWorkRatio,
+      if (requirements != null) 'requirements': requirements,
+      if (equipment != null) 'equipment': equipment,
+      if (notes != null) 'notes': notes,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OlySessionTemplatesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? version,
+    Value<String>? name,
+    Value<String?>? focus,
+    Value<int>? durationMinutes,
+    Value<int>? volumeLoad,
+    Value<int>? adjustedVolumeLoad,
+    Value<double>? workRatio,
+    Value<double>? adjustedWorkRatio,
+    Value<String?>? requirements,
+    Value<String>? equipment,
+    Value<String?>? notes,
+    Value<int>? sortOrder,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return OlySessionTemplatesCompanion(
+      id: id ?? this.id,
+      version: version ?? this.version,
+      name: name ?? this.name,
+      focus: focus ?? this.focus,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
+      volumeLoad: volumeLoad ?? this.volumeLoad,
+      adjustedVolumeLoad: adjustedVolumeLoad ?? this.adjustedVolumeLoad,
+      workRatio: workRatio ?? this.workRatio,
+      adjustedWorkRatio: adjustedWorkRatio ?? this.adjustedWorkRatio,
+      requirements: requirements ?? this.requirements,
+      equipment: equipment ?? this.equipment,
+      notes: notes ?? this.notes,
+      sortOrder: sortOrder ?? this.sortOrder,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<String>(version.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (focus.present) {
+      map['focus'] = Variable<String>(focus.value);
+    }
+    if (durationMinutes.present) {
+      map['duration_minutes'] = Variable<int>(durationMinutes.value);
+    }
+    if (volumeLoad.present) {
+      map['volume_load'] = Variable<int>(volumeLoad.value);
+    }
+    if (adjustedVolumeLoad.present) {
+      map['adjusted_volume_load'] = Variable<int>(adjustedVolumeLoad.value);
+    }
+    if (workRatio.present) {
+      map['work_ratio'] = Variable<double>(workRatio.value);
+    }
+    if (adjustedWorkRatio.present) {
+      map['adjusted_work_ratio'] = Variable<double>(adjustedWorkRatio.value);
+    }
+    if (requirements.present) {
+      map['requirements'] = Variable<String>(requirements.value);
+    }
+    if (equipment.present) {
+      map['equipment'] = Variable<String>(equipment.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OlySessionTemplatesCompanion(')
+          ..write('id: $id, ')
+          ..write('version: $version, ')
+          ..write('name: $name, ')
+          ..write('focus: $focus, ')
+          ..write('durationMinutes: $durationMinutes, ')
+          ..write('volumeLoad: $volumeLoad, ')
+          ..write('adjustedVolumeLoad: $adjustedVolumeLoad, ')
+          ..write('workRatio: $workRatio, ')
+          ..write('adjustedWorkRatio: $adjustedWorkRatio, ')
+          ..write('requirements: $requirements, ')
+          ..write('equipment: $equipment, ')
+          ..write('notes: $notes, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $OlySessionExercisesTable extends OlySessionExercises
+    with TableInfo<$OlySessionExercisesTable, OlySessionExercise> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OlySessionExercisesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sessionTemplateIdMeta = const VerificationMeta(
+    'sessionTemplateId',
+  );
+  @override
+  late final GeneratedColumn<String> sessionTemplateId =
+      GeneratedColumn<String>(
+        'session_template_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES oly_session_templates (id)',
+        ),
+      );
+  static const VerificationMeta _exerciseTypeIdMeta = const VerificationMeta(
+    'exerciseTypeId',
+  );
+  @override
+  late final GeneratedColumn<String> exerciseTypeId = GeneratedColumn<String>(
+    'exercise_type_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES oly_exercise_types (id)',
+    ),
+  );
+  static const VerificationMeta _exerciseOrderMeta = const VerificationMeta(
+    'exerciseOrder',
+  );
+  @override
+  late final GeneratedColumn<int> exerciseOrder = GeneratedColumn<int>(
+    'exercise_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _repsMeta = const VerificationMeta('reps');
+  @override
+  late final GeneratedColumn<int> reps = GeneratedColumn<int>(
+    'reps',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _workSecondsMeta = const VerificationMeta(
+    'workSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> workSeconds = GeneratedColumn<int>(
+    'work_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _restSecondsMeta = const VerificationMeta(
+    'restSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> restSeconds = GeneratedColumn<int>(
+    'rest_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _detailsMeta = const VerificationMeta(
+    'details',
+  );
+  @override
+  late final GeneratedColumn<String> details = GeneratedColumn<String>(
+    'details',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _intensityOverrideMeta = const VerificationMeta(
+    'intensityOverride',
+  );
+  @override
+  late final GeneratedColumn<double> intensityOverride =
+      GeneratedColumn<double>(
+        'intensity_override',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sessionTemplateId,
+    exerciseTypeId,
+    exerciseOrder,
+    reps,
+    workSeconds,
+    restSeconds,
+    details,
+    intensityOverride,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'oly_session_exercises';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OlySessionExercise> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('session_template_id')) {
+      context.handle(
+        _sessionTemplateIdMeta,
+        sessionTemplateId.isAcceptableOrUnknown(
+          data['session_template_id']!,
+          _sessionTemplateIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionTemplateIdMeta);
+    }
+    if (data.containsKey('exercise_type_id')) {
+      context.handle(
+        _exerciseTypeIdMeta,
+        exerciseTypeId.isAcceptableOrUnknown(
+          data['exercise_type_id']!,
+          _exerciseTypeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_exerciseTypeIdMeta);
+    }
+    if (data.containsKey('exercise_order')) {
+      context.handle(
+        _exerciseOrderMeta,
+        exerciseOrder.isAcceptableOrUnknown(
+          data['exercise_order']!,
+          _exerciseOrderMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_exerciseOrderMeta);
+    }
+    if (data.containsKey('reps')) {
+      context.handle(
+        _repsMeta,
+        reps.isAcceptableOrUnknown(data['reps']!, _repsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_repsMeta);
+    }
+    if (data.containsKey('work_seconds')) {
+      context.handle(
+        _workSecondsMeta,
+        workSeconds.isAcceptableOrUnknown(
+          data['work_seconds']!,
+          _workSecondsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_workSecondsMeta);
+    }
+    if (data.containsKey('rest_seconds')) {
+      context.handle(
+        _restSecondsMeta,
+        restSeconds.isAcceptableOrUnknown(
+          data['rest_seconds']!,
+          _restSecondsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_restSecondsMeta);
+    }
+    if (data.containsKey('details')) {
+      context.handle(
+        _detailsMeta,
+        details.isAcceptableOrUnknown(data['details']!, _detailsMeta),
+      );
+    }
+    if (data.containsKey('intensity_override')) {
+      context.handle(
+        _intensityOverrideMeta,
+        intensityOverride.isAcceptableOrUnknown(
+          data['intensity_override']!,
+          _intensityOverrideMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  OlySessionExercise map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OlySessionExercise(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      sessionTemplateId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_template_id'],
+      )!,
+      exerciseTypeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}exercise_type_id'],
+      )!,
+      exerciseOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}exercise_order'],
+      )!,
+      reps: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reps'],
+      )!,
+      workSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}work_seconds'],
+      )!,
+      restSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rest_seconds'],
+      )!,
+      details: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}details'],
+      ),
+      intensityOverride: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}intensity_override'],
+      ),
+    );
+  }
+
+  @override
+  $OlySessionExercisesTable createAlias(String alias) {
+    return $OlySessionExercisesTable(attachedDatabase, alias);
+  }
+}
+
+class OlySessionExercise extends DataClass
+    implements Insertable<OlySessionExercise> {
+  final String id;
+  final String sessionTemplateId;
+  final String exerciseTypeId;
+  final int exerciseOrder;
+  final int reps;
+  final int workSeconds;
+  final int restSeconds;
+  final String? details;
+  final double? intensityOverride;
+  const OlySessionExercise({
+    required this.id,
+    required this.sessionTemplateId,
+    required this.exerciseTypeId,
+    required this.exerciseOrder,
+    required this.reps,
+    required this.workSeconds,
+    required this.restSeconds,
+    this.details,
+    this.intensityOverride,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['session_template_id'] = Variable<String>(sessionTemplateId);
+    map['exercise_type_id'] = Variable<String>(exerciseTypeId);
+    map['exercise_order'] = Variable<int>(exerciseOrder);
+    map['reps'] = Variable<int>(reps);
+    map['work_seconds'] = Variable<int>(workSeconds);
+    map['rest_seconds'] = Variable<int>(restSeconds);
+    if (!nullToAbsent || details != null) {
+      map['details'] = Variable<String>(details);
+    }
+    if (!nullToAbsent || intensityOverride != null) {
+      map['intensity_override'] = Variable<double>(intensityOverride);
+    }
+    return map;
+  }
+
+  OlySessionExercisesCompanion toCompanion(bool nullToAbsent) {
+    return OlySessionExercisesCompanion(
+      id: Value(id),
+      sessionTemplateId: Value(sessionTemplateId),
+      exerciseTypeId: Value(exerciseTypeId),
+      exerciseOrder: Value(exerciseOrder),
+      reps: Value(reps),
+      workSeconds: Value(workSeconds),
+      restSeconds: Value(restSeconds),
+      details: details == null && nullToAbsent
+          ? const Value.absent()
+          : Value(details),
+      intensityOverride: intensityOverride == null && nullToAbsent
+          ? const Value.absent()
+          : Value(intensityOverride),
+    );
+  }
+
+  factory OlySessionExercise.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OlySessionExercise(
+      id: serializer.fromJson<String>(json['id']),
+      sessionTemplateId: serializer.fromJson<String>(json['sessionTemplateId']),
+      exerciseTypeId: serializer.fromJson<String>(json['exerciseTypeId']),
+      exerciseOrder: serializer.fromJson<int>(json['exerciseOrder']),
+      reps: serializer.fromJson<int>(json['reps']),
+      workSeconds: serializer.fromJson<int>(json['workSeconds']),
+      restSeconds: serializer.fromJson<int>(json['restSeconds']),
+      details: serializer.fromJson<String?>(json['details']),
+      intensityOverride: serializer.fromJson<double?>(
+        json['intensityOverride'],
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'sessionTemplateId': serializer.toJson<String>(sessionTemplateId),
+      'exerciseTypeId': serializer.toJson<String>(exerciseTypeId),
+      'exerciseOrder': serializer.toJson<int>(exerciseOrder),
+      'reps': serializer.toJson<int>(reps),
+      'workSeconds': serializer.toJson<int>(workSeconds),
+      'restSeconds': serializer.toJson<int>(restSeconds),
+      'details': serializer.toJson<String?>(details),
+      'intensityOverride': serializer.toJson<double?>(intensityOverride),
+    };
+  }
+
+  OlySessionExercise copyWith({
+    String? id,
+    String? sessionTemplateId,
+    String? exerciseTypeId,
+    int? exerciseOrder,
+    int? reps,
+    int? workSeconds,
+    int? restSeconds,
+    Value<String?> details = const Value.absent(),
+    Value<double?> intensityOverride = const Value.absent(),
+  }) => OlySessionExercise(
+    id: id ?? this.id,
+    sessionTemplateId: sessionTemplateId ?? this.sessionTemplateId,
+    exerciseTypeId: exerciseTypeId ?? this.exerciseTypeId,
+    exerciseOrder: exerciseOrder ?? this.exerciseOrder,
+    reps: reps ?? this.reps,
+    workSeconds: workSeconds ?? this.workSeconds,
+    restSeconds: restSeconds ?? this.restSeconds,
+    details: details.present ? details.value : this.details,
+    intensityOverride: intensityOverride.present
+        ? intensityOverride.value
+        : this.intensityOverride,
+  );
+  OlySessionExercise copyWithCompanion(OlySessionExercisesCompanion data) {
+    return OlySessionExercise(
+      id: data.id.present ? data.id.value : this.id,
+      sessionTemplateId: data.sessionTemplateId.present
+          ? data.sessionTemplateId.value
+          : this.sessionTemplateId,
+      exerciseTypeId: data.exerciseTypeId.present
+          ? data.exerciseTypeId.value
+          : this.exerciseTypeId,
+      exerciseOrder: data.exerciseOrder.present
+          ? data.exerciseOrder.value
+          : this.exerciseOrder,
+      reps: data.reps.present ? data.reps.value : this.reps,
+      workSeconds: data.workSeconds.present
+          ? data.workSeconds.value
+          : this.workSeconds,
+      restSeconds: data.restSeconds.present
+          ? data.restSeconds.value
+          : this.restSeconds,
+      details: data.details.present ? data.details.value : this.details,
+      intensityOverride: data.intensityOverride.present
+          ? data.intensityOverride.value
+          : this.intensityOverride,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OlySessionExercise(')
+          ..write('id: $id, ')
+          ..write('sessionTemplateId: $sessionTemplateId, ')
+          ..write('exerciseTypeId: $exerciseTypeId, ')
+          ..write('exerciseOrder: $exerciseOrder, ')
+          ..write('reps: $reps, ')
+          ..write('workSeconds: $workSeconds, ')
+          ..write('restSeconds: $restSeconds, ')
+          ..write('details: $details, ')
+          ..write('intensityOverride: $intensityOverride')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    sessionTemplateId,
+    exerciseTypeId,
+    exerciseOrder,
+    reps,
+    workSeconds,
+    restSeconds,
+    details,
+    intensityOverride,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OlySessionExercise &&
+          other.id == this.id &&
+          other.sessionTemplateId == this.sessionTemplateId &&
+          other.exerciseTypeId == this.exerciseTypeId &&
+          other.exerciseOrder == this.exerciseOrder &&
+          other.reps == this.reps &&
+          other.workSeconds == this.workSeconds &&
+          other.restSeconds == this.restSeconds &&
+          other.details == this.details &&
+          other.intensityOverride == this.intensityOverride);
+}
+
+class OlySessionExercisesCompanion extends UpdateCompanion<OlySessionExercise> {
+  final Value<String> id;
+  final Value<String> sessionTemplateId;
+  final Value<String> exerciseTypeId;
+  final Value<int> exerciseOrder;
+  final Value<int> reps;
+  final Value<int> workSeconds;
+  final Value<int> restSeconds;
+  final Value<String?> details;
+  final Value<double?> intensityOverride;
+  final Value<int> rowid;
+  const OlySessionExercisesCompanion({
+    this.id = const Value.absent(),
+    this.sessionTemplateId = const Value.absent(),
+    this.exerciseTypeId = const Value.absent(),
+    this.exerciseOrder = const Value.absent(),
+    this.reps = const Value.absent(),
+    this.workSeconds = const Value.absent(),
+    this.restSeconds = const Value.absent(),
+    this.details = const Value.absent(),
+    this.intensityOverride = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OlySessionExercisesCompanion.insert({
+    required String id,
+    required String sessionTemplateId,
+    required String exerciseTypeId,
+    required int exerciseOrder,
+    required int reps,
+    required int workSeconds,
+    required int restSeconds,
+    this.details = const Value.absent(),
+    this.intensityOverride = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       sessionTemplateId = Value(sessionTemplateId),
+       exerciseTypeId = Value(exerciseTypeId),
+       exerciseOrder = Value(exerciseOrder),
+       reps = Value(reps),
+       workSeconds = Value(workSeconds),
+       restSeconds = Value(restSeconds);
+  static Insertable<OlySessionExercise> custom({
+    Expression<String>? id,
+    Expression<String>? sessionTemplateId,
+    Expression<String>? exerciseTypeId,
+    Expression<int>? exerciseOrder,
+    Expression<int>? reps,
+    Expression<int>? workSeconds,
+    Expression<int>? restSeconds,
+    Expression<String>? details,
+    Expression<double>? intensityOverride,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sessionTemplateId != null) 'session_template_id': sessionTemplateId,
+      if (exerciseTypeId != null) 'exercise_type_id': exerciseTypeId,
+      if (exerciseOrder != null) 'exercise_order': exerciseOrder,
+      if (reps != null) 'reps': reps,
+      if (workSeconds != null) 'work_seconds': workSeconds,
+      if (restSeconds != null) 'rest_seconds': restSeconds,
+      if (details != null) 'details': details,
+      if (intensityOverride != null) 'intensity_override': intensityOverride,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OlySessionExercisesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? sessionTemplateId,
+    Value<String>? exerciseTypeId,
+    Value<int>? exerciseOrder,
+    Value<int>? reps,
+    Value<int>? workSeconds,
+    Value<int>? restSeconds,
+    Value<String?>? details,
+    Value<double?>? intensityOverride,
+    Value<int>? rowid,
+  }) {
+    return OlySessionExercisesCompanion(
+      id: id ?? this.id,
+      sessionTemplateId: sessionTemplateId ?? this.sessionTemplateId,
+      exerciseTypeId: exerciseTypeId ?? this.exerciseTypeId,
+      exerciseOrder: exerciseOrder ?? this.exerciseOrder,
+      reps: reps ?? this.reps,
+      workSeconds: workSeconds ?? this.workSeconds,
+      restSeconds: restSeconds ?? this.restSeconds,
+      details: details ?? this.details,
+      intensityOverride: intensityOverride ?? this.intensityOverride,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (sessionTemplateId.present) {
+      map['session_template_id'] = Variable<String>(sessionTemplateId.value);
+    }
+    if (exerciseTypeId.present) {
+      map['exercise_type_id'] = Variable<String>(exerciseTypeId.value);
+    }
+    if (exerciseOrder.present) {
+      map['exercise_order'] = Variable<int>(exerciseOrder.value);
+    }
+    if (reps.present) {
+      map['reps'] = Variable<int>(reps.value);
+    }
+    if (workSeconds.present) {
+      map['work_seconds'] = Variable<int>(workSeconds.value);
+    }
+    if (restSeconds.present) {
+      map['rest_seconds'] = Variable<int>(restSeconds.value);
+    }
+    if (details.present) {
+      map['details'] = Variable<String>(details.value);
+    }
+    if (intensityOverride.present) {
+      map['intensity_override'] = Variable<double>(intensityOverride.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OlySessionExercisesCompanion(')
+          ..write('id: $id, ')
+          ..write('sessionTemplateId: $sessionTemplateId, ')
+          ..write('exerciseTypeId: $exerciseTypeId, ')
+          ..write('exerciseOrder: $exerciseOrder, ')
+          ..write('reps: $reps, ')
+          ..write('workSeconds: $workSeconds, ')
+          ..write('restSeconds: $restSeconds, ')
+          ..write('details: $details, ')
+          ..write('intensityOverride: $intensityOverride, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $OlyTrainingLogsTable extends OlyTrainingLogs
+    with TableInfo<$OlyTrainingLogsTable, OlyTrainingLog> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OlyTrainingLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sessionTemplateIdMeta = const VerificationMeta(
+    'sessionTemplateId',
+  );
+  @override
+  late final GeneratedColumn<String> sessionTemplateId =
+      GeneratedColumn<String>(
+        'session_template_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _sessionVersionMeta = const VerificationMeta(
+    'sessionVersion',
+  );
+  @override
+  late final GeneratedColumn<String> sessionVersion = GeneratedColumn<String>(
+    'session_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sessionNameMeta = const VerificationMeta(
+    'sessionName',
+  );
+  @override
+  late final GeneratedColumn<String> sessionName = GeneratedColumn<String>(
+    'session_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _plannedDurationSecondsMeta =
+      const VerificationMeta('plannedDurationSeconds');
+  @override
+  late final GeneratedColumn<int> plannedDurationSeconds = GeneratedColumn<int>(
+    'planned_duration_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _actualDurationSecondsMeta =
+      const VerificationMeta('actualDurationSeconds');
+  @override
+  late final GeneratedColumn<int> actualDurationSeconds = GeneratedColumn<int>(
+    'actual_duration_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _plannedExercisesMeta = const VerificationMeta(
+    'plannedExercises',
+  );
+  @override
+  late final GeneratedColumn<int> plannedExercises = GeneratedColumn<int>(
+    'planned_exercises',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _completedExercisesMeta =
+      const VerificationMeta('completedExercises');
+  @override
+  late final GeneratedColumn<int> completedExercises = GeneratedColumn<int>(
+    'completed_exercises',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _totalHoldSecondsMeta = const VerificationMeta(
+    'totalHoldSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> totalHoldSeconds = GeneratedColumn<int>(
+    'total_hold_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _totalRestSecondsMeta = const VerificationMeta(
+    'totalRestSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> totalRestSeconds = GeneratedColumn<int>(
+    'total_rest_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _feedbackShakingMeta = const VerificationMeta(
+    'feedbackShaking',
+  );
+  @override
+  late final GeneratedColumn<int> feedbackShaking = GeneratedColumn<int>(
+    'feedback_shaking',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _feedbackStructureMeta = const VerificationMeta(
+    'feedbackStructure',
+  );
+  @override
+  late final GeneratedColumn<int> feedbackStructure = GeneratedColumn<int>(
+    'feedback_structure',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _feedbackRestMeta = const VerificationMeta(
+    'feedbackRest',
+  );
+  @override
+  late final GeneratedColumn<int> feedbackRest = GeneratedColumn<int>(
+    'feedback_rest',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _progressionSuggestionMeta =
+      const VerificationMeta('progressionSuggestion');
+  @override
+  late final GeneratedColumn<String> progressionSuggestion =
+      GeneratedColumn<String>(
+        'progression_suggestion',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _suggestedNextVersionMeta =
+      const VerificationMeta('suggestedNextVersion');
+  @override
+  late final GeneratedColumn<String> suggestedNextVersion =
+      GeneratedColumn<String>(
+        'suggested_next_version',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _startedAtMeta = const VerificationMeta(
+    'startedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> startedAt = GeneratedColumn<DateTime>(
+    'started_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _completedAtMeta = const VerificationMeta(
+    'completedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+    'completed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sessionTemplateId,
+    sessionVersion,
+    sessionName,
+    plannedDurationSeconds,
+    actualDurationSeconds,
+    plannedExercises,
+    completedExercises,
+    totalHoldSeconds,
+    totalRestSeconds,
+    feedbackShaking,
+    feedbackStructure,
+    feedbackRest,
+    progressionSuggestion,
+    suggestedNextVersion,
+    notes,
+    startedAt,
+    completedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'oly_training_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OlyTrainingLog> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('session_template_id')) {
+      context.handle(
+        _sessionTemplateIdMeta,
+        sessionTemplateId.isAcceptableOrUnknown(
+          data['session_template_id']!,
+          _sessionTemplateIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('session_version')) {
+      context.handle(
+        _sessionVersionMeta,
+        sessionVersion.isAcceptableOrUnknown(
+          data['session_version']!,
+          _sessionVersionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionVersionMeta);
+    }
+    if (data.containsKey('session_name')) {
+      context.handle(
+        _sessionNameMeta,
+        sessionName.isAcceptableOrUnknown(
+          data['session_name']!,
+          _sessionNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionNameMeta);
+    }
+    if (data.containsKey('planned_duration_seconds')) {
+      context.handle(
+        _plannedDurationSecondsMeta,
+        plannedDurationSeconds.isAcceptableOrUnknown(
+          data['planned_duration_seconds']!,
+          _plannedDurationSecondsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_plannedDurationSecondsMeta);
+    }
+    if (data.containsKey('actual_duration_seconds')) {
+      context.handle(
+        _actualDurationSecondsMeta,
+        actualDurationSeconds.isAcceptableOrUnknown(
+          data['actual_duration_seconds']!,
+          _actualDurationSecondsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_actualDurationSecondsMeta);
+    }
+    if (data.containsKey('planned_exercises')) {
+      context.handle(
+        _plannedExercisesMeta,
+        plannedExercises.isAcceptableOrUnknown(
+          data['planned_exercises']!,
+          _plannedExercisesMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_plannedExercisesMeta);
+    }
+    if (data.containsKey('completed_exercises')) {
+      context.handle(
+        _completedExercisesMeta,
+        completedExercises.isAcceptableOrUnknown(
+          data['completed_exercises']!,
+          _completedExercisesMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_completedExercisesMeta);
+    }
+    if (data.containsKey('total_hold_seconds')) {
+      context.handle(
+        _totalHoldSecondsMeta,
+        totalHoldSeconds.isAcceptableOrUnknown(
+          data['total_hold_seconds']!,
+          _totalHoldSecondsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_totalHoldSecondsMeta);
+    }
+    if (data.containsKey('total_rest_seconds')) {
+      context.handle(
+        _totalRestSecondsMeta,
+        totalRestSeconds.isAcceptableOrUnknown(
+          data['total_rest_seconds']!,
+          _totalRestSecondsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_totalRestSecondsMeta);
+    }
+    if (data.containsKey('feedback_shaking')) {
+      context.handle(
+        _feedbackShakingMeta,
+        feedbackShaking.isAcceptableOrUnknown(
+          data['feedback_shaking']!,
+          _feedbackShakingMeta,
+        ),
+      );
+    }
+    if (data.containsKey('feedback_structure')) {
+      context.handle(
+        _feedbackStructureMeta,
+        feedbackStructure.isAcceptableOrUnknown(
+          data['feedback_structure']!,
+          _feedbackStructureMeta,
+        ),
+      );
+    }
+    if (data.containsKey('feedback_rest')) {
+      context.handle(
+        _feedbackRestMeta,
+        feedbackRest.isAcceptableOrUnknown(
+          data['feedback_rest']!,
+          _feedbackRestMeta,
+        ),
+      );
+    }
+    if (data.containsKey('progression_suggestion')) {
+      context.handle(
+        _progressionSuggestionMeta,
+        progressionSuggestion.isAcceptableOrUnknown(
+          data['progression_suggestion']!,
+          _progressionSuggestionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('suggested_next_version')) {
+      context.handle(
+        _suggestedNextVersionMeta,
+        suggestedNextVersion.isAcceptableOrUnknown(
+          data['suggested_next_version']!,
+          _suggestedNextVersionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('started_at')) {
+      context.handle(
+        _startedAtMeta,
+        startedAt.isAcceptableOrUnknown(data['started_at']!, _startedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_startedAtMeta);
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+        _completedAtMeta,
+        completedAt.isAcceptableOrUnknown(
+          data['completed_at']!,
+          _completedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_completedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  OlyTrainingLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OlyTrainingLog(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      sessionTemplateId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_template_id'],
+      ),
+      sessionVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_version'],
+      )!,
+      sessionName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_name'],
+      )!,
+      plannedDurationSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}planned_duration_seconds'],
+      )!,
+      actualDurationSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}actual_duration_seconds'],
+      )!,
+      plannedExercises: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}planned_exercises'],
+      )!,
+      completedExercises: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}completed_exercises'],
+      )!,
+      totalHoldSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_hold_seconds'],
+      )!,
+      totalRestSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_rest_seconds'],
+      )!,
+      feedbackShaking: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}feedback_shaking'],
+      ),
+      feedbackStructure: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}feedback_structure'],
+      ),
+      feedbackRest: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}feedback_rest'],
+      ),
+      progressionSuggestion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}progression_suggestion'],
+      ),
+      suggestedNextVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}suggested_next_version'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      startedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}started_at'],
+      )!,
+      completedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}completed_at'],
+      )!,
+    );
+  }
+
+  @override
+  $OlyTrainingLogsTable createAlias(String alias) {
+    return $OlyTrainingLogsTable(attachedDatabase, alias);
+  }
+}
+
+class OlyTrainingLog extends DataClass implements Insertable<OlyTrainingLog> {
+  final String id;
+  final String? sessionTemplateId;
+  final String sessionVersion;
+  final String sessionName;
+  final int plannedDurationSeconds;
+  final int actualDurationSeconds;
+  final int plannedExercises;
+  final int completedExercises;
+  final int totalHoldSeconds;
+  final int totalRestSeconds;
+  final int? feedbackShaking;
+  final int? feedbackStructure;
+  final int? feedbackRest;
+  final String? progressionSuggestion;
+  final String? suggestedNextVersion;
+  final String? notes;
+  final DateTime startedAt;
+  final DateTime completedAt;
+  const OlyTrainingLog({
+    required this.id,
+    this.sessionTemplateId,
+    required this.sessionVersion,
+    required this.sessionName,
+    required this.plannedDurationSeconds,
+    required this.actualDurationSeconds,
+    required this.plannedExercises,
+    required this.completedExercises,
+    required this.totalHoldSeconds,
+    required this.totalRestSeconds,
+    this.feedbackShaking,
+    this.feedbackStructure,
+    this.feedbackRest,
+    this.progressionSuggestion,
+    this.suggestedNextVersion,
+    this.notes,
+    required this.startedAt,
+    required this.completedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || sessionTemplateId != null) {
+      map['session_template_id'] = Variable<String>(sessionTemplateId);
+    }
+    map['session_version'] = Variable<String>(sessionVersion);
+    map['session_name'] = Variable<String>(sessionName);
+    map['planned_duration_seconds'] = Variable<int>(plannedDurationSeconds);
+    map['actual_duration_seconds'] = Variable<int>(actualDurationSeconds);
+    map['planned_exercises'] = Variable<int>(plannedExercises);
+    map['completed_exercises'] = Variable<int>(completedExercises);
+    map['total_hold_seconds'] = Variable<int>(totalHoldSeconds);
+    map['total_rest_seconds'] = Variable<int>(totalRestSeconds);
+    if (!nullToAbsent || feedbackShaking != null) {
+      map['feedback_shaking'] = Variable<int>(feedbackShaking);
+    }
+    if (!nullToAbsent || feedbackStructure != null) {
+      map['feedback_structure'] = Variable<int>(feedbackStructure);
+    }
+    if (!nullToAbsent || feedbackRest != null) {
+      map['feedback_rest'] = Variable<int>(feedbackRest);
+    }
+    if (!nullToAbsent || progressionSuggestion != null) {
+      map['progression_suggestion'] = Variable<String>(progressionSuggestion);
+    }
+    if (!nullToAbsent || suggestedNextVersion != null) {
+      map['suggested_next_version'] = Variable<String>(suggestedNextVersion);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['started_at'] = Variable<DateTime>(startedAt);
+    map['completed_at'] = Variable<DateTime>(completedAt);
+    return map;
+  }
+
+  OlyTrainingLogsCompanion toCompanion(bool nullToAbsent) {
+    return OlyTrainingLogsCompanion(
+      id: Value(id),
+      sessionTemplateId: sessionTemplateId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sessionTemplateId),
+      sessionVersion: Value(sessionVersion),
+      sessionName: Value(sessionName),
+      plannedDurationSeconds: Value(plannedDurationSeconds),
+      actualDurationSeconds: Value(actualDurationSeconds),
+      plannedExercises: Value(plannedExercises),
+      completedExercises: Value(completedExercises),
+      totalHoldSeconds: Value(totalHoldSeconds),
+      totalRestSeconds: Value(totalRestSeconds),
+      feedbackShaking: feedbackShaking == null && nullToAbsent
+          ? const Value.absent()
+          : Value(feedbackShaking),
+      feedbackStructure: feedbackStructure == null && nullToAbsent
+          ? const Value.absent()
+          : Value(feedbackStructure),
+      feedbackRest: feedbackRest == null && nullToAbsent
+          ? const Value.absent()
+          : Value(feedbackRest),
+      progressionSuggestion: progressionSuggestion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(progressionSuggestion),
+      suggestedNextVersion: suggestedNextVersion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(suggestedNextVersion),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      startedAt: Value(startedAt),
+      completedAt: Value(completedAt),
+    );
+  }
+
+  factory OlyTrainingLog.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OlyTrainingLog(
+      id: serializer.fromJson<String>(json['id']),
+      sessionTemplateId: serializer.fromJson<String?>(
+        json['sessionTemplateId'],
+      ),
+      sessionVersion: serializer.fromJson<String>(json['sessionVersion']),
+      sessionName: serializer.fromJson<String>(json['sessionName']),
+      plannedDurationSeconds: serializer.fromJson<int>(
+        json['plannedDurationSeconds'],
+      ),
+      actualDurationSeconds: serializer.fromJson<int>(
+        json['actualDurationSeconds'],
+      ),
+      plannedExercises: serializer.fromJson<int>(json['plannedExercises']),
+      completedExercises: serializer.fromJson<int>(json['completedExercises']),
+      totalHoldSeconds: serializer.fromJson<int>(json['totalHoldSeconds']),
+      totalRestSeconds: serializer.fromJson<int>(json['totalRestSeconds']),
+      feedbackShaking: serializer.fromJson<int?>(json['feedbackShaking']),
+      feedbackStructure: serializer.fromJson<int?>(json['feedbackStructure']),
+      feedbackRest: serializer.fromJson<int?>(json['feedbackRest']),
+      progressionSuggestion: serializer.fromJson<String?>(
+        json['progressionSuggestion'],
+      ),
+      suggestedNextVersion: serializer.fromJson<String?>(
+        json['suggestedNextVersion'],
+      ),
+      notes: serializer.fromJson<String?>(json['notes']),
+      startedAt: serializer.fromJson<DateTime>(json['startedAt']),
+      completedAt: serializer.fromJson<DateTime>(json['completedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'sessionTemplateId': serializer.toJson<String?>(sessionTemplateId),
+      'sessionVersion': serializer.toJson<String>(sessionVersion),
+      'sessionName': serializer.toJson<String>(sessionName),
+      'plannedDurationSeconds': serializer.toJson<int>(plannedDurationSeconds),
+      'actualDurationSeconds': serializer.toJson<int>(actualDurationSeconds),
+      'plannedExercises': serializer.toJson<int>(plannedExercises),
+      'completedExercises': serializer.toJson<int>(completedExercises),
+      'totalHoldSeconds': serializer.toJson<int>(totalHoldSeconds),
+      'totalRestSeconds': serializer.toJson<int>(totalRestSeconds),
+      'feedbackShaking': serializer.toJson<int?>(feedbackShaking),
+      'feedbackStructure': serializer.toJson<int?>(feedbackStructure),
+      'feedbackRest': serializer.toJson<int?>(feedbackRest),
+      'progressionSuggestion': serializer.toJson<String?>(
+        progressionSuggestion,
+      ),
+      'suggestedNextVersion': serializer.toJson<String?>(suggestedNextVersion),
+      'notes': serializer.toJson<String?>(notes),
+      'startedAt': serializer.toJson<DateTime>(startedAt),
+      'completedAt': serializer.toJson<DateTime>(completedAt),
+    };
+  }
+
+  OlyTrainingLog copyWith({
+    String? id,
+    Value<String?> sessionTemplateId = const Value.absent(),
+    String? sessionVersion,
+    String? sessionName,
+    int? plannedDurationSeconds,
+    int? actualDurationSeconds,
+    int? plannedExercises,
+    int? completedExercises,
+    int? totalHoldSeconds,
+    int? totalRestSeconds,
+    Value<int?> feedbackShaking = const Value.absent(),
+    Value<int?> feedbackStructure = const Value.absent(),
+    Value<int?> feedbackRest = const Value.absent(),
+    Value<String?> progressionSuggestion = const Value.absent(),
+    Value<String?> suggestedNextVersion = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    DateTime? startedAt,
+    DateTime? completedAt,
+  }) => OlyTrainingLog(
+    id: id ?? this.id,
+    sessionTemplateId: sessionTemplateId.present
+        ? sessionTemplateId.value
+        : this.sessionTemplateId,
+    sessionVersion: sessionVersion ?? this.sessionVersion,
+    sessionName: sessionName ?? this.sessionName,
+    plannedDurationSeconds:
+        plannedDurationSeconds ?? this.plannedDurationSeconds,
+    actualDurationSeconds: actualDurationSeconds ?? this.actualDurationSeconds,
+    plannedExercises: plannedExercises ?? this.plannedExercises,
+    completedExercises: completedExercises ?? this.completedExercises,
+    totalHoldSeconds: totalHoldSeconds ?? this.totalHoldSeconds,
+    totalRestSeconds: totalRestSeconds ?? this.totalRestSeconds,
+    feedbackShaking: feedbackShaking.present
+        ? feedbackShaking.value
+        : this.feedbackShaking,
+    feedbackStructure: feedbackStructure.present
+        ? feedbackStructure.value
+        : this.feedbackStructure,
+    feedbackRest: feedbackRest.present ? feedbackRest.value : this.feedbackRest,
+    progressionSuggestion: progressionSuggestion.present
+        ? progressionSuggestion.value
+        : this.progressionSuggestion,
+    suggestedNextVersion: suggestedNextVersion.present
+        ? suggestedNextVersion.value
+        : this.suggestedNextVersion,
+    notes: notes.present ? notes.value : this.notes,
+    startedAt: startedAt ?? this.startedAt,
+    completedAt: completedAt ?? this.completedAt,
+  );
+  OlyTrainingLog copyWithCompanion(OlyTrainingLogsCompanion data) {
+    return OlyTrainingLog(
+      id: data.id.present ? data.id.value : this.id,
+      sessionTemplateId: data.sessionTemplateId.present
+          ? data.sessionTemplateId.value
+          : this.sessionTemplateId,
+      sessionVersion: data.sessionVersion.present
+          ? data.sessionVersion.value
+          : this.sessionVersion,
+      sessionName: data.sessionName.present
+          ? data.sessionName.value
+          : this.sessionName,
+      plannedDurationSeconds: data.plannedDurationSeconds.present
+          ? data.plannedDurationSeconds.value
+          : this.plannedDurationSeconds,
+      actualDurationSeconds: data.actualDurationSeconds.present
+          ? data.actualDurationSeconds.value
+          : this.actualDurationSeconds,
+      plannedExercises: data.plannedExercises.present
+          ? data.plannedExercises.value
+          : this.plannedExercises,
+      completedExercises: data.completedExercises.present
+          ? data.completedExercises.value
+          : this.completedExercises,
+      totalHoldSeconds: data.totalHoldSeconds.present
+          ? data.totalHoldSeconds.value
+          : this.totalHoldSeconds,
+      totalRestSeconds: data.totalRestSeconds.present
+          ? data.totalRestSeconds.value
+          : this.totalRestSeconds,
+      feedbackShaking: data.feedbackShaking.present
+          ? data.feedbackShaking.value
+          : this.feedbackShaking,
+      feedbackStructure: data.feedbackStructure.present
+          ? data.feedbackStructure.value
+          : this.feedbackStructure,
+      feedbackRest: data.feedbackRest.present
+          ? data.feedbackRest.value
+          : this.feedbackRest,
+      progressionSuggestion: data.progressionSuggestion.present
+          ? data.progressionSuggestion.value
+          : this.progressionSuggestion,
+      suggestedNextVersion: data.suggestedNextVersion.present
+          ? data.suggestedNextVersion.value
+          : this.suggestedNextVersion,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      startedAt: data.startedAt.present ? data.startedAt.value : this.startedAt,
+      completedAt: data.completedAt.present
+          ? data.completedAt.value
+          : this.completedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OlyTrainingLog(')
+          ..write('id: $id, ')
+          ..write('sessionTemplateId: $sessionTemplateId, ')
+          ..write('sessionVersion: $sessionVersion, ')
+          ..write('sessionName: $sessionName, ')
+          ..write('plannedDurationSeconds: $plannedDurationSeconds, ')
+          ..write('actualDurationSeconds: $actualDurationSeconds, ')
+          ..write('plannedExercises: $plannedExercises, ')
+          ..write('completedExercises: $completedExercises, ')
+          ..write('totalHoldSeconds: $totalHoldSeconds, ')
+          ..write('totalRestSeconds: $totalRestSeconds, ')
+          ..write('feedbackShaking: $feedbackShaking, ')
+          ..write('feedbackStructure: $feedbackStructure, ')
+          ..write('feedbackRest: $feedbackRest, ')
+          ..write('progressionSuggestion: $progressionSuggestion, ')
+          ..write('suggestedNextVersion: $suggestedNextVersion, ')
+          ..write('notes: $notes, ')
+          ..write('startedAt: $startedAt, ')
+          ..write('completedAt: $completedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    sessionTemplateId,
+    sessionVersion,
+    sessionName,
+    plannedDurationSeconds,
+    actualDurationSeconds,
+    plannedExercises,
+    completedExercises,
+    totalHoldSeconds,
+    totalRestSeconds,
+    feedbackShaking,
+    feedbackStructure,
+    feedbackRest,
+    progressionSuggestion,
+    suggestedNextVersion,
+    notes,
+    startedAt,
+    completedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OlyTrainingLog &&
+          other.id == this.id &&
+          other.sessionTemplateId == this.sessionTemplateId &&
+          other.sessionVersion == this.sessionVersion &&
+          other.sessionName == this.sessionName &&
+          other.plannedDurationSeconds == this.plannedDurationSeconds &&
+          other.actualDurationSeconds == this.actualDurationSeconds &&
+          other.plannedExercises == this.plannedExercises &&
+          other.completedExercises == this.completedExercises &&
+          other.totalHoldSeconds == this.totalHoldSeconds &&
+          other.totalRestSeconds == this.totalRestSeconds &&
+          other.feedbackShaking == this.feedbackShaking &&
+          other.feedbackStructure == this.feedbackStructure &&
+          other.feedbackRest == this.feedbackRest &&
+          other.progressionSuggestion == this.progressionSuggestion &&
+          other.suggestedNextVersion == this.suggestedNextVersion &&
+          other.notes == this.notes &&
+          other.startedAt == this.startedAt &&
+          other.completedAt == this.completedAt);
+}
+
+class OlyTrainingLogsCompanion extends UpdateCompanion<OlyTrainingLog> {
+  final Value<String> id;
+  final Value<String?> sessionTemplateId;
+  final Value<String> sessionVersion;
+  final Value<String> sessionName;
+  final Value<int> plannedDurationSeconds;
+  final Value<int> actualDurationSeconds;
+  final Value<int> plannedExercises;
+  final Value<int> completedExercises;
+  final Value<int> totalHoldSeconds;
+  final Value<int> totalRestSeconds;
+  final Value<int?> feedbackShaking;
+  final Value<int?> feedbackStructure;
+  final Value<int?> feedbackRest;
+  final Value<String?> progressionSuggestion;
+  final Value<String?> suggestedNextVersion;
+  final Value<String?> notes;
+  final Value<DateTime> startedAt;
+  final Value<DateTime> completedAt;
+  final Value<int> rowid;
+  const OlyTrainingLogsCompanion({
+    this.id = const Value.absent(),
+    this.sessionTemplateId = const Value.absent(),
+    this.sessionVersion = const Value.absent(),
+    this.sessionName = const Value.absent(),
+    this.plannedDurationSeconds = const Value.absent(),
+    this.actualDurationSeconds = const Value.absent(),
+    this.plannedExercises = const Value.absent(),
+    this.completedExercises = const Value.absent(),
+    this.totalHoldSeconds = const Value.absent(),
+    this.totalRestSeconds = const Value.absent(),
+    this.feedbackShaking = const Value.absent(),
+    this.feedbackStructure = const Value.absent(),
+    this.feedbackRest = const Value.absent(),
+    this.progressionSuggestion = const Value.absent(),
+    this.suggestedNextVersion = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.startedAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OlyTrainingLogsCompanion.insert({
+    required String id,
+    this.sessionTemplateId = const Value.absent(),
+    required String sessionVersion,
+    required String sessionName,
+    required int plannedDurationSeconds,
+    required int actualDurationSeconds,
+    required int plannedExercises,
+    required int completedExercises,
+    required int totalHoldSeconds,
+    required int totalRestSeconds,
+    this.feedbackShaking = const Value.absent(),
+    this.feedbackStructure = const Value.absent(),
+    this.feedbackRest = const Value.absent(),
+    this.progressionSuggestion = const Value.absent(),
+    this.suggestedNextVersion = const Value.absent(),
+    this.notes = const Value.absent(),
+    required DateTime startedAt,
+    required DateTime completedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       sessionVersion = Value(sessionVersion),
+       sessionName = Value(sessionName),
+       plannedDurationSeconds = Value(plannedDurationSeconds),
+       actualDurationSeconds = Value(actualDurationSeconds),
+       plannedExercises = Value(plannedExercises),
+       completedExercises = Value(completedExercises),
+       totalHoldSeconds = Value(totalHoldSeconds),
+       totalRestSeconds = Value(totalRestSeconds),
+       startedAt = Value(startedAt),
+       completedAt = Value(completedAt);
+  static Insertable<OlyTrainingLog> custom({
+    Expression<String>? id,
+    Expression<String>? sessionTemplateId,
+    Expression<String>? sessionVersion,
+    Expression<String>? sessionName,
+    Expression<int>? plannedDurationSeconds,
+    Expression<int>? actualDurationSeconds,
+    Expression<int>? plannedExercises,
+    Expression<int>? completedExercises,
+    Expression<int>? totalHoldSeconds,
+    Expression<int>? totalRestSeconds,
+    Expression<int>? feedbackShaking,
+    Expression<int>? feedbackStructure,
+    Expression<int>? feedbackRest,
+    Expression<String>? progressionSuggestion,
+    Expression<String>? suggestedNextVersion,
+    Expression<String>? notes,
+    Expression<DateTime>? startedAt,
+    Expression<DateTime>? completedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sessionTemplateId != null) 'session_template_id': sessionTemplateId,
+      if (sessionVersion != null) 'session_version': sessionVersion,
+      if (sessionName != null) 'session_name': sessionName,
+      if (plannedDurationSeconds != null)
+        'planned_duration_seconds': plannedDurationSeconds,
+      if (actualDurationSeconds != null)
+        'actual_duration_seconds': actualDurationSeconds,
+      if (plannedExercises != null) 'planned_exercises': plannedExercises,
+      if (completedExercises != null) 'completed_exercises': completedExercises,
+      if (totalHoldSeconds != null) 'total_hold_seconds': totalHoldSeconds,
+      if (totalRestSeconds != null) 'total_rest_seconds': totalRestSeconds,
+      if (feedbackShaking != null) 'feedback_shaking': feedbackShaking,
+      if (feedbackStructure != null) 'feedback_structure': feedbackStructure,
+      if (feedbackRest != null) 'feedback_rest': feedbackRest,
+      if (progressionSuggestion != null)
+        'progression_suggestion': progressionSuggestion,
+      if (suggestedNextVersion != null)
+        'suggested_next_version': suggestedNextVersion,
+      if (notes != null) 'notes': notes,
+      if (startedAt != null) 'started_at': startedAt,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OlyTrainingLogsCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? sessionTemplateId,
+    Value<String>? sessionVersion,
+    Value<String>? sessionName,
+    Value<int>? plannedDurationSeconds,
+    Value<int>? actualDurationSeconds,
+    Value<int>? plannedExercises,
+    Value<int>? completedExercises,
+    Value<int>? totalHoldSeconds,
+    Value<int>? totalRestSeconds,
+    Value<int?>? feedbackShaking,
+    Value<int?>? feedbackStructure,
+    Value<int?>? feedbackRest,
+    Value<String?>? progressionSuggestion,
+    Value<String?>? suggestedNextVersion,
+    Value<String?>? notes,
+    Value<DateTime>? startedAt,
+    Value<DateTime>? completedAt,
+    Value<int>? rowid,
+  }) {
+    return OlyTrainingLogsCompanion(
+      id: id ?? this.id,
+      sessionTemplateId: sessionTemplateId ?? this.sessionTemplateId,
+      sessionVersion: sessionVersion ?? this.sessionVersion,
+      sessionName: sessionName ?? this.sessionName,
+      plannedDurationSeconds:
+          plannedDurationSeconds ?? this.plannedDurationSeconds,
+      actualDurationSeconds:
+          actualDurationSeconds ?? this.actualDurationSeconds,
+      plannedExercises: plannedExercises ?? this.plannedExercises,
+      completedExercises: completedExercises ?? this.completedExercises,
+      totalHoldSeconds: totalHoldSeconds ?? this.totalHoldSeconds,
+      totalRestSeconds: totalRestSeconds ?? this.totalRestSeconds,
+      feedbackShaking: feedbackShaking ?? this.feedbackShaking,
+      feedbackStructure: feedbackStructure ?? this.feedbackStructure,
+      feedbackRest: feedbackRest ?? this.feedbackRest,
+      progressionSuggestion:
+          progressionSuggestion ?? this.progressionSuggestion,
+      suggestedNextVersion: suggestedNextVersion ?? this.suggestedNextVersion,
+      notes: notes ?? this.notes,
+      startedAt: startedAt ?? this.startedAt,
+      completedAt: completedAt ?? this.completedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (sessionTemplateId.present) {
+      map['session_template_id'] = Variable<String>(sessionTemplateId.value);
+    }
+    if (sessionVersion.present) {
+      map['session_version'] = Variable<String>(sessionVersion.value);
+    }
+    if (sessionName.present) {
+      map['session_name'] = Variable<String>(sessionName.value);
+    }
+    if (plannedDurationSeconds.present) {
+      map['planned_duration_seconds'] = Variable<int>(
+        plannedDurationSeconds.value,
+      );
+    }
+    if (actualDurationSeconds.present) {
+      map['actual_duration_seconds'] = Variable<int>(
+        actualDurationSeconds.value,
+      );
+    }
+    if (plannedExercises.present) {
+      map['planned_exercises'] = Variable<int>(plannedExercises.value);
+    }
+    if (completedExercises.present) {
+      map['completed_exercises'] = Variable<int>(completedExercises.value);
+    }
+    if (totalHoldSeconds.present) {
+      map['total_hold_seconds'] = Variable<int>(totalHoldSeconds.value);
+    }
+    if (totalRestSeconds.present) {
+      map['total_rest_seconds'] = Variable<int>(totalRestSeconds.value);
+    }
+    if (feedbackShaking.present) {
+      map['feedback_shaking'] = Variable<int>(feedbackShaking.value);
+    }
+    if (feedbackStructure.present) {
+      map['feedback_structure'] = Variable<int>(feedbackStructure.value);
+    }
+    if (feedbackRest.present) {
+      map['feedback_rest'] = Variable<int>(feedbackRest.value);
+    }
+    if (progressionSuggestion.present) {
+      map['progression_suggestion'] = Variable<String>(
+        progressionSuggestion.value,
+      );
+    }
+    if (suggestedNextVersion.present) {
+      map['suggested_next_version'] = Variable<String>(
+        suggestedNextVersion.value,
+      );
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (startedAt.present) {
+      map['started_at'] = Variable<DateTime>(startedAt.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OlyTrainingLogsCompanion(')
+          ..write('id: $id, ')
+          ..write('sessionTemplateId: $sessionTemplateId, ')
+          ..write('sessionVersion: $sessionVersion, ')
+          ..write('sessionName: $sessionName, ')
+          ..write('plannedDurationSeconds: $plannedDurationSeconds, ')
+          ..write('actualDurationSeconds: $actualDurationSeconds, ')
+          ..write('plannedExercises: $plannedExercises, ')
+          ..write('completedExercises: $completedExercises, ')
+          ..write('totalHoldSeconds: $totalHoldSeconds, ')
+          ..write('totalRestSeconds: $totalRestSeconds, ')
+          ..write('feedbackShaking: $feedbackShaking, ')
+          ..write('feedbackStructure: $feedbackStructure, ')
+          ..write('feedbackRest: $feedbackRest, ')
+          ..write('progressionSuggestion: $progressionSuggestion, ')
+          ..write('suggestedNextVersion: $suggestedNextVersion, ')
+          ..write('notes: $notes, ')
+          ..write('startedAt: $startedAt, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $UserTrainingProgressTable extends UserTrainingProgress
+    with TableInfo<$UserTrainingProgressTable, UserTrainingProgressData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserTrainingProgressTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currentLevelMeta = const VerificationMeta(
+    'currentLevel',
+  );
+  @override
+  late final GeneratedColumn<String> currentLevel = GeneratedColumn<String>(
+    'current_level',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('1.0'),
+  );
+  static const VerificationMeta _sessionsAtCurrentLevelMeta =
+      const VerificationMeta('sessionsAtCurrentLevel');
+  @override
+  late final GeneratedColumn<int> sessionsAtCurrentLevel = GeneratedColumn<int>(
+    'sessions_at_current_level',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastSessionAtMeta = const VerificationMeta(
+    'lastSessionAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSessionAt =
+      GeneratedColumn<DateTime>(
+        'last_session_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _lastSessionVersionMeta =
+      const VerificationMeta('lastSessionVersion');
+  @override
+  late final GeneratedColumn<String> lastSessionVersion =
+      GeneratedColumn<String>(
+        'last_session_version',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _totalSessionsCompletedMeta =
+      const VerificationMeta('totalSessionsCompleted');
+  @override
+  late final GeneratedColumn<int> totalSessionsCompleted = GeneratedColumn<int>(
+    'total_sessions_completed',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _hasCompletedAssessmentMeta =
+      const VerificationMeta('hasCompletedAssessment');
+  @override
+  late final GeneratedColumn<bool> hasCompletedAssessment =
+      GeneratedColumn<bool>(
+        'has_completed_assessment',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("has_completed_assessment" IN (0, 1))',
+        ),
+        defaultValue: const Constant(false),
+      );
+  static const VerificationMeta _assessmentMaxHoldSecondsMeta =
+      const VerificationMeta('assessmentMaxHoldSeconds');
+  @override
+  late final GeneratedColumn<int> assessmentMaxHoldSeconds =
+      GeneratedColumn<int>(
+        'assessment_max_hold_seconds',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _assessmentDateMeta = const VerificationMeta(
+    'assessmentDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> assessmentDate =
+      GeneratedColumn<DateTime>(
+        'assessment_date',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    currentLevel,
+    sessionsAtCurrentLevel,
+    lastSessionAt,
+    lastSessionVersion,
+    totalSessionsCompleted,
+    hasCompletedAssessment,
+    assessmentMaxHoldSeconds,
+    assessmentDate,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'user_training_progress';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<UserTrainingProgressData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('current_level')) {
+      context.handle(
+        _currentLevelMeta,
+        currentLevel.isAcceptableOrUnknown(
+          data['current_level']!,
+          _currentLevelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sessions_at_current_level')) {
+      context.handle(
+        _sessionsAtCurrentLevelMeta,
+        sessionsAtCurrentLevel.isAcceptableOrUnknown(
+          data['sessions_at_current_level']!,
+          _sessionsAtCurrentLevelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_session_at')) {
+      context.handle(
+        _lastSessionAtMeta,
+        lastSessionAt.isAcceptableOrUnknown(
+          data['last_session_at']!,
+          _lastSessionAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_session_version')) {
+      context.handle(
+        _lastSessionVersionMeta,
+        lastSessionVersion.isAcceptableOrUnknown(
+          data['last_session_version']!,
+          _lastSessionVersionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('total_sessions_completed')) {
+      context.handle(
+        _totalSessionsCompletedMeta,
+        totalSessionsCompleted.isAcceptableOrUnknown(
+          data['total_sessions_completed']!,
+          _totalSessionsCompletedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('has_completed_assessment')) {
+      context.handle(
+        _hasCompletedAssessmentMeta,
+        hasCompletedAssessment.isAcceptableOrUnknown(
+          data['has_completed_assessment']!,
+          _hasCompletedAssessmentMeta,
+        ),
+      );
+    }
+    if (data.containsKey('assessment_max_hold_seconds')) {
+      context.handle(
+        _assessmentMaxHoldSecondsMeta,
+        assessmentMaxHoldSeconds.isAcceptableOrUnknown(
+          data['assessment_max_hold_seconds']!,
+          _assessmentMaxHoldSecondsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('assessment_date')) {
+      context.handle(
+        _assessmentDateMeta,
+        assessmentDate.isAcceptableOrUnknown(
+          data['assessment_date']!,
+          _assessmentDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  UserTrainingProgressData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserTrainingProgressData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      currentLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}current_level'],
+      )!,
+      sessionsAtCurrentLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sessions_at_current_level'],
+      )!,
+      lastSessionAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_session_at'],
+      ),
+      lastSessionVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_session_version'],
+      ),
+      totalSessionsCompleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_sessions_completed'],
+      )!,
+      hasCompletedAssessment: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}has_completed_assessment'],
+      )!,
+      assessmentMaxHoldSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}assessment_max_hold_seconds'],
+      ),
+      assessmentDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}assessment_date'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $UserTrainingProgressTable createAlias(String alias) {
+    return $UserTrainingProgressTable(attachedDatabase, alias);
+  }
+}
+
+class UserTrainingProgressData extends DataClass
+    implements Insertable<UserTrainingProgressData> {
+  final String id;
+  final String currentLevel;
+  final int sessionsAtCurrentLevel;
+  final DateTime? lastSessionAt;
+  final String? lastSessionVersion;
+  final int totalSessionsCompleted;
+  final bool hasCompletedAssessment;
+  final int? assessmentMaxHoldSeconds;
+  final DateTime? assessmentDate;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const UserTrainingProgressData({
+    required this.id,
+    required this.currentLevel,
+    required this.sessionsAtCurrentLevel,
+    this.lastSessionAt,
+    this.lastSessionVersion,
+    required this.totalSessionsCompleted,
+    required this.hasCompletedAssessment,
+    this.assessmentMaxHoldSeconds,
+    this.assessmentDate,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['current_level'] = Variable<String>(currentLevel);
+    map['sessions_at_current_level'] = Variable<int>(sessionsAtCurrentLevel);
+    if (!nullToAbsent || lastSessionAt != null) {
+      map['last_session_at'] = Variable<DateTime>(lastSessionAt);
+    }
+    if (!nullToAbsent || lastSessionVersion != null) {
+      map['last_session_version'] = Variable<String>(lastSessionVersion);
+    }
+    map['total_sessions_completed'] = Variable<int>(totalSessionsCompleted);
+    map['has_completed_assessment'] = Variable<bool>(hasCompletedAssessment);
+    if (!nullToAbsent || assessmentMaxHoldSeconds != null) {
+      map['assessment_max_hold_seconds'] = Variable<int>(
+        assessmentMaxHoldSeconds,
+      );
+    }
+    if (!nullToAbsent || assessmentDate != null) {
+      map['assessment_date'] = Variable<DateTime>(assessmentDate);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  UserTrainingProgressCompanion toCompanion(bool nullToAbsent) {
+    return UserTrainingProgressCompanion(
+      id: Value(id),
+      currentLevel: Value(currentLevel),
+      sessionsAtCurrentLevel: Value(sessionsAtCurrentLevel),
+      lastSessionAt: lastSessionAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSessionAt),
+      lastSessionVersion: lastSessionVersion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSessionVersion),
+      totalSessionsCompleted: Value(totalSessionsCompleted),
+      hasCompletedAssessment: Value(hasCompletedAssessment),
+      assessmentMaxHoldSeconds: assessmentMaxHoldSeconds == null && nullToAbsent
+          ? const Value.absent()
+          : Value(assessmentMaxHoldSeconds),
+      assessmentDate: assessmentDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(assessmentDate),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory UserTrainingProgressData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserTrainingProgressData(
+      id: serializer.fromJson<String>(json['id']),
+      currentLevel: serializer.fromJson<String>(json['currentLevel']),
+      sessionsAtCurrentLevel: serializer.fromJson<int>(
+        json['sessionsAtCurrentLevel'],
+      ),
+      lastSessionAt: serializer.fromJson<DateTime?>(json['lastSessionAt']),
+      lastSessionVersion: serializer.fromJson<String?>(
+        json['lastSessionVersion'],
+      ),
+      totalSessionsCompleted: serializer.fromJson<int>(
+        json['totalSessionsCompleted'],
+      ),
+      hasCompletedAssessment: serializer.fromJson<bool>(
+        json['hasCompletedAssessment'],
+      ),
+      assessmentMaxHoldSeconds: serializer.fromJson<int?>(
+        json['assessmentMaxHoldSeconds'],
+      ),
+      assessmentDate: serializer.fromJson<DateTime?>(json['assessmentDate']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'currentLevel': serializer.toJson<String>(currentLevel),
+      'sessionsAtCurrentLevel': serializer.toJson<int>(sessionsAtCurrentLevel),
+      'lastSessionAt': serializer.toJson<DateTime?>(lastSessionAt),
+      'lastSessionVersion': serializer.toJson<String?>(lastSessionVersion),
+      'totalSessionsCompleted': serializer.toJson<int>(totalSessionsCompleted),
+      'hasCompletedAssessment': serializer.toJson<bool>(hasCompletedAssessment),
+      'assessmentMaxHoldSeconds': serializer.toJson<int?>(
+        assessmentMaxHoldSeconds,
+      ),
+      'assessmentDate': serializer.toJson<DateTime?>(assessmentDate),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  UserTrainingProgressData copyWith({
+    String? id,
+    String? currentLevel,
+    int? sessionsAtCurrentLevel,
+    Value<DateTime?> lastSessionAt = const Value.absent(),
+    Value<String?> lastSessionVersion = const Value.absent(),
+    int? totalSessionsCompleted,
+    bool? hasCompletedAssessment,
+    Value<int?> assessmentMaxHoldSeconds = const Value.absent(),
+    Value<DateTime?> assessmentDate = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => UserTrainingProgressData(
+    id: id ?? this.id,
+    currentLevel: currentLevel ?? this.currentLevel,
+    sessionsAtCurrentLevel:
+        sessionsAtCurrentLevel ?? this.sessionsAtCurrentLevel,
+    lastSessionAt: lastSessionAt.present
+        ? lastSessionAt.value
+        : this.lastSessionAt,
+    lastSessionVersion: lastSessionVersion.present
+        ? lastSessionVersion.value
+        : this.lastSessionVersion,
+    totalSessionsCompleted:
+        totalSessionsCompleted ?? this.totalSessionsCompleted,
+    hasCompletedAssessment:
+        hasCompletedAssessment ?? this.hasCompletedAssessment,
+    assessmentMaxHoldSeconds: assessmentMaxHoldSeconds.present
+        ? assessmentMaxHoldSeconds.value
+        : this.assessmentMaxHoldSeconds,
+    assessmentDate: assessmentDate.present
+        ? assessmentDate.value
+        : this.assessmentDate,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  UserTrainingProgressData copyWithCompanion(
+    UserTrainingProgressCompanion data,
+  ) {
+    return UserTrainingProgressData(
+      id: data.id.present ? data.id.value : this.id,
+      currentLevel: data.currentLevel.present
+          ? data.currentLevel.value
+          : this.currentLevel,
+      sessionsAtCurrentLevel: data.sessionsAtCurrentLevel.present
+          ? data.sessionsAtCurrentLevel.value
+          : this.sessionsAtCurrentLevel,
+      lastSessionAt: data.lastSessionAt.present
+          ? data.lastSessionAt.value
+          : this.lastSessionAt,
+      lastSessionVersion: data.lastSessionVersion.present
+          ? data.lastSessionVersion.value
+          : this.lastSessionVersion,
+      totalSessionsCompleted: data.totalSessionsCompleted.present
+          ? data.totalSessionsCompleted.value
+          : this.totalSessionsCompleted,
+      hasCompletedAssessment: data.hasCompletedAssessment.present
+          ? data.hasCompletedAssessment.value
+          : this.hasCompletedAssessment,
+      assessmentMaxHoldSeconds: data.assessmentMaxHoldSeconds.present
+          ? data.assessmentMaxHoldSeconds.value
+          : this.assessmentMaxHoldSeconds,
+      assessmentDate: data.assessmentDate.present
+          ? data.assessmentDate.value
+          : this.assessmentDate,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserTrainingProgressData(')
+          ..write('id: $id, ')
+          ..write('currentLevel: $currentLevel, ')
+          ..write('sessionsAtCurrentLevel: $sessionsAtCurrentLevel, ')
+          ..write('lastSessionAt: $lastSessionAt, ')
+          ..write('lastSessionVersion: $lastSessionVersion, ')
+          ..write('totalSessionsCompleted: $totalSessionsCompleted, ')
+          ..write('hasCompletedAssessment: $hasCompletedAssessment, ')
+          ..write('assessmentMaxHoldSeconds: $assessmentMaxHoldSeconds, ')
+          ..write('assessmentDate: $assessmentDate, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    currentLevel,
+    sessionsAtCurrentLevel,
+    lastSessionAt,
+    lastSessionVersion,
+    totalSessionsCompleted,
+    hasCompletedAssessment,
+    assessmentMaxHoldSeconds,
+    assessmentDate,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserTrainingProgressData &&
+          other.id == this.id &&
+          other.currentLevel == this.currentLevel &&
+          other.sessionsAtCurrentLevel == this.sessionsAtCurrentLevel &&
+          other.lastSessionAt == this.lastSessionAt &&
+          other.lastSessionVersion == this.lastSessionVersion &&
+          other.totalSessionsCompleted == this.totalSessionsCompleted &&
+          other.hasCompletedAssessment == this.hasCompletedAssessment &&
+          other.assessmentMaxHoldSeconds == this.assessmentMaxHoldSeconds &&
+          other.assessmentDate == this.assessmentDate &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class UserTrainingProgressCompanion
+    extends UpdateCompanion<UserTrainingProgressData> {
+  final Value<String> id;
+  final Value<String> currentLevel;
+  final Value<int> sessionsAtCurrentLevel;
+  final Value<DateTime?> lastSessionAt;
+  final Value<String?> lastSessionVersion;
+  final Value<int> totalSessionsCompleted;
+  final Value<bool> hasCompletedAssessment;
+  final Value<int?> assessmentMaxHoldSeconds;
+  final Value<DateTime?> assessmentDate;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const UserTrainingProgressCompanion({
+    this.id = const Value.absent(),
+    this.currentLevel = const Value.absent(),
+    this.sessionsAtCurrentLevel = const Value.absent(),
+    this.lastSessionAt = const Value.absent(),
+    this.lastSessionVersion = const Value.absent(),
+    this.totalSessionsCompleted = const Value.absent(),
+    this.hasCompletedAssessment = const Value.absent(),
+    this.assessmentMaxHoldSeconds = const Value.absent(),
+    this.assessmentDate = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  UserTrainingProgressCompanion.insert({
+    required String id,
+    this.currentLevel = const Value.absent(),
+    this.sessionsAtCurrentLevel = const Value.absent(),
+    this.lastSessionAt = const Value.absent(),
+    this.lastSessionVersion = const Value.absent(),
+    this.totalSessionsCompleted = const Value.absent(),
+    this.hasCompletedAssessment = const Value.absent(),
+    this.assessmentMaxHoldSeconds = const Value.absent(),
+    this.assessmentDate = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id);
+  static Insertable<UserTrainingProgressData> custom({
+    Expression<String>? id,
+    Expression<String>? currentLevel,
+    Expression<int>? sessionsAtCurrentLevel,
+    Expression<DateTime>? lastSessionAt,
+    Expression<String>? lastSessionVersion,
+    Expression<int>? totalSessionsCompleted,
+    Expression<bool>? hasCompletedAssessment,
+    Expression<int>? assessmentMaxHoldSeconds,
+    Expression<DateTime>? assessmentDate,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (currentLevel != null) 'current_level': currentLevel,
+      if (sessionsAtCurrentLevel != null)
+        'sessions_at_current_level': sessionsAtCurrentLevel,
+      if (lastSessionAt != null) 'last_session_at': lastSessionAt,
+      if (lastSessionVersion != null)
+        'last_session_version': lastSessionVersion,
+      if (totalSessionsCompleted != null)
+        'total_sessions_completed': totalSessionsCompleted,
+      if (hasCompletedAssessment != null)
+        'has_completed_assessment': hasCompletedAssessment,
+      if (assessmentMaxHoldSeconds != null)
+        'assessment_max_hold_seconds': assessmentMaxHoldSeconds,
+      if (assessmentDate != null) 'assessment_date': assessmentDate,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  UserTrainingProgressCompanion copyWith({
+    Value<String>? id,
+    Value<String>? currentLevel,
+    Value<int>? sessionsAtCurrentLevel,
+    Value<DateTime?>? lastSessionAt,
+    Value<String?>? lastSessionVersion,
+    Value<int>? totalSessionsCompleted,
+    Value<bool>? hasCompletedAssessment,
+    Value<int?>? assessmentMaxHoldSeconds,
+    Value<DateTime?>? assessmentDate,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return UserTrainingProgressCompanion(
+      id: id ?? this.id,
+      currentLevel: currentLevel ?? this.currentLevel,
+      sessionsAtCurrentLevel:
+          sessionsAtCurrentLevel ?? this.sessionsAtCurrentLevel,
+      lastSessionAt: lastSessionAt ?? this.lastSessionAt,
+      lastSessionVersion: lastSessionVersion ?? this.lastSessionVersion,
+      totalSessionsCompleted:
+          totalSessionsCompleted ?? this.totalSessionsCompleted,
+      hasCompletedAssessment:
+          hasCompletedAssessment ?? this.hasCompletedAssessment,
+      assessmentMaxHoldSeconds:
+          assessmentMaxHoldSeconds ?? this.assessmentMaxHoldSeconds,
+      assessmentDate: assessmentDate ?? this.assessmentDate,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (currentLevel.present) {
+      map['current_level'] = Variable<String>(currentLevel.value);
+    }
+    if (sessionsAtCurrentLevel.present) {
+      map['sessions_at_current_level'] = Variable<int>(
+        sessionsAtCurrentLevel.value,
+      );
+    }
+    if (lastSessionAt.present) {
+      map['last_session_at'] = Variable<DateTime>(lastSessionAt.value);
+    }
+    if (lastSessionVersion.present) {
+      map['last_session_version'] = Variable<String>(lastSessionVersion.value);
+    }
+    if (totalSessionsCompleted.present) {
+      map['total_sessions_completed'] = Variable<int>(
+        totalSessionsCompleted.value,
+      );
+    }
+    if (hasCompletedAssessment.present) {
+      map['has_completed_assessment'] = Variable<bool>(
+        hasCompletedAssessment.value,
+      );
+    }
+    if (assessmentMaxHoldSeconds.present) {
+      map['assessment_max_hold_seconds'] = Variable<int>(
+        assessmentMaxHoldSeconds.value,
+      );
+    }
+    if (assessmentDate.present) {
+      map['assessment_date'] = Variable<DateTime>(assessmentDate.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserTrainingProgressCompanion(')
+          ..write('id: $id, ')
+          ..write('currentLevel: $currentLevel, ')
+          ..write('sessionsAtCurrentLevel: $sessionsAtCurrentLevel, ')
+          ..write('lastSessionAt: $lastSessionAt, ')
+          ..write('lastSessionVersion: $lastSessionVersion, ')
+          ..write('totalSessionsCompleted: $totalSessionsCompleted, ')
+          ..write('hasCompletedAssessment: $hasCompletedAssessment, ')
+          ..write('assessmentMaxHoldSeconds: $assessmentMaxHoldSeconds, ')
+          ..write('assessmentDate: $assessmentDate, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5041,6 +8780,18 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $ShaftsTable shafts = $ShaftsTable(this);
   late final $VolumeEntriesTable volumeEntries = $VolumeEntriesTable(this);
+  late final $OlyExerciseTypesTable olyExerciseTypes = $OlyExerciseTypesTable(
+    this,
+  );
+  late final $OlySessionTemplatesTable olySessionTemplates =
+      $OlySessionTemplatesTable(this);
+  late final $OlySessionExercisesTable olySessionExercises =
+      $OlySessionExercisesTable(this);
+  late final $OlyTrainingLogsTable olyTrainingLogs = $OlyTrainingLogsTable(
+    this,
+  );
+  late final $UserTrainingProgressTable userTrainingProgress =
+      $UserTrainingProgressTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5056,6 +8807,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     userPreferences,
     shafts,
     volumeEntries,
+    olyExerciseTypes,
+    olySessionTemplates,
+    olySessionExercises,
+    olyTrainingLogs,
+    userTrainingProgress,
   ];
 }
 
@@ -9036,6 +12792,2236 @@ typedef $$VolumeEntriesTableProcessedTableManager =
       VolumeEntry,
       PrefetchHooks Function()
     >;
+typedef $$OlyExerciseTypesTableCreateCompanionBuilder =
+    OlyExerciseTypesCompanion Function({
+      required String id,
+      required String name,
+      Value<String?> description,
+      Value<double> intensity,
+      Value<String> category,
+      Value<String?> firstIntroducedAt,
+      Value<int> sortOrder,
+      Value<int> rowid,
+    });
+typedef $$OlyExerciseTypesTableUpdateCompanionBuilder =
+    OlyExerciseTypesCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String?> description,
+      Value<double> intensity,
+      Value<String> category,
+      Value<String?> firstIntroducedAt,
+      Value<int> sortOrder,
+      Value<int> rowid,
+    });
+
+final class $$OlyExerciseTypesTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $OlyExerciseTypesTable, OlyExerciseType> {
+  $$OlyExerciseTypesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<
+    $OlySessionExercisesTable,
+    List<OlySessionExercise>
+  >
+  _olySessionExercisesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.olySessionExercises,
+        aliasName: $_aliasNameGenerator(
+          db.olyExerciseTypes.id,
+          db.olySessionExercises.exerciseTypeId,
+        ),
+      );
+
+  $$OlySessionExercisesTableProcessedTableManager get olySessionExercisesRefs {
+    final manager = $$OlySessionExercisesTableTableManager(
+      $_db,
+      $_db.olySessionExercises,
+    ).filter((f) => f.exerciseTypeId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _olySessionExercisesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$OlyExerciseTypesTableFilterComposer
+    extends Composer<_$AppDatabase, $OlyExerciseTypesTable> {
+  $$OlyExerciseTypesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get intensity => $composableBuilder(
+    column: $table.intensity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get firstIntroducedAt => $composableBuilder(
+    column: $table.firstIntroducedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> olySessionExercisesRefs(
+    Expression<bool> Function($$OlySessionExercisesTableFilterComposer f) f,
+  ) {
+    final $$OlySessionExercisesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.olySessionExercises,
+      getReferencedColumn: (t) => t.exerciseTypeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OlySessionExercisesTableFilterComposer(
+            $db: $db,
+            $table: $db.olySessionExercises,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$OlyExerciseTypesTableOrderingComposer
+    extends Composer<_$AppDatabase, $OlyExerciseTypesTable> {
+  $$OlyExerciseTypesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get intensity => $composableBuilder(
+    column: $table.intensity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get firstIntroducedAt => $composableBuilder(
+    column: $table.firstIntroducedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$OlyExerciseTypesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $OlyExerciseTypesTable> {
+  $$OlyExerciseTypesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get intensity =>
+      $composableBuilder(column: $table.intensity, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get firstIntroducedAt => $composableBuilder(
+    column: $table.firstIntroducedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  Expression<T> olySessionExercisesRefs<T extends Object>(
+    Expression<T> Function($$OlySessionExercisesTableAnnotationComposer a) f,
+  ) {
+    final $$OlySessionExercisesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.olySessionExercises,
+          getReferencedColumn: (t) => t.exerciseTypeId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$OlySessionExercisesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.olySessionExercises,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$OlyExerciseTypesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $OlyExerciseTypesTable,
+          OlyExerciseType,
+          $$OlyExerciseTypesTableFilterComposer,
+          $$OlyExerciseTypesTableOrderingComposer,
+          $$OlyExerciseTypesTableAnnotationComposer,
+          $$OlyExerciseTypesTableCreateCompanionBuilder,
+          $$OlyExerciseTypesTableUpdateCompanionBuilder,
+          (OlyExerciseType, $$OlyExerciseTypesTableReferences),
+          OlyExerciseType,
+          PrefetchHooks Function({bool olySessionExercisesRefs})
+        > {
+  $$OlyExerciseTypesTableTableManager(
+    _$AppDatabase db,
+    $OlyExerciseTypesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OlyExerciseTypesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OlyExerciseTypesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$OlyExerciseTypesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<double> intensity = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<String?> firstIntroducedAt = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OlyExerciseTypesCompanion(
+                id: id,
+                name: name,
+                description: description,
+                intensity: intensity,
+                category: category,
+                firstIntroducedAt: firstIntroducedAt,
+                sortOrder: sortOrder,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                Value<String?> description = const Value.absent(),
+                Value<double> intensity = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<String?> firstIntroducedAt = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OlyExerciseTypesCompanion.insert(
+                id: id,
+                name: name,
+                description: description,
+                intensity: intensity,
+                category: category,
+                firstIntroducedAt: firstIntroducedAt,
+                sortOrder: sortOrder,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$OlyExerciseTypesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({olySessionExercisesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (olySessionExercisesRefs) db.olySessionExercises,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (olySessionExercisesRefs)
+                    await $_getPrefetchedData<
+                      OlyExerciseType,
+                      $OlyExerciseTypesTable,
+                      OlySessionExercise
+                    >(
+                      currentTable: table,
+                      referencedTable: $$OlyExerciseTypesTableReferences
+                          ._olySessionExercisesRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$OlyExerciseTypesTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).olySessionExercisesRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.exerciseTypeId == item.id,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$OlyExerciseTypesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $OlyExerciseTypesTable,
+      OlyExerciseType,
+      $$OlyExerciseTypesTableFilterComposer,
+      $$OlyExerciseTypesTableOrderingComposer,
+      $$OlyExerciseTypesTableAnnotationComposer,
+      $$OlyExerciseTypesTableCreateCompanionBuilder,
+      $$OlyExerciseTypesTableUpdateCompanionBuilder,
+      (OlyExerciseType, $$OlyExerciseTypesTableReferences),
+      OlyExerciseType,
+      PrefetchHooks Function({bool olySessionExercisesRefs})
+    >;
+typedef $$OlySessionTemplatesTableCreateCompanionBuilder =
+    OlySessionTemplatesCompanion Function({
+      required String id,
+      required String version,
+      required String name,
+      Value<String?> focus,
+      required int durationMinutes,
+      required int volumeLoad,
+      required int adjustedVolumeLoad,
+      required double workRatio,
+      required double adjustedWorkRatio,
+      Value<String?> requirements,
+      Value<String> equipment,
+      Value<String?> notes,
+      Value<int> sortOrder,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$OlySessionTemplatesTableUpdateCompanionBuilder =
+    OlySessionTemplatesCompanion Function({
+      Value<String> id,
+      Value<String> version,
+      Value<String> name,
+      Value<String?> focus,
+      Value<int> durationMinutes,
+      Value<int> volumeLoad,
+      Value<int> adjustedVolumeLoad,
+      Value<double> workRatio,
+      Value<double> adjustedWorkRatio,
+      Value<String?> requirements,
+      Value<String> equipment,
+      Value<String?> notes,
+      Value<int> sortOrder,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+final class $$OlySessionTemplatesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $OlySessionTemplatesTable,
+          OlySessionTemplate
+        > {
+  $$OlySessionTemplatesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<
+    $OlySessionExercisesTable,
+    List<OlySessionExercise>
+  >
+  _olySessionExercisesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.olySessionExercises,
+        aliasName: $_aliasNameGenerator(
+          db.olySessionTemplates.id,
+          db.olySessionExercises.sessionTemplateId,
+        ),
+      );
+
+  $$OlySessionExercisesTableProcessedTableManager get olySessionExercisesRefs {
+    final manager =
+        $$OlySessionExercisesTableTableManager(
+          $_db,
+          $_db.olySessionExercises,
+        ).filter(
+          (f) => f.sessionTemplateId.id.sqlEquals($_itemColumn<String>('id')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _olySessionExercisesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$OlySessionTemplatesTableFilterComposer
+    extends Composer<_$AppDatabase, $OlySessionTemplatesTable> {
+  $$OlySessionTemplatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get focus => $composableBuilder(
+    column: $table.focus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationMinutes => $composableBuilder(
+    column: $table.durationMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get volumeLoad => $composableBuilder(
+    column: $table.volumeLoad,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get adjustedVolumeLoad => $composableBuilder(
+    column: $table.adjustedVolumeLoad,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get workRatio => $composableBuilder(
+    column: $table.workRatio,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get adjustedWorkRatio => $composableBuilder(
+    column: $table.adjustedWorkRatio,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get requirements => $composableBuilder(
+    column: $table.requirements,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get equipment => $composableBuilder(
+    column: $table.equipment,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> olySessionExercisesRefs(
+    Expression<bool> Function($$OlySessionExercisesTableFilterComposer f) f,
+  ) {
+    final $$OlySessionExercisesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.olySessionExercises,
+      getReferencedColumn: (t) => t.sessionTemplateId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OlySessionExercisesTableFilterComposer(
+            $db: $db,
+            $table: $db.olySessionExercises,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$OlySessionTemplatesTableOrderingComposer
+    extends Composer<_$AppDatabase, $OlySessionTemplatesTable> {
+  $$OlySessionTemplatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get focus => $composableBuilder(
+    column: $table.focus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationMinutes => $composableBuilder(
+    column: $table.durationMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get volumeLoad => $composableBuilder(
+    column: $table.volumeLoad,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get adjustedVolumeLoad => $composableBuilder(
+    column: $table.adjustedVolumeLoad,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get workRatio => $composableBuilder(
+    column: $table.workRatio,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get adjustedWorkRatio => $composableBuilder(
+    column: $table.adjustedWorkRatio,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get requirements => $composableBuilder(
+    column: $table.requirements,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get equipment => $composableBuilder(
+    column: $table.equipment,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$OlySessionTemplatesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $OlySessionTemplatesTable> {
+  $$OlySessionTemplatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get focus =>
+      $composableBuilder(column: $table.focus, builder: (column) => column);
+
+  GeneratedColumn<int> get durationMinutes => $composableBuilder(
+    column: $table.durationMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get volumeLoad => $composableBuilder(
+    column: $table.volumeLoad,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get adjustedVolumeLoad => $composableBuilder(
+    column: $table.adjustedVolumeLoad,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get workRatio =>
+      $composableBuilder(column: $table.workRatio, builder: (column) => column);
+
+  GeneratedColumn<double> get adjustedWorkRatio => $composableBuilder(
+    column: $table.adjustedWorkRatio,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get requirements => $composableBuilder(
+    column: $table.requirements,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get equipment =>
+      $composableBuilder(column: $table.equipment, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  Expression<T> olySessionExercisesRefs<T extends Object>(
+    Expression<T> Function($$OlySessionExercisesTableAnnotationComposer a) f,
+  ) {
+    final $$OlySessionExercisesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.olySessionExercises,
+          getReferencedColumn: (t) => t.sessionTemplateId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$OlySessionExercisesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.olySessionExercises,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$OlySessionTemplatesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $OlySessionTemplatesTable,
+          OlySessionTemplate,
+          $$OlySessionTemplatesTableFilterComposer,
+          $$OlySessionTemplatesTableOrderingComposer,
+          $$OlySessionTemplatesTableAnnotationComposer,
+          $$OlySessionTemplatesTableCreateCompanionBuilder,
+          $$OlySessionTemplatesTableUpdateCompanionBuilder,
+          (OlySessionTemplate, $$OlySessionTemplatesTableReferences),
+          OlySessionTemplate,
+          PrefetchHooks Function({bool olySessionExercisesRefs})
+        > {
+  $$OlySessionTemplatesTableTableManager(
+    _$AppDatabase db,
+    $OlySessionTemplatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OlySessionTemplatesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OlySessionTemplatesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$OlySessionTemplatesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> version = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> focus = const Value.absent(),
+                Value<int> durationMinutes = const Value.absent(),
+                Value<int> volumeLoad = const Value.absent(),
+                Value<int> adjustedVolumeLoad = const Value.absent(),
+                Value<double> workRatio = const Value.absent(),
+                Value<double> adjustedWorkRatio = const Value.absent(),
+                Value<String?> requirements = const Value.absent(),
+                Value<String> equipment = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OlySessionTemplatesCompanion(
+                id: id,
+                version: version,
+                name: name,
+                focus: focus,
+                durationMinutes: durationMinutes,
+                volumeLoad: volumeLoad,
+                adjustedVolumeLoad: adjustedVolumeLoad,
+                workRatio: workRatio,
+                adjustedWorkRatio: adjustedWorkRatio,
+                requirements: requirements,
+                equipment: equipment,
+                notes: notes,
+                sortOrder: sortOrder,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String version,
+                required String name,
+                Value<String?> focus = const Value.absent(),
+                required int durationMinutes,
+                required int volumeLoad,
+                required int adjustedVolumeLoad,
+                required double workRatio,
+                required double adjustedWorkRatio,
+                Value<String?> requirements = const Value.absent(),
+                Value<String> equipment = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OlySessionTemplatesCompanion.insert(
+                id: id,
+                version: version,
+                name: name,
+                focus: focus,
+                durationMinutes: durationMinutes,
+                volumeLoad: volumeLoad,
+                adjustedVolumeLoad: adjustedVolumeLoad,
+                workRatio: workRatio,
+                adjustedWorkRatio: adjustedWorkRatio,
+                requirements: requirements,
+                equipment: equipment,
+                notes: notes,
+                sortOrder: sortOrder,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$OlySessionTemplatesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({olySessionExercisesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (olySessionExercisesRefs) db.olySessionExercises,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (olySessionExercisesRefs)
+                    await $_getPrefetchedData<
+                      OlySessionTemplate,
+                      $OlySessionTemplatesTable,
+                      OlySessionExercise
+                    >(
+                      currentTable: table,
+                      referencedTable: $$OlySessionTemplatesTableReferences
+                          ._olySessionExercisesRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$OlySessionTemplatesTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).olySessionExercisesRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.sessionTemplateId == item.id,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$OlySessionTemplatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $OlySessionTemplatesTable,
+      OlySessionTemplate,
+      $$OlySessionTemplatesTableFilterComposer,
+      $$OlySessionTemplatesTableOrderingComposer,
+      $$OlySessionTemplatesTableAnnotationComposer,
+      $$OlySessionTemplatesTableCreateCompanionBuilder,
+      $$OlySessionTemplatesTableUpdateCompanionBuilder,
+      (OlySessionTemplate, $$OlySessionTemplatesTableReferences),
+      OlySessionTemplate,
+      PrefetchHooks Function({bool olySessionExercisesRefs})
+    >;
+typedef $$OlySessionExercisesTableCreateCompanionBuilder =
+    OlySessionExercisesCompanion Function({
+      required String id,
+      required String sessionTemplateId,
+      required String exerciseTypeId,
+      required int exerciseOrder,
+      required int reps,
+      required int workSeconds,
+      required int restSeconds,
+      Value<String?> details,
+      Value<double?> intensityOverride,
+      Value<int> rowid,
+    });
+typedef $$OlySessionExercisesTableUpdateCompanionBuilder =
+    OlySessionExercisesCompanion Function({
+      Value<String> id,
+      Value<String> sessionTemplateId,
+      Value<String> exerciseTypeId,
+      Value<int> exerciseOrder,
+      Value<int> reps,
+      Value<int> workSeconds,
+      Value<int> restSeconds,
+      Value<String?> details,
+      Value<double?> intensityOverride,
+      Value<int> rowid,
+    });
+
+final class $$OlySessionExercisesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $OlySessionExercisesTable,
+          OlySessionExercise
+        > {
+  $$OlySessionExercisesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $OlySessionTemplatesTable _sessionTemplateIdTable(_$AppDatabase db) =>
+      db.olySessionTemplates.createAlias(
+        $_aliasNameGenerator(
+          db.olySessionExercises.sessionTemplateId,
+          db.olySessionTemplates.id,
+        ),
+      );
+
+  $$OlySessionTemplatesTableProcessedTableManager get sessionTemplateId {
+    final $_column = $_itemColumn<String>('session_template_id')!;
+
+    final manager = $$OlySessionTemplatesTableTableManager(
+      $_db,
+      $_db.olySessionTemplates,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sessionTemplateIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $OlyExerciseTypesTable _exerciseTypeIdTable(_$AppDatabase db) =>
+      db.olyExerciseTypes.createAlias(
+        $_aliasNameGenerator(
+          db.olySessionExercises.exerciseTypeId,
+          db.olyExerciseTypes.id,
+        ),
+      );
+
+  $$OlyExerciseTypesTableProcessedTableManager get exerciseTypeId {
+    final $_column = $_itemColumn<String>('exercise_type_id')!;
+
+    final manager = $$OlyExerciseTypesTableTableManager(
+      $_db,
+      $_db.olyExerciseTypes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_exerciseTypeIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$OlySessionExercisesTableFilterComposer
+    extends Composer<_$AppDatabase, $OlySessionExercisesTable> {
+  $$OlySessionExercisesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get exerciseOrder => $composableBuilder(
+    column: $table.exerciseOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get reps => $composableBuilder(
+    column: $table.reps,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get workSeconds => $composableBuilder(
+    column: $table.workSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get restSeconds => $composableBuilder(
+    column: $table.restSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get details => $composableBuilder(
+    column: $table.details,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get intensityOverride => $composableBuilder(
+    column: $table.intensityOverride,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$OlySessionTemplatesTableFilterComposer get sessionTemplateId {
+    final $$OlySessionTemplatesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionTemplateId,
+      referencedTable: $db.olySessionTemplates,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OlySessionTemplatesTableFilterComposer(
+            $db: $db,
+            $table: $db.olySessionTemplates,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$OlyExerciseTypesTableFilterComposer get exerciseTypeId {
+    final $$OlyExerciseTypesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.exerciseTypeId,
+      referencedTable: $db.olyExerciseTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OlyExerciseTypesTableFilterComposer(
+            $db: $db,
+            $table: $db.olyExerciseTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$OlySessionExercisesTableOrderingComposer
+    extends Composer<_$AppDatabase, $OlySessionExercisesTable> {
+  $$OlySessionExercisesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get exerciseOrder => $composableBuilder(
+    column: $table.exerciseOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get reps => $composableBuilder(
+    column: $table.reps,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get workSeconds => $composableBuilder(
+    column: $table.workSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get restSeconds => $composableBuilder(
+    column: $table.restSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get details => $composableBuilder(
+    column: $table.details,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get intensityOverride => $composableBuilder(
+    column: $table.intensityOverride,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$OlySessionTemplatesTableOrderingComposer get sessionTemplateId {
+    final $$OlySessionTemplatesTableOrderingComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.sessionTemplateId,
+          referencedTable: $db.olySessionTemplates,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$OlySessionTemplatesTableOrderingComposer(
+                $db: $db,
+                $table: $db.olySessionTemplates,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+
+  $$OlyExerciseTypesTableOrderingComposer get exerciseTypeId {
+    final $$OlyExerciseTypesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.exerciseTypeId,
+      referencedTable: $db.olyExerciseTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OlyExerciseTypesTableOrderingComposer(
+            $db: $db,
+            $table: $db.olyExerciseTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$OlySessionExercisesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $OlySessionExercisesTable> {
+  $$OlySessionExercisesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get exerciseOrder => $composableBuilder(
+    column: $table.exerciseOrder,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get reps =>
+      $composableBuilder(column: $table.reps, builder: (column) => column);
+
+  GeneratedColumn<int> get workSeconds => $composableBuilder(
+    column: $table.workSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get restSeconds => $composableBuilder(
+    column: $table.restSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get details =>
+      $composableBuilder(column: $table.details, builder: (column) => column);
+
+  GeneratedColumn<double> get intensityOverride => $composableBuilder(
+    column: $table.intensityOverride,
+    builder: (column) => column,
+  );
+
+  $$OlySessionTemplatesTableAnnotationComposer get sessionTemplateId {
+    final $$OlySessionTemplatesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.sessionTemplateId,
+          referencedTable: $db.olySessionTemplates,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$OlySessionTemplatesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.olySessionTemplates,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+
+  $$OlyExerciseTypesTableAnnotationComposer get exerciseTypeId {
+    final $$OlyExerciseTypesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.exerciseTypeId,
+      referencedTable: $db.olyExerciseTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OlyExerciseTypesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.olyExerciseTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$OlySessionExercisesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $OlySessionExercisesTable,
+          OlySessionExercise,
+          $$OlySessionExercisesTableFilterComposer,
+          $$OlySessionExercisesTableOrderingComposer,
+          $$OlySessionExercisesTableAnnotationComposer,
+          $$OlySessionExercisesTableCreateCompanionBuilder,
+          $$OlySessionExercisesTableUpdateCompanionBuilder,
+          (OlySessionExercise, $$OlySessionExercisesTableReferences),
+          OlySessionExercise,
+          PrefetchHooks Function({bool sessionTemplateId, bool exerciseTypeId})
+        > {
+  $$OlySessionExercisesTableTableManager(
+    _$AppDatabase db,
+    $OlySessionExercisesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OlySessionExercisesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OlySessionExercisesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$OlySessionExercisesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> sessionTemplateId = const Value.absent(),
+                Value<String> exerciseTypeId = const Value.absent(),
+                Value<int> exerciseOrder = const Value.absent(),
+                Value<int> reps = const Value.absent(),
+                Value<int> workSeconds = const Value.absent(),
+                Value<int> restSeconds = const Value.absent(),
+                Value<String?> details = const Value.absent(),
+                Value<double?> intensityOverride = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OlySessionExercisesCompanion(
+                id: id,
+                sessionTemplateId: sessionTemplateId,
+                exerciseTypeId: exerciseTypeId,
+                exerciseOrder: exerciseOrder,
+                reps: reps,
+                workSeconds: workSeconds,
+                restSeconds: restSeconds,
+                details: details,
+                intensityOverride: intensityOverride,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String sessionTemplateId,
+                required String exerciseTypeId,
+                required int exerciseOrder,
+                required int reps,
+                required int workSeconds,
+                required int restSeconds,
+                Value<String?> details = const Value.absent(),
+                Value<double?> intensityOverride = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OlySessionExercisesCompanion.insert(
+                id: id,
+                sessionTemplateId: sessionTemplateId,
+                exerciseTypeId: exerciseTypeId,
+                exerciseOrder: exerciseOrder,
+                reps: reps,
+                workSeconds: workSeconds,
+                restSeconds: restSeconds,
+                details: details,
+                intensityOverride: intensityOverride,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$OlySessionExercisesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({sessionTemplateId = false, exerciseTypeId = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (sessionTemplateId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.sessionTemplateId,
+                                    referencedTable:
+                                        $$OlySessionExercisesTableReferences
+                                            ._sessionTemplateIdTable(db),
+                                    referencedColumn:
+                                        $$OlySessionExercisesTableReferences
+                                            ._sessionTemplateIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (exerciseTypeId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.exerciseTypeId,
+                                    referencedTable:
+                                        $$OlySessionExercisesTableReferences
+                                            ._exerciseTypeIdTable(db),
+                                    referencedColumn:
+                                        $$OlySessionExercisesTableReferences
+                                            ._exerciseTypeIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$OlySessionExercisesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $OlySessionExercisesTable,
+      OlySessionExercise,
+      $$OlySessionExercisesTableFilterComposer,
+      $$OlySessionExercisesTableOrderingComposer,
+      $$OlySessionExercisesTableAnnotationComposer,
+      $$OlySessionExercisesTableCreateCompanionBuilder,
+      $$OlySessionExercisesTableUpdateCompanionBuilder,
+      (OlySessionExercise, $$OlySessionExercisesTableReferences),
+      OlySessionExercise,
+      PrefetchHooks Function({bool sessionTemplateId, bool exerciseTypeId})
+    >;
+typedef $$OlyTrainingLogsTableCreateCompanionBuilder =
+    OlyTrainingLogsCompanion Function({
+      required String id,
+      Value<String?> sessionTemplateId,
+      required String sessionVersion,
+      required String sessionName,
+      required int plannedDurationSeconds,
+      required int actualDurationSeconds,
+      required int plannedExercises,
+      required int completedExercises,
+      required int totalHoldSeconds,
+      required int totalRestSeconds,
+      Value<int?> feedbackShaking,
+      Value<int?> feedbackStructure,
+      Value<int?> feedbackRest,
+      Value<String?> progressionSuggestion,
+      Value<String?> suggestedNextVersion,
+      Value<String?> notes,
+      required DateTime startedAt,
+      required DateTime completedAt,
+      Value<int> rowid,
+    });
+typedef $$OlyTrainingLogsTableUpdateCompanionBuilder =
+    OlyTrainingLogsCompanion Function({
+      Value<String> id,
+      Value<String?> sessionTemplateId,
+      Value<String> sessionVersion,
+      Value<String> sessionName,
+      Value<int> plannedDurationSeconds,
+      Value<int> actualDurationSeconds,
+      Value<int> plannedExercises,
+      Value<int> completedExercises,
+      Value<int> totalHoldSeconds,
+      Value<int> totalRestSeconds,
+      Value<int?> feedbackShaking,
+      Value<int?> feedbackStructure,
+      Value<int?> feedbackRest,
+      Value<String?> progressionSuggestion,
+      Value<String?> suggestedNextVersion,
+      Value<String?> notes,
+      Value<DateTime> startedAt,
+      Value<DateTime> completedAt,
+      Value<int> rowid,
+    });
+
+class $$OlyTrainingLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $OlyTrainingLogsTable> {
+  $$OlyTrainingLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sessionTemplateId => $composableBuilder(
+    column: $table.sessionTemplateId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sessionVersion => $composableBuilder(
+    column: $table.sessionVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sessionName => $composableBuilder(
+    column: $table.sessionName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get plannedDurationSeconds => $composableBuilder(
+    column: $table.plannedDurationSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get actualDurationSeconds => $composableBuilder(
+    column: $table.actualDurationSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get plannedExercises => $composableBuilder(
+    column: $table.plannedExercises,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get completedExercises => $composableBuilder(
+    column: $table.completedExercises,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalHoldSeconds => $composableBuilder(
+    column: $table.totalHoldSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalRestSeconds => $composableBuilder(
+    column: $table.totalRestSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get feedbackShaking => $composableBuilder(
+    column: $table.feedbackShaking,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get feedbackStructure => $composableBuilder(
+    column: $table.feedbackStructure,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get feedbackRest => $composableBuilder(
+    column: $table.feedbackRest,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get progressionSuggestion => $composableBuilder(
+    column: $table.progressionSuggestion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get suggestedNextVersion => $composableBuilder(
+    column: $table.suggestedNextVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$OlyTrainingLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $OlyTrainingLogsTable> {
+  $$OlyTrainingLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sessionTemplateId => $composableBuilder(
+    column: $table.sessionTemplateId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sessionVersion => $composableBuilder(
+    column: $table.sessionVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sessionName => $composableBuilder(
+    column: $table.sessionName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get plannedDurationSeconds => $composableBuilder(
+    column: $table.plannedDurationSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get actualDurationSeconds => $composableBuilder(
+    column: $table.actualDurationSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get plannedExercises => $composableBuilder(
+    column: $table.plannedExercises,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get completedExercises => $composableBuilder(
+    column: $table.completedExercises,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalHoldSeconds => $composableBuilder(
+    column: $table.totalHoldSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalRestSeconds => $composableBuilder(
+    column: $table.totalRestSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get feedbackShaking => $composableBuilder(
+    column: $table.feedbackShaking,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get feedbackStructure => $composableBuilder(
+    column: $table.feedbackStructure,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get feedbackRest => $composableBuilder(
+    column: $table.feedbackRest,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get progressionSuggestion => $composableBuilder(
+    column: $table.progressionSuggestion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get suggestedNextVersion => $composableBuilder(
+    column: $table.suggestedNextVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$OlyTrainingLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $OlyTrainingLogsTable> {
+  $$OlyTrainingLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get sessionTemplateId => $composableBuilder(
+    column: $table.sessionTemplateId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sessionVersion => $composableBuilder(
+    column: $table.sessionVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sessionName => $composableBuilder(
+    column: $table.sessionName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get plannedDurationSeconds => $composableBuilder(
+    column: $table.plannedDurationSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get actualDurationSeconds => $composableBuilder(
+    column: $table.actualDurationSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get plannedExercises => $composableBuilder(
+    column: $table.plannedExercises,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get completedExercises => $composableBuilder(
+    column: $table.completedExercises,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get totalHoldSeconds => $composableBuilder(
+    column: $table.totalHoldSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get totalRestSeconds => $composableBuilder(
+    column: $table.totalRestSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get feedbackShaking => $composableBuilder(
+    column: $table.feedbackShaking,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get feedbackStructure => $composableBuilder(
+    column: $table.feedbackStructure,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get feedbackRest => $composableBuilder(
+    column: $table.feedbackRest,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get progressionSuggestion => $composableBuilder(
+    column: $table.progressionSuggestion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get suggestedNextVersion => $composableBuilder(
+    column: $table.suggestedNextVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startedAt =>
+      $composableBuilder(column: $table.startedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$OlyTrainingLogsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $OlyTrainingLogsTable,
+          OlyTrainingLog,
+          $$OlyTrainingLogsTableFilterComposer,
+          $$OlyTrainingLogsTableOrderingComposer,
+          $$OlyTrainingLogsTableAnnotationComposer,
+          $$OlyTrainingLogsTableCreateCompanionBuilder,
+          $$OlyTrainingLogsTableUpdateCompanionBuilder,
+          (
+            OlyTrainingLog,
+            BaseReferences<
+              _$AppDatabase,
+              $OlyTrainingLogsTable,
+              OlyTrainingLog
+            >,
+          ),
+          OlyTrainingLog,
+          PrefetchHooks Function()
+        > {
+  $$OlyTrainingLogsTableTableManager(
+    _$AppDatabase db,
+    $OlyTrainingLogsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OlyTrainingLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OlyTrainingLogsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$OlyTrainingLogsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> sessionTemplateId = const Value.absent(),
+                Value<String> sessionVersion = const Value.absent(),
+                Value<String> sessionName = const Value.absent(),
+                Value<int> plannedDurationSeconds = const Value.absent(),
+                Value<int> actualDurationSeconds = const Value.absent(),
+                Value<int> plannedExercises = const Value.absent(),
+                Value<int> completedExercises = const Value.absent(),
+                Value<int> totalHoldSeconds = const Value.absent(),
+                Value<int> totalRestSeconds = const Value.absent(),
+                Value<int?> feedbackShaking = const Value.absent(),
+                Value<int?> feedbackStructure = const Value.absent(),
+                Value<int?> feedbackRest = const Value.absent(),
+                Value<String?> progressionSuggestion = const Value.absent(),
+                Value<String?> suggestedNextVersion = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> startedAt = const Value.absent(),
+                Value<DateTime> completedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OlyTrainingLogsCompanion(
+                id: id,
+                sessionTemplateId: sessionTemplateId,
+                sessionVersion: sessionVersion,
+                sessionName: sessionName,
+                plannedDurationSeconds: plannedDurationSeconds,
+                actualDurationSeconds: actualDurationSeconds,
+                plannedExercises: plannedExercises,
+                completedExercises: completedExercises,
+                totalHoldSeconds: totalHoldSeconds,
+                totalRestSeconds: totalRestSeconds,
+                feedbackShaking: feedbackShaking,
+                feedbackStructure: feedbackStructure,
+                feedbackRest: feedbackRest,
+                progressionSuggestion: progressionSuggestion,
+                suggestedNextVersion: suggestedNextVersion,
+                notes: notes,
+                startedAt: startedAt,
+                completedAt: completedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> sessionTemplateId = const Value.absent(),
+                required String sessionVersion,
+                required String sessionName,
+                required int plannedDurationSeconds,
+                required int actualDurationSeconds,
+                required int plannedExercises,
+                required int completedExercises,
+                required int totalHoldSeconds,
+                required int totalRestSeconds,
+                Value<int?> feedbackShaking = const Value.absent(),
+                Value<int?> feedbackStructure = const Value.absent(),
+                Value<int?> feedbackRest = const Value.absent(),
+                Value<String?> progressionSuggestion = const Value.absent(),
+                Value<String?> suggestedNextVersion = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                required DateTime startedAt,
+                required DateTime completedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => OlyTrainingLogsCompanion.insert(
+                id: id,
+                sessionTemplateId: sessionTemplateId,
+                sessionVersion: sessionVersion,
+                sessionName: sessionName,
+                plannedDurationSeconds: plannedDurationSeconds,
+                actualDurationSeconds: actualDurationSeconds,
+                plannedExercises: plannedExercises,
+                completedExercises: completedExercises,
+                totalHoldSeconds: totalHoldSeconds,
+                totalRestSeconds: totalRestSeconds,
+                feedbackShaking: feedbackShaking,
+                feedbackStructure: feedbackStructure,
+                feedbackRest: feedbackRest,
+                progressionSuggestion: progressionSuggestion,
+                suggestedNextVersion: suggestedNextVersion,
+                notes: notes,
+                startedAt: startedAt,
+                completedAt: completedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$OlyTrainingLogsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $OlyTrainingLogsTable,
+      OlyTrainingLog,
+      $$OlyTrainingLogsTableFilterComposer,
+      $$OlyTrainingLogsTableOrderingComposer,
+      $$OlyTrainingLogsTableAnnotationComposer,
+      $$OlyTrainingLogsTableCreateCompanionBuilder,
+      $$OlyTrainingLogsTableUpdateCompanionBuilder,
+      (
+        OlyTrainingLog,
+        BaseReferences<_$AppDatabase, $OlyTrainingLogsTable, OlyTrainingLog>,
+      ),
+      OlyTrainingLog,
+      PrefetchHooks Function()
+    >;
+typedef $$UserTrainingProgressTableCreateCompanionBuilder =
+    UserTrainingProgressCompanion Function({
+      required String id,
+      Value<String> currentLevel,
+      Value<int> sessionsAtCurrentLevel,
+      Value<DateTime?> lastSessionAt,
+      Value<String?> lastSessionVersion,
+      Value<int> totalSessionsCompleted,
+      Value<bool> hasCompletedAssessment,
+      Value<int?> assessmentMaxHoldSeconds,
+      Value<DateTime?> assessmentDate,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$UserTrainingProgressTableUpdateCompanionBuilder =
+    UserTrainingProgressCompanion Function({
+      Value<String> id,
+      Value<String> currentLevel,
+      Value<int> sessionsAtCurrentLevel,
+      Value<DateTime?> lastSessionAt,
+      Value<String?> lastSessionVersion,
+      Value<int> totalSessionsCompleted,
+      Value<bool> hasCompletedAssessment,
+      Value<int?> assessmentMaxHoldSeconds,
+      Value<DateTime?> assessmentDate,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$UserTrainingProgressTableFilterComposer
+    extends Composer<_$AppDatabase, $UserTrainingProgressTable> {
+  $$UserTrainingProgressTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currentLevel => $composableBuilder(
+    column: $table.currentLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sessionsAtCurrentLevel => $composableBuilder(
+    column: $table.sessionsAtCurrentLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastSessionAt => $composableBuilder(
+    column: $table.lastSessionAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastSessionVersion => $composableBuilder(
+    column: $table.lastSessionVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalSessionsCompleted => $composableBuilder(
+    column: $table.totalSessionsCompleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get hasCompletedAssessment => $composableBuilder(
+    column: $table.hasCompletedAssessment,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get assessmentMaxHoldSeconds => $composableBuilder(
+    column: $table.assessmentMaxHoldSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get assessmentDate => $composableBuilder(
+    column: $table.assessmentDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$UserTrainingProgressTableOrderingComposer
+    extends Composer<_$AppDatabase, $UserTrainingProgressTable> {
+  $$UserTrainingProgressTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currentLevel => $composableBuilder(
+    column: $table.currentLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sessionsAtCurrentLevel => $composableBuilder(
+    column: $table.sessionsAtCurrentLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastSessionAt => $composableBuilder(
+    column: $table.lastSessionAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastSessionVersion => $composableBuilder(
+    column: $table.lastSessionVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalSessionsCompleted => $composableBuilder(
+    column: $table.totalSessionsCompleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get hasCompletedAssessment => $composableBuilder(
+    column: $table.hasCompletedAssessment,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get assessmentMaxHoldSeconds => $composableBuilder(
+    column: $table.assessmentMaxHoldSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get assessmentDate => $composableBuilder(
+    column: $table.assessmentDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$UserTrainingProgressTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UserTrainingProgressTable> {
+  $$UserTrainingProgressTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get currentLevel => $composableBuilder(
+    column: $table.currentLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sessionsAtCurrentLevel => $composableBuilder(
+    column: $table.sessionsAtCurrentLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastSessionAt => $composableBuilder(
+    column: $table.lastSessionAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastSessionVersion => $composableBuilder(
+    column: $table.lastSessionVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get totalSessionsCompleted => $composableBuilder(
+    column: $table.totalSessionsCompleted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get hasCompletedAssessment => $composableBuilder(
+    column: $table.hasCompletedAssessment,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get assessmentMaxHoldSeconds => $composableBuilder(
+    column: $table.assessmentMaxHoldSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get assessmentDate => $composableBuilder(
+    column: $table.assessmentDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$UserTrainingProgressTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $UserTrainingProgressTable,
+          UserTrainingProgressData,
+          $$UserTrainingProgressTableFilterComposer,
+          $$UserTrainingProgressTableOrderingComposer,
+          $$UserTrainingProgressTableAnnotationComposer,
+          $$UserTrainingProgressTableCreateCompanionBuilder,
+          $$UserTrainingProgressTableUpdateCompanionBuilder,
+          (
+            UserTrainingProgressData,
+            BaseReferences<
+              _$AppDatabase,
+              $UserTrainingProgressTable,
+              UserTrainingProgressData
+            >,
+          ),
+          UserTrainingProgressData,
+          PrefetchHooks Function()
+        > {
+  $$UserTrainingProgressTableTableManager(
+    _$AppDatabase db,
+    $UserTrainingProgressTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UserTrainingProgressTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UserTrainingProgressTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$UserTrainingProgressTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> currentLevel = const Value.absent(),
+                Value<int> sessionsAtCurrentLevel = const Value.absent(),
+                Value<DateTime?> lastSessionAt = const Value.absent(),
+                Value<String?> lastSessionVersion = const Value.absent(),
+                Value<int> totalSessionsCompleted = const Value.absent(),
+                Value<bool> hasCompletedAssessment = const Value.absent(),
+                Value<int?> assessmentMaxHoldSeconds = const Value.absent(),
+                Value<DateTime?> assessmentDate = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => UserTrainingProgressCompanion(
+                id: id,
+                currentLevel: currentLevel,
+                sessionsAtCurrentLevel: sessionsAtCurrentLevel,
+                lastSessionAt: lastSessionAt,
+                lastSessionVersion: lastSessionVersion,
+                totalSessionsCompleted: totalSessionsCompleted,
+                hasCompletedAssessment: hasCompletedAssessment,
+                assessmentMaxHoldSeconds: assessmentMaxHoldSeconds,
+                assessmentDate: assessmentDate,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String> currentLevel = const Value.absent(),
+                Value<int> sessionsAtCurrentLevel = const Value.absent(),
+                Value<DateTime?> lastSessionAt = const Value.absent(),
+                Value<String?> lastSessionVersion = const Value.absent(),
+                Value<int> totalSessionsCompleted = const Value.absent(),
+                Value<bool> hasCompletedAssessment = const Value.absent(),
+                Value<int?> assessmentMaxHoldSeconds = const Value.absent(),
+                Value<DateTime?> assessmentDate = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => UserTrainingProgressCompanion.insert(
+                id: id,
+                currentLevel: currentLevel,
+                sessionsAtCurrentLevel: sessionsAtCurrentLevel,
+                lastSessionAt: lastSessionAt,
+                lastSessionVersion: lastSessionVersion,
+                totalSessionsCompleted: totalSessionsCompleted,
+                hasCompletedAssessment: hasCompletedAssessment,
+                assessmentMaxHoldSeconds: assessmentMaxHoldSeconds,
+                assessmentDate: assessmentDate,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$UserTrainingProgressTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $UserTrainingProgressTable,
+      UserTrainingProgressData,
+      $$UserTrainingProgressTableFilterComposer,
+      $$UserTrainingProgressTableOrderingComposer,
+      $$UserTrainingProgressTableAnnotationComposer,
+      $$UserTrainingProgressTableCreateCompanionBuilder,
+      $$UserTrainingProgressTableUpdateCompanionBuilder,
+      (
+        UserTrainingProgressData,
+        BaseReferences<
+          _$AppDatabase,
+          $UserTrainingProgressTable,
+          UserTrainingProgressData
+        >,
+      ),
+      UserTrainingProgressData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -9058,4 +15044,14 @@ class $AppDatabaseManager {
       $$ShaftsTableTableManager(_db, _db.shafts);
   $$VolumeEntriesTableTableManager get volumeEntries =>
       $$VolumeEntriesTableTableManager(_db, _db.volumeEntries);
+  $$OlyExerciseTypesTableTableManager get olyExerciseTypes =>
+      $$OlyExerciseTypesTableTableManager(_db, _db.olyExerciseTypes);
+  $$OlySessionTemplatesTableTableManager get olySessionTemplates =>
+      $$OlySessionTemplatesTableTableManager(_db, _db.olySessionTemplates);
+  $$OlySessionExercisesTableTableManager get olySessionExercises =>
+      $$OlySessionExercisesTableTableManager(_db, _db.olySessionExercises);
+  $$OlyTrainingLogsTableTableManager get olyTrainingLogs =>
+      $$OlyTrainingLogsTableTableManager(_db, _db.olyTrainingLogs);
+  $$UserTrainingProgressTableTableManager get userTrainingProgress =>
+      $$UserTrainingProgressTableTableManager(_db, _db.userTrainingProgress);
 }

@@ -11,7 +11,7 @@ enum BreathPhase {
 
 /// Visual indicator for breathing - expands on inhale, contracts on exhale
 /// Shows a gold ring that grows/shrinks smoothly
-class BreathingVisualizer extends StatelessWidget {
+class BreathingVisualizer extends StatefulWidget {
   /// Progress from 0.0 to 1.0 within current phase
   final double progress;
 
@@ -37,109 +37,160 @@ class BreathingVisualizer extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    // Calculate circle size based on phase and progress
-    // Inhale: grows from 0.4 to 1.0
-    // Exhale: shrinks from 1.0 to 0.4
-    // Hold: stays at 0.4 (after exhale)
-    // Idle: stays at 0.6
-    double scaleFactor;
-    switch (phase) {
+  State<BreathingVisualizer> createState() => _BreathingVisualizerState();
+}
+
+class _BreathingVisualizerState extends State<BreathingVisualizer>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  BreathPhase? _lastPhase;
+
+  // Durations for each phase (matching the breathing screens)
+  static const int _inhaleDuration = 4;
+  static const int _exhaleDuration = 6;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this);
+    _lastPhase = widget.phase;
+    _startPhaseAnimation();
+  }
+
+  @override
+  void didUpdateWidget(BreathingVisualizer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Only restart animation when phase actually changes
+    if (widget.phase != _lastPhase) {
+      _lastPhase = widget.phase;
+      _startPhaseAnimation();
+    }
+  }
+
+  void _startPhaseAnimation() {
+    switch (widget.phase) {
       case BreathPhase.inhale:
-        scaleFactor = 0.4 + (0.6 * progress);
+        _controller.duration = Duration(seconds: _inhaleDuration);
+        _controller.forward(from: 0);
         break;
       case BreathPhase.exhale:
-        scaleFactor = 1.0 - (0.6 * progress);
+        _controller.duration = Duration(seconds: _exhaleDuration);
+        _controller.forward(from: 0);
         break;
       case BreathPhase.hold:
-        scaleFactor = 0.4;
-        break;
       case BreathPhase.idle:
-        scaleFactor = 0.6;
+        _controller.stop();
         break;
     }
+  }
 
-    final circleSize = size * scaleFactor;
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Outer guide ring (max size indicator)
-          Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.surfaceLight,
-                width: 2,
-              ),
-            ),
-          ),
+  double _getScaleFactor() {
+    switch (widget.phase) {
+      case BreathPhase.inhale:
+        // Grow from 0.4 to 1.0
+        return 0.4 + (0.6 * _controller.value);
+      case BreathPhase.exhale:
+        // Shrink from 1.0 to 0.4
+        return 1.0 - (0.6 * _controller.value);
+      case BreathPhase.hold:
+        return 0.4;
+      case BreathPhase.idle:
+        return 0.6;
+    }
+  }
 
-          // Inner guide ring (min size indicator)
-          Container(
-            width: size * 0.4,
-            height: size * 0.4,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.surfaceLight,
-                width: 1,
-              ),
-            ),
-          ),
-
-          // Main breathing circle
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 100),
-            width: circleSize,
-            height: circleSize,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: _getPhaseColor().withOpacity(0.15),
-              border: Border.all(
-                color: _getPhaseColor(),
-                width: 3,
-              ),
-            ),
-          ),
-
-          // Center text
-          Column(
-            mainAxisSize: MainAxisSize.min,
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final circleSize = widget.size * _getScaleFactor();
+        return SizedBox(
+          width: widget.size,
+          height: widget.size,
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              if (centerText != null)
-                Text(
-                  centerText!,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w500,
+              // Outer guide ring (max size indicator)
+              Container(
+                width: widget.size,
+                height: widget.size,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.surfaceLight,
+                    width: 2,
+                  ),
+                ),
+              ),
+
+              // Inner guide ring (min size indicator)
+              Container(
+                width: widget.size * 0.4,
+                height: widget.size * 0.4,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.surfaceLight,
+                    width: 1,
+                  ),
+                ),
+              ),
+
+              // Main breathing circle - smooth animation
+              Container(
+                width: circleSize,
+                height: circleSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _getPhaseColor().withValues(alpha: 0.15),
+                  border: Border.all(
                     color: _getPhaseColor(),
+                    width: 3,
                   ),
                 ),
-              if (secondaryText != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  secondaryText!,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
+              ),
+
+              // Center text
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.centerText != null)
+                    Text(
+                      widget.centerText!,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w500,
+                        color: _getPhaseColor(),
+                      ),
+                    ),
+                  if (widget.secondaryText != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.secondaryText!,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Color _getPhaseColor() {
-    switch (phase) {
+    switch (widget.phase) {
       case BreathPhase.inhale:
         return AppColors.gold;
       case BreathPhase.exhale:

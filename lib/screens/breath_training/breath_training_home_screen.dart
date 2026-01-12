@@ -53,12 +53,13 @@ class _BreathTrainingHomeScreenState extends State<BreathTrainingHomeScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
+          child: SingleChildScrollView(
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
               Text(
-                'Oxygen Advantage',
+                'Calmness and Focus',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       color: AppColors.gold,
                     ),
@@ -72,8 +73,7 @@ class _BreathTrainingHomeScreenState extends State<BreathTrainingHomeScreen> {
               const SizedBox(height: AppSpacing.xxl),
 
               // Session type cards
-              Expanded(
-                child: Column(
+              Column(
                   children: [
                     // Paced Breathing
                     _SessionCard(
@@ -130,7 +130,8 @@ class _BreathTrainingHomeScreenState extends State<BreathTrainingHomeScreen> {
                     ),
                   ],
                 ),
-              ),
+
+              const SizedBox(height: AppSpacing.lg),
 
               // Info footer
               Container(
@@ -159,6 +160,7 @@ class _BreathTrainingHomeScreenState extends State<BreathTrainingHomeScreen> {
                 ),
               ),
             ],
+            ),
           ),
         ),
       ),
