@@ -129,6 +129,7 @@ class Quivers extends Table {
   TextColumn get bowId => text().nullable().references(Bows, #id)();
   TextColumn get name => text()();
   IntColumn get shaftCount => integer().withDefault(const Constant(12))();
+  TextColumn get settings => text().nullable()(); // JSON for arrow specs
   BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
@@ -295,7 +296,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -329,6 +330,10 @@ class AppDatabase extends _$AppDatabase {
           await m.createTable(olyTrainingLogs);
           await m.createTable(userTrainingProgress);
           await _seedOlyTrainingData();
+        }
+        if (from <= 4) {
+          // Add arrow specifications to quivers
+          await m.addColumn(quivers, quivers.settings);
         }
       },
     );

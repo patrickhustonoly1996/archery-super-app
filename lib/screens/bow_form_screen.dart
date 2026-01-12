@@ -130,7 +130,7 @@ class _BowFormScreenState extends State<BowFormScreen> {
             ),
             const SizedBox(height: AppSpacing.lg),
             DropdownButtonFormField<String>(
-              initialValue: _bowType,
+              value: _bowType,
               decoration: const InputDecoration(
                 labelText: 'Bow Type',
               ),
