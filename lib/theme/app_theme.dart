@@ -21,9 +21,11 @@ class AppColors {
   static const goldMuted = Color(0x80FFD700); // 50% opacity
 
   // Background
+  static const background = Color(0xFF121212);
   static const backgroundDark = Color(0xFF121212);
   static const surfaceDark = Color(0xFF1E1E1E);
   static const surfaceLight = Color(0xFF2A2A2A);
+  static const surfaceBright = Color(0xFF3A3A3A);
 
   // Text
   static const textPrimary = Color(0xFFFFFFFF);

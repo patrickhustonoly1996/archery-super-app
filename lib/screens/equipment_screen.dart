@@ -3,7 +3,10 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
 import '../db/database.dart';
+import '../widgets/bow_icon.dart';
+import '../models/bow_specifications.dart';
 import 'bow_form_screen.dart';
+import 'bow_detail_screen.dart';
 import 'quiver_form_screen.dart';
 import 'shaft_management_screen.dart';
 
@@ -70,8 +73,7 @@ class _BowsTab extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.sports_tennis,
+            BowIcon(
               size: 64,
               color: AppColors.textMuted,
             ),
@@ -145,6 +147,8 @@ class _BowTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final specs = BowSpecifications.fromJson(bow.settings);
+
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
       child: InkWell(
@@ -152,7 +156,7 @@ class _BowTile extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => BowFormScreen(bow: bow),
+              builder: (_) => BowDetailScreen(bow: bow),
             ),
           ).then((_) => context.read<EquipmentProvider>().loadEquipment());
         },
@@ -168,10 +172,9 @@ class _BowTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.sports_tennis,
-                color: bow.isDefault ? AppColors.gold : AppColors.textSecondary,
+              BowIcon(
                 size: 32,
+                color: bow.isDefault ? AppColors.gold : AppColors.textSecondary,
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
@@ -212,6 +215,16 @@ class _BowTile extends StatelessWidget {
                       bow.bowType.toUpperCase(),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
+                    if (specs.hasAnySpecs) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        specs.summaryText,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textMuted,
+                              fontSize: 11,
+                            ),
+                      ),
+                    ],
                   ],
                 ),
               ),

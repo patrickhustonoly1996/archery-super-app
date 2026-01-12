@@ -1,0 +1,359 @@
+import 'dart:convert';
+
+/// Comprehensive bow specifications for recurve and compound bows
+class BowSpecifications {
+  // === PRIMARY SETTINGS (Most Important) ===
+  final double? braceHeight; // mm
+  final double? nockingPoint; // mm above square (positive = above)
+  final double? tillerTop; // mm
+  final double? tillerBottom; // mm
+
+  // === RISER ===
+  final String? riserModel;
+  final String? riserLength; // "23", "25", "27" inches
+
+  // === LIMBS ===
+  final String? limbModel;
+  final String? limbLength; // "short", "medium", "long"
+  final double? limbPoundage; // draw weight at 28"
+
+  // === STRING ===
+  final String? stringMaterial; // "8125", "BCY-X", "Fast Flight", etc.
+  final int? stringStrands; // typically 14-20
+
+  // === BUTTON/PLUNGER ===
+  final String? buttonModel;
+  final String? buttonSpringTension; // "soft", "medium", "stiff" or number
+  final String? centreShot; // "straight", "half_point_out", "full_point_out", "1.5_points_out"
+
+  // === CLICKER ===
+  final String? clickerModel;
+  final double? clickerPosition; // mm from button center
+
+  // === SIGHT ===
+  final String? sightModel;
+  final String? sightExtensionLength; // inches
+
+  // === STABILIZERS ===
+  final double? longRodLength; // inches
+  final double? sideRodLength; // inches
+  final double? vBarAngle; // degrees
+  final String? stabilizerWeights; // description of weights
+
+  // === ARROW SPECS (linked to quiver but often recorded with bow) ===
+  final String? arrowModel;
+  final String? arrowSpine; // e.g., "600", "700", "800"
+  final double? arrowLength; // inches
+
+  // === NOTES ===
+  final String? notes;
+
+  BowSpecifications({
+    this.braceHeight,
+    this.nockingPoint,
+    this.tillerTop,
+    this.tillerBottom,
+    this.riserModel,
+    this.riserLength,
+    this.limbModel,
+    this.limbLength,
+    this.limbPoundage,
+    this.stringMaterial,
+    this.stringStrands,
+    this.buttonModel,
+    this.buttonSpringTension,
+    this.centreShot,
+    this.clickerModel,
+    this.clickerPosition,
+    this.sightModel,
+    this.sightExtensionLength,
+    this.longRodLength,
+    this.sideRodLength,
+    this.vBarAngle,
+    this.stabilizerWeights,
+    this.arrowModel,
+    this.arrowSpine,
+    this.arrowLength,
+    this.notes,
+  });
+
+  factory BowSpecifications.fromJson(String? jsonString) {
+    if (jsonString == null || jsonString.isEmpty) {
+      return BowSpecifications();
+    }
+    try {
+      final map = json.decode(jsonString) as Map<String, dynamic>;
+      return BowSpecifications.fromMap(map);
+    } catch (e) {
+      return BowSpecifications();
+    }
+  }
+
+  factory BowSpecifications.fromMap(Map<String, dynamic> map) {
+    return BowSpecifications(
+      braceHeight: _parseDouble(map['braceHeight']),
+      nockingPoint: _parseDouble(map['nockingPoint']),
+      tillerTop: _parseDouble(map['tillerTop']),
+      tillerBottom: _parseDouble(map['tillerBottom']),
+      riserModel: map['riserModel'] as String?,
+      riserLength: map['riserLength'] as String?,
+      limbModel: map['limbModel'] as String?,
+      limbLength: map['limbLength'] as String?,
+      limbPoundage: _parseDouble(map['limbPoundage']),
+      stringMaterial: map['stringMaterial'] as String?,
+      stringStrands: _parseInt(map['stringStrands']),
+      buttonModel: map['buttonModel'] as String?,
+      buttonSpringTension: map['buttonSpringTension'] as String?,
+      centreShot: map['centreShot'] as String?,
+      clickerModel: map['clickerModel'] as String?,
+      clickerPosition: _parseDouble(map['clickerPosition']),
+      sightModel: map['sightModel'] as String?,
+      sightExtensionLength: map['sightExtensionLength'] as String?,
+      longRodLength: _parseDouble(map['longRodLength']),
+      sideRodLength: _parseDouble(map['sideRodLength']),
+      vBarAngle: _parseDouble(map['vBarAngle']),
+      stabilizerWeights: map['stabilizerWeights'] as String?,
+      arrowModel: map['arrowModel'] as String?,
+      arrowSpine: map['arrowSpine'] as String?,
+      arrowLength: _parseDouble(map['arrowLength']),
+      notes: map['notes'] as String?,
+    );
+  }
+
+  static double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
+  }
+
+  static int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      if (braceHeight != null) 'braceHeight': braceHeight,
+      if (nockingPoint != null) 'nockingPoint': nockingPoint,
+      if (tillerTop != null) 'tillerTop': tillerTop,
+      if (tillerBottom != null) 'tillerBottom': tillerBottom,
+      if (riserModel != null) 'riserModel': riserModel,
+      if (riserLength != null) 'riserLength': riserLength,
+      if (limbModel != null) 'limbModel': limbModel,
+      if (limbLength != null) 'limbLength': limbLength,
+      if (limbPoundage != null) 'limbPoundage': limbPoundage,
+      if (stringMaterial != null) 'stringMaterial': stringMaterial,
+      if (stringStrands != null) 'stringStrands': stringStrands,
+      if (buttonModel != null) 'buttonModel': buttonModel,
+      if (buttonSpringTension != null) 'buttonSpringTension': buttonSpringTension,
+      if (centreShot != null) 'centreShot': centreShot,
+      if (clickerModel != null) 'clickerModel': clickerModel,
+      if (clickerPosition != null) 'clickerPosition': clickerPosition,
+      if (sightModel != null) 'sightModel': sightModel,
+      if (sightExtensionLength != null) 'sightExtensionLength': sightExtensionLength,
+      if (longRodLength != null) 'longRodLength': longRodLength,
+      if (sideRodLength != null) 'sideRodLength': sideRodLength,
+      if (vBarAngle != null) 'vBarAngle': vBarAngle,
+      if (stabilizerWeights != null) 'stabilizerWeights': stabilizerWeights,
+      if (arrowModel != null) 'arrowModel': arrowModel,
+      if (arrowSpine != null) 'arrowSpine': arrowSpine,
+      if (arrowLength != null) 'arrowLength': arrowLength,
+      if (notes != null) 'notes': notes,
+    };
+  }
+
+  String toJson() {
+    final map = toMap();
+    if (map.isEmpty) return '';
+    return json.encode(map);
+  }
+
+  BowSpecifications copyWith({
+    double? braceHeight,
+    double? nockingPoint,
+    double? tillerTop,
+    double? tillerBottom,
+    String? riserModel,
+    String? riserLength,
+    String? limbModel,
+    String? limbLength,
+    double? limbPoundage,
+    String? stringMaterial,
+    int? stringStrands,
+    String? buttonModel,
+    String? buttonSpringTension,
+    String? centreShot,
+    String? clickerModel,
+    double? clickerPosition,
+    String? sightModel,
+    String? sightExtensionLength,
+    double? longRodLength,
+    double? sideRodLength,
+    double? vBarAngle,
+    String? stabilizerWeights,
+    String? arrowModel,
+    String? arrowSpine,
+    double? arrowLength,
+    String? notes,
+    bool clearBraceHeight = false,
+    bool clearNockingPoint = false,
+    bool clearTillerTop = false,
+    bool clearTillerBottom = false,
+  }) {
+    return BowSpecifications(
+      braceHeight: clearBraceHeight ? null : (braceHeight ?? this.braceHeight),
+      nockingPoint: clearNockingPoint ? null : (nockingPoint ?? this.nockingPoint),
+      tillerTop: clearTillerTop ? null : (tillerTop ?? this.tillerTop),
+      tillerBottom: clearTillerBottom ? null : (tillerBottom ?? this.tillerBottom),
+      riserModel: riserModel ?? this.riserModel,
+      riserLength: riserLength ?? this.riserLength,
+      limbModel: limbModel ?? this.limbModel,
+      limbLength: limbLength ?? this.limbLength,
+      limbPoundage: limbPoundage ?? this.limbPoundage,
+      stringMaterial: stringMaterial ?? this.stringMaterial,
+      stringStrands: stringStrands ?? this.stringStrands,
+      buttonModel: buttonModel ?? this.buttonModel,
+      buttonSpringTension: buttonSpringTension ?? this.buttonSpringTension,
+      centreShot: centreShot ?? this.centreShot,
+      clickerModel: clickerModel ?? this.clickerModel,
+      clickerPosition: clickerPosition ?? this.clickerPosition,
+      sightModel: sightModel ?? this.sightModel,
+      sightExtensionLength: sightExtensionLength ?? this.sightExtensionLength,
+      longRodLength: longRodLength ?? this.longRodLength,
+      sideRodLength: sideRodLength ?? this.sideRodLength,
+      vBarAngle: vBarAngle ?? this.vBarAngle,
+      stabilizerWeights: stabilizerWeights ?? this.stabilizerWeights,
+      arrowModel: arrowModel ?? this.arrowModel,
+      arrowSpine: arrowSpine ?? this.arrowSpine,
+      arrowLength: arrowLength ?? this.arrowLength,
+      notes: notes ?? this.notes,
+    );
+  }
+
+  /// Calculate tiller difference (top - bottom)
+  double? get tillerDifference {
+    if (tillerTop == null || tillerBottom == null) return null;
+    return tillerTop! - tillerBottom!;
+  }
+
+  /// Calculate total bow length based on riser and limb length
+  String? get totalBowLength {
+    if (riserLength == null || limbLength == null) return null;
+
+    final riserInches = double.tryParse(riserLength!);
+    if (riserInches == null) return null;
+
+    int limbAddition;
+    switch (limbLength!.toLowerCase()) {
+      case 'short':
+        limbAddition = 66 - 25; // 66" bow with 25" riser
+        break;
+      case 'medium':
+        limbAddition = 68 - 25; // 68" bow with 25" riser
+        break;
+      case 'long':
+        limbAddition = 70 - 25; // 70" bow with 25" riser
+        break;
+      default:
+        return null;
+    }
+
+    final totalLength = riserInches + limbAddition;
+    return '${totalLength.toStringAsFixed(0)}"';
+  }
+
+  /// Check if has any primary specs set
+  bool get hasPrimarySpecs =>
+      braceHeight != null ||
+      nockingPoint != null ||
+      tillerTop != null ||
+      tillerBottom != null;
+
+  /// Check if has any specs at all
+  bool get hasAnySpecs => toMap().isNotEmpty;
+
+  /// Get a summary string for display
+  String get summaryText {
+    final parts = <String>[];
+
+    if (braceHeight != null) {
+      parts.add('BH: ${braceHeight!.toStringAsFixed(1)}mm');
+    }
+    if (tillerTop != null && tillerBottom != null) {
+      final diff = tillerDifference!;
+      parts.add('Tiller: ${diff >= 0 ? '+' : ''}${diff.toStringAsFixed(1)}mm');
+    }
+    if (limbPoundage != null) {
+      parts.add('${limbPoundage!.toStringAsFixed(0)}#');
+    }
+
+    return parts.isEmpty ? 'No specs recorded' : parts.join(' | ');
+  }
+}
+
+/// Centre shot position options
+class CentreShotOptions {
+  static const String straight = 'straight';
+  static const String halfPointOut = 'half_point_out';
+  static const String fullPointOut = 'full_point_out';
+  static const String oneAndHalfPointsOut = '1.5_points_out';
+
+  static String displayName(String? value) {
+    switch (value) {
+      case straight:
+        return 'Straight';
+      case halfPointOut:
+        return '1/2 point outside';
+      case fullPointOut:
+        return 'Full point outside';
+      case oneAndHalfPointsOut:
+        return '1.5 points outside';
+      default:
+        return 'Not set';
+    }
+  }
+
+  static const List<String> values = [
+    straight,
+    halfPointOut,
+    fullPointOut,
+    oneAndHalfPointsOut,
+  ];
+}
+
+/// Limb length options
+class LimbLengthOptions {
+  static const String short = 'short';
+  static const String medium = 'medium';
+  static const String long = 'long';
+
+  static String displayName(String? value) {
+    switch (value) {
+      case short:
+        return 'Short (66")';
+      case medium:
+        return 'Medium (68")';
+      case long:
+        return 'Long (70")';
+      default:
+        return 'Not set';
+    }
+  }
+
+  static const List<String> values = [short, medium, long];
+}
+
+/// Riser length options
+class RiserLengthOptions {
+  static const List<String> values = ['23', '25', '27'];
+
+  static String displayName(String? value) {
+    if (value == null) return 'Not set';
+    return '$value"';
+  }
+}

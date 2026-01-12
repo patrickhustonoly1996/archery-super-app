@@ -106,6 +106,8 @@ class EquipmentProvider extends ChangeNotifier {
       name: Value(name ?? bow.name),
       bowType: Value(bowType ?? bow.bowType),
       settings: Value(settings ?? bow.settings),
+      isDefault: Value(bow.isDefault),
+      createdAt: Value(bow.createdAt),
       updatedAt: Value(DateTime.now()),
     ));
 
