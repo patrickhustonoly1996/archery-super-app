@@ -17,9 +17,9 @@ class BowTrainingIntroScreen extends StatefulWidget {
 }
 
 class _BowTrainingIntroScreenState extends State<BowTrainingIntroScreen> {
-  // Quick start settings
-  int _selectedDuration = 10; // minutes
-  double _selectedWorkRatio = 0.5; // work:rest ratio (0.5 = 1:2)
+  // Quick start settings (initialized from saved preferences)
+  int? _selectedDuration;
+  double? _selectedWorkRatio;
 
   // Available duration options
   static const List<int> _durationOptions = [3, 5, 10, 15, 20, 25, 30];
@@ -36,16 +36,32 @@ class _BowTrainingIntroScreenState extends State<BowTrainingIntroScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<BowTrainingProvider>().loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final provider = context.read<BowTrainingProvider>();
+      await provider.loadData();
+      // Restore last-used settings
+      if (mounted) {
+        setState(() {
+          _selectedDuration = provider.lastDuration;
+          _selectedWorkRatio = provider.lastWorkRatio;
+        });
+      }
     });
   }
 
+  int get selectedDuration => _selectedDuration ?? 10;
+  double get selectedWorkRatio => _selectedWorkRatio ?? 0.5;
+
   void _startQuickSession() {
     final provider = context.read<BowTrainingProvider>();
+    // Save preferences for next time
+    provider.saveQuickSessionPreferences(
+      duration: selectedDuration,
+      workRatio: selectedWorkRatio,
+    );
     provider.startQuickSession(
-      durationMinutes: _selectedDuration,
-      workRatio: _selectedWorkRatio,
+      durationMinutes: selectedDuration,
+      workRatio: selectedWorkRatio,
     );
   }
 
@@ -95,6 +111,16 @@ class _BowTrainingIntroScreenState extends State<BowTrainingIntroScreen> {
                     const SizedBox(height: AppSpacing.lg),
                   ],
 
+                  // Custom sessions (if any)
+                  if (provider.customSessions.isNotEmpty) ...[
+                    _CustomSessionsSection(
+                      sessions: provider.customSessions,
+                      onStart: provider.startCustomSession,
+                      onEdit: (s) => _showCustomSessionBuilder(session: s),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
+
                   // Duration selector
                   Text(
                     'Duration',
@@ -105,7 +131,7 @@ class _BowTrainingIntroScreenState extends State<BowTrainingIntroScreen> {
                   const SizedBox(height: AppSpacing.sm),
                   _DurationSelector(
                     options: _durationOptions,
-                    selected: _selectedDuration,
+                    selected: selectedDuration,
                     onChanged: (v) => setState(() => _selectedDuration = v),
                   ),
 
@@ -121,7 +147,7 @@ class _BowTrainingIntroScreenState extends State<BowTrainingIntroScreen> {
                   const SizedBox(height: AppSpacing.sm),
                   _RatioSelector(
                     options: _ratioOptions,
-                    selected: _selectedWorkRatio,
+                    selected: selectedWorkRatio,
                     onChanged: (v) => setState(() => _selectedWorkRatio = v),
                   ),
 
@@ -129,8 +155,8 @@ class _BowTrainingIntroScreenState extends State<BowTrainingIntroScreen> {
 
                   // Calculated hold/rest display
                   _HoldRestPreview(
-                    ratio: _selectedWorkRatio,
-                    durationMinutes: _selectedDuration,
+                    ratio: selectedWorkRatio,
+                    durationMinutes: selectedDuration,
                   ),
 
                   const Spacer(),
@@ -142,7 +168,7 @@ class _BowTrainingIntroScreenState extends State<BowTrainingIntroScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 20),
                     ),
                     child: Text(
-                      'Start ${_selectedDuration} min Session',
+                      'Start $selectedDuration min Session',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -152,28 +178,44 @@ class _BowTrainingIntroScreenState extends State<BowTrainingIntroScreen> {
 
                   const SizedBox(height: AppSpacing.md),
 
-                  // Test max hold button
-                  OutlinedButton(
-                    onPressed: _startMaxHoldTest,
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.gold),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text(
-                      'Test Max Hold',
-                      style: TextStyle(color: AppColors.gold),
-                    ),
-                  ),
-
-                  const SizedBox(height: AppSpacing.sm),
-
-                  // Explanation text
-                  Text(
-                    'Test your max hold to get a personalised starting level',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textMuted,
+                  // Build custom session button
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => _showCustomSessionBuilder(),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: AppColors.gold.withOpacity(0.5)),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add, size: 18, color: AppColors.gold),
+                              SizedBox(width: AppSpacing.xs),
+                              Text(
+                                'Build Custom',
+                                style: TextStyle(color: AppColors.gold),
+                              ),
+                            ],
+                          ),
                         ),
-                    textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _startMaxHoldTest,
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppColors.gold),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          child: const Text(
+                            'Test Max Hold',
+                            style: TextStyle(color: AppColors.gold, fontSize: 13),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: AppSpacing.lg),
@@ -183,6 +225,15 @@ class _BowTrainingIntroScreenState extends State<BowTrainingIntroScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _showCustomSessionBuilder({CustomBowSession? session}) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CustomSessionBuilderScreen(existingSession: session),
+      ),
     );
   }
 }
@@ -972,6 +1023,8 @@ class _StructuredSessionsList extends StatelessWidget {
   Widget build(BuildContext context) {
     final suggested = provider.suggestedSession;
     final sessionsByLevel = provider.sessionsByLevel;
+    final favorites = provider.favoriteSectionTemplates;
+    final mostUsed = provider.mostUsedSessions;
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -979,6 +1032,78 @@ class _StructuredSessionsList extends StatelessWidget {
         // User progress summary
         if (provider.userProgress != null) ...[
           _ProgressSummaryCard(progress: provider.userProgress!),
+          const SizedBox(height: AppSpacing.lg),
+        ],
+
+        // Favorites section
+        if (favorites.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.only(
+              left: AppSpacing.sm,
+              bottom: AppSpacing.sm,
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.star, color: AppColors.gold, size: 16),
+                const SizedBox(width: AppSpacing.xs),
+                Text(
+                  'Favorites',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.gold,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          ...favorites.map((session) => _StructuredSessionCard(
+                session: session,
+                isRecommended: false,
+                isFavorite: true,
+                onTap: () {
+                  provider.startSession(session);
+                  Navigator.pop(context);
+                },
+                onToggleFavorite: () => provider.toggleFavorite(session.id),
+              )),
+          const SizedBox(height: AppSpacing.lg),
+        ],
+
+        // Most used section
+        if (mostUsed.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.only(
+              left: AppSpacing.sm,
+              bottom: AppSpacing.sm,
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.trending_up, color: AppColors.textMuted, size: 16),
+                const SizedBox(width: AppSpacing.xs),
+                Text(
+                  'Most Used',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textMuted,
+                        fontWeight: FontWeight.w500,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          ...mostUsed.map((item) {
+            final session = provider.sessionTemplates
+                .where((s) => s.id == item.sessionId)
+                .firstOrNull;
+            if (session == null) return const SizedBox.shrink();
+            return _MostUsedSessionCard(
+              session: session,
+              usageCount: item.count,
+              onTap: () {
+                provider.startSession(session);
+                Navigator.pop(context);
+              },
+            );
+          }),
           const SizedBox(height: AppSpacing.lg),
         ],
 
@@ -1004,6 +1129,7 @@ class _StructuredSessionsList extends StatelessWidget {
               provider.startSession(suggested);
               Navigator.pop(context);
             },
+            onToggleFavorite: () => provider.toggleFavorite(suggested.id),
           ),
           const SizedBox(height: AppSpacing.lg),
         ],
@@ -1116,12 +1242,16 @@ class _ProgressSummaryCard extends StatelessWidget {
 class _StructuredSessionCard extends StatelessWidget {
   final OlySessionTemplate session;
   final bool isRecommended;
+  final bool isFavorite;
   final VoidCallback onTap;
+  final VoidCallback? onToggleFavorite;
 
   const _StructuredSessionCard({
     required this.session,
     required this.isRecommended,
+    this.isFavorite = false,
     required this.onTap,
+    this.onToggleFavorite,
   });
 
   @override
@@ -1139,6 +1269,7 @@ class _StructuredSessionCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: onTap,
+        onLongPress: onToggleFavorite,
         borderRadius: BorderRadius.circular(AppSpacing.sm),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -1170,13 +1301,23 @@ class _StructuredSessionCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      session.name,
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: isRecommended
-                                ? AppColors.gold
-                                : AppColors.textPrimary,
+                    Row(
+                      children: [
+                        if (isFavorite) ...[
+                          const Icon(Icons.star, color: AppColors.gold, size: 14),
+                          const SizedBox(width: 4),
+                        ],
+                        Expanded(
+                          child: Text(
+                            session.name,
+                            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                  color: isRecommended
+                                      ? AppColors.gold
+                                      : AppColors.textPrimary,
+                                ),
                           ),
+                        ),
+                      ],
                     ),
                     if (session.focus != null) ...[
                       const SizedBox(height: 2),
@@ -1207,6 +1348,81 @@ class _StructuredSessionCard extends StatelessWidget {
                     size: 20,
                   ),
                 ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MostUsedSessionCard extends StatelessWidget {
+  final OlySessionTemplate session;
+  final int usageCount;
+  final VoidCallback onTap;
+
+  const _MostUsedSessionCard({
+    required this.session,
+    required this.usageCount,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: AppSpacing.xs),
+      color: AppColors.surfaceLight.withOpacity(0.5),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.sm),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceLight,
+                  borderRadius: BorderRadius.circular(AppSpacing.xs),
+                ),
+                child: Center(
+                  child: Text(
+                    session.version,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  session.name,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppSpacing.xs),
+                ),
+                child: Text(
+                  '$usageCount times',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.gold,
+                        fontSize: 10,
+                      ),
+                ),
               ),
             ],
           ),
@@ -1484,6 +1700,637 @@ class _DetailItem extends StatelessWidget {
                       ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// CUSTOM SESSIONS SECTION
+// =============================================================================
+
+class _CustomSessionsSection extends StatelessWidget {
+  final List<CustomBowSession> sessions;
+  final void Function(CustomBowSession) onStart;
+  final void Function(CustomBowSession) onEdit;
+
+  const _CustomSessionsSection({
+    required this.sessions,
+    required this.onStart,
+    required this.onEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'My Sessions',
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: AppColors.textSecondary,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        SizedBox(
+          height: 72,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: sessions.length,
+            itemBuilder: (context, index) {
+              final session = sessions[index];
+              return Padding(
+                padding: EdgeInsets.only(
+                  right: index < sessions.length - 1 ? AppSpacing.sm : 0,
+                ),
+                child: _CustomSessionChip(
+                  session: session,
+                  onTap: () => onStart(session),
+                  onLongPress: () => onEdit(session),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CustomSessionChip extends StatelessWidget {
+  final CustomBowSession session;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+
+  const _CustomSessionChip({
+    required this.session,
+    required this.onTap,
+    required this.onLongPress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      onLongPress: onLongPress,
+      child: Container(
+        width: 120,
+        padding: const EdgeInsets.all(AppSpacing.sm),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceDark,
+          borderRadius: BorderRadius.circular(AppSpacing.sm),
+          border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              session.name,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: AppColors.gold,
+                  ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '${session.totalDurationMinutes} min',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+            ),
+            Text(
+              '${session.exercises.length} exercises',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textMuted,
+                    fontSize: 10,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// CUSTOM SESSION BUILDER SCREEN
+// =============================================================================
+
+class CustomSessionBuilderScreen extends StatefulWidget {
+  final CustomBowSession? existingSession;
+
+  const CustomSessionBuilderScreen({super.key, this.existingSession});
+
+  @override
+  State<CustomSessionBuilderScreen> createState() =>
+      _CustomSessionBuilderScreenState();
+}
+
+class _CustomSessionBuilderScreenState
+    extends State<CustomSessionBuilderScreen> {
+  final TextEditingController _nameController = TextEditingController();
+  List<CustomExercise> _exercises = [];
+  bool _isEditing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingSession != null) {
+      _isEditing = true;
+      _nameController.text = widget.existingSession!.name;
+      _exercises = List.from(widget.existingSession!.exercises);
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  void _addExercise() async {
+    final provider = context.read<BowTrainingProvider>();
+    final exerciseTypes = provider.availableExerciseTypes;
+
+    final result = await showModalBottomSheet<CustomExercise>(
+      context: context,
+      backgroundColor: AppColors.surfaceDark,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => _AddExerciseSheet(exerciseTypes: exerciseTypes),
+    );
+
+    if (result != null) {
+      setState(() {
+        _exercises.add(result);
+      });
+    }
+  }
+
+  void _removeExercise(int index) {
+    setState(() {
+      _exercises.removeAt(index);
+    });
+  }
+
+  void _reorderExercises(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) newIndex--;
+      final item = _exercises.removeAt(oldIndex);
+      _exercises.insert(newIndex, item);
+    });
+  }
+
+  void _saveSession() async {
+    if (_nameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a session name')),
+      );
+      return;
+    }
+
+    if (_exercises.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Add at least one exercise')),
+      );
+      return;
+    }
+
+    final provider = context.read<BowTrainingProvider>();
+    final session = CustomBowSession(
+      id: widget.existingSession?.id ??
+          'custom_${DateTime.now().millisecondsSinceEpoch}',
+      name: _nameController.text,
+      exercises: _exercises,
+      createdAt: widget.existingSession?.createdAt ?? DateTime.now(),
+    );
+
+    await provider.saveCustomSession(session);
+    if (mounted) {
+      Navigator.pop(context);
+    }
+  }
+
+  void _deleteSession() async {
+    if (widget.existingSession == null) return;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        title: const Text('Delete Session?'),
+        content: const Text('This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Delete', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final provider = context.read<BowTrainingProvider>();
+      await provider.deleteCustomSession(widget.existingSession!.id);
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    }
+  }
+
+  int get _totalDuration {
+    int total = 0;
+    for (final ex in _exercises) {
+      total += ex.reps * (ex.holdSeconds + ex.restSeconds);
+    }
+    return (total / 60).ceil();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_isEditing ? 'Edit Session' : 'Build Session'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          if (_isEditing)
+            IconButton(
+              onPressed: _deleteSession,
+              icon: Icon(Icons.delete, color: AppColors.error),
+            ),
+          TextButton(
+            onPressed: _saveSession,
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      hintText: 'Session name',
+                      filled: true,
+                      fillColor: AppColors.surfaceDark,
+                    ),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  if (_exercises.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      '~$_totalDuration min total',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: _exercises.isEmpty
+                  ? _EmptyExerciseList(onAdd: _addExercise)
+                  : ReorderableListView.builder(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      itemCount: _exercises.length,
+                      onReorder: _reorderExercises,
+                      itemBuilder: (context, index) {
+                        final exercise = _exercises[index];
+                        return _ExerciseListItem(
+                          key: ValueKey('exercise_$index'),
+                          exercise: exercise,
+                          index: index,
+                          onRemove: () => _removeExercise(index),
+                        );
+                      },
+                    ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: ElevatedButton.icon(
+                onPressed: _addExercise,
+                icon: const Icon(Icons.add),
+                label: const Text('Add Exercise'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(48),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyExerciseList extends StatelessWidget {
+  final VoidCallback onAdd;
+
+  const _EmptyExerciseList({required this.onAdd});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.fitness_center,
+            size: 48,
+            color: AppColors.textMuted.withOpacity(0.5),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            'No exercises yet',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textMuted,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Tap below to add your first exercise',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textMuted,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ExerciseListItem extends StatelessWidget {
+  final CustomExercise exercise;
+  final int index;
+  final VoidCallback onRemove;
+
+  const _ExerciseListItem({
+    super.key,
+    required this.exercise,
+    required this.index,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      color: AppColors.surfaceDark,
+      child: ListTile(
+        leading: ReorderableDragStartListener(
+          index: index,
+          child: const Icon(Icons.drag_handle, color: AppColors.textMuted),
+        ),
+        title: Text(exercise.name),
+        subtitle: Text(
+          '${exercise.reps} reps @ ${exercise.holdSeconds}s hold / ${exercise.restSeconds}s rest',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.textMuted,
+              ),
+        ),
+        trailing: IconButton(
+          onPressed: onRemove,
+          icon: Icon(Icons.close, color: AppColors.error.withOpacity(0.7)),
+        ),
+      ),
+    );
+  }
+}
+
+class _AddExerciseSheet extends StatefulWidget {
+  final List<OlyExerciseType> exerciseTypes;
+
+  const _AddExerciseSheet({required this.exerciseTypes});
+
+  @override
+  State<_AddExerciseSheet> createState() => _AddExerciseSheetState();
+}
+
+class _AddExerciseSheetState extends State<_AddExerciseSheet> {
+  OlyExerciseType? _selectedType;
+  int _reps = 5;
+  int _holdSeconds = 15;
+  int _restSeconds = 15;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.exerciseTypes.isNotEmpty) {
+      _selectedType = widget.exerciseTypes.first;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.textMuted,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              'Add Exercise',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
+            // Exercise type selector
+            Text(
+              'Exercise Type',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceLight,
+                borderRadius: BorderRadius.circular(AppSpacing.sm),
+              ),
+              child: DropdownButton<OlyExerciseType>(
+                value: _selectedType,
+                isExpanded: true,
+                underline: const SizedBox(),
+                dropdownColor: AppColors.surfaceLight,
+                items: widget.exerciseTypes.map((type) {
+                  return DropdownMenuItem(
+                    value: type,
+                    child: Text(type.name),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedType = value;
+                  });
+                },
+              ),
+            ),
+
+            const SizedBox(height: AppSpacing.lg),
+
+            // Reps, hold, rest sliders
+            _SliderRow(
+              label: 'Reps',
+              value: _reps,
+              min: 1,
+              max: 20,
+              onChanged: (v) => setState(() => _reps = v),
+            ),
+            _SliderRow(
+              label: 'Hold (sec)',
+              value: _holdSeconds,
+              min: 5,
+              max: 60,
+              step: 5,
+              onChanged: (v) => setState(() => _holdSeconds = v),
+            ),
+            _SliderRow(
+              label: 'Rest (sec)',
+              value: _restSeconds,
+              min: 5,
+              max: 60,
+              step: 5,
+              onChanged: (v) => setState(() => _restSeconds = v),
+            ),
+
+            const SizedBox(height: AppSpacing.lg),
+
+            // Duration preview
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceLight,
+                borderRadius: BorderRadius.circular(AppSpacing.sm),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Duration: ',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  Text(
+                    '${((_reps * (_holdSeconds + _restSeconds)) / 60).toStringAsFixed(1)} min',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.gold,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: AppSpacing.lg),
+
+            ElevatedButton(
+              onPressed: _selectedType == null
+                  ? null
+                  : () {
+                      Navigator.pop(
+                        context,
+                        CustomExercise(
+                          exerciseTypeId: _selectedType!.id,
+                          name: _selectedType!.name,
+                          reps: _reps,
+                          holdSeconds: _holdSeconds,
+                          restSeconds: _restSeconds,
+                        ),
+                      );
+                    },
+              child: const Text('Add'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SliderRow extends StatelessWidget {
+  final String label;
+  final int value;
+  final int min;
+  final int max;
+  final int step;
+  final ValueChanged<int> onChanged;
+
+  const _SliderRow({
+    required this.label,
+    required this.value,
+    required this.min,
+    required this.max,
+    this.step = 1,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+            ),
+          ),
+          Expanded(
+            child: Slider(
+              value: value.toDouble(),
+              min: min.toDouble(),
+              max: max.toDouble(),
+              divisions: (max - min) ~/ step,
+              activeColor: AppColors.gold,
+              onChanged: (v) => onChanged(v.round()),
+            ),
+          ),
+          SizedBox(
+            width: 32,
+            child: Text(
+              '$value',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.gold,
+                  ),
+              textAlign: TextAlign.end,
             ),
           ),
         ],
