@@ -12,6 +12,7 @@ import 'equipment_screen.dart';
 import 'login_screen.dart';
 import 'breath_training/breath_training_home_screen.dart';
 import 'bow_training_screen.dart';
+import 'performance_profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -68,6 +69,15 @@ class _HomeScreenState extends State<HomeScreen>
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const StatisticsScreen()),
+      ),
+    ),
+    _MenuItem(
+      label: 'PROFILE',
+      sublabel: 'Performance radar',
+      pixelIcon: PixelIconType.radar,
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const PerformanceProfileScreen()),
       ),
     ),
     _MenuItem(
@@ -324,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen>
 // DATA MODEL
 // =============================================================================
 
-enum PixelIconType { resume, target, scroll, chart, bow, lungs }
+enum PixelIconType { resume, target, scroll, chart, bow, lungs, radar }
 
 class _MenuItem {
   final String label;
@@ -627,6 +637,8 @@ class _PixelMenuIconPainter extends CustomPainter {
         _drawBow(canvas, p, paint, dimPaint);
       case PixelIconType.lungs:
         _drawLungs(canvas, p, paint, dimPaint);
+      case PixelIconType.radar:
+        _drawRadar(canvas, p, paint, dimPaint);
     }
   }
 
@@ -830,6 +842,56 @@ class _PixelMenuIconPainter extends CustomPainter {
     _px(canvas, 8, 8, p, paint);
     _px(canvas, 9, 8, p, paint);
     _px(canvas, 8, 9, p, dimPaint);
+  }
+
+  // Radar/spider chart
+  void _drawRadar(Canvas canvas, double p, Paint paint, Paint dimPaint) {
+    // Pentagon outline (5 axes)
+    // Top vertex
+    _px(canvas, 5, 1, p, dimPaint);
+    _px(canvas, 6, 1, p, dimPaint);
+    // Top-right edge
+    _px(canvas, 8, 2, p, dimPaint);
+    _px(canvas, 9, 3, p, dimPaint);
+    _px(canvas, 10, 4, p, dimPaint);
+    _px(canvas, 10, 5, p, dimPaint);
+    // Bottom-right edge
+    _px(canvas, 9, 7, p, dimPaint);
+    _px(canvas, 8, 8, p, dimPaint);
+    _px(canvas, 7, 9, p, dimPaint);
+    // Bottom-left edge
+    _px(canvas, 4, 9, p, dimPaint);
+    _px(canvas, 3, 8, p, dimPaint);
+    _px(canvas, 2, 7, p, dimPaint);
+    // Top-left edge
+    _px(canvas, 1, 5, p, dimPaint);
+    _px(canvas, 1, 4, p, dimPaint);
+    _px(canvas, 2, 3, p, dimPaint);
+    _px(canvas, 3, 2, p, dimPaint);
+    // Axis lines from center
+    _px(canvas, 5, 3, p, paint);
+    _px(canvas, 5, 4, p, paint);
+    _px(canvas, 5, 5, p, paint);
+    _px(canvas, 6, 3, p, paint);
+    _px(canvas, 6, 4, p, paint);
+    _px(canvas, 6, 5, p, paint);
+    // Axis to bottom-right
+    _px(canvas, 7, 6, p, paint);
+    _px(canvas, 8, 7, p, paint);
+    // Axis to bottom-left
+    _px(canvas, 4, 6, p, paint);
+    _px(canvas, 3, 7, p, paint);
+    // Axis to top-right
+    _px(canvas, 7, 4, p, paint);
+    _px(canvas, 8, 3, p, paint);
+    // Axis to top-left
+    _px(canvas, 4, 4, p, paint);
+    _px(canvas, 3, 3, p, paint);
+    // Center dot
+    _px(canvas, 5, 5, p, paint);
+    _px(canvas, 6, 5, p, paint);
+    _px(canvas, 5, 6, p, paint);
+    _px(canvas, 6, 6, p, paint);
   }
 
   void _px(Canvas canvas, int x, int y, double p, Paint paint) {
