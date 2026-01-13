@@ -34,6 +34,10 @@ class AppColors {
   static const error = Color(0xFFCF6679);
   static const success = Color(0xFF4CAF50);
 
+  // Muted fluorescent accents (≤50% opacity highlights)
+  static const cyan = Color(0x8000E5FF); // Indoor indicator
+  static const magenta = Color(0x80FF00FF); // Outdoor indicator
+
   // Target face ring colors (WA standard)
   static const ringX = Color(0xFFFFD700); // Gold center
   static const ring10 = Color(0xFFFFD700);
