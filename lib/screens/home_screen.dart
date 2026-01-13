@@ -12,6 +12,7 @@ import 'equipment_screen.dart';
 import 'login_screen.dart';
 import 'breath_training/breath_training_home_screen.dart';
 import 'bow_training_screen.dart';
+import 'delayed_video_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -77,6 +78,15 @@ class _HomeScreenState extends State<HomeScreen>
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const BowTrainingScreen()),
+      ),
+    ),
+    _MenuItem(
+      label: 'VIDEO',
+      sublabel: 'Delayed mirror',
+      pixelIcon: PixelIconType.video,
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const DelayedVideoScreen()),
       ),
     ),
     _MenuItem(
@@ -324,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen>
 // DATA MODEL
 // =============================================================================
 
-enum PixelIconType { resume, target, scroll, chart, bow, lungs }
+enum PixelIconType { resume, target, scroll, chart, bow, lungs, video }
 
 class _MenuItem {
   final String label;
@@ -627,6 +637,8 @@ class _PixelMenuIconPainter extends CustomPainter {
         _drawBow(canvas, p, paint, dimPaint);
       case PixelIconType.lungs:
         _drawLungs(canvas, p, paint, dimPaint);
+      case PixelIconType.video:
+        _drawVideo(canvas, p, paint, dimPaint);
     }
   }
 
@@ -830,6 +842,46 @@ class _PixelMenuIconPainter extends CustomPainter {
     _px(canvas, 8, 8, p, paint);
     _px(canvas, 9, 8, p, paint);
     _px(canvas, 8, 9, p, dimPaint);
+  }
+
+  // Video camera icon
+  void _drawVideo(Canvas canvas, double p, Paint paint, Paint dimPaint) {
+    // Camera body (rectangle)
+    for (int x = 1; x <= 7; x++) {
+      _px(canvas, x, 3, p, paint);
+      _px(canvas, x, 9, p, paint);
+    }
+    for (int y = 3; y <= 9; y++) {
+      _px(canvas, 1, y, p, paint);
+      _px(canvas, 7, y, p, paint);
+    }
+    // Camera body fill
+    for (int x = 2; x <= 6; x++) {
+      for (int y = 4; y <= 8; y++) {
+        _px(canvas, x, y, p, dimPaint);
+      }
+    }
+    // Lens circle
+    _px(canvas, 3, 5, p, paint);
+    _px(canvas, 4, 5, p, paint);
+    _px(canvas, 5, 5, p, paint);
+    _px(canvas, 3, 6, p, paint);
+    _px(canvas, 5, 6, p, paint);
+    _px(canvas, 3, 7, p, paint);
+    _px(canvas, 4, 7, p, paint);
+    _px(canvas, 5, 7, p, paint);
+    // Viewfinder triangle (pointing right)
+    _px(canvas, 8, 4, p, paint);
+    _px(canvas, 8, 5, p, paint);
+    _px(canvas, 9, 5, p, paint);
+    _px(canvas, 8, 6, p, paint);
+    _px(canvas, 9, 6, p, paint);
+    _px(canvas, 10, 6, p, paint);
+    _px(canvas, 8, 7, p, paint);
+    _px(canvas, 9, 7, p, paint);
+    _px(canvas, 8, 8, p, paint);
+    // Recording indicator dot
+    _px(canvas, 6, 4, p, paint);
   }
 
   void _px(Canvas canvas, int x, int y, double p, Paint paint) {
