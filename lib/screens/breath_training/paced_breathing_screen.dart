@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../theme/app_theme.dart';
+import '../../services/beep_service.dart';
+import '../../services/breath_training_service.dart';
 import '../../widgets/breathing_visualizer.dart';
 import '../../widgets/breathing_reminder.dart';
 
@@ -18,13 +20,33 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
   static const int _inhaleSeconds = 4;
   static const int _exhaleSeconds = 6;
 
+  final _service = BreathTrainingService();
+  final _beepService = BeepService();
+
   Timer? _timer;
   bool _isRunning = false;
+  bool _beepsEnabled = false;
   BreathPhase _phase = BreathPhase.idle;
   int _phaseSecondsRemaining = 0;
   double _phaseProgress = 0.0;
   int _totalBreaths = 0;
   int _totalSeconds = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final beepsEnabled = await _service.getBeepsEnabled();
+    if (mounted) {
+      setState(() => _beepsEnabled = beepsEnabled);
+    }
+    if (beepsEnabled) {
+      await _beepService.initialize();
+    }
+  }
 
   @override
   void dispose() {
@@ -44,6 +66,11 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
 
     // Haptic feedback on start
     HapticFeedback.mediumImpact();
+
+    // Play inhale beep at start
+    if (_beepsEnabled) {
+      _beepService.playInhaleBeep();
+    }
 
     _timer = Timer.periodic(const Duration(milliseconds: 100), _tick);
   }
@@ -81,10 +108,18 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
           if (_phase == BreathPhase.inhale) {
             _phase = BreathPhase.exhale;
             _phaseSecondsRemaining = _exhaleSeconds;
+            // Two beeps for exhale
+            if (_beepsEnabled) {
+              _beepService.playExhaleBeep();
+            }
           } else {
             _phase = BreathPhase.inhale;
             _phaseSecondsRemaining = _inhaleSeconds;
             _totalBreaths++;
+            // One beep for inhale
+            if (_beepsEnabled) {
+              _beepService.playInhaleBeep();
+            }
           }
           _phaseProgress = 0.0;
         }

@@ -7,6 +7,7 @@ class BreathTrainingService {
   static const String _pacedExhaleKey = 'paced_exhale_duration';
   static const String _holdSessionRoundsKey = 'breath_hold_session_rounds';
   static const String _patrickBestExhaleKey = 'patrick_best_exhale';
+  static const String _beepsEnabledKey = 'breath_beeps_enabled';
 
   SharedPreferences? _prefs;
 
@@ -77,5 +78,17 @@ class BreathTrainingService {
       return true; // New record!
     }
     return false;
+  }
+
+  /// Get whether beep sounds are enabled (default: false)
+  Future<bool> getBeepsEnabled() async {
+    await _ensureInitialized();
+    return _prefs!.getBool(_beepsEnabledKey) ?? false;
+  }
+
+  /// Set whether beep sounds are enabled
+  Future<void> setBeepsEnabled(bool enabled) async {
+    await _ensureInitialized();
+    await _prefs!.setBool(_beepsEnabledKey, enabled);
   }
 }

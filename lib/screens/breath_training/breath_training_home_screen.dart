@@ -279,6 +279,7 @@ class _SettingsSheet extends StatefulWidget {
 class _SettingsSheetState extends State<_SettingsSheet> {
   int _holdDuration = 15;
   int _rounds = 5;
+  bool _beepsEnabled = false;
 
   @override
   void initState() {
@@ -289,10 +290,12 @@ class _SettingsSheetState extends State<_SettingsSheet> {
   Future<void> _loadSettings() async {
     final holdDuration = await widget.service.getHoldDuration();
     final rounds = await widget.service.getHoldSessionRounds();
+    final beepsEnabled = await widget.service.getBeepsEnabled();
     if (mounted) {
       setState(() {
         _holdDuration = holdDuration;
         _rounds = rounds;
+        _beepsEnabled = beepsEnabled;
       });
     }
   }
@@ -387,9 +390,57 @@ class _SettingsSheetState extends State<_SettingsSheet> {
 
           const SizedBox(height: AppSpacing.lg),
 
+          // Beep signals toggle
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.backgroundDark,
+              borderRadius: BorderRadius.circular(AppSpacing.sm),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.volume_up_outlined,
+                  color: AppColors.gold,
+                  size: 24,
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Beep Signals',
+                        style: Theme.of(context).textTheme.labelLarge,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'One beep for inhale, two for exhale',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: _beepsEnabled,
+                  activeColor: AppColors.gold,
+                  onChanged: (value) async {
+                    setState(() => _beepsEnabled = value);
+                    await widget.service.setBeepsEnabled(value);
+                    widget.onSettingsChanged();
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: AppSpacing.lg),
+
           // Info
           Text(
-            'These settings apply to Breath Hold sessions. The session will progressively increase difficulty.',
+            'Hold settings apply to Breath Hold sessions. The session will progressively increase difficulty.',
             style: Theme.of(context).textTheme.bodySmall,
           ),
 

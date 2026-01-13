@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../theme/app_theme.dart';
+import '../../services/beep_service.dart';
 import '../../services/breath_training_service.dart';
 import '../../widgets/breathing_visualizer.dart';
 import '../../widgets/breathing_reminder.dart';
@@ -38,6 +39,8 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
   static const int _recoveryBreaths = 4;
 
   final _service = BreathTrainingService();
+  final _beepService = BeepService();
+  bool _beepsEnabled = false;
 
   Timer? _timer;
   SessionState _state = SessionState.setup;
@@ -88,11 +91,16 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
   Future<void> _loadSettings() async {
     final holdDuration = await _service.getHoldDuration();
     final rounds = await _service.getHoldSessionRounds();
+    final beepsEnabled = await _service.getBeepsEnabled();
     if (mounted) {
       setState(() {
         _baseHoldDuration = holdDuration;
         _totalRounds = rounds;
+        _beepsEnabled = beepsEnabled;
       });
+    }
+    if (beepsEnabled) {
+      await _beepService.initialize();
     }
   }
 
@@ -114,6 +122,10 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
       _totalHoldTime = 0;
       _tickCount = 0;
     });
+    // Play inhale beep at start
+    if (_beepsEnabled) {
+      _beepService.playInhaleBeep();
+    }
     _timer = Timer.periodic(const Duration(milliseconds: 100), _tick);
   }
 
@@ -185,6 +197,10 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
       if (_breathPhase == BreathPhase.inhale) {
         _breathPhase = BreathPhase.exhale;
         _phaseSecondsRemaining = _exhaleSeconds;
+        // Two beeps for exhale
+        if (_beepsEnabled) {
+          _beepService.playExhaleBeep();
+        }
       } else {
         _pacedBreathCount++;
 
@@ -195,9 +211,14 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
           _breathPhase = BreathPhase.hold;
           _phaseSecondsRemaining = _currentHoldTarget;
           _pacedBreathCount = 0;
+          // No beep for hold - just silence
         } else {
           _breathPhase = BreathPhase.inhale;
           _phaseSecondsRemaining = _inhaleSeconds;
+          // One beep for inhale
+          if (_beepsEnabled) {
+            _beepService.playInhaleBeep();
+          }
         }
       }
       _phaseProgress = 0.0;
@@ -221,6 +242,10 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
         _breathPhase = BreathPhase.inhale;
         _phaseSecondsRemaining = _inhaleSeconds;
         _pacedBreathCount = 0;
+        // One beep for inhale (recovery starts)
+        if (_beepsEnabled) {
+          _beepService.playInhaleBeep();
+        }
       }
       _phaseProgress = 0.0;
     }
@@ -233,6 +258,10 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
       if (_breathPhase == BreathPhase.inhale) {
         _breathPhase = BreathPhase.exhale;
         _phaseSecondsRemaining = _exhaleSeconds;
+        // Two beeps for exhale
+        if (_beepsEnabled) {
+          _beepService.playExhaleBeep();
+        }
       } else {
         _pacedBreathCount++;
 
@@ -242,9 +271,17 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
           _breathPhase = BreathPhase.inhale;
           _phaseSecondsRemaining = _inhaleSeconds;
           _pacedBreathCount = 0;
+          // One beep for inhale
+          if (_beepsEnabled) {
+            _beepService.playInhaleBeep();
+          }
         } else {
           _breathPhase = BreathPhase.inhale;
           _phaseSecondsRemaining = _inhaleSeconds;
+          // One beep for inhale
+          if (_beepsEnabled) {
+            _beepService.playInhaleBeep();
+          }
         }
       }
       _phaseProgress = 0.0;

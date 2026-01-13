@@ -32,6 +32,9 @@ dependencies:
   # Local preferences
   shared_preferences: ^2.3.4
 
+  # Audio playback for gentle beeps
+  audioplayers: ^6.1.0
+
   # Firebase Authentication
   firebase_core: ^3.8.1
   firebase_auth: ^5.3.4

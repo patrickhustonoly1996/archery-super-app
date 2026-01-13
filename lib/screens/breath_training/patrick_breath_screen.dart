@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../theme/app_theme.dart';
+import '../../services/beep_service.dart';
 import '../../services/breath_training_service.dart';
 import '../../widgets/breathing_visualizer.dart';
 import '../../widgets/breathing_reminder.dart';
@@ -32,6 +33,8 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
   static const int _warmupBreaths = 2; // 2 sets of paced breathing before test
 
   final _service = BreathTrainingService();
+  final _beepService = BeepService();
+  bool _beepsEnabled = false;
 
   Timer? _timer;
   PatrickState _state = PatrickState.idle;
@@ -55,13 +58,20 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
   @override
   void initState() {
     super.initState();
-    _loadBestTime();
+    _loadSettings();
   }
 
-  Future<void> _loadBestTime() async {
+  Future<void> _loadSettings() async {
     final best = await _service.getPatrickBestExhale();
+    final beepsEnabled = await _service.getBeepsEnabled();
     if (mounted) {
-      setState(() => _bestEver = best);
+      setState(() {
+        _bestEver = best;
+        _beepsEnabled = beepsEnabled;
+      });
+    }
+    if (beepsEnabled) {
+      await _beepService.initialize();
     }
   }
 
@@ -83,6 +93,11 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
       _phaseProgress = 0.0;
       _tickCount = 0;
     });
+
+    // Play inhale beep at start
+    if (_beepsEnabled) {
+      _beepService.playInhaleBeep();
+    }
 
     _timer = Timer.periodic(const Duration(milliseconds: 100), _tickWarmup);
   }
@@ -112,6 +127,10 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
         if (_breathPhase == BreathPhase.inhale) {
           _breathPhase = BreathPhase.exhale;
           _phaseSecondsRemaining = _exhaleSeconds;
+          // Two beeps for exhale
+          if (_beepsEnabled) {
+            _beepService.playExhaleBeep();
+          }
         } else {
           _warmupBreathCount++;
 
@@ -123,6 +142,10 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
           } else {
             _breathPhase = BreathPhase.inhale;
             _phaseSecondsRemaining = _inhaleSeconds;
+            // One beep for inhale
+            if (_beepsEnabled) {
+              _beepService.playInhaleBeep();
+            }
           }
         }
         _phaseProgress = 0.0;
@@ -174,6 +197,11 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
       _tickCount = 0;
     });
 
+    // One beep for inhale (recovery starts)
+    if (_beepsEnabled) {
+      _beepService.playInhaleBeep();
+    }
+
     _timer = Timer.periodic(const Duration(milliseconds: 100), _tickRecovery);
   }
 
@@ -202,6 +230,10 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
         if (_breathPhase == BreathPhase.inhale) {
           _breathPhase = BreathPhase.exhale;
           _phaseSecondsRemaining = _exhaleSeconds;
+          // Two beeps for exhale
+          if (_beepsEnabled) {
+            _beepService.playExhaleBeep();
+          }
         } else {
           _recoveryBreathCount++;
 
@@ -214,6 +246,10 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
           } else {
             _breathPhase = BreathPhase.inhale;
             _phaseSecondsRemaining = _inhaleSeconds;
+            // One beep for inhale
+            if (_beepsEnabled) {
+              _beepService.playInhaleBeep();
+            }
           }
         }
         _phaseProgress = 0.0;
