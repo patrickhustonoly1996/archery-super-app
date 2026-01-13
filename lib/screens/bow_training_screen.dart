@@ -175,6 +175,10 @@ class _SessionsList extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
+        // Quick Session Builder
+        _QuickSessionBuilder(provider: provider),
+        const SizedBox(height: AppSpacing.lg),
+
         // User progress summary
         if (provider.userProgress != null) ...[
           _ProgressSummary(progress: provider.userProgress!),
@@ -189,7 +193,7 @@ class _SessionsList extends StatelessWidget {
               bottom: AppSpacing.sm,
             ),
             child: Text(
-              'Recommended',
+              'Recommended OLY Session',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.gold,
                     fontWeight: FontWeight.w600,
@@ -232,6 +236,197 @@ class _SessionsList extends StatelessWidget {
             )),
       ],
     );
+  }
+}
+
+/// Quick session builder with duration, ratio, and movement stimulus options
+class _QuickSessionBuilder extends StatefulWidget {
+  final BowTrainingProvider provider;
+
+  const _QuickSessionBuilder({required this.provider});
+
+  @override
+  State<_QuickSessionBuilder> createState() => _QuickSessionBuilderState();
+}
+
+class _QuickSessionBuilderState extends State<_QuickSessionBuilder> {
+  static const List<int> durationOptions = [5, 10, 15, 20, 25, 30];
+
+  int _selectedDuration = 5;
+  HoldRestRatio _selectedRatio = HoldRestRatio.ratio30_30;
+  MovementStimulus _selectedStimulus = MovementStimulus.none;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark,
+        borderRadius: BorderRadius.circular(AppSpacing.sm),
+        border: Border.all(color: AppColors.surfaceLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Quick Session',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppColors.textPrimary,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // Duration selector
+          Text(
+            'Duration',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textMuted,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: durationOptions.map((duration) {
+                final isSelected = _selectedDuration == duration;
+                return Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.xs),
+                  child: ChoiceChip(
+                    label: Text('$duration min'),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      if (selected) setState(() => _selectedDuration = duration);
+                    },
+                    selectedColor: AppColors.gold,
+                    backgroundColor: AppColors.surfaceLight,
+                    labelStyle: TextStyle(
+                      color: isSelected ? AppColors.backgroundDark : AppColors.textSecondary,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+
+          const SizedBox(height: AppSpacing.md),
+
+          // Ratio selector
+          Text(
+            'Hold:Rest Ratio',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textMuted,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: HoldRestRatio.all.map((ratio) {
+                final isSelected = _selectedRatio == ratio;
+                return Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.xs),
+                  child: ChoiceChip(
+                    label: Text(ratio.label),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      if (selected) setState(() => _selectedRatio = ratio);
+                    },
+                    selectedColor: AppColors.gold,
+                    backgroundColor: AppColors.surfaceLight,
+                    labelStyle: TextStyle(
+                      color: isSelected ? AppColors.backgroundDark : AppColors.textSecondary,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+
+          const SizedBox(height: AppSpacing.md),
+
+          // Movement stimulus selector
+          Text(
+            'Movement Stimulus',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textMuted,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Row(
+            children: MovementStimulus.values.map((stimulus) {
+              final isSelected = _selectedStimulus == stimulus;
+              final label = stimulus.name[0].toUpperCase() + stimulus.name.substring(1);
+              return Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.xs),
+                child: ChoiceChip(
+                  label: Text(label),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    if (selected) setState(() => _selectedStimulus = stimulus);
+                  },
+                  selectedColor: AppColors.gold,
+                  backgroundColor: AppColors.surfaceLight,
+                  labelStyle: TextStyle(
+                    color: isSelected ? AppColors.backgroundDark : AppColors.textSecondary,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+
+          const SizedBox(height: AppSpacing.lg),
+
+          // Start button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                final config = CustomSessionConfig(
+                  durationMinutes: _selectedDuration,
+                  ratio: _selectedRatio,
+                  movementStimulus: _selectedStimulus,
+                );
+                widget.provider.startCustomSession(config);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.gold,
+                foregroundColor: AppColors.backgroundDark,
+              ),
+              child: Text(
+                'Start ${_selectedDuration}min @ ${_selectedRatio.label}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+
+          // Info text
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            _buildInfoText(),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textMuted,
+                ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _buildInfoText() {
+    final config = CustomSessionConfig(
+      durationMinutes: _selectedDuration,
+      ratio: _selectedRatio,
+      movementStimulus: _selectedStimulus,
+    );
+    final reps = config.totalReps;
+    final stimulusText = _selectedStimulus == MovementStimulus.none
+        ? ''
+        : ' with ${_selectedStimulus.name} movement cues';
+    return '$reps reps$stimulusText';
   }
 }
 
@@ -608,6 +803,8 @@ class _ActiveTimerView extends StatelessWidget {
             ? const Color(0xFF26C6DA) // Cyan for exercise transitions
             : AppColors.textSecondary;
 
+    final isCustom = provider.isCustomSession;
+
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
       body: SafeArea(
@@ -629,13 +826,17 @@ class _ActiveTimerView extends StatelessWidget {
                   Column(
                     children: [
                       Text(
-                        provider.activeSession?.name ?? '',
+                        isCustom
+                            ? provider.customConfig!.displayName
+                            : (provider.activeSession?.name ?? ''),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: AppColors.textSecondary,
                             ),
                       ),
                       Text(
-                        'Exercise ${provider.currentExerciseNumber} of ${provider.totalExercises}',
+                        isCustom
+                            ? 'Quick Session'
+                            : 'Exercise ${provider.currentExerciseNumber} of ${provider.totalExercises}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.textMuted,
                             ),
@@ -647,27 +848,61 @@ class _ActiveTimerView extends StatelessWidget {
               ),
             ),
 
-            // Exercise info
+            // Exercise info / Movement cue
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: Column(
                 children: [
-                  Text(
-                    provider.currentExerciseName,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: AppColors.textPrimary,
+                  if (isCustom) ...[
+                    // Show movement cue for custom sessions
+                    if (provider.movementCue != null && isHold) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.sm,
                         ),
-                    textAlign: TextAlign.center,
-                  ),
-                  if (provider.currentExerciseDetails != null) ...[
-                    const SizedBox(height: AppSpacing.xs),
+                        decoration: BoxDecoration(
+                          color: AppColors.gold.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(AppSpacing.sm),
+                          border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+                        ),
+                        child: Text(
+                          provider.movementCue!,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: AppColors.gold,
+                                fontWeight: FontWeight.w500,
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ] else ...[
+                      Text(
+                        isHold ? 'Hold steady' : 'Recover',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: AppColors.textPrimary,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ] else ...[
+                    // Standard OLY session exercise info
                     Text(
-                      provider.currentExerciseDetails!,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textMuted,
+                      provider.currentExerciseName,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: AppColors.textPrimary,
                           ),
                       textAlign: TextAlign.center,
                     ),
+                    if (provider.currentExerciseDetails != null) ...[
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        provider.currentExerciseDetails!,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ],
                 ],
               ),
@@ -697,7 +932,9 @@ class _ActiveTimerView extends StatelessWidget {
 
             // Rep progress
             Text(
-              'Rep ${provider.currentRep} of ${provider.currentExerciseReps}',
+              isCustom
+                  ? 'Rep ${provider.customRep} of ${provider.customTotalReps}'
+                  : 'Rep ${provider.currentRep} of ${provider.currentExerciseReps}',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -863,12 +1100,25 @@ class _CompletionView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isCustom = provider.isCustomSession;
     final session = provider.activeSession;
-    if (session == null) return const SizedBox.shrink();
+    final customConfig = provider.customConfig;
 
-    final completionRate = provider.totalExercises > 0
-        ? (provider.completedExercisesCount / provider.totalExercises * 100)
-            .round()
+    // For custom sessions, we don't require activeSession
+    if (!isCustom && session == null) return const SizedBox.shrink();
+
+    final sessionName = isCustom
+        ? customConfig!.displayName
+        : session!.name;
+
+    final totalReps = isCustom
+        ? provider.customTotalReps
+        : provider.totalExercises;
+
+    final completedReps = provider.completedExercisesCount;
+
+    final completionRate = totalReps > 0
+        ? (completedReps / totalReps * 100).round()
         : 0;
 
     return Scaffold(
@@ -895,20 +1145,30 @@ class _CompletionView extends StatelessWidget {
 
               // Session name
               Text(
-                session.name,
+                sessionName,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: AppColors.gold,
                     ),
                 textAlign: TextAlign.center,
               ),
 
+              if (isCustom) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'Quick Session',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+
               const SizedBox(height: AppSpacing.xl),
 
               // Stats
               _StatRow(
-                label: 'Exercises Completed',
-                value:
-                    '${provider.completedExercisesCount} / ${provider.totalExercises}',
+                label: isCustom ? 'Reps Completed' : 'Exercises Completed',
+                value: '$completedReps / $totalReps',
                 highlight: completionRate >= 100,
               ),
               _StatRow(
@@ -924,84 +1184,99 @@ class _CompletionView extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.xl),
 
-              // Feedback section
-              Text(
-                'How did it feel?',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: AppSpacing.md),
-
-              _FeedbackSlider(
-                label: 'Shaking',
-                value: feedbackShaking,
-                onChanged: onShakingChanged,
-                lowLabel: 'None',
-                highLabel: 'Severe',
-              ),
-
-              _FeedbackSlider(
-                label: 'Structure',
-                value: feedbackStructure,
-                onChanged: onStructureChanged,
-                lowLabel: 'Perfect',
-                highLabel: 'Collapsing',
-              ),
-
-              _FeedbackSlider(
-                label: 'Rest',
-                value: feedbackRest,
-                onChanged: onRestChanged,
-                lowLabel: 'Too much',
-                highLabel: 'Not enough',
-              ),
-
-              const SizedBox(height: AppSpacing.xl),
-
-              // Notes field
-              TextField(
-                controller: notesController,
-                decoration: const InputDecoration(
-                  hintText: 'Add notes (optional)',
-                  hintStyle: TextStyle(color: AppColors.textMuted),
+              // Feedback section (simplified for custom sessions)
+              if (!isCustom) ...[
+                Text(
+                  'How did it feel?',
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                maxLines: 3,
-              ),
+                const SizedBox(height: AppSpacing.md),
 
-              const SizedBox(height: AppSpacing.xl),
+                _FeedbackSlider(
+                  label: 'Shaking',
+                  value: feedbackShaking,
+                  onChanged: onShakingChanged,
+                  lowLabel: 'None',
+                  highLabel: 'Severe',
+                ),
 
-              // Log session button
-              ElevatedButton(
-                onPressed: () async {
-                  await provider.completeSession(
-                    feedbackShaking: feedbackShaking,
-                    feedbackStructure: feedbackStructure,
-                    feedbackRest: feedbackRest,
-                    notes: notesController.text.isEmpty
-                        ? null
-                        : notesController.text,
-                  );
-                  onComplete();
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                  }
-                },
-                child: const Text('Log Session'),
-              ),
+                _FeedbackSlider(
+                  label: 'Structure',
+                  value: feedbackStructure,
+                  onChanged: onStructureChanged,
+                  lowLabel: 'Perfect',
+                  highLabel: 'Collapsing',
+                ),
+
+                _FeedbackSlider(
+                  label: 'Rest',
+                  value: feedbackRest,
+                  onChanged: onRestChanged,
+                  lowLabel: 'Too much',
+                  highLabel: 'Not enough',
+                ),
+
+                const SizedBox(height: AppSpacing.xl),
+
+                // Notes field
+                TextField(
+                  controller: notesController,
+                  decoration: const InputDecoration(
+                    hintText: 'Add notes (optional)',
+                    hintStyle: TextStyle(color: AppColors.textMuted),
+                  ),
+                  maxLines: 3,
+                ),
+
+                const SizedBox(height: AppSpacing.xl),
+
+                // Log session button
+                ElevatedButton(
+                  onPressed: () async {
+                    await provider.completeSession(
+                      feedbackShaking: feedbackShaking,
+                      feedbackStructure: feedbackStructure,
+                      feedbackRest: feedbackRest,
+                      notes: notesController.text.isEmpty
+                          ? null
+                          : notesController.text,
+                    );
+                    onComplete();
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('Log Session'),
+                ),
+              ] else ...[
+                // Simple done button for custom sessions
+                ElevatedButton(
+                  onPressed: () {
+                    provider.cancelSession(); // Just reset state, no logging
+                    onComplete();
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('Done'),
+                ),
+              ],
 
               const SizedBox(height: AppSpacing.sm),
 
-              // Discard button
-              TextButton(
-                onPressed: () {
-                  provider.cancelSession();
-                  onComplete();
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  'Discard',
-                  style: TextStyle(color: AppColors.textMuted),
+              // Discard button (for OLY sessions only)
+              if (!isCustom)
+                TextButton(
+                  onPressed: () {
+                    provider.cancelSession();
+                    onComplete();
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    'Discard',
+                    style: TextStyle(color: AppColors.textMuted),
+                  ),
                 ),
-              ),
             ],
           ),
         ),

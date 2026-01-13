@@ -20,6 +20,63 @@ enum TimerState {
   paused,
 }
 
+/// Movement stimulus intensity for custom sessions
+enum MovementStimulus {
+  none,
+  some,
+  lots,
+}
+
+/// Hold:Rest ratio options (in seconds)
+class HoldRestRatio {
+  final int holdSeconds;
+  final int restSeconds;
+  final String label;
+
+  const HoldRestRatio(this.holdSeconds, this.restSeconds, this.label);
+
+  static const ratio15_45 = HoldRestRatio(15, 45, '15:45');
+  static const ratio20_40 = HoldRestRatio(20, 40, '20:40');
+  static const ratio25_35 = HoldRestRatio(25, 35, '25:35');
+  static const ratio30_30 = HoldRestRatio(30, 30, '30:30');
+
+  static const List<HoldRestRatio> all = [
+    ratio15_45,
+    ratio20_40,
+    ratio25_35,
+    ratio30_30,
+  ];
+}
+
+/// Custom session configuration
+class CustomSessionConfig {
+  final int durationMinutes;
+  final HoldRestRatio ratio;
+  final MovementStimulus movementStimulus;
+
+  const CustomSessionConfig({
+    required this.durationMinutes,
+    required this.ratio,
+    required this.movementStimulus,
+  });
+
+  /// Patrick's default warm-up: 5 minutes at 30:30
+  static const defaultWarmUp = CustomSessionConfig(
+    durationMinutes: 5,
+    ratio: HoldRestRatio.ratio30_30,
+    movementStimulus: MovementStimulus.none,
+  );
+
+  /// Calculate number of reps that fit in the duration
+  int get totalReps {
+    final cycleSeconds = ratio.holdSeconds + ratio.restSeconds;
+    final totalSeconds = durationMinutes * 60;
+    return totalSeconds ~/ cycleSeconds;
+  }
+
+  String get displayName => '${durationMinutes}min @ ${ratio.label}';
+}
+
 class BowTrainingProvider extends ChangeNotifier {
   final AppDatabase _db;
 
@@ -72,6 +129,13 @@ class BowTrainingProvider extends ChangeNotifier {
 
   Timer? _timer;
 
+  // Custom session state
+  CustomSessionConfig? _customConfig;
+  CustomSessionConfig? get customConfig => _customConfig;
+  int _customTotalReps = 0;
+  int _customCurrentRep = 0;
+  String? _currentMovementCue;
+
   // ===========================================================================
   // GETTERS
   // ===========================================================================
@@ -106,6 +170,11 @@ class BowTrainingProvider extends ChangeNotifier {
 
   int get totalHoldSecondsActual => _totalHoldSecondsActual;
   int get completedExercisesCount => _completedExercises;
+
+  bool get isCustomSession => _customConfig != null;
+  String? get movementCue => _currentMovementCue;
+  int get customRep => _customCurrentRep;
+  int get customTotalReps => _customTotalReps;
 
   // ===========================================================================
   // DATA LOADING
@@ -175,6 +244,73 @@ class BowTrainingProvider extends ChangeNotifier {
     _startTimer();
     _playStartBeep();
     notifyListeners();
+  }
+
+  /// Start a custom training session
+  void startCustomSession(CustomSessionConfig config) {
+    _customConfig = config;
+    _activeSession = null;
+    _exercises = [];
+    _customTotalReps = config.totalReps;
+    _customCurrentRep = 1;
+    _currentExerciseIndex = 0;
+    _currentRep = 1;
+    _phase = TimerPhase.hold;
+    _timerState = TimerState.running;
+    _secondsRemaining = config.ratio.holdSeconds;
+    _sessionStartedAt = DateTime.now();
+    _totalHoldSecondsActual = 0;
+    _totalRestSecondsActual = 0;
+    _completedExercises = 0;
+
+    // Generate initial movement cue if enabled
+    _updateMovementCue();
+
+    _startTimer();
+    _playStartBeep();
+    notifyListeners();
+  }
+
+  /// Update movement cue based on stimulus setting
+  void _updateMovementCue() {
+    if (_customConfig == null) {
+      _currentMovementCue = null;
+      return;
+    }
+
+    switch (_customConfig!.movementStimulus) {
+      case MovementStimulus.none:
+        _currentMovementCue = null;
+        break;
+      case MovementStimulus.some:
+        // Occasional cues - 30% chance
+        if (_shouldShowCue(0.3)) {
+          _currentMovementCue = _generateMovementCue();
+        } else {
+          _currentMovementCue = null;
+        }
+        break;
+      case MovementStimulus.lots:
+        // Frequent cues - always show
+        _currentMovementCue = _generateMovementCue();
+        break;
+    }
+  }
+
+  bool _shouldShowCue(double probability) {
+    return DateTime.now().millisecondsSinceEpoch % 100 < (probability * 100);
+  }
+
+  String _generateMovementCue() {
+    final cues = [
+      'Front end: squeeze in',
+      'Front end: push out',
+      'Back end: pull through',
+      'Back end: squeeze in',
+      'Feel the back tension',
+      'Relax the front shoulder',
+    ];
+    return cues[DateTime.now().millisecondsSinceEpoch % cues.length];
   }
 
   /// Pause the timer
@@ -291,6 +427,12 @@ class BowTrainingProvider extends ChangeNotifier {
   }
 
   void _advancePhase() {
+    // Handle custom session
+    if (_customConfig != null) {
+      _advanceCustomPhase();
+      return;
+    }
+
     final exercise = currentExercise;
     if (exercise == null || _activeSession == null) return;
 
@@ -355,6 +497,46 @@ class BowTrainingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _advanceCustomPhase() {
+    final config = _customConfig!;
+
+    switch (_phase) {
+      case TimerPhase.hold:
+        // Finished a hold - start rest or complete
+        if (_customCurrentRep < _customTotalReps) {
+          _phase = TimerPhase.rest;
+          _secondsRemaining = config.ratio.restSeconds;
+          _currentMovementCue = null; // Clear cue during rest
+          _playRestBeep();
+        } else {
+          // Session complete
+          _timer?.cancel();
+          _phase = TimerPhase.complete;
+          _timerState = TimerState.stopped;
+          _completedExercises = _customTotalReps;
+          _playCompleteSound();
+        }
+        break;
+
+      case TimerPhase.rest:
+        // Finished resting - start next hold
+        _customCurrentRep++;
+        _phase = TimerPhase.hold;
+        _secondsRemaining = config.ratio.holdSeconds;
+        _updateMovementCue(); // Generate new cue for hold
+        _playHoldBeep();
+        break;
+
+      case TimerPhase.idle:
+      case TimerPhase.complete:
+      case TimerPhase.exerciseBreak:
+        // No-op
+        break;
+    }
+
+    notifyListeners();
+  }
+
   void _resetState() {
     _timer?.cancel();
     _activeSession = null;
@@ -368,6 +550,11 @@ class BowTrainingProvider extends ChangeNotifier {
     _totalHoldSecondsActual = 0;
     _totalRestSecondsActual = 0;
     _completedExercises = 0;
+    // Reset custom session state
+    _customConfig = null;
+    _customTotalReps = 0;
+    _customCurrentRep = 0;
+    _currentMovementCue = null;
   }
 
   // ===========================================================================
@@ -529,6 +716,23 @@ class BowTrainingProvider extends ChangeNotifier {
 
   /// Get progress within current phase (0.0 to 1.0)
   double get phaseProgress {
+    // Handle custom session
+    if (_customConfig != null) {
+      int totalSeconds;
+      switch (_phase) {
+        case TimerPhase.hold:
+          totalSeconds = _customConfig!.ratio.holdSeconds;
+          break;
+        case TimerPhase.rest:
+          totalSeconds = _customConfig!.ratio.restSeconds;
+          break;
+        default:
+          return 0;
+      }
+      if (totalSeconds <= 0) return 1.0;
+      return 1 - (_secondsRemaining / totalSeconds);
+    }
+
     final exercise = currentExercise;
     if (exercise == null) return 0;
 
@@ -553,6 +757,12 @@ class BowTrainingProvider extends ChangeNotifier {
 
   /// Get overall session progress (0.0 to 1.0)
   double get sessionProgress {
+    // Handle custom session
+    if (_customConfig != null) {
+      if (_customTotalReps == 0) return 0;
+      return (_customCurrentRep - 1) / _customTotalReps;
+    }
+
     if (_exercises.isEmpty) return 0;
 
     int totalReps = _exercises.fold(0, (sum, e) => sum + e.reps);
