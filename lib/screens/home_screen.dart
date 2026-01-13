@@ -12,7 +12,7 @@ import 'equipment_screen.dart';
 import 'login_screen.dart';
 import 'breath_training/breath_training_home_screen.dart';
 import 'bow_training_screen.dart';
-import 'delayed_video_screen.dart';
+import 'delayed_camera_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -81,12 +81,12 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     ),
     _MenuItem(
-      label: 'VIDEO',
-      sublabel: 'Delayed mirror',
+      label: 'DELAY CAM',
+      sublabel: 'Form review',
       pixelIcon: PixelIconType.video,
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const DelayedVideoScreen()),
+        MaterialPageRoute(builder: (_) => const DelayedCameraScreen()),
       ),
     ),
     _MenuItem(
