@@ -250,8 +250,8 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   static const double _linecutterZoomFactor = 6.0;
   static const double _zoomWindowSize = 120.0;
   static const double _holdOffset = 60.0; // Offset so finger doesn't cover target point
-  static const double _boundaryProximityThreshold = 0.015; // 1.5% of radius
-  static const Duration _linecutterActivationDelay = Duration(milliseconds: 1000);
+  static const double _boundaryProximityThreshold = 0.04; // 4% of radius - wider detection zone
+  static const Duration _linecutterActivationDelay = Duration(milliseconds: 300); // Quick activation
 
   /// Get the current zoom factor based on mode and smart zoom calculation
   double get _zoomFactor {
