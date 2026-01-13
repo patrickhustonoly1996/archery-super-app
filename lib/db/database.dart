@@ -156,6 +156,7 @@ class VolumeEntries extends Table {
   TextColumn get id => text()();
   DateTimeColumn get date => dateTime()(); // Date of training (no time component used)
   IntColumn get arrowCount => integer()(); // Number of arrows shot that day
+  TextColumn get title => text().nullable()(); // Optional title (competition name, event, etc.)
   TextColumn get notes => text().nullable()(); // Optional notes about the session
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
@@ -295,7 +296,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -329,6 +330,10 @@ class AppDatabase extends _$AppDatabase {
           await m.createTable(olyTrainingLogs);
           await m.createTable(userTrainingProgress);
           await _seedOlyTrainingData();
+        }
+        if (from <= 4) {
+          // Add title column to volume entries
+          await m.addColumn(volumeEntries, volumeEntries.title);
         }
       },
     );
@@ -646,7 +651,7 @@ class AppDatabase extends _$AppDatabase {
       (delete(volumeEntries)..where((t) => t.id.equals(id))).go();
 
   /// Upsert volume entry for a specific date
-  Future<void> setVolumeForDate(DateTime date, int arrowCount, {String? notes}) async {
+  Future<void> setVolumeForDate(DateTime date, int arrowCount, {String? title, String? notes}) async {
     final dayStart = DateTime(date.year, date.month, date.day);
     final existing = await getVolumeEntryForDate(dayStart);
 
@@ -656,6 +661,7 @@ class AppDatabase extends _$AppDatabase {
           id: Value(existing.id),
           date: Value(dayStart),
           arrowCount: Value(arrowCount),
+          title: Value(title),
           notes: Value(notes),
           updatedAt: Value(DateTime.now()),
         ),
@@ -666,10 +672,17 @@ class AppDatabase extends _$AppDatabase {
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           date: dayStart,
           arrowCount: arrowCount,
+          title: Value(title),
           notes: Value(notes),
         ),
       );
     }
+  }
+
+  /// Check for duplicate volume entry by date
+  Future<bool> isDuplicateVolumeEntry(DateTime date) async {
+    final existing = await getVolumeEntryForDate(date);
+    return existing != null;
   }
 
   // ===========================================================================

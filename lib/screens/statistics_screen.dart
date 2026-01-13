@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../utils/volume_calculator.dart';
+import 'volume_import_screen.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -41,6 +42,19 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       appBar: AppBar(
         title: const Text('Training Volume'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.file_upload_outlined),
+            tooltip: 'Import CSV',
+            onPressed: () async {
+              final result = await Navigator.push<bool>(
+                context,
+                MaterialPageRoute(builder: (_) => const VolumeImportScreen()),
+              );
+              if (result == true) {
+                _loadVolumeData();
+              }
+            },
+          ),
           PopupMenuButton<int>(
             initialValue: _selectedDays,
             icon: const Icon(Icons.filter_list),
@@ -94,12 +108,27 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             style: TextStyle(
               color: AppColors.textMuted,
             ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.lg),
           ElevatedButton.icon(
             onPressed: () => _showAddVolumeDialog(),
             icon: const Icon(Icons.add),
             label: const Text('Add Volume'),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          OutlinedButton.icon(
+            onPressed: () async {
+              final result = await Navigator.push<bool>(
+                context,
+                MaterialPageRoute(builder: (_) => const VolumeImportScreen()),
+              );
+              if (result == true) {
+                _loadVolumeData();
+              }
+            },
+            icon: const Icon(Icons.file_upload_outlined),
+            label: const Text('Import from CSV'),
           ),
         ],
       ),
@@ -489,18 +518,59 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   Widget _buildEntryRow(VolumeEntry entry) {
+    final hasTitle = entry.title != null && entry.title!.isNotEmpty;
+    final hasNotes = entry.notes != null && entry.notes!.isNotEmpty;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '${entry.date.day}/${entry.date.month}/${entry.date.year}',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 14,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      '${entry.date.day}/${entry.date.month}/${entry.date.year}',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                    if (hasTitle) ...[
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          entry.title!,
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 13,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                if (hasNotes)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      entry.notes!,
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+              ],
             ),
           ),
-          const Spacer(),
+          const SizedBox(width: AppSpacing.sm),
           Text(
             '${entry.arrowCount} arrows',
             style: TextStyle(
@@ -509,14 +579,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          if (entry.notes != null && entry.notes!.isNotEmpty) ...[
-            const SizedBox(width: AppSpacing.sm),
-            Icon(
-              Icons.note,
-              size: 16,
-              color: AppColors.textMuted,
-            ),
-          ],
         ],
       ),
     );
@@ -525,6 +587,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Future<void> _showAddVolumeDialog() async {
     final dateController = TextEditingController();
     final arrowCountController = TextEditingController();
+    final titleController = TextEditingController();
     final notesController = TextEditingController();
     DateTime selectedDate = DateTime.now();
 
@@ -536,49 +599,59 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Add Volume Entry'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: dateController,
-              decoration: const InputDecoration(
-                labelText: 'Date',
-                suffixIcon: Icon(Icons.calendar_today),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: dateController,
+                decoration: const InputDecoration(
+                  labelText: 'Date',
+                  suffixIcon: Icon(Icons.calendar_today),
+                ),
+                readOnly: true,
+                onTap: () async {
+                  final date = await showDatePicker(
+                    context: context,
+                    initialDate: selectedDate,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime.now(),
+                  );
+                  if (date != null) {
+                    selectedDate = date;
+                    dateController.text = '${date.day}/${date.month}/${date.year}';
+                  }
+                },
               ),
-              readOnly: true,
-              onTap: () async {
-                final date = await showDatePicker(
-                  context: context,
-                  initialDate: selectedDate,
-                  firstDate: DateTime(2020),
-                  lastDate: DateTime.now(),
-                );
-                if (date != null) {
-                  selectedDate = date;
-                  dateController.text = '${date.day}/${date.month}/${date.year}';
-                }
-              },
-            ),
-            const SizedBox(height: AppSpacing.md),
-            TextField(
-              controller: arrowCountController,
-              decoration: const InputDecoration(
-                labelText: 'Arrow Count',
-                hintText: 'e.g., 120',
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: arrowCountController,
+                decoration: const InputDecoration(
+                  labelText: 'Arrow Count',
+                  hintText: 'e.g., 120',
+                ),
+                keyboardType: TextInputType.number,
+                autofocus: true,
               ),
-              keyboardType: TextInputType.number,
-              autofocus: true,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            TextField(
-              controller: notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optional)',
-                hintText: 'e.g., Competition day',
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Title (optional)',
+                  hintText: 'e.g., World Cup, Practice',
+                ),
               ),
-              maxLines: 2,
-            ),
-          ],
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: notesController,
+                decoration: const InputDecoration(
+                  labelText: 'Notes (optional)',
+                  hintText: 'Any additional details',
+                ),
+                maxLines: 2,
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -599,6 +672,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               await db.setVolumeForDate(
                 selectedDate,
                 arrowCount,
+                title: titleController.text.isEmpty ? null : titleController.text,
                 notes: notesController.text.isEmpty ? null : notesController.text,
               );
 
