@@ -279,6 +279,10 @@ class _SettingsSheet extends StatefulWidget {
 class _SettingsSheetState extends State<_SettingsSheet> {
   int _holdDuration = 15;
   int _rounds = 5;
+  int _difficulty = 1; // 0=beginner, 1=intermediate, 2=advanced
+
+  static const List<String> _difficultyLabels = ['Beginner', 'Intermediate', 'Advanced'];
+  static const List<String> _difficultyDescriptions = ['+10%/round', '+20%/round', '+30%/round'];
 
   @override
   void initState() {
@@ -289,10 +293,12 @@ class _SettingsSheetState extends State<_SettingsSheet> {
   Future<void> _loadSettings() async {
     final holdDuration = await widget.service.getHoldDuration();
     final rounds = await widget.service.getHoldSessionRounds();
+    final difficulty = await widget.service.getDifficultyLevel();
     if (mounted) {
       setState(() {
         _holdDuration = holdDuration;
         _rounds = rounds;
+        _difficulty = difficulty;
       });
     }
   }
@@ -383,6 +389,39 @@ class _SettingsSheetState extends State<_SettingsSheet> {
                 ),
               ),
             ],
+          ),
+
+          const SizedBox(height: AppSpacing.md),
+
+          // Difficulty level
+          Text(
+            'Difficulty Level',
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: AppSpacing.sm,
+            children: List.generate(3, (index) {
+              final isSelected = _difficulty == index;
+              return ChoiceChip(
+                label: Text('${_difficultyLabels[index]} (${_difficultyDescriptions[index]})'),
+                selected: isSelected,
+                onSelected: (selected) async {
+                  if (selected) {
+                    setState(() => _difficulty = index);
+                    await widget.service.setDifficultyLevel(index);
+                    widget.onSettingsChanged();
+                  }
+                },
+                selectedColor: AppColors.gold,
+                backgroundColor: AppColors.surfaceDark,
+                labelStyle: TextStyle(
+                  color: isSelected ? AppColors.backgroundDark : AppColors.textPrimary,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  fontSize: 12,
+                ),
+              );
+            }),
           ),
 
           const SizedBox(height: AppSpacing.lg),

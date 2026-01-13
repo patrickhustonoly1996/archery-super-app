@@ -88,10 +88,12 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
   Future<void> _loadSettings() async {
     final holdDuration = await _service.getHoldDuration();
     final rounds = await _service.getHoldSessionRounds();
+    final difficultyIndex = await _service.getDifficultyLevel();
     if (mounted) {
       setState(() {
         _baseHoldDuration = holdDuration;
         _totalRounds = rounds;
+        _difficulty = DifficultyLevel.values[difficultyIndex];
       });
     }
   }
@@ -455,163 +457,169 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
             textAlign: TextAlign.center,
           ),
 
-        const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.xxl),
 
-        // Start Duration Selection
-        Text(
-          'Starting Hold Duration',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppColors.gold,
-              ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: _startDurations.map((duration) {
-            final isSelected = _baseHoldDuration == duration;
-            return ChoiceChip(
-              label: Text('${duration}s'),
-              selected: isSelected,
-              onSelected: (selected) {
-                if (selected) {
-                  setState(() => _baseHoldDuration = duration);
-                }
-              },
-              selectedColor: AppColors.gold,
-              backgroundColor: AppColors.surfaceDark,
-              labelStyle: TextStyle(
-                color: isSelected ? AppColors.backgroundDark : AppColors.textPrimary,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          // Start Duration Selection
+          Text(
+            'Starting Hold Duration',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppColors.gold,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: _startDurations.map((duration) {
+              final isSelected = _baseHoldDuration == duration;
+              return ChoiceChip(
+                label: Text('${duration}s'),
+                selected: isSelected,
+                onSelected: (selected) {
+                  if (selected) {
+                    setState(() => _baseHoldDuration = duration);
+                  }
+                },
+                selectedColor: AppColors.gold,
+                backgroundColor: AppColors.surfaceDark,
+                labelStyle: TextStyle(
+                  color: isSelected ? AppColors.backgroundDark : AppColors.textPrimary,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              );
+            }).toList(),
+          ),
+
+          const SizedBox(height: AppSpacing.xl),
+
+          // Difficulty Selection
+          Text(
+            'Difficulty Level',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppColors.gold,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          ...DifficultyLevel.values.map((level) {
+            final isSelected = _difficulty == level;
+            String label;
+            String description;
+            switch (level) {
+              case DifficultyLevel.beginner:
+                label = 'Beginner';
+                description = 'Hold increases by 10% each round';
+              case DifficultyLevel.intermediate:
+                label = 'Intermediate';
+                description = 'Hold increases by 20% each round';
+              case DifficultyLevel.advanced:
+                label = 'Advanced';
+                description = 'Hold increases by 30% each round';
+            }
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: InkWell(
+                onTap: () {
+                  setState(() => _difficulty = level);
+                  _service.setDifficultyLevel(level.index);
+                },
+                borderRadius: BorderRadius.circular(AppSpacing.sm),
+                child: Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.gold.withValues(alpha: 0.15) : AppColors.surfaceDark,
+                    borderRadius: BorderRadius.circular(AppSpacing.sm),
+                    border: Border.all(
+                      color: isSelected ? AppColors.gold : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Radio<DifficultyLevel>(
+                        value: level,
+                        groupValue: _difficulty,
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => _difficulty = value);
+                            _service.setDifficultyLevel(value.index);
+                          }
+                        },
+                        activeColor: AppColors.gold,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              label,
+                              style: TextStyle(
+                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                color: isSelected ? AppColors.gold : AppColors.textPrimary,
+                              ),
+                            ),
+                            Text(
+                              description,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             );
           }).toList(),
-        ),
 
-        const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.xl),
 
-        // Difficulty Selection
-        Text(
-          'Difficulty Level',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppColors.gold,
-              ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        ...DifficultyLevel.values.map((level) {
-          final isSelected = _difficulty == level;
-          String label;
-          String description;
-          switch (level) {
-            case DifficultyLevel.beginner:
-              label = 'Beginner';
-              description = 'Hold increases by 10% each round';
-            case DifficultyLevel.intermediate:
-              label = 'Intermediate';
-              description = 'Hold increases by 20% each round';
-            case DifficultyLevel.advanced:
-              label = 'Advanced';
-              description = 'Hold increases by 30% each round';
-          }
-          return Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: InkWell(
-              onTap: () => setState(() => _difficulty = level),
+          // Summary
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceDark,
               borderRadius: BorderRadius.circular(AppSpacing.sm),
-              child: Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.gold.withValues(alpha: 0.15) : AppColors.surfaceDark,
-                  borderRadius: BorderRadius.circular(AppSpacing.sm),
-                  border: Border.all(
-                    color: isSelected ? AppColors.gold : Colors.transparent,
-                    width: 2,
-                  ),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  'Session Preview',
+                  style: Theme.of(context).textTheme.titleSmall,
                 ),
-                child: Row(
-                  children: [
-                    Radio<DifficultyLevel>(
-                      value: level,
-                      groupValue: _difficulty,
-                      onChanged: (value) {
-                        if (value != null) setState(() => _difficulty = value);
-                      },
-                      activeColor: AppColors.gold,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            label,
-                            style: TextStyle(
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                              color: isSelected ? AppColors.gold : AppColors.textPrimary,
-                            ),
-                          ),
-                          Text(
-                            description,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  '$_totalRounds rounds: ${_baseHoldDuration}s → ${(_baseHoldDuration * (1.0 + (_totalRounds - 1) * _progressionIncrement)).round()}s',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.gold,
                       ),
-                    ),
-                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: AppSpacing.lg),
+
+          // Start button
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() => _state = SessionState.idle);
+              },
+              child: const Text(
+                'Continue',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-          );
-        }),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        // Summary
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceDark,
-            borderRadius: BorderRadius.circular(AppSpacing.sm),
           ),
-          child: Column(
-            children: [
-              Text(
-                'Session Preview',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                '$_totalRounds rounds: ${_baseHoldDuration}s → ${(_baseHoldDuration * (1.0 + (_totalRounds - 1) * _progressionIncrement)).round()}s',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.gold,
-                    ),
-              ),
-            ],
-          ),
-        ),
 
-        const SizedBox(height: AppSpacing.lg),
-
-        // Start button
-        SizedBox(
-          width: double.infinity,
-          height: 56,
-          child: ElevatedButton(
-            onPressed: () {
-              setState(() => _state = SessionState.idle);
-            },
-            child: const Text(
-              'Continue',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: AppSpacing.lg),
-      ],
+          const SizedBox(height: AppSpacing.lg),
+        ],
       ),
     );
   }
