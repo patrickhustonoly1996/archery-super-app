@@ -342,6 +342,38 @@ class BowTrainingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Complete a custom session and log it
+  Future<void> completeCustomSession() async {
+    if (_customConfig == null || _sessionStartedAt == null) return;
+
+    final config = _customConfig!;
+    final log = OlyTrainingLogsCompanion.insert(
+      id: 'log_${DateTime.now().millisecondsSinceEpoch}',
+      sessionTemplateId: const Value.absent(), // No template for custom
+      sessionVersion: 'custom',
+      sessionName: config.displayName,
+      plannedDurationSeconds: config.durationMinutes * 60,
+      actualDurationSeconds: DateTime.now().difference(_sessionStartedAt!).inSeconds,
+      plannedExercises: _customTotalReps,
+      completedExercises: _completedExercises,
+      totalHoldSeconds: _totalHoldSecondsActual,
+      totalRestSeconds: _totalRestSecondsActual,
+      feedbackShaking: const Value.absent(),
+      feedbackStructure: const Value.absent(),
+      feedbackRest: const Value.absent(),
+      progressionSuggestion: const Value.absent(),
+      suggestedNextVersion: const Value.absent(),
+      notes: Value('${config.ratio.label} ratio, ${config.movementStimulus.name} movement'),
+      startedAt: _sessionStartedAt!,
+      completedAt: DateTime.now(),
+    );
+
+    await _db.insertOlyTrainingLog(log);
+    await loadData(); // Refresh recent logs
+    _resetState();
+    notifyListeners();
+  }
+
   /// Complete the session and log it with feedback
   Future<void> completeSession({
     int? feedbackShaking,

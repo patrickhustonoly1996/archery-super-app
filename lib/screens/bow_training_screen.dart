@@ -1249,16 +1249,29 @@ class _CompletionView extends StatelessWidget {
                   child: const Text('Log Session'),
                 ),
               ] else ...[
-                // Simple done button for custom sessions
+                // Save and done button for custom sessions
                 ElevatedButton(
-                  onPressed: () {
-                    provider.cancelSession(); // Just reset state, no logging
+                  onPressed: () async {
+                    await provider.completeCustomSession();
                     onComplete();
                     if (context.mounted) {
                       Navigator.pop(context);
                     }
                   },
-                  child: const Text('Done'),
+                  child: const Text('Save Session'),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                // Discard button for custom sessions
+                TextButton(
+                  onPressed: () {
+                    provider.cancelSession();
+                    onComplete();
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    'Discard',
+                    style: TextStyle(color: AppColors.textMuted),
+                  ),
                 ),
               ],
 
