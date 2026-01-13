@@ -192,19 +192,11 @@ class _HomeScreenState extends State<HomeScreen>
                 // Top bar
                 _TopBar(onSettings: () => _showSettingsMenu(context)),
 
-                // Main content area
+                // Main content area - single scrollable list with logo + menu
                 Expanded(
                   child: AnimatedBuilder(
                     animation: _introController,
                     builder: (context, _) {
-                      final slideUp = Tween<Offset>(
-                        begin: Offset.zero,
-                        end: const Offset(0, -0.15),
-                      ).animate(CurvedAnimation(
-                        parent: _introController,
-                        curve: Curves.easeOutCubic,
-                      ));
-
                       final logoScale = Tween<double>(
                         begin: 1.0,
                         end: 0.6,
@@ -218,35 +210,46 @@ class _HomeScreenState extends State<HomeScreen>
                         curve: const Interval(0.3, 1.0, curve: Curves.easeOut),
                       );
 
-                      return Column(
-                        children: [
-                          // Logo section - slides up and shrinks
-                          SlideTransition(
-                            position: slideUp,
-                            child: ScaleTransition(
-                              scale: logoScale,
-                              child: _PixelLogo(
+                      // Total items: 1 logo + menu items
+                      final totalItems = 1 + (_introComplete ? _menuItems.length : 0);
+
+                      return ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        itemCount: totalItems,
+                        itemBuilder: (context, index) {
+                          if (index == 0) {
+                            // Logo as first scrollable item
+                            return Center(
+                              child: ScaleTransition(
+                                scale: logoScale,
+                                child: _PixelLogo(
+                                  pulseController: _pulseController,
+                                ),
+                              ),
+                            );
+                          }
+
+                          // Menu items (index - 1 because logo is at index 0)
+                          final menuIndex = index - 1;
+                          final item = _menuItems[menuIndex];
+                          final isSelected = menuIndex == _selectedIndex;
+
+                          return FadeTransition(
+                            opacity: menuOpacity,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 6),
+                              child: _MenuItemWidget(
+                                item: item,
+                                isSelected: isSelected,
                                 pulseController: _pulseController,
+                                onTap: () {
+                                  setState(() => _selectedIndex = menuIndex);
+                                  item.onTap();
+                                },
                               ),
                             ),
-                          ),
-
-                          // Menu section - fades in
-                          Expanded(
-                            child: FadeTransition(
-                              opacity: menuOpacity,
-                              child: _introComplete
-                                  ? _MenuSection(
-                                      items: _menuItems,
-                                      selectedIndex: _selectedIndex,
-                                      onSelect: (i) =>
-                                          setState(() => _selectedIndex = i),
-                                      pulseController: _pulseController,
-                                    )
-                                  : const SizedBox.shrink(),
-                            ),
-                          ),
-                        ],
+                          );
+                        },
                       );
                     },
                   ),
@@ -842,47 +845,8 @@ class _PixelMenuIconPainter extends CustomPainter {
 }
 
 // =============================================================================
-// MENU SECTION
+// MENU ITEM WIDGET
 // =============================================================================
-
-class _MenuSection extends StatelessWidget {
-  final List<_MenuItem> items;
-  final int selectedIndex;
-  final ValueChanged<int> onSelect;
-  final AnimationController pulseController;
-
-  const _MenuSection({
-    required this.items,
-    required this.selectedIndex,
-    required this.onSelect,
-    required this.pulseController,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        final isSelected = index == selectedIndex;
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: _MenuItemWidget(
-            item: item,
-            isSelected: isSelected,
-            pulseController: pulseController,
-            onTap: () {
-              onSelect(index);
-              item.onTap();
-            },
-          ),
-        );
-      },
-    );
-  }
-}
 
 class _MenuItemWidget extends StatelessWidget {
   final _MenuItem item;
