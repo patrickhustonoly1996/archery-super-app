@@ -7,145 +7,10 @@ import '../db/database.dart';
 /// Timer phases for bow training
 enum TimerPhase {
   idle,           // Not started
-  leadIn,         // 10 second countdown before first hold
   hold,           // Holding at draw
   rest,           // Resting between reps
   exerciseBreak,  // Transition between exercises
-  midBlockBreak,  // Break in middle of a block
   complete,       // Session finished
-}
-
-/// Lead-in duration in seconds before holds start
-const int kLeadInSeconds = 10;
-
-/// A training block preset that can be dragged to build custom sessions
-class TrainingBlock {
-  final String id;
-  final String name;
-  final int durationMinutes;
-  final int holdSeconds;
-  final int restSeconds;
-  final int? breakAtMinutes; // Optional mid-block break
-  final int breakDurationSeconds;
-  final TrainingBlock? alternateVariant; // For toggleable blocks
-  final bool isAlternate;
-
-  const TrainingBlock({
-    required this.id,
-    required this.name,
-    required this.durationMinutes,
-    required this.holdSeconds,
-    required this.restSeconds,
-    this.breakAtMinutes,
-    this.breakDurationSeconds = 60,
-    this.alternateVariant,
-    this.isAlternate = false,
-  });
-
-  /// Create a copy with alternate variant applied
-  TrainingBlock withAlternate() {
-    if (alternateVariant == null) return this;
-    return alternateVariant!;
-  }
-
-  /// Calculate number of reps for this block
-  int get totalReps {
-    final cycleSeconds = holdSeconds + restSeconds;
-    if (cycleSeconds <= 0) return 0;
-    final totalSeconds = durationMinutes * 60;
-    return totalSeconds ~/ cycleSeconds;
-  }
-
-  /// Format timing as "hold:rest"
-  String get timingLabel => '$holdSeconds:$restSeconds';
-
-  /// Copy with new ID for instance tracking
-  TrainingBlock copyWithNewId() {
-    return TrainingBlock(
-      id: '${id}_${DateTime.now().millisecondsSinceEpoch}',
-      name: name,
-      durationMinutes: durationMinutes,
-      holdSeconds: holdSeconds,
-      restSeconds: restSeconds,
-      breakAtMinutes: breakAtMinutes,
-      breakDurationSeconds: breakDurationSeconds,
-      alternateVariant: alternateVariant,
-      isAlternate: isAlternate,
-    );
-  }
-}
-
-/// Default training block presets
-class TrainingBlockPresets {
-  static const patrickWarmUp = TrainingBlock(
-    id: 'patrick_warmup',
-    name: "Patrick's Warm Up",
-    durationMinutes: 5,
-    holdSeconds: 30,
-    restSeconds: 30,
-  );
-
-  static const standardFitnessBlock = TrainingBlock(
-    id: 'standard_fitness',
-    name: 'Standard Fitness Block',
-    durationMinutes: 10,
-    holdSeconds: 20,
-    restSeconds: 40,
-    breakAtMinutes: 5,
-    breakDurationSeconds: 60,
-    alternateVariant: TrainingBlock(
-      id: 'standard_fitness_alt',
-      name: 'Standard Fitness Block',
-      durationMinutes: 10,
-      holdSeconds: 35,
-      restSeconds: 35,
-      breakAtMinutes: 5,
-      breakDurationSeconds: 60,
-      isAlternate: true,
-    ),
-  );
-
-  static const introductionVolume = TrainingBlock(
-    id: 'intro_volume',
-    name: 'Introduction Volume',
-    durationMinutes: 5,
-    holdSeconds: 15,
-    restSeconds: 45,
-  );
-
-  static const introductionFitnessBlock = TrainingBlock(
-    id: 'intro_fitness',
-    name: 'Introduction Fitness Block',
-    durationMinutes: 10,
-    holdSeconds: 15,
-    restSeconds: 45,
-  );
-
-  static List<TrainingBlock> get all => [
-    patrickWarmUp,
-    standardFitnessBlock,
-    introductionVolume,
-    introductionFitnessBlock,
-  ];
-}
-
-/// Internal exercise representation for custom sessions
-class _CustomExercise {
-  final String name;
-  final int reps;
-  final int workSeconds;
-  final int restSeconds;
-  final String? details;
-  final bool isBreak;
-
-  const _CustomExercise({
-    required this.name,
-    required this.reps,
-    required this.workSeconds,
-    required this.restSeconds,
-    this.details,
-    this.isBreak = false,
-  });
 }
 
 /// State of the timer
@@ -153,6 +18,63 @@ enum TimerState {
   stopped,
   running,
   paused,
+}
+
+/// Movement stimulus intensity for custom sessions
+enum MovementStimulus {
+  none,
+  some,
+  lots,
+}
+
+/// Hold:Rest ratio options (in seconds)
+class HoldRestRatio {
+  final int holdSeconds;
+  final int restSeconds;
+  final String label;
+
+  const HoldRestRatio(this.holdSeconds, this.restSeconds, this.label);
+
+  static const ratio15_45 = HoldRestRatio(15, 45, '15:45');
+  static const ratio20_40 = HoldRestRatio(20, 40, '20:40');
+  static const ratio25_35 = HoldRestRatio(25, 35, '25:35');
+  static const ratio30_30 = HoldRestRatio(30, 30, '30:30');
+
+  static const List<HoldRestRatio> all = [
+    ratio15_45,
+    ratio20_40,
+    ratio25_35,
+    ratio30_30,
+  ];
+}
+
+/// Custom session configuration
+class CustomSessionConfig {
+  final int durationMinutes;
+  final HoldRestRatio ratio;
+  final MovementStimulus movementStimulus;
+
+  const CustomSessionConfig({
+    required this.durationMinutes,
+    required this.ratio,
+    required this.movementStimulus,
+  });
+
+  /// Patrick's default warm-up: 5 minutes at 30:30
+  static const defaultWarmUp = CustomSessionConfig(
+    durationMinutes: 5,
+    ratio: HoldRestRatio.ratio30_30,
+    movementStimulus: MovementStimulus.none,
+  );
+
+  /// Calculate number of reps that fit in the duration
+  int get totalReps {
+    final cycleSeconds = ratio.holdSeconds + ratio.restSeconds;
+    final totalSeconds = durationMinutes * 60;
+    return totalSeconds ~/ cycleSeconds;
+  }
+
+  String get displayName => '${durationMinutes}min @ ${ratio.label}';
 }
 
 class BowTrainingProvider extends ChangeNotifier {
@@ -173,180 +95,6 @@ class BowTrainingProvider extends ChangeNotifier {
 
   UserTrainingProgressData? _userProgress;
   UserTrainingProgressData? get userProgress => _userProgress;
-
-  // ===========================================================================
-  // CUSTOM SESSION BUILDER STATE
-  // ===========================================================================
-
-  /// Preset blocks available to drag
-  List<TrainingBlock> get presetBlocks => TrainingBlockPresets.all;
-
-  /// Blocks added to current custom session (with toggle state)
-  final List<({TrainingBlock block, bool useAlternate})> _customSessionBlocks = [];
-  List<({TrainingBlock block, bool useAlternate})> get customSessionBlocks => List.unmodifiable(_customSessionBlocks);
-
-  /// Get total duration of custom session in minutes
-  int get customSessionDuration {
-    return _customSessionBlocks.fold(0, (sum, entry) {
-      final block = entry.useAlternate ? entry.block.withAlternate() : entry.block;
-      return sum + block.durationMinutes;
-    });
-  }
-
-  /// Add a block to custom session
-  void addBlockToSession(TrainingBlock block) {
-    _customSessionBlocks.add((block: block.copyWithNewId(), useAlternate: false));
-    notifyListeners();
-  }
-
-  /// Remove a block from custom session by index
-  void removeBlockFromSession(int index) {
-    if (index >= 0 && index < _customSessionBlocks.length) {
-      _customSessionBlocks.removeAt(index);
-      notifyListeners();
-    }
-  }
-
-  /// Reorder blocks in custom session
-  void reorderBlocks(int oldIndex, int newIndex) {
-    if (oldIndex < newIndex) {
-      newIndex -= 1;
-    }
-    final item = _customSessionBlocks.removeAt(oldIndex);
-    _customSessionBlocks.insert(newIndex, item);
-    notifyListeners();
-  }
-
-  /// Toggle a block's alternate variant
-  void toggleBlockVariant(int index) {
-    if (index >= 0 && index < _customSessionBlocks.length) {
-      final entry = _customSessionBlocks[index];
-      if (entry.block.alternateVariant != null) {
-        _customSessionBlocks[index] = (block: entry.block, useAlternate: !entry.useAlternate);
-        notifyListeners();
-      }
-    }
-  }
-
-  /// Clear all blocks from custom session
-  void clearCustomSession() {
-    _customSessionBlocks.clear();
-    notifyListeners();
-  }
-
-  // ===========================================================================
-  // CUSTOM SESSION EXECUTION
-  // ===========================================================================
-
-  /// Build and start a custom session from the current blocks
-  void startCustomSession() {
-    if (_customSessionBlocks.isEmpty) return;
-
-    // Build custom exercises from blocks
-    _customExercises = [];
-    for (final entry in _customSessionBlocks) {
-      final block = entry.useAlternate ? entry.block.withAlternate() : entry.block;
-      _customExercises.addAll(_buildExercisesFromBlock(block));
-    }
-
-    if (_customExercises.isEmpty) return;
-
-    // Start session with lead-in countdown
-    _isCustomSession = true;
-    _customSessionName = _buildCustomSessionName();
-    _currentExerciseIndex = 0;
-    _currentRep = 1;
-    _phase = TimerPhase.leadIn; // Start with lead-in countdown
-    _timerState = TimerState.running;
-    _secondsRemaining = kLeadInSeconds;
-    _sessionStartedAt = DateTime.now();
-    _totalHoldSecondsActual = 0;
-    _totalRestSecondsActual = 0;
-    _completedExercises = 0;
-
-    _startTimer();
-    _playStartBeep();
-    notifyListeners();
-  }
-
-  List<_CustomExercise> _buildExercisesFromBlock(TrainingBlock block) {
-    final exercises = <_CustomExercise>[];
-    final cycleSeconds = block.holdSeconds + block.restSeconds;
-    if (cycleSeconds <= 0) return exercises;
-
-    final totalSeconds = block.durationMinutes * 60;
-    final totalReps = totalSeconds ~/ cycleSeconds;
-
-    // Calculate reps before and after break
-    int repsBeforeBreak = totalReps;
-    int repsAfterBreak = 0;
-
-    if (block.breakAtMinutes != null && block.breakAtMinutes! < block.durationMinutes) {
-      final secondsBeforeBreak = block.breakAtMinutes! * 60;
-      repsBeforeBreak = secondsBeforeBreak ~/ cycleSeconds;
-      repsAfterBreak = totalReps - repsBeforeBreak;
-    }
-
-    // Add exercise for first segment
-    if (repsBeforeBreak > 0) {
-      exercises.add(_CustomExercise(
-        name: block.name,
-        reps: repsBeforeBreak,
-        workSeconds: block.holdSeconds,
-        restSeconds: block.restSeconds,
-        details: '${block.holdSeconds}s hold / ${block.restSeconds}s rest',
-      ));
-    }
-
-    // Add break if configured
-    if (block.breakAtMinutes != null && repsAfterBreak > 0) {
-      exercises.add(_CustomExercise(
-        name: 'Break',
-        reps: 1,
-        workSeconds: block.breakDurationSeconds,
-        restSeconds: 0,
-        details: '${block.breakDurationSeconds}s recovery',
-        isBreak: true,
-      ));
-
-      // Add exercise for second segment
-      exercises.add(_CustomExercise(
-        name: block.name,
-        reps: repsAfterBreak,
-        workSeconds: block.holdSeconds,
-        restSeconds: block.restSeconds,
-        details: '${block.holdSeconds}s hold / ${block.restSeconds}s rest',
-      ));
-    }
-
-    return exercises;
-  }
-
-  String _buildCustomSessionName() {
-    if (_customSessionBlocks.length == 1) {
-      return _customSessionBlocks.first.block.name;
-    }
-    return 'Custom Session (${_customSessionBlocks.length} blocks)';
-  }
-
-  // Custom session tracking
-  bool _isCustomSession = false;
-  bool get isCustomSession => _isCustomSession;
-
-  String _customSessionName = '';
-  String get customSessionName => _customSessionName;
-
-  List<_CustomExercise> _customExercises = [];
-
-  /// Get current exercise for custom session
-  _CustomExercise? get currentCustomExercise {
-    if (!_isCustomSession || _customExercises.isEmpty) return null;
-    if (_currentExerciseIndex >= _customExercises.length) return null;
-    return _customExercises[_currentExerciseIndex];
-  }
-
-  /// Get total custom exercises count
-  int get totalCustomExercises => _customExercises.length;
 
   // ===========================================================================
   // ACTIVE SESSION STATE
@@ -381,12 +129,18 @@ class BowTrainingProvider extends ChangeNotifier {
 
   Timer? _timer;
 
+  // Custom session state
+  CustomSessionConfig? _customConfig;
+  CustomSessionConfig? get customConfig => _customConfig;
+  int _customTotalReps = 0;
+  int _customCurrentRep = 0;
+  String? _currentMovementCue;
+
   // ===========================================================================
   // GETTERS
   // ===========================================================================
 
   OlySessionExercise? get currentExercise {
-    if (_isCustomSession) return null; // Use currentCustomExercise instead
     if (_exercises.isEmpty || _currentExerciseIndex >= _exercises.length) {
       return null;
     }
@@ -394,56 +148,33 @@ class BowTrainingProvider extends ChangeNotifier {
   }
 
   OlyExerciseType? get currentExerciseType {
-    if (_isCustomSession) return null;
     final exercise = currentExercise;
     if (exercise == null) return null;
     return _exerciseTypesMap[exercise.exerciseTypeId];
   }
 
   String get currentExerciseName {
-    if (_isCustomSession) {
-      return currentCustomExercise?.name ?? 'Unknown';
-    }
     return currentExerciseType?.name ?? 'Unknown';
   }
 
   String? get currentExerciseDetails {
-    if (_isCustomSession) {
-      return currentCustomExercise?.details;
-    }
     return currentExercise?.details;
   }
 
   int get currentExerciseNumber => _currentExerciseIndex + 1;
+  int get totalExercises => _exercises.length;
 
-  int get totalExercises {
-    if (_isCustomSession) return _customExercises.length;
-    return _exercises.length;
-  }
-
-  int get currentExerciseReps {
-    if (_isCustomSession) {
-      return currentCustomExercise?.reps ?? 0;
-    }
-    return currentExercise?.reps ?? 0;
-  }
-
-  /// Get the active session name (OLY template or custom)
-  String get activeSessionName {
-    if (_isCustomSession) return _customSessionName;
-    return _activeSession?.name ?? '';
-  }
-
-  /// Check if current exercise is a break (custom sessions only)
-  bool get isCurrentExerciseBreak {
-    if (!_isCustomSession) return false;
-    return currentCustomExercise?.isBreak ?? false;
-  }
+  int get currentExerciseReps => currentExercise?.reps ?? 0;
 
   bool get isActive => _timerState != TimerState.stopped;
 
   int get totalHoldSecondsActual => _totalHoldSecondsActual;
   int get completedExercisesCount => _completedExercises;
+
+  bool get isCustomSession => _customConfig != null;
+  String? get movementCue => _currentMovementCue;
+  int get customRep => _customCurrentRep;
+  int get customTotalReps => _customTotalReps;
 
   // ===========================================================================
   // DATA LOADING
@@ -502,9 +233,9 @@ class BowTrainingProvider extends ChangeNotifier {
 
     _currentExerciseIndex = 0;
     _currentRep = 1;
-    _phase = TimerPhase.leadIn; // Start with lead-in countdown
+    _phase = TimerPhase.hold;
     _timerState = TimerState.running;
-    _secondsRemaining = kLeadInSeconds;
+    _secondsRemaining = _exercises.first.workSeconds;
     _sessionStartedAt = DateTime.now();
     _totalHoldSecondsActual = 0;
     _totalRestSecondsActual = 0;
@@ -513,6 +244,73 @@ class BowTrainingProvider extends ChangeNotifier {
     _startTimer();
     _playStartBeep();
     notifyListeners();
+  }
+
+  /// Start a custom training session
+  void startCustomSession(CustomSessionConfig config) {
+    _customConfig = config;
+    _activeSession = null;
+    _exercises = [];
+    _customTotalReps = config.totalReps;
+    _customCurrentRep = 1;
+    _currentExerciseIndex = 0;
+    _currentRep = 1;
+    _phase = TimerPhase.hold;
+    _timerState = TimerState.running;
+    _secondsRemaining = config.ratio.holdSeconds;
+    _sessionStartedAt = DateTime.now();
+    _totalHoldSecondsActual = 0;
+    _totalRestSecondsActual = 0;
+    _completedExercises = 0;
+
+    // Generate initial movement cue if enabled
+    _updateMovementCue();
+
+    _startTimer();
+    _playStartBeep();
+    notifyListeners();
+  }
+
+  /// Update movement cue based on stimulus setting
+  void _updateMovementCue() {
+    if (_customConfig == null) {
+      _currentMovementCue = null;
+      return;
+    }
+
+    switch (_customConfig!.movementStimulus) {
+      case MovementStimulus.none:
+        _currentMovementCue = null;
+        break;
+      case MovementStimulus.some:
+        // Occasional cues - 30% chance
+        if (_shouldShowCue(0.3)) {
+          _currentMovementCue = _generateMovementCue();
+        } else {
+          _currentMovementCue = null;
+        }
+        break;
+      case MovementStimulus.lots:
+        // Frequent cues - always show
+        _currentMovementCue = _generateMovementCue();
+        break;
+    }
+  }
+
+  bool _shouldShowCue(double probability) {
+    return DateTime.now().millisecondsSinceEpoch % 100 < (probability * 100);
+  }
+
+  String _generateMovementCue() {
+    final cues = [
+      'Front end: squeeze in',
+      'Front end: push out',
+      'Back end: pull through',
+      'Back end: squeeze in',
+      'Feel the back tension',
+      'Relax the front shoulder',
+    ];
+    return cues[DateTime.now().millisecondsSinceEpoch % cues.length];
   }
 
   /// Pause the timer
@@ -544,6 +342,38 @@ class BowTrainingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Complete a custom session and log it
+  Future<void> completeCustomSession() async {
+    if (_customConfig == null || _sessionStartedAt == null) return;
+
+    final config = _customConfig!;
+    final log = OlyTrainingLogsCompanion.insert(
+      id: 'log_${DateTime.now().millisecondsSinceEpoch}',
+      sessionTemplateId: const Value.absent(), // No template for custom
+      sessionVersion: 'custom',
+      sessionName: config.displayName,
+      plannedDurationSeconds: config.durationMinutes * 60,
+      actualDurationSeconds: DateTime.now().difference(_sessionStartedAt!).inSeconds,
+      plannedExercises: _customTotalReps,
+      completedExercises: _completedExercises,
+      totalHoldSeconds: _totalHoldSecondsActual,
+      totalRestSeconds: _totalRestSecondsActual,
+      feedbackShaking: const Value.absent(),
+      feedbackStructure: const Value.absent(),
+      feedbackRest: const Value.absent(),
+      progressionSuggestion: const Value.absent(),
+      suggestedNextVersion: const Value.absent(),
+      notes: Value('${config.ratio.label} ratio, ${config.movementStimulus.name} movement'),
+      startedAt: _sessionStartedAt!,
+      completedAt: DateTime.now(),
+    );
+
+    await _db.insertOlyTrainingLog(log);
+    await loadData(); // Refresh recent logs
+    _resetState();
+    notifyListeners();
+  }
+
   /// Complete the session and log it with feedback
   Future<void> completeSession({
     int? feedbackShaking,
@@ -551,19 +381,7 @@ class BowTrainingProvider extends ChangeNotifier {
     int? feedbackRest,
     String? notes,
   }) async {
-    if (_sessionStartedAt == null) return;
-
-    // Custom sessions - just reset without logging to OLY progression
-    if (_isCustomSession) {
-      // For custom sessions, we could log to a separate table in the future
-      // For now, just reset
-      _resetState();
-      notifyListeners();
-      return;
-    }
-
-    // OLY session logging
-    if (_activeSession == null) return;
+    if (_activeSession == null || _sessionStartedAt == null) return;
 
     // Calculate progression suggestion
     final suggestion = _calculateProgressionSuggestion(
@@ -642,8 +460,8 @@ class BowTrainingProvider extends ChangeNotifier {
 
   void _advancePhase() {
     // Handle custom session
-    if (_isCustomSession) {
-      _advancePhaseCustom();
+    if (_customConfig != null) {
+      _advanceCustomPhase();
       return;
     }
 
@@ -651,13 +469,6 @@ class BowTrainingProvider extends ChangeNotifier {
     if (exercise == null || _activeSession == null) return;
 
     switch (_phase) {
-      case TimerPhase.leadIn:
-        // Lead-in complete - start first hold
-        _phase = TimerPhase.hold;
-        _secondsRemaining = exercise.workSeconds;
-        _playHoldBeep();
-        break;
-
       case TimerPhase.hold:
         // Finished a hold rep
         if (_currentRep < exercise.reps) {
@@ -711,94 +522,46 @@ class BowTrainingProvider extends ChangeNotifier {
 
       case TimerPhase.idle:
       case TimerPhase.complete:
-      case TimerPhase.midBlockBreak:
-        // No-op for OLY sessions
+        // No-op
         break;
     }
 
     notifyListeners();
   }
 
-  void _advancePhaseCustom() {
-    final exercise = currentCustomExercise;
-    if (exercise == null) return;
+  void _advanceCustomPhase() {
+    final config = _customConfig!;
 
     switch (_phase) {
-      case TimerPhase.leadIn:
-        // Lead-in complete - start first hold or break
-        if (exercise.isBreak) {
-          _phase = TimerPhase.midBlockBreak;
-        } else {
-          _phase = TimerPhase.hold;
-        }
-        _secondsRemaining = exercise.workSeconds;
-        if (exercise.isBreak) {
+      case TimerPhase.hold:
+        // Finished a hold - start rest or complete
+        if (_customCurrentRep < _customTotalReps) {
+          _phase = TimerPhase.rest;
+          _secondsRemaining = config.ratio.restSeconds;
+          _currentMovementCue = null; // Clear cue during rest
           _playRestBeep();
         } else {
-          _playHoldBeep();
-        }
-        break;
-
-      case TimerPhase.hold:
-      case TimerPhase.midBlockBreak:
-        // Finished a hold/break rep
-        if (_currentRep < exercise.reps) {
-          // More reps to go - start rest
-          if (exercise.restSeconds > 0) {
-            _phase = TimerPhase.rest;
-            _secondsRemaining = exercise.restSeconds;
-            _playRestBeep();
-          } else {
-            // No rest - go directly to next rep
-            _currentRep++;
-            _secondsRemaining = exercise.workSeconds;
-            _playHoldBeep();
-          }
-        } else {
-          // Finished all reps for this exercise
-          _completedExercises++;
-
-          if (_currentExerciseIndex < _customExercises.length - 1) {
-            // More exercises - transition to next
-            _phase = TimerPhase.exerciseBreak;
-            _secondsRemaining = 3; // 3 second transition
-            _playExerciseCompleteBeep();
-          } else {
-            // Session complete
-            _timer?.cancel();
-            _phase = TimerPhase.complete;
-            _timerState = TimerState.stopped;
-            _playCompleteSound();
-          }
+          // Session complete
+          _timer?.cancel();
+          _phase = TimerPhase.complete;
+          _timerState = TimerState.stopped;
+          _completedExercises = _customTotalReps;
+          _playCompleteSound();
         }
         break;
 
       case TimerPhase.rest:
-        // Finished resting - start next rep
-        _currentRep++;
+        // Finished resting - start next hold
+        _customCurrentRep++;
         _phase = TimerPhase.hold;
-        _secondsRemaining = exercise.workSeconds;
+        _secondsRemaining = config.ratio.holdSeconds;
+        _updateMovementCue(); // Generate new cue for hold
         _playHoldBeep();
-        break;
-
-      case TimerPhase.exerciseBreak:
-        // Transition complete - start next exercise
-        _currentExerciseIndex++;
-        _currentRep = 1;
-        final nextExercise = currentCustomExercise;
-        if (nextExercise != null) {
-          _phase = nextExercise.isBreak ? TimerPhase.midBlockBreak : TimerPhase.hold;
-          _secondsRemaining = nextExercise.workSeconds;
-          if (nextExercise.isBreak) {
-            _playRestBeep();
-          } else {
-            _playHoldBeep();
-          }
-        }
         break;
 
       case TimerPhase.idle:
       case TimerPhase.complete:
+      case TimerPhase.exerciseBreak:
         // No-op
         break;
     }
@@ -819,10 +582,11 @@ class BowTrainingProvider extends ChangeNotifier {
     _totalHoldSecondsActual = 0;
     _totalRestSecondsActual = 0;
     _completedExercises = 0;
-    // Custom session state
-    _isCustomSession = false;
-    _customSessionName = '';
-    _customExercises = [];
+    // Reset custom session state
+    _customConfig = null;
+    _customTotalReps = 0;
+    _customCurrentRep = 0;
+    _currentMovementCue = null;
   }
 
   // ===========================================================================
@@ -971,16 +735,12 @@ class BowTrainingProvider extends ChangeNotifier {
     switch (_phase) {
       case TimerPhase.idle:
         return 'Ready';
-      case TimerPhase.leadIn:
-        return 'Get Ready';
       case TimerPhase.hold:
         return 'HOLD';
       case TimerPhase.rest:
         return 'Rest';
       case TimerPhase.exerciseBreak:
         return 'Next Exercise';
-      case TimerPhase.midBlockBreak:
-        return 'BREAK';
       case TimerPhase.complete:
         return 'Complete';
     }
@@ -988,48 +748,39 @@ class BowTrainingProvider extends ChangeNotifier {
 
   /// Get progress within current phase (0.0 to 1.0)
   double get phaseProgress {
-    int totalSeconds;
-
-    // Handle lead-in phase
-    if (_phase == TimerPhase.leadIn) {
-      return 1 - (_secondsRemaining / kLeadInSeconds);
+    // Handle custom session
+    if (_customConfig != null) {
+      int totalSeconds;
+      switch (_phase) {
+        case TimerPhase.hold:
+          totalSeconds = _customConfig!.ratio.holdSeconds;
+          break;
+        case TimerPhase.rest:
+          totalSeconds = _customConfig!.ratio.restSeconds;
+          break;
+        default:
+          return 0;
+      }
+      if (totalSeconds <= 0) return 1.0;
+      return 1 - (_secondsRemaining / totalSeconds);
     }
 
-    if (_isCustomSession) {
-      final exercise = currentCustomExercise;
-      if (exercise == null) return 0;
+    final exercise = currentExercise;
+    if (exercise == null) return 0;
 
-      switch (_phase) {
-        case TimerPhase.hold:
-        case TimerPhase.midBlockBreak:
-          totalSeconds = exercise.workSeconds;
-          break;
-        case TimerPhase.rest:
-          totalSeconds = exercise.restSeconds;
-          break;
-        case TimerPhase.exerciseBreak:
-          totalSeconds = 3;
-          break;
-        default:
-          return 0;
-      }
-    } else {
-      final exercise = currentExercise;
-      if (exercise == null) return 0;
-
-      switch (_phase) {
-        case TimerPhase.hold:
-          totalSeconds = exercise.workSeconds;
-          break;
-        case TimerPhase.rest:
-          totalSeconds = exercise.restSeconds;
-          break;
-        case TimerPhase.exerciseBreak:
-          totalSeconds = 3;
-          break;
-        default:
-          return 0;
-      }
+    int totalSeconds;
+    switch (_phase) {
+      case TimerPhase.hold:
+        totalSeconds = exercise.workSeconds;
+        break;
+      case TimerPhase.rest:
+        totalSeconds = exercise.restSeconds;
+        break;
+      case TimerPhase.exerciseBreak:
+        totalSeconds = 3;
+        break;
+      default:
+        return 0;
     }
 
     if (totalSeconds <= 0) return 1.0;
@@ -1038,19 +789,10 @@ class BowTrainingProvider extends ChangeNotifier {
 
   /// Get overall session progress (0.0 to 1.0)
   double get sessionProgress {
-    if (_isCustomSession) {
-      if (_customExercises.isEmpty) return 0;
-
-      int totalReps = _customExercises.fold(0, (sum, e) => sum + e.reps);
-      if (totalReps == 0) return 0;
-
-      int completedReps = 0;
-      for (int i = 0; i < _currentExerciseIndex; i++) {
-        completedReps += _customExercises[i].reps;
-      }
-      completedReps += _currentRep - 1; // Current rep in progress
-
-      return completedReps / totalReps;
+    // Handle custom session
+    if (_customConfig != null) {
+      if (_customTotalReps == 0) return 0;
+      return (_customCurrentRep - 1) / _customTotalReps;
     }
 
     if (_exercises.isEmpty) return 0;
