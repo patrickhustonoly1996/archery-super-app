@@ -42,12 +42,12 @@ class _BowTrainingHomeScreenState extends State<BowTrainingHomeScreen> {
     }
   }
 
-  void _startQuickDrill(QuickDrillPreset preset) {
+  void _startQuickDrill(PresetTrainingBlock preset) {
     final provider = context.read<BowTrainingProvider>();
-    // Map preset to CustomSessionConfig
+    // Use preset's built-in configuration
     final config = CustomSessionConfig(
-      durationMinutes: (preset.reps * (preset.holdSeconds + preset.restSeconds) / 60).ceil(),
-      ratio: _getRatioForPreset(preset),
+      durationMinutes: preset.durationMinutes,
+      ratio: preset.ratio,
       movementStimulus: MovementStimulus.none,
     );
     provider.startCustomSession(config);
@@ -59,20 +59,6 @@ class _BowTrainingHomeScreenState extends State<BowTrainingHomeScreen> {
     ).then((_) => _loadMinimalData());
   }
 
-  HoldRestRatio _getRatioForPreset(QuickDrillPreset preset) {
-    // Find closest ratio match from available options
-    switch (preset) {
-      case QuickDrillPreset.warmup:
-        return HoldRestRatio.ratio15_45; // Light warmup with more rest
-      case QuickDrillPreset.standard:
-        return HoldRestRatio.ratio25_35; // Balanced hold/rest
-      case QuickDrillPreset.endurance:
-        return HoldRestRatio.ratio30_30; // More hold time
-      case QuickDrillPreset.burnout:
-        return HoldRestRatio.ratio30_30; // Max effort
-    }
-  }
-
   void _openLibrary() {
     Navigator.push(
       context,
@@ -81,9 +67,24 @@ class _BowTrainingHomeScreenState extends State<BowTrainingHomeScreen> {
   }
 
   void _openCustomTimer() {
-    // TODO: Implement custom timer screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Custom timer coming soon')),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surfaceDark,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => _CustomSessionBuilder(
+        onStart: (config) {
+          Navigator.pop(context);
+          final provider = context.read<BowTrainingProvider>();
+          provider.startCustomSession(config);
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const BowTrainingScreen()),
+          ).then((_) => _loadMinimalData());
+        },
+      ),
     );
   }
 
@@ -108,8 +109,8 @@ class _BowTrainingHomeScreenState extends State<BowTrainingHomeScreen> {
                     const SizedBox(height: AppSpacing.lg),
                   ],
 
-                  // Quick Drills section
-                  _SectionHeader(title: 'Quick Drills'),
+                  // Preset Training Blocks section
+                  _SectionHeader(title: 'Preset Training Blocks'),
                   const SizedBox(height: AppSpacing.sm),
                   _QuickDrillsGrid(onSelect: _startQuickDrill),
 
@@ -161,7 +162,7 @@ class _BowTrainingHomeScreenState extends State<BowTrainingHomeScreen> {
                           ),
                           const SizedBox(height: AppSpacing.sm),
                           Text(
-                            'Start with a quick drill',
+                            'Select a training block',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   color: AppColors.textMuted,
                                 ),
@@ -178,97 +179,164 @@ class _BowTrainingHomeScreenState extends State<BowTrainingHomeScreen> {
 }
 
 // =============================================================================
-// Quick Drill Presets - hardcoded, no database lookup needed
+// Preset Training Blocks - Patrick's specific training configurations
 // =============================================================================
 
-enum QuickDrillPreset {
-  warmup,
-  standard,
-  endurance,
-  burnout,
+enum PresetTrainingBlock {
+  patricksWarmup,
+  standardFitness,
+  introVolume,
+  introFitness,
+  beginnersIntro,
 }
 
-extension QuickDrillPresetExt on QuickDrillPreset {
+extension PresetTrainingBlockExt on PresetTrainingBlock {
   String get name {
     switch (this) {
-      case QuickDrillPreset.warmup:
-        return 'Warm Up';
-      case QuickDrillPreset.standard:
-        return 'Standard';
-      case QuickDrillPreset.endurance:
-        return 'Endurance';
-      case QuickDrillPreset.burnout:
-        return 'Burnout';
+      case PresetTrainingBlock.patricksWarmup:
+        return "Patrick's Warm Up";
+      case PresetTrainingBlock.standardFitness:
+        return 'Standard Fitness';
+      case PresetTrainingBlock.introVolume:
+        return 'Introduction Volume';
+      case PresetTrainingBlock.introFitness:
+        return 'Introduction Fitness';
+      case PresetTrainingBlock.beginnersIntro:
+        return 'Beginners Intro';
     }
   }
 
   String get description {
     switch (this) {
-      case QuickDrillPreset.warmup:
-        return '3x 10s holds';
-      case QuickDrillPreset.standard:
-        return '5x 15s holds';
-      case QuickDrillPreset.endurance:
-        return '8x 20s holds';
-      case QuickDrillPreset.burnout:
-        return '3x max holds';
+      case PresetTrainingBlock.patricksWarmup:
+        return '5 min @ 30:30';
+      case PresetTrainingBlock.standardFitness:
+        return '10 min @ 20:40 (60s break)';
+      case PresetTrainingBlock.introVolume:
+        return '5 min @ 15:45';
+      case PresetTrainingBlock.introFitness:
+        return '10 min @ 15:45 (45s break)';
+      case PresetTrainingBlock.beginnersIntro:
+        return 'Structured intro session';
     }
   }
 
   IconData get icon {
     switch (this) {
-      case QuickDrillPreset.warmup:
+      case PresetTrainingBlock.patricksWarmup:
         return Icons.wb_sunny_outlined;
-      case QuickDrillPreset.standard:
-        return Icons.play_arrow;
-      case QuickDrillPreset.endurance:
-        return Icons.trending_up;
-      case QuickDrillPreset.burnout:
-        return Icons.local_fire_department;
+      case PresetTrainingBlock.standardFitness:
+        return Icons.fitness_center;
+      case PresetTrainingBlock.introVolume:
+        return Icons.start;
+      case PresetTrainingBlock.introFitness:
+        return Icons.directions_run;
+      case PresetTrainingBlock.beginnersIntro:
+        return Icons.school;
     }
   }
 
-  int get reps {
+  int get durationMinutes {
     switch (this) {
-      case QuickDrillPreset.warmup:
-        return 3;
-      case QuickDrillPreset.standard:
+      case PresetTrainingBlock.patricksWarmup:
         return 5;
-      case QuickDrillPreset.endurance:
-        return 8;
-      case QuickDrillPreset.burnout:
-        return 3;
+      case PresetTrainingBlock.standardFitness:
+        return 10;
+      case PresetTrainingBlock.introVolume:
+        return 5;
+      case PresetTrainingBlock.introFitness:
+        return 10;
+      case PresetTrainingBlock.beginnersIntro:
+        return 15; // Structured session ~15 min
     }
   }
 
   int get holdSeconds {
     switch (this) {
-      case QuickDrillPreset.warmup:
-        return 10;
-      case QuickDrillPreset.standard:
-        return 15;
-      case QuickDrillPreset.endurance:
+      case PresetTrainingBlock.patricksWarmup:
+        return 30;
+      case PresetTrainingBlock.standardFitness:
         return 20;
-      case QuickDrillPreset.burnout:
-        return 60; // Max hold target
+      case PresetTrainingBlock.introVolume:
+        return 15;
+      case PresetTrainingBlock.introFitness:
+        return 15;
+      case PresetTrainingBlock.beginnersIntro:
+        return 10; // Starting hold for beginners
     }
   }
 
   int get restSeconds {
     switch (this) {
-      case QuickDrillPreset.warmup:
-        return 15;
-      case QuickDrillPreset.standard:
-        return 10;
-      case QuickDrillPreset.endurance:
-        return 8;
-      case QuickDrillPreset.burnout:
+      case PresetTrainingBlock.patricksWarmup:
         return 30;
+      case PresetTrainingBlock.standardFitness:
+        return 40;
+      case PresetTrainingBlock.introVolume:
+        return 45;
+      case PresetTrainingBlock.introFitness:
+        return 45;
+      case PresetTrainingBlock.beginnersIntro:
+        return 45;
     }
   }
 
-  bool get isMaxHold => this == QuickDrillPreset.burnout;
+  /// Extra break at halfway point (0 = no break)
+  int get halfwayBreakSeconds {
+    switch (this) {
+      case PresetTrainingBlock.patricksWarmup:
+        return 0;
+      case PresetTrainingBlock.standardFitness:
+        return 60;
+      case PresetTrainingBlock.introVolume:
+        return 0;
+      case PresetTrainingBlock.introFitness:
+        return 45;
+      case PresetTrainingBlock.beginnersIntro:
+        return 60; // Break after first part
+    }
+  }
+
+  /// Whether this block is a structured multi-exercise session
+  bool get isStructuredSession => this == PresetTrainingBlock.beginnersIntro;
+
+  /// Whether this block supports alternative ratios
+  bool get hasAlternativeRatios => this == PresetTrainingBlock.standardFitness;
+
+  /// Alternative hold:rest ratios for Standard Fitness (35:25, 30:30)
+  List<String> get alternativeRatios => ['35:25', '30:30'];
+
+  HoldRestRatio get ratio {
+    switch (this) {
+      case PresetTrainingBlock.patricksWarmup:
+        return HoldRestRatio.ratio30_30;
+      case PresetTrainingBlock.standardFitness:
+        return HoldRestRatio.ratio20_40;
+      case PresetTrainingBlock.introVolume:
+        return HoldRestRatio.ratio15_45;
+      case PresetTrainingBlock.introFitness:
+        return HoldRestRatio.ratio15_45;
+      case PresetTrainingBlock.beginnersIntro:
+        return HoldRestRatio.ratio15_45; // Default, actual session has mixed ratios
+    }
+  }
+
+  /// Get the structured exercise sequence for Beginners Intro
+  /// Returns list of (holdSeconds, restSeconds, reps) tuples
+  List<(int, int, int)> get exerciseSequence {
+    if (this != PresetTrainingBlock.beginnersIntro) return [];
+    return [
+      (10, 45, 3),  // 10:45 x3
+      (12, 50, 2),  // 12:50 x2
+      // 60s break happens here
+      (10, 30, 2),  // 10:30 x2
+      (15, 60, 3),  // 15:60 x3
+    ];
+  }
 }
+
+// Legacy alias for compatibility
+typedef QuickDrillPreset = PresetTrainingBlock;
 
 // =============================================================================
 // UI Components
@@ -566,5 +634,149 @@ class _RecentLogTile extends StatelessWidget {
     } else {
       return '${date.day}/${date.month}';
     }
+  }
+}
+
+// =============================================================================
+// Custom Session Builder - Bottom sheet for custom timer configuration
+// =============================================================================
+
+class _CustomSessionBuilder extends StatefulWidget {
+  final Function(CustomSessionConfig) onStart;
+
+  const _CustomSessionBuilder({required this.onStart});
+
+  @override
+  State<_CustomSessionBuilder> createState() => _CustomSessionBuilderState();
+}
+
+class _CustomSessionBuilderState extends State<_CustomSessionBuilder> {
+  int _durationMinutes = 10;
+  HoldRestRatio _selectedRatio = HoldRestRatio.ratio30_30;
+  MovementStimulus _selectedStimulus = MovementStimulus.none;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: AppSpacing.lg,
+        right: AppSpacing.lg,
+        top: AppSpacing.lg,
+        bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Custom Timer',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: AppColors.gold,
+                    ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, color: AppColors.textMuted),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
+          // Duration slider
+          Text(
+            'Duration: $_durationMinutes min',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textPrimary,
+                ),
+          ),
+          Slider(
+            value: _durationMinutes.toDouble(),
+            min: 5,
+            max: 30,
+            divisions: 5,
+            activeColor: AppColors.gold,
+            inactiveColor: AppColors.gold.withOpacity(0.3),
+            onChanged: (value) => setState(() => _durationMinutes = value.toInt()),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // Hold:Rest ratio
+          Text(
+            'Hold:Rest Ratio',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textPrimary,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: AppSpacing.sm,
+            children: HoldRestRatio.all.map((ratio) {
+              final isSelected = ratio == _selectedRatio;
+              return ChoiceChip(
+                label: Text(ratio.label),
+                selected: isSelected,
+                selectedColor: AppColors.gold,
+                backgroundColor: AppColors.surfaceDark,
+                labelStyle: TextStyle(
+                  color: isSelected ? AppColors.backgroundDark : AppColors.textMuted,
+                ),
+                onSelected: (_) => setState(() => _selectedRatio = ratio),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // Movement stimulus
+          Text(
+            'Movement Stimulus',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textPrimary,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: AppSpacing.sm,
+            children: MovementStimulus.values.map((stimulus) {
+              final isSelected = stimulus == _selectedStimulus;
+              return ChoiceChip(
+                label: Text(stimulus.name.toUpperCase()),
+                selected: isSelected,
+                selectedColor: AppColors.gold,
+                backgroundColor: AppColors.surfaceDark,
+                labelStyle: TextStyle(
+                  color: isSelected ? AppColors.backgroundDark : AppColors.textMuted,
+                ),
+                onSelected: (_) => setState(() => _selectedStimulus = stimulus),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+
+          // Start button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                widget.onStart(CustomSessionConfig(
+                  durationMinutes: _durationMinutes,
+                  ratio: _selectedRatio,
+                  movementStimulus: _selectedStimulus,
+                ));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.gold,
+                foregroundColor: AppColors.backgroundDark,
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+              ),
+              child: const Text('START SESSION'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

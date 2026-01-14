@@ -253,17 +253,24 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   static const double _boundaryProximityThreshold = 0.04; // 4% of radius - wider detection zone
   static const Duration _linecutterActivationDelay = Duration(milliseconds: 300); // Quick activation
 
+  /// Cached zoom factor to prevent jumps during drag
+  double? _cachedZoomFactor;
+
   /// Get the current zoom factor based on mode and smart zoom calculation
   double get _zoomFactor {
     if (_isLinecutterMode) {
       return _linecutterZoomFactor;
     }
-    // Smart zoom: 2× the calculated view area zoom (per spec)
+    // Use cached zoom if we're in the middle of a drag to prevent jumping
+    if (_isHolding && _cachedZoomFactor != null) {
+      return _cachedZoomFactor!;
+    }
+    // Smart zoom calculates optimal zoom (minimum 2x) based on arrow grouping
     final baseZoom = SmartZoom.calculateZoomFactor(
       widget.arrows,
       isIndoor: widget.isIndoor,
     );
-    return baseZoom * 2.0;
+    return baseZoom;
   }
 
   /// Calculate distance from arrow position to nearest ring boundary
@@ -324,6 +331,12 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   void _onPanStart(DragStartDetails details) {
     if (!widget.enabled) return;
 
+    // Cache the zoom factor at start of drag to prevent jumping
+    _cachedZoomFactor = SmartZoom.calculateZoomFactor(
+      widget.arrows,
+      isIndoor: widget.isIndoor,
+    );
+
     setState(() {
       _touchPosition = details.localPosition;
       // Apply the same offset from the start so arrow doesn't jump
@@ -334,10 +347,8 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
       _isHolding = true;
     });
 
-    // Show zoom overlay
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showZoomOverlay();
-    });
+    // Show zoom overlay immediately (not in post-frame callback to avoid delay)
+    _showZoomOverlay();
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
@@ -400,12 +411,18 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   void _onPanEnd(DragEndDetails details) {
     if (!widget.enabled || !_isHolding || _arrowPosition == null) return;
 
+    // Capture arrow position before clearing state
+    final finalArrowPosition = _arrowPosition!;
+
+    // Remove zoom overlay first
+    _removeZoomOverlay();
+
     // Convert widget coordinates to normalized (-1 to 1)
     final center = Offset(widget.size / 2, widget.size / 2);
     final radius = widget.size / 2;
 
-    final normalizedX = (_arrowPosition!.dx - center.dx) / radius;
-    final normalizedY = (_arrowPosition!.dy - center.dy) / radius;
+    final normalizedX = (finalArrowPosition.dx - center.dx) / radius;
+    final normalizedY = (finalArrowPosition.dy - center.dy) / radius;
 
     // Clamp to target bounds
     final distance = math.sqrt(normalizedX * normalizedX + normalizedY * normalizedY);
@@ -413,20 +430,19 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
       widget.onArrowPlotted(normalizedX, normalizedY);
     }
 
-    // Remove zoom overlay
-    _removeZoomOverlay();
-
+    // Reset all state
+    _cancelLinecutterTimer();
     setState(() {
       _touchPosition = null;
       _arrowPosition = null;
       _isHolding = false;
+      _cachedZoomFactor = null;
 
       // Reset linecutter state
       _isLinecutterMode = false;
       _isNearBoundary = false;
       _nearestBoundaryDistance = null;
       _nearestBoundaryRing = null;
-      _cancelLinecutterTimer();
     });
   }
 

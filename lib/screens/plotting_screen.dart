@@ -92,6 +92,8 @@ class PlottingScreen extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.all(AppSpacing.lg),
                           child: FutureBuilder(
+                            // Key forces rebuild when arrows change
+                            key: ValueKey('target_${provider.ends.length}_${provider.arrowsInCurrentEnd}'),
                             future: provider.getAllSessionArrows(),
                             builder: (context, snapshot) {
                               final allArrows = snapshot.data ?? [];
@@ -154,6 +156,8 @@ class PlottingScreen extends StatelessWidget {
                         top: AppSpacing.md,
                         left: AppSpacing.md,
                         child: FutureBuilder(
+                          // Key forces rebuild when arrows change
+                          key: ValueKey('last12_${provider.ends.length}_${provider.arrowsInCurrentEnd}'),
                           future: provider.getLastNArrows(12),
                           builder: (context, snapshot) {
                             final arrows = snapshot.data ?? [];
@@ -171,6 +175,8 @@ class PlottingScreen extends StatelessWidget {
                         top: AppSpacing.md,
                         right: AppSpacing.md,
                         child: FutureBuilder(
+                          // Key forces rebuild when arrows or end changes
+                          key: ValueKey('half_${provider.currentEndNumber}_${provider.arrowsInCurrentEnd}'),
                           future: provider.getCurrentHalfArrows(),
                           builder: (context, snapshot) {
                             final halfArrows = snapshot.data ?? [];
