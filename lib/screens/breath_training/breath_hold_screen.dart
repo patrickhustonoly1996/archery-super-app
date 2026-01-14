@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../services/breath_training_service.dart';
 import '../../widgets/breathing_visualizer.dart';
 import '../../widgets/breathing_reminder.dart';
+import '../../providers/breath_training_provider.dart';
 
 /// Breath hold session with progressive difficulty
 /// Structure: paced breaths -> exhale hold -> paced recovery -> repeat
@@ -122,9 +124,66 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
   void _stopSession() {
     _timer?.cancel();
     HapticFeedback.lightImpact();
+    // Clear provider state
+    context.read<BreathTrainingProvider>().reset();
     setState(() {
       _state = SessionState.idle;
       _breathPhase = BreathPhase.idle;
+    });
+  }
+
+  Future<bool> _onWillPop() async {
+    final isActive = _state != SessionState.idle &&
+                     _state != SessionState.complete &&
+                     _state != SessionState.setup;
+    if (isActive) {
+      final result = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: AppColors.surfaceDark,
+          title: const Text('Leave Session?'),
+          content: const Text('You can pause and return later, or abandon the session.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'stay'),
+              child: const Text('Stay'),
+            ),
+            TextButton(
+              onPressed: () {
+                _pauseForNavigation();
+                Navigator.pop(context, 'pause');
+              },
+              child: Text(
+                'Pause & Leave',
+                style: TextStyle(color: AppColors.gold),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                _stopSession();
+                Navigator.pop(context, 'abandon');
+              },
+              child: Text(
+                'Abandon',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        ),
+      );
+      return result == 'pause' || result == 'abandon';
+    }
+    return true;
+  }
+
+  void _pauseForNavigation() {
+    _timer?.cancel();
+    // Mark breath training as active in provider
+    final provider = context.read<BreathTrainingProvider>();
+    provider.startBreathHoldSession();
+    provider.pauseForNavigation();
+    setState(() {
+      _state = SessionState.idle;
     });
   }
 
@@ -239,10 +298,11 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
         _pacedBreathCount++;
 
         if (_pacedBreathCount >= _recoveryBreaths) {
-          // Move to next round's paced breathing
-          _state = SessionState.pacedBreathing;
-          _breathPhase = BreathPhase.inhale;
-          _phaseSecondsRemaining = _inhaleSeconds;
+          // Move directly to next hold (skip preparation breaths)
+          HapticFeedback.mediumImpact();
+          _state = SessionState.holding;
+          _breathPhase = BreathPhase.hold;
+          _phaseSecondsRemaining = _currentHoldTarget;
           _pacedBreathCount = 0;
         } else {
           _breathPhase = BreathPhase.inhale;
@@ -304,12 +364,21 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
                      _state != SessionState.complete &&
                      _state != SessionState.setup;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Breath Holds'),
-        backgroundColor: Colors.transparent,
-      ),
-      body: SafeArea(
+    return PopScope(
+      canPop: !isActive,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldPop = await _onWillPop();
+        if (shouldPop && context.mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Breath Holds'),
+          backgroundColor: Colors.transparent,
+        ),
+        body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: _state == SessionState.setup
@@ -439,6 +508,7 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

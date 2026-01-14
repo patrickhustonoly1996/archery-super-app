@@ -9,9 +9,12 @@ import 'theme/app_theme.dart';
 import 'providers/session_provider.dart';
 import 'providers/equipment_provider.dart';
 import 'providers/bow_training_provider.dart';
+import 'providers/breath_training_provider.dart';
+import 'providers/active_sessions_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/auth_service.dart';
+import 'services/firestore_sync_service.dart';
 import 'utils/web_url_helper.dart' if (dart.library.io) 'utils/web_url_helper_stub.dart';
 
 void main() async {
@@ -156,6 +159,12 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
           ChangeNotifierProvider(
             create: (context) => BowTrainingProvider(context.read<AppDatabase>()),
           ),
+          ChangeNotifierProvider(
+            create: (context) => BreathTrainingProvider(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => ActiveSessionsProvider()..loadSessions(),
+          ),
         ],
         child: MaterialApp(
           title: 'Archery Super App',
@@ -184,6 +193,7 @@ class _AuthGateState extends State<AuthGate> {
   User? _cachedUser;
   String? _magicLinkUrl;
   final _authService = AuthService();
+  bool _hasTriggeredBackup = false;
 
   @override
   void initState() {
@@ -202,6 +212,28 @@ class _AuthGateState extends State<AuthGate> {
         }
       });
     }
+
+    // Trigger background backup if user is already logged in
+    if (_cachedUser != null) {
+      _triggerBackgroundBackup();
+    }
+  }
+
+  /// Trigger a background backup of local data to Firestore
+  void _triggerBackgroundBackup() {
+    if (_hasTriggeredBackup) return;
+    _hasTriggeredBackup = true;
+
+    // Run backup in background without blocking UI
+    Future.microtask(() async {
+      try {
+        final db = context.read<AppDatabase>();
+        final syncService = FirestoreSyncService();
+        await syncService.backupAllData(db);
+      } catch (e) {
+        debugPrint('Background backup error (non-fatal): $e');
+      }
+    });
   }
 
   void _checkForMagicLink() {
@@ -247,6 +279,8 @@ class _AuthGateState extends State<AuthGate> {
 
         // User is logged in (stream confirmed)
         if (snapshot.hasData) {
+          // Trigger backup when user logs in
+          _triggerBackgroundBackup();
           return const HomeScreen();
         }
 

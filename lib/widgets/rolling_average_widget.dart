@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../db/database.dart';
+import '../models/arrow_coordinate.dart';
+import '../models/group_analysis.dart';
+import '../utils/target_coordinate_system.dart';
 
 /// Shows rolling average impact point of last N arrows
 /// Zoomed in to show only the scoring zone (inner 40% of target = rings 7-X)
@@ -8,6 +11,7 @@ class RollingAverageWidget extends StatelessWidget {
   final List<Arrow> arrows;
   final int maxArrows;
   final double size;
+  final int faceSizeCm;
   static const double _zoomFactor = 2.5; // Show inner 40% of target
 
   const RollingAverageWidget({
@@ -15,49 +19,42 @@ class RollingAverageWidget extends StatelessWidget {
     required this.arrows,
     this.maxArrows = 12,
     this.size = 80,
+    this.faceSizeCm = 40,
   });
 
   @override
   Widget build(BuildContext context) {
     if (arrows.isEmpty) {
-      return SizedBox(
-        width: size,
-        height: size,
-        child: Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.surfaceDark.withValues(alpha: 0.9),
-            border: Border.all(color: AppColors.surfaceLight, width: 2),
-          ),
-          child: Center(
-            child: Text(
-              '0/$maxArrows',
-              style: TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
+      return _buildEmptyState();
+    }
+
+    // Convert arrows to ArrowCoordinates
+    final coords = arrows.map((arrow) {
+      // Prefer mm coordinates if available
+      if (arrow.xMm != 0 || arrow.yMm != 0) {
+        return ArrowCoordinate(
+          xMm: arrow.xMm,
+          yMm: arrow.yMm,
+          faceSizeCm: faceSizeCm,
+        );
+      }
+      // Fallback to normalized coordinates
+      return ArrowCoordinate.fromNormalized(
+        x: arrow.x,
+        y: arrow.y,
+        faceSizeCm: faceSizeCm,
       );
-    }
+    }).toList();
 
-    // Calculate average position
-    double avgX = 0;
-    double avgY = 0;
-    for (final arrow in arrows) {
-      avgX += arrow.x;
-      avgY += arrow.y;
-    }
-    avgX /= arrows.length;
-    avgY /= arrows.length;
+    // Calculate group analysis
+    final group = GroupAnalysis.calculate(coords);
+    final coordSystem = TargetCoordinateSystem(
+      faceSizeCm: faceSizeCm,
+      widgetSize: size,
+    );
 
-    // Calculate average position (distance calculated but not displayed)
-
-    // Scale average position by zoom factor for display
-    final scaledAvgX = avgX * _zoomFactor;
-    final scaledAvgY = avgY * _zoomFactor;
+    // Convert group center to widget pixels
+    final centerPixels = coordSystem.coordinateToPixels(group.center);
 
     return SizedBox(
       width: size,
@@ -82,10 +79,10 @@ class RollingAverageWidget extends StatelessWidget {
                 ),
               ),
 
-              // Average position marker (scaled for zoom)
+              // Group center marker (scaled for zoom)
               Positioned(
-                left: (size / 2) + (scaledAvgX * size / 2 / _zoomFactor) - 5,
-                top: (size / 2) + (scaledAvgY * size / 2 / _zoomFactor) - 5,
+                left: _scalePosition(centerPixels.dx, size) - 5,
+                top: _scalePosition(centerPixels.dy, size) - 5,
                 child: Container(
                   width: 10,
                   height: 10,
@@ -103,7 +100,7 @@ class RollingAverageWidget extends StatelessWidget {
                 painter: _CrosshairPainter(),
               ),
 
-              // Count label at bottom
+              // Count and spread label at bottom
               Positioned(
                 bottom: 2,
                 left: 0,
@@ -131,6 +128,39 @@ class RollingAverageWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildEmptyState() {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.surfaceDark.withValues(alpha: 0.9),
+          border: Border.all(color: AppColors.surfaceLight, width: 2),
+        ),
+        child: Center(
+          child: Text(
+            '0/$maxArrows',
+            style: TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Scale a pixel position for the zoom view
+  double _scalePosition(double pixelPos, double widgetSize) {
+    final center = widgetSize / 2;
+    // Convert pixel position to offset from center, apply zoom, convert back
+    final offsetFromCenter = pixelPos - center;
+    final scaledOffset = offsetFromCenter * _zoomFactor;
+    return (center + scaledOffset).roundToDouble();
   }
 }
 

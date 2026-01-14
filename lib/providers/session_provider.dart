@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
 import '../db/database.dart';
 import '../theme/app_theme.dart';
+import '../models/arrow_coordinate.dart';
+import '../services/firestore_sync_service.dart';
 
 /// Manages the active scoring session state
 class SessionProvider extends ChangeNotifier {
@@ -41,6 +43,12 @@ class SessionProvider extends ChangeNotifier {
   int get totalEnds => _currentRoundType?.totalEnds ?? 10;
   int get faceCount => _currentRoundType?.faceCount ?? 1;
   bool get isTriSpot => faceCount == 3;
+
+  /// Face size in cm (40 for indoor, 80/122 for outdoor)
+  int get faceSizeCm => _currentRoundType?.faceSize ?? 40;
+
+  /// Whether this is an indoor round
+  bool get isIndoor => _currentRoundType?.isIndoor ?? true;
 
   int get arrowsInCurrentEnd => _currentEndArrows.length;
   bool get isEndComplete => arrowsInCurrentEnd >= arrowsPerEnd;
@@ -183,21 +191,17 @@ class SessionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Plot an arrow at the given position
-  Future<void> plotArrow({
-    required double x,
-    required double y,
+  /// Plot an arrow using mm coordinates (preferred method)
+  /// This is the primary plotting method with sub-millimeter precision.
+  Future<void> plotArrowMm({
+    required ArrowCoordinate coord,
     int faceIndex = 0,
     int? shaftNumber,
   }) async {
     if (_activeEnd == null || isEndComplete) return;
 
-    // Calculate distance from center for scoring (need sqrt, not squared distance)
-    final distanceFraction = math.sqrt(x * x + y * y).clamp(0.0, 1.0);
-
-    // Get score from ring boundaries
-    final score = TargetRings.getScore(distanceFraction.clamp(0.0, 1.0));
-    final isX = TargetRings.isX(distanceFraction);
+    // Use mm-based scoring with epsilon tolerance
+    final result = TargetRingsMm.scoreAndX(coord.distanceMm, faceSizeCm);
 
     final arrowId =
         '${_activeEnd!.id}_arrow_${_currentEndArrows.length + 1}';
@@ -206,10 +210,12 @@ class SessionProvider extends ChangeNotifier {
       id: arrowId,
       endId: _activeEnd!.id,
       faceIndex: Value(faceIndex),
-      x: x,
-      y: y,
-      score: score,
-      isX: Value(isX),
+      xMm: Value(coord.xMm),
+      yMm: Value(coord.yMm),
+      x: Value(coord.normalizedX), // Legacy: keep normalized for backward compat
+      y: Value(coord.normalizedY),
+      score: result.score,
+      isX: Value(result.isX),
       sequence: _currentEndArrows.length + 1,
       shaftNumber: Value(shaftNumber),
     ));
@@ -222,6 +228,27 @@ class SessionProvider extends ChangeNotifier {
     if (_currentEndArrows.length >= arrowsPerEnd) {
       await commitEnd();
     }
+  }
+
+  /// Plot an arrow at the given normalized position (-1 to +1)
+  /// @deprecated Use plotArrowMm for new code - provides sub-mm precision
+  Future<void> plotArrow({
+    required double x,
+    required double y,
+    int faceIndex = 0,
+    int? shaftNumber,
+  }) async {
+    // Convert normalized to ArrowCoordinate and use the mm method
+    final coord = ArrowCoordinate.fromNormalized(
+      x: x,
+      y: y,
+      faceSizeCm: faceSizeCm,
+    );
+    await plotArrowMm(
+      coord: coord,
+      faceIndex: faceIndex,
+      shaftNumber: shaftNumber,
+    );
   }
 
   /// Remove the last plotted arrow (undo)
@@ -264,7 +291,26 @@ class SessionProvider extends ChangeNotifier {
 
     await _db.completeSession(_currentSession!.id, totalScore, totalXs);
     _currentSession = await _db.getSession(_currentSession!.id);
+
+    // Trigger cloud backup in background
+    _triggerCloudBackup();
+
     notifyListeners();
+  }
+
+  /// Trigger cloud backup in background (non-blocking)
+  void _triggerCloudBackup() {
+    Future.microtask(() async {
+      try {
+        final syncService = FirestoreSyncService();
+        if (syncService.isAuthenticated) {
+          await syncService.backupAllData(_db);
+          debugPrint('Cloud backup completed after session');
+        }
+      } catch (e) {
+        debugPrint('Cloud backup error (non-fatal): $e');
+      }
+    });
   }
 
   /// Abandon current session
@@ -372,5 +418,44 @@ class SessionProvider extends ChangeNotifier {
     _currentEndArrows = [];
     _activeEnd = null;
     notifyListeners();
+  }
+
+  // ============================================================================
+  // COORDINATE HELPERS
+  // ============================================================================
+
+  /// Convert an Arrow to ArrowCoordinate using session's face size
+  ArrowCoordinate arrowToCoordinate(Arrow arrow) {
+    // Prefer mm coordinates if available (non-zero), fall back to normalized
+    if (arrow.xMm != 0 || arrow.yMm != 0) {
+      return ArrowCoordinate(
+        xMm: arrow.xMm,
+        yMm: arrow.yMm,
+        faceSizeCm: faceSizeCm,
+      );
+    }
+    // Legacy fallback: convert from normalized
+    return ArrowCoordinate.fromNormalized(
+      x: arrow.x,
+      y: arrow.y,
+      faceSizeCm: faceSizeCm,
+    );
+  }
+
+  /// Convert list of Arrows to ArrowCoordinates
+  List<ArrowCoordinate> arrowsToCoordinates(List<Arrow> arrows) {
+    return arrows.map(arrowToCoordinate).toList();
+  }
+
+  /// Get all session arrows as ArrowCoordinates
+  Future<List<ArrowCoordinate>> getAllSessionArrowCoordinates() async {
+    final arrows = await getAllSessionArrows();
+    return arrowsToCoordinates(arrows);
+  }
+
+  /// Get last N arrows as ArrowCoordinates (for rolling average)
+  Future<List<ArrowCoordinate>> getLastNArrowCoordinates(int count) async {
+    final arrows = await getLastNArrows(count);
+    return arrowsToCoordinates(arrows);
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/session_provider.dart';
+import '../providers/bow_training_provider.dart';
+import '../providers/breath_training_provider.dart';
 import '../services/auth_service.dart';
 import 'session_start_screen.dart';
 import 'plotting_screen.dart';
@@ -11,6 +13,7 @@ import 'import_screen.dart';
 import 'equipment_screen.dart';
 import 'login_screen.dart';
 import 'breath_training/breath_training_home_screen.dart';
+import 'bow_training_home_screen.dart';
 import 'bow_training_screen.dart';
 import 'delayed_camera_screen.dart';
 import 'performance_profile_screen.dart';
@@ -26,12 +29,15 @@ class _HomeScreenState extends State<HomeScreen>
     with WidgetsBindingObserver, TickerProviderStateMixin {
   bool _isLoading = true;
   bool _hasIncompleteSession = false;
+  bool _hasPausedBowTraining = false;
+  bool _hasPausedBreathTraining = false;
   int _selectedIndex = 0;
   late AnimationController _pulseController;
   late AnimationController _introController;
   bool _introComplete = false;
 
   List<_MenuItem> get _menuItems => [
+    // Resume scoring session
     if (_hasIncompleteSession)
       _MenuItem(
         label: 'RESUME',
@@ -42,7 +48,32 @@ class _HomeScreenState extends State<HomeScreen>
           Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const PlottingScreen()),
-          ).then((_) => _refreshIncompleteSession());
+          ).then((_) => _refreshSessions());
+        },
+      ),
+    // Resume bow training session
+    if (_hasPausedBowTraining)
+      _MenuItem(
+        label: 'RESUME',
+        sublabel: _getBowTrainingSubtitle(),
+        pixelIcon: PixelIconType.bow,
+        isHighlight: true,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const BowTrainingScreen(resumePaused: true)),
+          ).then((_) => _refreshSessions());
+        },
+      ),
+    // Resume breath training session
+    if (_hasPausedBreathTraining)
+      _MenuItem(
+        label: 'RESUME',
+        sublabel: _getBreathTrainingSubtitle(),
+        pixelIcon: PixelIconType.lungs,
+        isHighlight: true,
+        onTap: () {
+          _resumeBreathTraining();
         },
       ),
     _MenuItem(
@@ -55,8 +86,8 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     ),
     _MenuItem(
-      label: 'HISTORY',
-      sublabel: 'Past sessions',
+      label: 'SCORES',
+      sublabel: 'Score record',
       pixelIcon: PixelIconType.scroll,
       onTap: () => Navigator.push(
         context,
@@ -87,8 +118,8 @@ class _HomeScreenState extends State<HomeScreen>
       pixelIcon: PixelIconType.bow,
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const BowTrainingScreen()),
-      ),
+        MaterialPageRoute(builder: (_) => const BowTrainingHomeScreen()),
+      ).then((_) => _refreshSessions()),
     ),
     _MenuItem(
       label: 'DELAY CAM',
@@ -106,9 +137,34 @@ class _HomeScreenState extends State<HomeScreen>
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const BreathTrainingHomeScreen()),
-      ),
+      ).then((_) => _refreshSessions()),
     ),
   ];
+
+  String _getBowTrainingSubtitle() {
+    final provider = context.read<BowTrainingProvider>();
+    return provider.pausedSessionSubtitle.isNotEmpty
+        ? provider.pausedSessionSubtitle
+        : 'Resume drill';
+  }
+
+  String _getBreathTrainingSubtitle() {
+    final provider = context.read<BreathTrainingProvider>();
+    return provider.pausedSessionSubtitle.isNotEmpty
+        ? provider.pausedSessionSubtitle
+        : 'Resume breath';
+  }
+
+  void _resumeBreathTraining() {
+    final provider = context.read<BreathTrainingProvider>();
+    // Resume the session in the provider
+    provider.resumeSession();
+    // Navigate to breath training home which will show the active session
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const BreathTrainingHomeScreen()),
+    ).then((_) => _refreshSessions());
+  }
 
   @override
   void initState() {
@@ -139,17 +195,30 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _refreshIncompleteSession();
+      _refreshSessions();
     }
   }
 
-  void _refreshIncompleteSession() async {
-    final provider = context.read<SessionProvider>();
+  void _refreshSessions() {
+    if (!mounted) return;
+
+    final sessionProvider = context.read<SessionProvider>();
+    final bowProvider = context.read<BowTrainingProvider>();
+    final breathProvider = context.read<BreathTrainingProvider>();
+
     final hasIncomplete =
-        provider.hasActiveSession && !provider.isSessionComplete;
-    if (mounted && hasIncomplete != _hasIncompleteSession) {
+        sessionProvider.hasActiveSession && !sessionProvider.isSessionComplete;
+    final hasPausedBow = bowProvider.isActive &&
+        bowProvider.timerState == TimerState.paused;
+    final hasPausedBreath = breathProvider.isActive;
+
+    if (hasIncomplete != _hasIncompleteSession ||
+        hasPausedBow != _hasPausedBowTraining ||
+        hasPausedBreath != _hasPausedBreathTraining) {
       setState(() {
         _hasIncompleteSession = hasIncomplete;
+        _hasPausedBowTraining = hasPausedBow;
+        _hasPausedBreathTraining = hasPausedBreath;
         _selectedIndex = 0;
       });
     }
@@ -157,13 +226,26 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> _checkForIncompleteSession() async {
     try {
-      final provider = context.read<SessionProvider>();
-      final hasIncomplete = await provider
+      final sessionProvider = context.read<SessionProvider>();
+      final bowProvider = context.read<BowTrainingProvider>();
+      final breathProvider = context.read<BreathTrainingProvider>();
+
+      final hasIncomplete = await sessionProvider
           .checkForIncompleteSession()
           .timeout(const Duration(seconds: 10), onTimeout: () => false);
+
+      // Check for paused bow training (provider state is in memory)
+      final hasPausedBow = bowProvider.isActive &&
+          bowProvider.timerState == TimerState.paused;
+
+      // Check for paused breath training
+      final hasPausedBreath = breathProvider.isActive;
+
       if (mounted) {
         setState(() {
           _hasIncompleteSession = hasIncomplete;
+          _hasPausedBowTraining = hasPausedBow;
+          _hasPausedBreathTraining = hasPausedBreath;
           _isLoading = false;
         });
         // Start intro animation
@@ -179,6 +261,8 @@ class _HomeScreenState extends State<HomeScreen>
       if (mounted) {
         setState(() {
           _hasIncompleteSession = false;
+          _hasPausedBowTraining = false;
+          _hasPausedBreathTraining = false;
           _isLoading = false;
         });
         Future.delayed(const Duration(milliseconds: 600), () {
@@ -386,7 +470,7 @@ class _TopBar extends StatelessWidget {
               ),
             ),
             child: Text(
-              'v1.0.1',
+              'v1.0.3',
               style: TextStyle(
                 fontFamily: AppFonts.pixel,
                 fontSize: 6,
@@ -1419,3 +1503,5 @@ class _RetroSheetItem extends StatelessWidget {
     );
   }
 }
+
+

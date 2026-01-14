@@ -173,6 +173,7 @@ class AppTheme {
 
 /// Target ring boundaries as fractions of target radius
 /// WA 10-ring target: X is innermost, 1 is outermost
+/// @deprecated Use TargetRingsMm for new code - provides mm-based precision
 class TargetRings {
   // Each value is the outer boundary of that ring as a fraction of total radius
   static const double x = 0.05; // X ring (inner 10)
@@ -233,6 +234,156 @@ class TargetRings {
         return AppColors.ring1;
       default:
         return AppColors.textMuted;
+    }
+  }
+}
+
+/// Target ring boundaries in millimeters from center.
+/// Single source of truth for scoring with sub-millimeter precision.
+///
+/// WA (World Archery) standard target faces have 10 concentric rings plus
+/// an inner X ring (counts as 10 but tracked separately for tiebreaks).
+/// Ring boundaries scale proportionally with face size.
+class TargetRingsMm {
+  /// Epsilon for floating point comparisons (0.001mm = 1 micron tolerance)
+  static const double epsilon = 0.001;
+
+  /// Ring boundary as percentage of face radius (WA standard)
+  /// Each ring is 10% of the total face radius
+  static const List<double> ringPercentages = [
+    0.05,  // X ring (inner 10) - 5% of radius
+    0.10,  // Ring 10 - 10% of radius
+    0.20,  // Ring 9
+    0.30,  // Ring 8
+    0.40,  // Ring 7
+    0.50,  // Ring 6
+    0.60,  // Ring 5
+    0.70,  // Ring 4
+    0.80,  // Ring 3
+    0.90,  // Ring 2
+    1.00,  // Ring 1 (outer edge)
+  ];
+
+  /// Get the X ring boundary in mm for a given face size
+  static double getXRingMm(int faceSizeCm) {
+    final radiusMm = faceSizeCm * 5.0;
+    return radiusMm * 0.05; // X ring is 5% of radius
+  }
+
+  /// Get the outer boundary of a ring in mm
+  /// Ring 10 is innermost scoring ring, Ring 1 is outermost
+  static double getRingBoundaryMm(int ring, int faceSizeCm) {
+    if (ring < 1 || ring > 10) {
+      throw ArgumentError('Ring must be 1-10, got $ring');
+    }
+    final radiusMm = faceSizeCm * 5.0;
+    // Ring 10 is at index 1, ring 1 is at index 10
+    final percentIndex = 11 - ring;
+    return radiusMm * ringPercentages[percentIndex];
+  }
+
+  /// Get all ring boundaries as a map {ring: boundaryMm}
+  static Map<int, double> getAllBoundariesMm(int faceSizeCm) {
+    return {
+      for (int ring = 1; ring <= 10; ring++)
+        ring: getRingBoundaryMm(ring, faceSizeCm),
+    };
+  }
+
+  /// Get score from distance in mm with epsilon tolerance.
+  /// This is the definitive scoring function - visual display must match this.
+  static int scoreFromDistanceMm(double distanceMm, int faceSizeCm) {
+    final radiusMm = faceSizeCm * 5.0;
+
+    // Check each ring from inside out
+    // X ring counts as 10
+    if (distanceMm <= getXRingMm(faceSizeCm) + epsilon) {
+      return 10;
+    }
+
+    // Ring 10 through Ring 1
+    for (int ring = 10; ring >= 1; ring--) {
+      final boundaryMm = getRingBoundaryMm(ring, faceSizeCm);
+      if (distanceMm <= boundaryMm + epsilon) {
+        return ring;
+      }
+    }
+
+    return 0; // Miss - outside all rings
+  }
+
+  /// Check if distance is in the X ring (for X count tracking)
+  static bool isXRing(double distanceMm, int faceSizeCm) {
+    return distanceMm <= getXRingMm(faceSizeCm) + epsilon;
+  }
+
+  /// Get score and X status in one call
+  static ({int score, bool isX}) scoreAndX(double distanceMm, int faceSizeCm) {
+    return (
+      score: scoreFromDistanceMm(distanceMm, faceSizeCm),
+      isX: isXRing(distanceMm, faceSizeCm),
+    );
+  }
+
+  /// Get the ring number for a given distance (not the score).
+  /// Returns 11 for X ring, 10-1 for standard rings, 0 for miss.
+  static int getRingNumber(double distanceMm, int faceSizeCm) {
+    if (distanceMm <= getXRingMm(faceSizeCm) + epsilon) {
+      return 11; // X ring
+    }
+    for (int ring = 10; ring >= 1; ring--) {
+      final boundaryMm = getRingBoundaryMm(ring, faceSizeCm);
+      if (distanceMm <= boundaryMm + epsilon) {
+        return ring;
+      }
+    }
+    return 0; // Miss
+  }
+
+  /// Get color for a ring/score value
+  static Color getColor(int score) {
+    return TargetRings.getColor(score);
+  }
+
+  /// Get contrasting text color for a ring (for arrow markers)
+  static Color getContrastingTextColor(int score) {
+    switch (score) {
+      case 10:
+      case 9:
+        return Colors.black; // Black text on gold
+      case 8:
+      case 7:
+        return Colors.white; // White text on red
+      case 6:
+      case 5:
+        return Colors.white; // White text on blue
+      case 4:
+      case 3:
+        return Colors.white; // White text on black
+      case 2:
+      case 1:
+        return Colors.black; // Black text on white
+      default:
+        return Colors.white;
+    }
+  }
+
+  /// Standard face sizes in WA rules (in cm)
+  static const List<int> standardFaceSizes = [122, 80, 60, 40];
+
+  /// Common face size descriptions
+  static String faceSizeDescription(int faceSizeCm) {
+    switch (faceSizeCm) {
+      case 122:
+        return '122cm (Outdoor 70m/90m)';
+      case 80:
+        return '80cm (Outdoor 50m/60m)';
+      case 60:
+        return '60cm (Outdoor 30m)';
+      case 40:
+        return '40cm (Indoor 18m/25m)';
+      default:
+        return '${faceSizeCm}cm';
     }
   }
 }

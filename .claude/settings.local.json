@@ -69,7 +69,17 @@
       "Bash(git merge:*)",
       "Bash(for branch in origin/claude/add-firebase-google-login-BzcZJ origin/claude/archery-handicap-graph-ySjH2 origin/claude/arrow-volume-upload-NJ9nO origin/claude/coding-during-training-wUZG3 origin/claude/progressive-web-app-lxbl1 origin/claude/test-score-upload-storage-Mi9L2)",
       "Bash(do echo \"=== $branch ===\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(powershell -Command \"Expand-Archive -Path ''*.zip'' -DestinationPath . -Force\")",
+      "Bash(powershell -Command:*)",
+      "Bash(git -C \"c:\\\\Users\\\\patri\\\\Desktop\\\\archery_super_app_v1\" status --short)",
+      "Bash(git -C \"c:\\\\Users\\\\patri\\\\Desktop\\\\archery_super_app_v1\" diff --name-only)",
+      "Bash(git -C \"c:\\\\Users\\\\patri\\\\Desktop\\\\archery_super_app_v1\" show HEAD:lib/screens/home_screen.dart)",
+      "Bash(powershell -ExecutionPolicy Bypass -File deploy.ps1)",
+      "Skill(ralph-loop:ralph-loop)",
+      "Bash(find:*)",
+      "Bash(start \"\" \"C:\\\\Users\\\\patri\\\\Desktop\\\\x_breath_web\\\\index.html\")",
+      "Bash(firebase hosting:sites:list:*)"
     ]
   }
 }

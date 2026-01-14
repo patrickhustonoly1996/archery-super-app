@@ -107,10 +107,21 @@ class _ScoresGraphScreenState extends State<ScoresGraphScreen> {
   bool _isIndoorRound(String roundTypeId) {
     const indoorRounds = {
       'wa_18m',
+      'wa_18_60',
+      'wa_18_30',
+      'wa_18_trispot',
       'wa_25m',
+      'wa_25_60',
       'portsmouth',
       'worcester',
       'vegas',
+      'vegas_300',
+      'bray_1',
+      'bray_2',
+      'stafford',
+      'nfaa_300',
+      'nfaa_vegas',
+      'nfaa_indoor_trispot',
     };
     return indoorRounds.contains(roundTypeId);
   }
@@ -118,11 +129,25 @@ class _ScoresGraphScreenState extends State<ScoresGraphScreen> {
   String? _matchRoundName(String roundName) {
     final lower = roundName.toLowerCase().trim();
 
-    // WA Outdoor
+    // WA Outdoor - 720 rounds
     if (lower.contains('720') && lower.contains('70')) return 'wa_720_70m';
     if (lower.contains('720') && lower.contains('60')) return 'wa_720_60m';
-    if (lower.contains('1440') && lower.contains('90')) return 'wa_1440_90m';
-    if (lower.contains('1440') && lower.contains('70')) return 'wa_1440_70m';
+    if (lower.contains('720') && lower.contains('50')) return 'wa_720_50m';
+
+    // WA Outdoor - 1440 rounds (FITA)
+    if (lower.contains('1440')) {
+      if (lower.contains('gent') || lower.contains('90')) return 'wa_1440_90m';
+      if (lower.contains('ladi') || lower.contains('70')) return 'wa_1440_70m';
+      if (lower.contains('60')) return 'wa_1440_60m';
+      // Default to gents for "WA 1440" without specifier
+      return 'wa_1440_90m';
+    }
+
+    // 70m half round (36 arrows at 70m - used in head-to-heads)
+    if ((lower.contains('70m') || lower.contains('70 m')) &&
+        (lower.contains('122') || lower.contains('10 zone') || lower.contains('10zone'))) {
+      return 'half_metric_70m';
+    }
 
     // WA Indoor
     if (lower.contains('wa') && lower.contains('18')) return 'wa_18m';
@@ -132,6 +157,11 @@ class _ScoresGraphScreenState extends State<ScoresGraphScreen> {
     if (lower.contains('portsmouth')) return 'portsmouth';
     if (lower.contains('worcester')) return 'worcester';
     if (lower.contains('vegas')) return 'vegas';
+    if (lower.contains('bray')) {
+      if (lower.contains('ii') || lower.contains('2')) return 'bray_2';
+      return 'bray_1'; // Bray I is the default
+    }
+    if (lower.contains('stafford')) return 'stafford';
 
     // AGB Outdoor Imperial
     if (lower == 'york') return 'york';
@@ -140,20 +170,29 @@ class _ScoresGraphScreenState extends State<ScoresGraphScreen> {
       return 'st_george';
     }
     if (lower.contains('bristol')) {
-      if (lower.contains('i') && !lower.contains('ii')) return 'bristol_i';
-      if (lower.contains('ii') && !lower.contains('iii')) return 'bristol_ii';
-      if (lower.contains('iii') && !lower.contains('iv')) return 'bristol_iii';
-      if (lower.contains('iv') && !lower.contains('v')) return 'bristol_iv';
-      if (lower.contains('v')) return 'bristol_v';
+      if (lower.contains('v') && !lower.contains('iv')) return 'bristol_v';
+      if (lower.contains('iv')) return 'bristol_iv';
+      if (lower.contains('iii')) return 'bristol_iii';
+      if (lower.contains('ii')) return 'bristol_ii';
+      if (lower.contains('i')) return 'bristol_i';
+    }
+
+    // National rounds
+    if (lower.contains('national')) {
+      if (lower.contains('long')) return 'long_national';
+      if (lower.contains('short junior')) return 'short_junior_national';
+      if (lower.contains('junior')) return 'junior_national';
+      if (lower.contains('short')) return 'short_national';
+      return 'national';
     }
 
     // AGB Metric
     if (lower.contains('metric')) {
-      if (lower.contains('i') && !lower.contains('ii')) return 'metric_i';
-      if (lower.contains('ii') && !lower.contains('iii')) return 'metric_ii';
-      if (lower.contains('iii') && !lower.contains('iv')) return 'metric_iii';
-      if (lower.contains('iv') && !lower.contains('v')) return 'metric_iv';
-      if (lower.contains('v')) return 'metric_v';
+      if (lower.contains('v') && !lower.contains('iv')) return 'metric_v';
+      if (lower.contains('iv')) return 'metric_iv';
+      if (lower.contains('iii')) return 'metric_iii';
+      if (lower.contains('ii')) return 'metric_ii';
+      if (lower.contains('i')) return 'metric_i';
     }
 
     return null;

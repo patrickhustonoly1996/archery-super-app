@@ -6,6 +6,7 @@ import 'package:csv/csv.dart';
 import 'package:drift/drift.dart' hide Column;
 import '../db/database.dart';
 import '../theme/app_theme.dart';
+import '../services/firestore_sync_service.dart';
 import 'scores_graph_screen.dart';
 
 class ImportScreen extends StatefulWidget {
@@ -19,6 +20,21 @@ class _ImportScreenState extends State<ImportScreen> {
   List<_ImportDraft> _drafts = [];
   bool _isLoading = false;
   String? _error;
+
+  /// Trigger cloud backup in background (non-blocking)
+  void _triggerCloudBackup(AppDatabase db) {
+    Future.microtask(() async {
+      try {
+        final syncService = FirestoreSyncService();
+        if (syncService.isAuthenticated) {
+          await syncService.backupAllData(db);
+          debugPrint('Cloud backup completed after import');
+        }
+      } catch (e) {
+        debugPrint('Cloud backup error (non-fatal): $e');
+      }
+    });
+  }
 
   Future<void> _pickAndParseCSV() async {
     setState(() {
@@ -115,15 +131,18 @@ class _ImportScreenState extends State<ImportScreen> {
 
     final dataRows = hasHeader ? rows.skip(1) : rows;
 
-    // Column aliases for flexible matching
+    // Column aliases for flexible matching - supports Archr export format
     const dateAliases = ['date', 'shot_date', 'event_date', 'competition_date', 'when', 'day'];
     const scoreAliases = ['score', 'total', 'total_score', 'points', 'result', 'final_score'];
     const roundAliases = ['round', 'round_name', 'round_type', 'format'];
-    const locationAliases = ['location', 'venue', 'club', 'eventname', 'event_name', 'competition', 'place', 'site'];
-    const handicapAliases = ['handicap', 'hc', 'handicap_score'];
+    const locationAliases = ['eventname', 'event_name', 'location', 'venue', 'club', 'competition', 'place', 'site'];
+    const handicapAliases = ['handicap', 'hc', 'handicap_score', 'handicapatscore'];
     const hitsAliases = ['hits', 'arrows', 'arrows_shot'];
     const goldsAliases = ['golds', '10s', 'tens'];
     const xsAliases = ['xs', 'x_count', 'x'];
+    const bowstyleAliases = ['bowstyle', 'bow_style', 'bow', 'equipment'];
+    const eventTypeAliases = ['eventtype', 'event_type', 'type', 'session_type'];
+    const classificationAliases = ['classification', 'class', 'grade'];
 
     // Find column index using aliases (exact match first, then contains)
     int findColumn(List<String> aliases) {
@@ -151,8 +170,11 @@ class _ImportScreenState extends State<ImportScreen> {
     int hitsCol = hasHeader ? findColumn(hitsAliases) : -1;
     int goldsCol = hasHeader ? findColumn(goldsAliases) : -1;
     int xsCol = hasHeader ? findColumn(xsAliases) : -1;
+    int bowstyleCol = hasHeader ? findColumn(bowstyleAliases) : -1;
+    int eventTypeCol = hasHeader ? findColumn(eventTypeAliases) : -1;
+    int classificationCol = hasHeader ? findColumn(classificationAliases) : -1;
 
-    // Default column positions if not found
+    // Default column positions if not found (common CSV format: date, score, round)
     if (dateCol < 0) dateCol = 0;
     if (scoreCol < 0) scoreCol = 1;
     if (roundCol < 0) roundCol = 2;
@@ -180,24 +202,36 @@ class _ImportScreenState extends State<ImportScreen> {
         final score = int.tryParse(scoreStr.replaceAll(RegExp(r'[^0-9]'), ''));
         if (score == null || score <= 0) continue;
 
-        // Build notes from extra fields
+        // Parse optional fields
+        final handicap = handicapCol >= 0 && handicapCol < row.length
+            ? int.tryParse(row[handicapCol].toString().replaceAll(RegExp(r'[^0-9]'), ''))
+            : null;
+        final hits = hitsCol >= 0 && hitsCol < row.length
+            ? int.tryParse(row[hitsCol].toString().replaceAll(RegExp(r'[^0-9]'), ''))
+            : null;
+        final golds = goldsCol >= 0 && goldsCol < row.length
+            ? int.tryParse(row[goldsCol].toString().replaceAll(RegExp(r'[^0-9]'), ''))
+            : null;
+        final xs = xsCol >= 0 && xsCol < row.length
+            ? int.tryParse(row[xsCol].toString().replaceAll(RegExp(r'[^0-9]'), ''))
+            : null;
+        final bowstyle = bowstyleCol >= 0 && bowstyleCol < row.length
+            ? row[bowstyleCol].toString().trim()
+            : null;
+        final eventType = eventTypeCol >= 0 && eventTypeCol < row.length
+            ? row[eventTypeCol].toString().trim()
+            : null;
+        final classification = classificationCol >= 0 && classificationCol < row.length
+            ? row[classificationCol].toString().trim()
+            : null;
+
+        // Build notes from extra fields for display
         final notesParts = <String>[];
-        if (handicapCol >= 0 && handicapCol < row.length) {
-          final hc = row[handicapCol].toString().trim();
-          if (hc.isNotEmpty && hc != '0') notesParts.add('HC: $hc');
-        }
-        if (hitsCol >= 0 && hitsCol < row.length) {
-          final hits = row[hitsCol].toString().trim();
-          if (hits.isNotEmpty && hits != '0') notesParts.add('Hits: $hits');
-        }
-        if (goldsCol >= 0 && goldsCol < row.length) {
-          final golds = row[goldsCol].toString().trim();
-          if (golds.isNotEmpty && golds != '0') notesParts.add('Golds: $golds');
-        }
-        if (xsCol >= 0 && xsCol < row.length) {
-          final xs = row[xsCol].toString().trim();
-          if (xs.isNotEmpty && xs != '0') notesParts.add('Xs: $xs');
-        }
+        if (handicap != null && handicap > 0) notesParts.add('HC: $handicap');
+        if (hits != null && hits > 0) notesParts.add('Hits: $hits');
+        if (golds != null && golds > 0) notesParts.add('Golds: $golds');
+        if (xs != null && xs > 0) notesParts.add('Xs: $xs');
+        if (classification != null && classification.isNotEmpty) notesParts.add(classification);
 
         drafts.add(_ImportDraft(
           date: date,
@@ -205,6 +239,13 @@ class _ImportScreenState extends State<ImportScreen> {
           roundName: roundName,
           location: location?.isEmpty == true ? null : location,
           notes: notesParts.isEmpty ? null : notesParts.join(', '),
+          bowstyle: bowstyle?.isEmpty == true ? null : bowstyle,
+          eventType: eventType?.isEmpty == true ? null : eventType,
+          handicap: handicap,
+          hits: hits,
+          golds: golds,
+          xs: xs,
+          classification: classification?.isEmpty == true ? null : classification,
         ));
       } catch (_) {
         // Skip invalid rows
@@ -255,25 +296,70 @@ class _ImportScreenState extends State<ImportScreen> {
     int imported = 0;
     int skipped = 0;
 
-    for (final draft in _drafts) {
-      // Check for duplicates
-      final isDuplicate = await db.isDuplicateScore(draft.date, draft.score);
-      if (isDuplicate) {
-        skipped++;
-        continue;
+    // Process in batches for large imports
+    const batchSize = 50;
+    for (int i = 0; i < _drafts.length; i += batchSize) {
+      final batch = _drafts.skip(i).take(batchSize);
+
+      for (final draft in batch) {
+        // Check for duplicates - match on date, score, AND round name for accuracy
+        final isDuplicate = await db.isDuplicateScoreWithRound(
+          draft.date,
+          draft.score,
+          draft.roundName,
+        );
+        if (isDuplicate) {
+          skipped++;
+          continue;
+        }
+
+        // Build comprehensive notes
+        final notesParts = <String>[];
+        if (draft.handicap != null && draft.handicap! > 0) {
+          notesParts.add('HC: ${draft.handicap}');
+        }
+        if (draft.hits != null && draft.hits! > 0) {
+          notesParts.add('Hits: ${draft.hits}');
+        }
+        if (draft.golds != null && draft.golds! > 0) {
+          notesParts.add('Golds: ${draft.golds}');
+        }
+        if (draft.classification != null && draft.classification!.isNotEmpty) {
+          notesParts.add(draft.classification!);
+        }
+
+        // Insert - use unique ID with timestamp and index to avoid collisions
+        final uniqueId = '${DateTime.now().millisecondsSinceEpoch}_${draft.date.millisecondsSinceEpoch}_${draft.score}_$imported';
+
+        // Determine session type from event type
+        String sessionType = 'competition';
+        if (draft.eventType != null) {
+          final eventLower = draft.eventType!.toLowerCase();
+          if (eventLower.contains('practice')) {
+            sessionType = 'practice';
+          } else if (eventLower.contains('non record') || eventLower.contains('non-record')) {
+            sessionType = 'competition';
+          }
+        }
+
+        await db.insertImportedScore(ImportedScoresCompanion.insert(
+          id: uniqueId,
+          date: draft.date,
+          roundName: draft.roundName,
+          score: draft.score,
+          xCount: Value(draft.xs),
+          location: Value(draft.location),
+          notes: Value(notesParts.isEmpty ? null : notesParts.join(', ')),
+          sessionType: Value(sessionType),
+          source: const Value('csv'),
+        ));
+        imported++;
       }
 
-      // Insert - use unique ID with timestamp and index to avoid collisions
-      final uniqueId = '${DateTime.now().millisecondsSinceEpoch}_${draft.date.millisecondsSinceEpoch}_${draft.score}_$imported';
-      await db.insertImportedScore(ImportedScoresCompanion.insert(
-        id: uniqueId,
-        date: draft.date,
-        roundName: draft.roundName,
-        score: draft.score,
-        location: Value(draft.location),
-        source: const Value('csv'),
-      ));
-      imported++;
+      // Yield to UI every batch for responsiveness
+      if (i + batchSize < _drafts.length) {
+        await Future.delayed(Duration.zero);
+      }
     }
 
     setState(() {
@@ -282,6 +368,9 @@ class _ImportScreenState extends State<ImportScreen> {
     });
 
     if (mounted && imported > 0) {
+      // Trigger cloud backup in background
+      _triggerCloudBackup(db);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Imported $imported scores${skipped > 0 ? ', skipped $skipped duplicates' : ''}'),
@@ -520,36 +609,111 @@ class _DraftReview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Group by round type for summary
+    final roundCounts = <String, int>{};
+    for (final draft in drafts) {
+      roundCounts[draft.roundName] = (roundCounts[draft.roundName] ?? 0) + 1;
+    }
+
     return Column(
       children: [
+        // Summary header
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          color: AppColors.surfaceDark,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${drafts.length} scores ready to import',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppColors.gold,
+                    ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                '${roundCounts.length} round types found',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              if (drafts.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'Date range: ${_formatDate(drafts.last.date)} - ${_formatDate(drafts.first.date)}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ],
+          ),
+        ),
+
+        // Score list
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.all(AppSpacing.md),
             itemCount: drafts.length,
             itemBuilder: (context, index) {
               final draft = drafts[index];
-              final dateStr =
-                  '${draft.date.day}/${draft.date.month}/${draft.date.year}';
               return Card(
                 margin: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   child: Row(
                     children: [
-                      Text(
-                        draft.score.toString(),
-                        style: Theme.of(context).textTheme.headlineSmall,
+                      // Score with gold styling
+                      Container(
+                        width: 60,
+                        alignment: Alignment.center,
+                        child: Text(
+                          draft.score.toString(),
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                color: AppColors.gold,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
                       ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(draft.roundName),
                             Text(
-                              dateStr,
-                              style: Theme.of(context).textTheme.bodySmall,
+                              draft.roundName,
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                  ),
                             ),
+                            Row(
+                              children: [
+                                Text(
+                                  _formatDate(draft.date),
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                                if (draft.location != null && draft.location!.isNotEmpty) ...[
+                                  Text(
+                                    ' - ',
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                  Flexible(
+                                    child: Text(
+                                      draft.location!,
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            if (draft.notes != null && draft.notes!.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Text(
+                                  draft.notes!,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: AppColors.textMuted,
+                                        fontSize: 10,
+                                      ),
+                                ),
+                              ),
                           ],
                         ),
                       ),
@@ -584,6 +748,10 @@ class _DraftReview extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 }
 
@@ -680,6 +848,13 @@ class _ImportDraft {
   final String roundName;
   final String? location;
   final String? notes;
+  final String? bowstyle;
+  final String? eventType;
+  final int? handicap;
+  final int? hits;
+  final int? golds;
+  final int? xs;
+  final String? classification;
 
   _ImportDraft({
     required this.date,
@@ -687,5 +862,12 @@ class _ImportDraft {
     required this.roundName,
     this.location,
     this.notes,
+    this.bowstyle,
+    this.eventType,
+    this.handicap,
+    this.hits,
+    this.golds,
+    this.xs,
+    this.classification,
   });
 }

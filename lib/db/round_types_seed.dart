@@ -340,13 +340,25 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
 
     // National series
     RoundTypesCompanion.insert(
+      id: 'long_national',
+      name: 'Long National',
+      category: 'agb_imperial',
+      distance: 80, // 80, 60 yards
+      faceSize: 122,
+      arrowsPerEnd: 6,
+      totalEnds: 12, // 72 arrows
+      maxScore: 864,
+      isIndoor: false,
+      faceCount: const Value(1),
+    ),
+    RoundTypesCompanion.insert(
       id: 'national',
       name: 'National',
       category: 'agb_imperial',
       distance: 60,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 8, // 48 arrows
+      totalEnds: 12, // 72 arrows
       maxScore: 864,
       isIndoor: false,
       faceCount: const Value(1),
@@ -358,7 +370,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 50,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 8,
+      totalEnds: 12,
       maxScore: 864,
       isIndoor: false,
       faceCount: const Value(1),
@@ -370,7 +382,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 40,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 8,
+      totalEnds: 12,
       maxScore: 864,
       isIndoor: false,
       faceCount: const Value(1),
@@ -382,7 +394,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 30,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 8,
+      totalEnds: 12,
       maxScore: 864,
       isIndoor: false,
       faceCount: const Value(1),
@@ -589,6 +601,19 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       arrowsPerEnd: 6,
       totalEnds: 6,
       maxScore: 648,
+      isIndoor: false,
+      faceCount: const Value(1),
+    ),
+    // 70m half round (36 arrows - used in head-to-heads and practice)
+    RoundTypesCompanion.insert(
+      id: 'half_metric_70m',
+      name: '70m (36 arrows)',
+      category: 'agb_metric',
+      distance: 70,
+      faceSize: 122,
+      arrowsPerEnd: 6,
+      totalEnds: 6,
+      maxScore: 360,
       isIndoor: false,
       faceCount: const Value(1),
     ),

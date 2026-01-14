@@ -5,25 +5,23 @@ Build partner for Patrick Huston (Olympic archer). New to software, time-constra
 ## Permissions
 
 **Do without asking:**
-
-* File/folder edits, refactors, renames
-* UI polish (no behavior change)
-* Flutter widgets, layouts, styling, navigation
-* Dart code changes (services, models, utils)
-* Adding/updating Flutter dependencies (pubspec.yaml)
-* Android/iOS config (manifests, gradle, Info.plist, entitlements)
-* Platform-specific permissions, icons, launch screens
-* Build configuration, signing setup (debug only)
-* Tests, logging, defaults
-* <1hr reversible changes
+- File/folder edits, refactors, renames
+- UI polish (no behavior change)
+- Flutter widgets, layouts, styling, navigation
+- Dart code changes (services, models, utils)
+- Adding/updating Flutter dependencies (pubspec.yaml)
+- Android/iOS config (manifests, gradle, Info.plist, entitlements)
+- Platform-specific permissions, icons, launch screens
+- Build configuration, signing setup (debug only)
+- Tests, logging, defaults
+- <1hr reversible changes
 
 **Must ask:**
-
-* Payments/pricing/subscriptions
-* Auth/identity/data model changes
-* Sync/conflict resolution
-* Destructive ops/major dependencies
-* Scope expansion
+- Payments/pricing/subscriptions
+- Auth/identity/data model changes
+- Sync/conflict resolution
+- Destructive ops/major dependencies
+- Scope expansion
 
 Hard to reverse → ask ONE question. Reversible → do it, state what you did.
 
@@ -36,85 +34,144 @@ Hard to reverse → ask ONE question. Reversible → do it, state what you did.
 
 ## Data Rules
 
-* Coaching = versioned immutable Markdown
-* Logs = append-only
-* No silent historical rewrites
-* AI interprets but never alters history
-* Deterministic systems for training paths
+- Coaching = versioned immutable Markdown
+- Logs = append-only
+- No silent historical rewrites
+- AI interprets but never alters history
+- Deterministic systems for training paths
 
 ## Aesthetic
 
-* Dark base + Gold (#FFD700) primary
-* 1-2 muted fluorescents (≤50% opacity) highlights
-* No neon, no gradients
-* 8px grid
-* System sans-serif
-* Minimal animation (state-change only)
-* Copy: calm, direct, no hype/emojis
+- Dark base + Gold (#FFD700) primary
+- 1-2 muted fluorescents (≤50% opacity) highlights
+- No neon, no gradients
+- 8px grid, system sans-serif
+- Minimal animation (state-change only)
+- Copy: calm, direct, no hype/emojis
 
 ## Quality
 
-* Get foundations right before layering features
-* Test core interactions work reliably before adding complexity
-* Simple and correct beats feature-rich and flaky
+- Get foundations right before layering features
+- Test core interactions work reliably before adding complexity
+- Simple and correct beats feature-rich and flaky
 
-## Multi-Agent Orchestration
+---
 
-This project uses specialized AI agents from `./agents/plugins/`. Use the Task tool with these subagent types:
+## Multi-Agent System
 
-**Flutter/Mobile Development:**
-- `multi-platform-apps:flutter-expert` - Flutter architecture, Dart, state management, cross-platform
-- `multi-platform-apps:mobile-developer` - General mobile patterns, offline-first
-- `multi-platform-apps:ios-developer` - Native iOS/Swift when needed
-- `multi-platform-apps:ui-ux-designer` - Design systems, accessibility, wireframes
-- `multi-platform-apps:backend-architect` - API design, data sync patterns
-- `multi-platform-apps:frontend-developer` - Web/PWA components
+This project has 99 specialized AI agents, 15 workflow orchestrators, and 107 skills in `./agents/plugins/`.
 
-**Code Quality & Review:**
-When reviewing code or before major commits, spawn review agents in sequence:
-1. Read `./agents/plugins/comprehensive-review/commands/full-review.md` for the workflow
-2. Use code-reviewer, architect-review, and security-auditor agents
-3. Prioritize findings as P0 (critical) through P3 (backlog)
+### How to Invoke Agents
 
-**Feature Development Orchestration:**
-For complex features spanning multiple layers:
-1. Read `./agents/plugins/full-stack-orchestration/commands/full-stack-feature.md`
-2. Follow the 4-phase workflow: Architecture → Implementation → Testing → Deployment
-3. Coordinate agents in sequence, passing context between phases
+Use the **Task tool** with `subagent_type` in format `plugin-name:agent-name`:
 
-**When to Orchestrate:**
-- New feature development → full-stack-orchestration workflow
-- Pre-commit/PR → comprehensive-review workflow
-- Performance issues → spawn performance-engineer agent
-- Security concerns → spawn security-auditor agent
-- Architecture decisions → spawn backend-architect + flutter-expert together
-
-**Agent Invocation Pattern:**
 ```
 Task tool → subagent_type="multi-platform-apps:flutter-expert"
-         → prompt="[specific task with context from previous agents]"
+         → prompt="[specific task description]"
 ```
 
-Proactively use agents when the task complexity warrants it. Don't wait to be asked.
+### Core Agents for This Project
+
+**Flutter/Mobile (multi-platform-apps plugin):**
+| Agent | Use For |
+|-------|---------|
+| `flutter-expert` | Flutter architecture, Dart, state management, widgets |
+| `mobile-developer` | Cross-platform patterns, offline-first, React Native |
+| `ios-developer` | Native iOS/Swift, App Store, SwiftUI |
+| `ui-ux-designer` | Design systems, accessibility, wireframes |
+| `frontend-developer` | Web/PWA components, React |
+| `backend-architect` | API design, data sync patterns |
+
+**Code Quality (comprehensive-review plugin):**
+| Agent | Use For |
+|-------|---------|
+| `code-reviewer` | Security-focused code review, reliability |
+| `architect-review` | Architectural consistency, pattern validation |
+| `security-auditor` | Vulnerability assessment, OWASP compliance |
+
+**Backend/Data:**
+| Agent | Plugin | Use For |
+|-------|--------|---------|
+| `backend-architect` | backend-development | API design, microservices |
+| `database-architect` | database-design | Schema design, migrations |
+| `sql-pro` | database-design | Query optimization |
+
+**Testing/Debug:**
+| Agent | Plugin | Use For |
+|-------|--------|---------|
+| `test-automator` | codebase-cleanup | Unit/integration/E2E tests |
+| `debugger` | error-debugging | Error resolution |
+| `performance-engineer` | observability-monitoring | Profiling, optimization |
+
+### Workflow Orchestrators
+
+Orchestrators coordinate multiple agents for complex tasks. Invoke with slash commands or read the workflow file.
+
+**Most Relevant for This App:**
+
+| Orchestrator | Command | What It Does |
+|--------------|---------|--------------|
+| Full-Stack Feature | `/full-stack-orchestration:full-stack-feature` | 12-step workflow: DB → API → UI → Tests → Security → Deploy |
+| Comprehensive Review | `/comprehensive-review:full-review` | 4-phase review: Quality → Security → Testing → Best Practices |
+| PR Enhancement | `/git-pr-workflows:pr-enhance` | Improve PRs before merge |
+| Smart Debug | `/debugging-toolkit:smart-debug` | Interactive debugging with agents |
+| Test Generation | `/unit-testing:test-generate` | Auto-generate comprehensive tests |
+| Performance Optimization | `/application-performance:performance-optimization` | Profile and optimize |
+
+**To use an orchestrator manually:**
+1. Read the workflow file: `./agents/plugins/{plugin}/commands/{command}.md`
+2. Follow the phase structure, invoking agents in sequence
+3. Pass context between phases as specified
+
+### When to Use Agents
+
+**Proactively spawn agents for:**
+- New feature development → `flutter-expert` + relevant backend agents
+- Code review before commits → `code-reviewer`, `security-auditor`
+- Performance issues → `performance-engineer`
+- Architecture decisions → `backend-architect` + `flutter-expert`
+- Complex debugging → use `/debugging-toolkit:smart-debug` workflow
+
+**Agent invocation example:**
+```
+Task tool:
+  subagent_type: "multi-platform-apps:flutter-expert"
+  prompt: "Design state management approach for the bow training timer feature. Consider offline-first requirements and Provider pattern already in use. Recommend widget structure and data flow."
+```
+
+### Model Tiers
+
+Agents use different Claude models based on task complexity:
+- **Opus**: Architecture, security, code review (42 agents)
+- **Sonnet**: Complex implementation, language-specific (39 agents)
+- **Haiku**: Fast operational tasks, docs, SEO (18 agents)
+
+### All 67 Plugins
+
+Full plugin list at `./agents/docs/plugins.md`. Key categories:
+
+| Category | Plugins |
+|----------|---------|
+| Development | debugging-toolkit, backend-development, frontend-mobile-development, multi-platform-apps |
+| Testing | unit-testing, tdd-workflows |
+| Quality | code-review-ai, comprehensive-review, performance-testing-review |
+| Security | security-scanning, security-compliance, frontend-mobile-security |
+| Documentation | code-documentation, c4-architecture |
+| Infrastructure | cloud-infrastructure, kubernetes-operations, cicd-automation |
+
+---
 
 ## GitHub Feature Branches
 
-Additional features are available on GitHub that haven't been merged yet:
-
 **Available on GitHub:**
 - `claude/add-firebase-google-login-BzcZJ` - Google Sign-In authentication
-- `claude/archery-handicap-graph-ySjH2` - Visual handicap progression graph with time filters
+- `claude/archery-handicap-graph-ySjH2` - Visual handicap progression graph
 - `claude/arrow-volume-upload-NJ9nO` - Bulk upload for arrow volume data
-- `claude/progressive-web-app-lxbl1` - PWA configuration for home screen install
-- `claude/coding-during-training-wUZG3` - Web deployment and C64 retro styling
+- `claude/progressive-web-app-lxbl1` - PWA configuration
+- `claude/coding-during-training-wUZG3` - Web deployment, C64 styling
 - `claude/test-score-upload-storage-Mi9L2` - Comprehensive test suite
 
-**Already Merged:**
-- Breath Training (Oxygen Advantage exercises)
-- Bow Training Timer (Timed shooting sessions)
+**Already Merged:** Breath Training, Bow Training Timer
 
-**Auto-Sync from GitHub:**
-When starting a session:
-1. Run `git fetch origin` to check for new branches
-2. Ask Patrick which features to merge if new branches appear
-3. Manually integrate features to avoid conflicts (don't auto-merge)
+**Auto-Sync:** Run `git fetch origin` at session start. Ask Patrick before merging new branches.
+

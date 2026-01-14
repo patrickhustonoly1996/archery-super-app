@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../services/beep_service.dart';
 import '../../services/breath_training_service.dart';
 import '../../widgets/breathing_visualizer.dart';
 import '../../widgets/breathing_reminder.dart';
+import '../../providers/breath_training_provider.dart';
 
 /// Patrick's long exhale test
 /// Test: Hold start to time your exhale, release to stop
@@ -259,9 +261,62 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
 
   void _finishSession() {
     _timer?.cancel();
+    // Clear provider state
+    context.read<BreathTrainingProvider>().reset();
     setState(() {
       _state = PatrickState.complete;
     });
+  }
+
+  Future<bool> _onWillPop() async {
+    final isActive = _state != PatrickState.idle && _state != PatrickState.complete;
+    if (isActive) {
+      final result = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: AppColors.surfaceDark,
+          title: const Text('Leave Session?'),
+          content: const Text('You can pause and return later, or abandon the session.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'stay'),
+              child: const Text('Stay'),
+            ),
+            TextButton(
+              onPressed: () {
+                _pauseForNavigation();
+                Navigator.pop(context, 'pause');
+              },
+              child: Text(
+                'Pause & Leave',
+                style: TextStyle(color: AppColors.gold),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                _timer?.cancel();
+                context.read<BreathTrainingProvider>().reset();
+                Navigator.pop(context, 'abandon');
+              },
+              child: Text(
+                'Abandon',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        ),
+      );
+      return result == 'pause' || result == 'abandon';
+    }
+    return true;
+  }
+
+  void _pauseForNavigation() {
+    _timer?.cancel();
+    // Mark as active in provider
+    final provider = context.read<BreathTrainingProvider>();
+    provider.startPatrickBreathSession();
+    provider.pauseForNavigation();
   }
 
   String get _statusText {
@@ -308,13 +363,23 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
     final isWarmup = _state == PatrickState.warmup;
     final isIdle = _state == PatrickState.idle;
     final needsWarmup = _exhaleTimes.isEmpty && isIdle;
+    final isActive = _state != PatrickState.idle && _state != PatrickState.complete;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Long Exhale Test'),
-        backgroundColor: Colors.transparent,
-      ),
-      body: SafeArea(
+    return PopScope(
+      canPop: !isActive,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldPop = await _onWillPop();
+        if (shouldPop && context.mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Long Exhale Test'),
+          backgroundColor: Colors.transparent,
+        ),
+        body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: _state == PatrickState.complete
@@ -561,6 +626,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
                   ),
                 ),
         ),
+      ),
       ),
     );
   }
