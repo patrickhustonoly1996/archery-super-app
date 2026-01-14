@@ -334,6 +334,36 @@ class SessionProvider extends ChangeNotifier {
     return _currentEndArrows.where((a) => a.faceIndex == faceIndex).toList();
   }
 
+  /// Get arrows for the current half of the round
+  /// First half = ends 1 to totalEnds/2, Second half = remaining ends
+  Future<List<Arrow>> getCurrentHalfArrows() async {
+    if (_currentSession == null) return [];
+
+    final halfPoint = (totalEnds / 2).ceil();
+    final isSecondHalf = currentEndNumber > halfPoint;
+
+    final allArrows = <Arrow>[];
+
+    if (isSecondHalf) {
+      // Get arrows from second half ends
+      for (int i = halfPoint; i < _ends.length; i++) {
+        final endArrows = await _db.getArrowsForEnd(_ends[i].id);
+        allArrows.addAll(endArrows);
+      }
+    } else {
+      // Get arrows from first half ends
+      for (int i = 0; i < _ends.length && i < halfPoint; i++) {
+        final endArrows = await _db.getArrowsForEnd(_ends[i].id);
+        allArrows.addAll(endArrows);
+      }
+    }
+
+    // Add current end arrows
+    allArrows.addAll(_currentEndArrows);
+
+    return allArrows;
+  }
+
   /// Clear session state (for logout or reset)
   void clearSession() {
     _currentSession = null;

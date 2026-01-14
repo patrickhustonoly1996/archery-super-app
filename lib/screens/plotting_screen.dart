@@ -4,7 +4,7 @@ import '../theme/app_theme.dart';
 import '../providers/session_provider.dart';
 import '../providers/equipment_provider.dart';
 import '../widgets/target_face.dart';
-import '../widgets/rolling_average_widget.dart';
+import '../widgets/group_centre_widget.dart';
 import '../widgets/scorecard_widget.dart';
 import '../widgets/shaft_selector_bottom_sheet.dart';
 import 'session_complete_screen.dart';
@@ -149,7 +149,7 @@ class PlottingScreen extends StatelessWidget {
                         ),
                       ),
 
-                      // Rolling 12-arrow average widget (top-left)
+                      // Rolling 12-arrow group centre (top-left)
                       Positioned(
                         top: AppSpacing.md,
                         left: AppSpacing.md,
@@ -157,47 +157,29 @@ class PlottingScreen extends StatelessWidget {
                           future: provider.getLastNArrows(12),
                           builder: (context, snapshot) {
                             final arrows = snapshot.data ?? [];
-                            return RollingAverageWidget(
+                            return GroupCentreWidget(
                               arrows: arrows,
-                              maxArrows: 12,
+                              label: 'Last 12',
                               size: 80,
                             );
                           },
                         ),
                       ),
 
-                      // Mini target overview (top-right) - zoomed to scoring zone
+                      // Current half group centre (top-right)
                       Positioned(
                         top: AppSpacing.md,
                         right: AppSpacing.md,
                         child: FutureBuilder(
-                          future: provider.getAllSessionArrows(),
+                          future: provider.getCurrentHalfArrows(),
                           builder: (context, snapshot) {
-                            final allArrows = snapshot.data ?? [];
-                            final isTriSpot = (provider.roundType?.faceCount ?? 1) == 3;
-                            const miniSize = 100.0;
-                            const zoomFactor = 2.5; // Show inner 40% of target
-                            return Container(
-                              width: miniSize,
-                              height: miniSize,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: AppColors.surfaceLight,
-                                  width: 2,
-                                ),
-                                color: AppColors.backgroundDark,
-                              ),
-                              child: ClipOval(
-                                child: Transform.scale(
-                                  scale: zoomFactor,
-                                  child: TargetFace(
-                                    arrows: allArrows,
-                                    size: miniSize,
-                                    triSpot: isTriSpot,
-                                  ),
-                                ),
-                              ),
+                            final halfArrows = snapshot.data ?? [];
+                            final halfPoint = (provider.totalEnds / 2).ceil();
+                            final isSecondHalf = provider.currentEndNumber > halfPoint;
+                            return GroupCentreWidget(
+                              arrows: halfArrows,
+                              label: isSecondHalf ? 'Half 2' : 'Half 1',
+                              size: 80,
                             );
                           },
                         ),

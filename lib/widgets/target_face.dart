@@ -25,6 +25,10 @@ class TargetFace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Calculate marker size for positioning offset
+    final markerSize = (size * _ArrowMarker._markerFraction).clamp(4.0, 10.0);
+    final halfMarker = markerSize / 2;
+
     return SizedBox(
       width: size,
       height: size,
@@ -44,12 +48,13 @@ class TargetFace extends StatelessWidget {
             final y = centerY + (arrow.y * radius);
 
             return Positioned(
-              left: x - 6,
-              top: y - 6,
+              left: x - halfMarker,
+              top: y - halfMarker,
               child: _ArrowMarker(
                 score: arrow.score,
                 isX: arrow.isX,
                 shaftNumber: arrow.shaftNumber,
+                targetSize: size,
               ),
             );
           }).toList(),
@@ -153,15 +158,25 @@ class _ArrowMarker extends StatelessWidget {
   final int score;
   final bool isX;
   final int? shaftNumber;
+  final double targetSize;
+
+  /// Arrow marker size as fraction of target diameter
+  /// 7mm on 122cm target = 0.00574, but scaled up for visibility
+  static const double _markerFraction = 0.02; // 2% of target for visibility
 
   const _ArrowMarker({
     required this.score,
     required this.isX,
+    required this.targetSize,
     this.shaftNumber,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Calculate marker size proportional to target (min 4px, max 10px)
+    final markerSize = (targetSize * _markerFraction).clamp(4.0, 10.0);
+    final borderWidth = (markerSize * 0.15).clamp(0.5, 1.5);
+
     // Use contrasting color based on ring
     Color markerColor;
     if (score >= 9) {
@@ -176,38 +191,18 @@ class _ArrowMarker extends StatelessWidget {
       markerColor = Colors.black; // Black on white
     }
 
-    // Display text: X takes priority, then shaft number, then nothing
-    String? displayText;
-    if (isX) {
-      displayText = 'X';
-    } else if (shaftNumber != null) {
-      displayText = shaftNumber.toString();
-    }
-
+    // Simple dot - no text labels
     return Container(
-      width: 12,
-      height: 12,
+      width: markerSize,
+      height: markerSize,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: markerColor,
         border: Border.all(
           color: markerColor == Colors.black ? Colors.white : Colors.black,
-          width: 1,
+          width: borderWidth,
         ),
       ),
-      child: displayText != null
-          ? Center(
-              child: Text(
-                displayText,
-                style: TextStyle(
-                  color:
-                      markerColor == Colors.black ? Colors.white : Colors.black,
-                  fontSize: 8,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            )
-          : null,
     );
   }
 }
@@ -255,8 +250,8 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   static const double _linecutterZoomFactor = 6.0;
   static const double _zoomWindowSize = 120.0;
   static const double _holdOffset = 60.0; // Offset so finger doesn't cover target point
-  static const double _boundaryProximityThreshold = 0.015; // 1.5% of radius
-  static const Duration _linecutterActivationDelay = Duration(milliseconds: 1000);
+  static const double _boundaryProximityThreshold = 0.04; // 4% of radius - wider detection zone
+  static const Duration _linecutterActivationDelay = Duration(milliseconds: 300); // Quick activation
 
   /// Get the current zoom factor based on mode and smart zoom calculation
   double get _zoomFactor {
@@ -532,20 +527,27 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
               ),
             ),
 
-          // Preview arrow position
+          // Preview arrow position (proportional to target size)
           if (_isHolding && _arrowPosition != null)
-            Positioned(
-              left: _arrowPosition!.dx - 8,
-              top: _arrowPosition!.dy - 8,
-              child: Container(
-                width: 16,
-                height: 16,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.gold.withOpacity(0.8),
-                  border: Border.all(color: Colors.black, width: 2),
-                ),
-              ),
+            Builder(
+              builder: (context) {
+                // Preview marker slightly larger than arrow markers for visibility
+                final previewSize = (widget.size * _ArrowMarker._markerFraction * 1.3).clamp(5.0, 12.0);
+                final halfPreview = previewSize / 2;
+                return Positioned(
+                  left: _arrowPosition!.dx - halfPreview,
+                  top: _arrowPosition!.dy - halfPreview,
+                  child: Container(
+                    width: previewSize,
+                    height: previewSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.gold.withOpacity(0.8),
+                      border: Border.all(color: Colors.black, width: 1.5),
+                    ),
+                  ),
+                );
+              },
             ),
         ],
       ),
@@ -635,41 +637,49 @@ class _ZoomWindow extends StatelessWidget {
                         height: targetSize,
                         child: CustomPaint(
                           painter: _TargetFacePainter(triSpot: triSpot),
-                          child: Stack(
-                            children: [
-                              // Show existing arrows
-                              ...arrows.map((arrow) {
-                                final centerX = targetSize / 2;
-                                final centerY = targetSize / 2;
-                                final radius = targetSize / 2;
-                                final x = centerX + (arrow.x * radius);
-                                final y = centerY + (arrow.y * radius);
-                                return Positioned(
-                                  left: x - 6,
-                                  top: y - 6,
-                                  child: _ArrowMarker(
-                                    score: arrow.score,
-                                    isX: arrow.isX,
-                                    shaftNumber: arrow.shaftNumber,
-                                  ),
-                                );
-                              }),
-                              // Show current arrow position
-                              Positioned(
-                                left: arrowPosition.dx - 6,
-                                top: arrowPosition.dy - 6,
-                                child: Container(
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppColors.gold,
-                                    border: Border.all(color: Colors.black, width: 2),
+                          child: Builder(
+                          builder: (context) {
+                            // Calculate marker size for this target
+                            final markerSize = (targetSize * _ArrowMarker._markerFraction).clamp(4.0, 10.0);
+                            final halfMarker = markerSize / 2;
+                            return Stack(
+                              children: [
+                                // Show existing arrows
+                                ...arrows.map((arrow) {
+                                  final centerX = targetSize / 2;
+                                  final centerY = targetSize / 2;
+                                  final radius = targetSize / 2;
+                                  final x = centerX + (arrow.x * radius);
+                                  final y = centerY + (arrow.y * radius);
+                                  return Positioned(
+                                    left: x - halfMarker,
+                                    top: y - halfMarker,
+                                    child: _ArrowMarker(
+                                      score: arrow.score,
+                                      isX: arrow.isX,
+                                      shaftNumber: arrow.shaftNumber,
+                                      targetSize: targetSize,
+                                    ),
+                                  );
+                                }),
+                                // Show current arrow position (slightly larger for visibility)
+                                Positioned(
+                                  left: arrowPosition.dx - halfMarker - 1,
+                                  top: arrowPosition.dy - halfMarker - 1,
+                                  child: Container(
+                                    width: markerSize + 2,
+                                    height: markerSize + 2,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppColors.gold,
+                                      border: Border.all(color: Colors.black, width: 1.5),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            );
+                          },
+                        ),
                         ),
                       ),
                     ),

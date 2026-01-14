@@ -6,46 +6,45 @@ class SmartZoom {
   /// Minimum arrows needed for smart zoom calibration
   static const int minCalibrationArrows = 12;
 
-  /// Calculate the optimal zoom factor based on historical arrow grouping
-  /// Returns a factor representing the fraction of the target to show
+  /// Minimum zoom factor - always start with at least 2x
+  static const double minZoom = 2.0;
+
+  /// Calculate the optimal zoom factor based on most frequently used rings + 3 rings
+  /// Returns a zoom factor (minimum 2x)
   static double calculateZoomFactor(List<Arrow> arrows, {required bool isIndoor}) {
-    // Default zoom if insufficient data
+    // Default zoom if insufficient data - use minimum 2x
     if (arrows.length < minCalibrationArrows) {
-      return 3.0; // Show ~1/3 of target
+      return minZoom;
     }
 
-    // Calculate typical scoring ring range
-    final scores = arrows.map((a) => a.score).toList();
-    scores.sort();
-
-    // Use middle 80% of scores to determine typical range (ignore outliers)
-    final startIdx = (scores.length * 0.1).floor();
-    final endIdx = (scores.length * 0.9).ceil();
-    final typicalScores = scores.sublist(startIdx, endIdx);
-
-    if (typicalScores.isEmpty) {
-      return 3.0;
+    // Count score frequency to find most commonly used rings
+    final scoreCounts = <int, int>{};
+    for (final arrow in arrows) {
+      scoreCounts[arrow.score] = (scoreCounts[arrow.score] ?? 0) + 1;
     }
 
-    final minScore = typicalScores.first;
+    // Find most frequent score
+    int mostFrequentScore = 10;
+    int maxCount = 0;
+    for (final entry in scoreCounts.entries) {
+      if (entry.value > maxCount) {
+        maxCount = entry.value;
+        mostFrequentScore = entry.key;
+      }
+    }
 
-    // Calculate radius of typical grouping area
-    // minScore (worst shot in typical range) determines the outer boundary
-    final maxRadius = _scoreToNormalizedRadius(minScore);
+    // Calculate radius of most frequent scoring ring
+    final baseRadius = _scoreToNormalizedRadius(mostFrequentScore);
 
-    // Add padding: indoor +2 rings, outdoor +3 rings
-    final paddingRings = isIndoor ? 2 : 3;
-    final paddingRadius = paddingRings * 0.1;
-
-    final groupingRadius = maxRadius + paddingRadius;
+    // Add 3 rings padding (each ring = 0.1 of radius)
+    final paddedRadius = baseRadius + 0.3;
 
     // Calculate zoom to show this area
-    // If grouping radius is 0.5, we want to zoom 2x to fill the view
-    // Formula: zoom = 1 / (groupingRadius)
-    final calculatedZoom = 1.0 / groupingRadius.clamp(0.2, 1.0);
+    // If padded radius is 0.5, we want to zoom 2x to fill the view
+    final calculatedZoom = 1.0 / paddedRadius.clamp(0.2, 1.0);
 
-    // Clamp between 1.5x and 6x
-    return calculatedZoom.clamp(1.5, 6.0);
+    // Ensure minimum 2x zoom, maximum 6x
+    return calculatedZoom.clamp(minZoom, 6.0);
   }
 
   /// Convert score (1-10, X=10) to normalized radius from center
