@@ -57,6 +57,58 @@ Hard to reverse → ask ONE question. Reversible → do it, state what you did.
 
 ---
 
+## Testing Protocol
+
+**Full documentation:** `docs/TESTING_ROADMAP.md`
+
+### Before Making Changes
+Run `flutter test` to verify baseline. Report any existing failures before proceeding.
+
+### After Making Changes
+Run `flutter test` again. All tests must pass before committing.
+
+### When Adding Features
+Add tests for:
+1. Core functionality (happy path)
+2. Edge cases (empty inputs, boundary values, max limits)
+3. Error handling (invalid inputs)
+
+### When Fixing Bugs
+1. Write a test that reproduces the bug (should fail)
+2. Fix the bug
+3. Verify test passes
+
+### Test Organization
+```
+test/
+├── models/      # Data models, calculations
+├── utils/       # Coordinate systems, helpers
+├── widgets/     # UI components
+└── services/    # Database, API (when added)
+```
+
+### Critical Tests (Never Skip)
+- Arrow coordinate math (plotting accuracy)
+- Score calculations (ring boundaries)
+- Group analysis (spread, center, sight clicks)
+- Coordinate conversions (mm ↔ pixels ↔ normalized)
+
+### Test Helpers Available
+```dart
+// Create test arrows with mm coordinates
+createFakeArrow(id: 'a1', xMm: 50, yMm: 30, score: 9)
+
+// Create legacy arrows (normalized)
+createFakeArrowNormalized(id: 'a1', x: 0.25, y: 0.15, score: 9)
+```
+
+### Report Format
+When reporting to Patrick:
+- "All tests passing" (green light)
+- "X tests failed: [specific issues]" (needs attention)
+
+---
+
 ## Multi-Agent System
 
 This project has 99 specialized AI agents, 15 workflow orchestrators, and 107 skills in `./agents/plugins/`.
