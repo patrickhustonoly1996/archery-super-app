@@ -38,6 +38,20 @@ class HandicapCalculator {
     return _handicapTables.containsKey(roundTypeId);
   }
 
+  /// Check if a round type is indoor
+  static bool isIndoor(String roundTypeId) {
+    return _indoorRounds.contains(roundTypeId);
+  }
+
+  /// Indoor round type IDs
+  static const Set<String> _indoorRounds = {
+    'wa_18m',
+    'wa_25m',
+    'portsmouth',
+    'worcester',
+    'vegas',
+  };
+
   /// Archery GB Handicap Tables (simplified version)
   /// Each array maps handicap index (0-150) to expected score
   /// Full tables available at: https://www.archerygb.org/about-us/resource-library/
