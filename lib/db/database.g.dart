@@ -2796,6 +2796,24 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _xMeta = const VerificationMeta('x');
+  @override
+  late final GeneratedColumn<double> x = GeneratedColumn<double>(
+    'x',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _yMeta = const VerificationMeta('y');
+  @override
+  late final GeneratedColumn<double> y = GeneratedColumn<double>(
+    'y',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _xMmMeta = const VerificationMeta('xMm');
   @override
   late final GeneratedColumn<double> xMm = GeneratedColumn<double>(
@@ -2804,7 +2822,7 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
     false,
     type: DriftSqlType.double,
     requiredDuringInsert: false,
-    defaultValue: const Constant(0.0),
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _yMmMeta = const VerificationMeta('yMm');
   @override
@@ -2814,27 +2832,7 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
     false,
     type: DriftSqlType.double,
     requiredDuringInsert: false,
-    defaultValue: const Constant(0.0),
-  );
-  static const VerificationMeta _xMeta = const VerificationMeta('x');
-  @override
-  late final GeneratedColumn<double> x = GeneratedColumn<double>(
-    'x',
-    aliasedName,
-    false,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0.0),
-  );
-  static const VerificationMeta _yMeta = const VerificationMeta('y');
-  @override
-  late final GeneratedColumn<double> y = GeneratedColumn<double>(
-    'y',
-    aliasedName,
-    false,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0.0),
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _scoreMeta = const VerificationMeta('score');
   @override
@@ -2897,10 +2895,10 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
     id,
     endId,
     faceIndex,
-    xMm,
-    yMm,
     x,
     y,
+    xMm,
+    yMm,
     score,
     isX,
     sequence,
@@ -2938,6 +2936,16 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
         faceIndex.isAcceptableOrUnknown(data['face_index']!, _faceIndexMeta),
       );
     }
+    if (data.containsKey('x')) {
+      context.handle(_xMeta, x.isAcceptableOrUnknown(data['x']!, _xMeta));
+    } else if (isInserting) {
+      context.missing(_xMeta);
+    }
+    if (data.containsKey('y')) {
+      context.handle(_yMeta, y.isAcceptableOrUnknown(data['y']!, _yMeta));
+    } else if (isInserting) {
+      context.missing(_yMeta);
+    }
     if (data.containsKey('x_mm')) {
       context.handle(
         _xMmMeta,
@@ -2949,12 +2957,6 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
         _yMmMeta,
         yMm.isAcceptableOrUnknown(data['y_mm']!, _yMmMeta),
       );
-    }
-    if (data.containsKey('x')) {
-      context.handle(_xMeta, x.isAcceptableOrUnknown(data['x']!, _xMeta));
-    }
-    if (data.containsKey('y')) {
-      context.handle(_yMeta, y.isAcceptableOrUnknown(data['y']!, _yMeta));
     }
     if (data.containsKey('score')) {
       context.handle(
@@ -3014,14 +3016,6 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
         DriftSqlType.int,
         data['${effectivePrefix}face_index'],
       )!,
-      xMm: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}x_mm'],
-      )!,
-      yMm: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}y_mm'],
-      )!,
       x: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}x'],
@@ -3029,6 +3023,14 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
       y: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}y'],
+      )!,
+      xMm: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}x_mm'],
+      )!,
+      yMm: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}y_mm'],
       )!,
       score: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -3063,10 +3065,10 @@ class Arrow extends DataClass implements Insertable<Arrow> {
   final String id;
   final String endId;
   final int faceIndex;
-  final double xMm;
-  final double yMm;
   final double x;
   final double y;
+  final double xMm;
+  final double yMm;
   final int score;
   final bool isX;
   final int sequence;
@@ -3076,10 +3078,10 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     required this.id,
     required this.endId,
     required this.faceIndex,
-    required this.xMm,
-    required this.yMm,
     required this.x,
     required this.y,
+    required this.xMm,
+    required this.yMm,
     required this.score,
     required this.isX,
     required this.sequence,
@@ -3092,10 +3094,10 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     map['id'] = Variable<String>(id);
     map['end_id'] = Variable<String>(endId);
     map['face_index'] = Variable<int>(faceIndex);
-    map['x_mm'] = Variable<double>(xMm);
-    map['y_mm'] = Variable<double>(yMm);
     map['x'] = Variable<double>(x);
     map['y'] = Variable<double>(y);
+    map['x_mm'] = Variable<double>(xMm);
+    map['y_mm'] = Variable<double>(yMm);
     map['score'] = Variable<int>(score);
     map['is_x'] = Variable<bool>(isX);
     map['sequence'] = Variable<int>(sequence);
@@ -3111,10 +3113,10 @@ class Arrow extends DataClass implements Insertable<Arrow> {
       id: Value(id),
       endId: Value(endId),
       faceIndex: Value(faceIndex),
-      xMm: Value(xMm),
-      yMm: Value(yMm),
       x: Value(x),
       y: Value(y),
+      xMm: Value(xMm),
+      yMm: Value(yMm),
       score: Value(score),
       isX: Value(isX),
       sequence: Value(sequence),
@@ -3134,10 +3136,10 @@ class Arrow extends DataClass implements Insertable<Arrow> {
       id: serializer.fromJson<String>(json['id']),
       endId: serializer.fromJson<String>(json['endId']),
       faceIndex: serializer.fromJson<int>(json['faceIndex']),
-      xMm: serializer.fromJson<double>(json['xMm']),
-      yMm: serializer.fromJson<double>(json['yMm']),
       x: serializer.fromJson<double>(json['x']),
       y: serializer.fromJson<double>(json['y']),
+      xMm: serializer.fromJson<double>(json['xMm']),
+      yMm: serializer.fromJson<double>(json['yMm']),
       score: serializer.fromJson<int>(json['score']),
       isX: serializer.fromJson<bool>(json['isX']),
       sequence: serializer.fromJson<int>(json['sequence']),
@@ -3152,10 +3154,10 @@ class Arrow extends DataClass implements Insertable<Arrow> {
       'id': serializer.toJson<String>(id),
       'endId': serializer.toJson<String>(endId),
       'faceIndex': serializer.toJson<int>(faceIndex),
-      'xMm': serializer.toJson<double>(xMm),
-      'yMm': serializer.toJson<double>(yMm),
       'x': serializer.toJson<double>(x),
       'y': serializer.toJson<double>(y),
+      'xMm': serializer.toJson<double>(xMm),
+      'yMm': serializer.toJson<double>(yMm),
       'score': serializer.toJson<int>(score),
       'isX': serializer.toJson<bool>(isX),
       'sequence': serializer.toJson<int>(sequence),
@@ -3168,10 +3170,10 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     String? id,
     String? endId,
     int? faceIndex,
-    double? xMm,
-    double? yMm,
     double? x,
     double? y,
+    double? xMm,
+    double? yMm,
     int? score,
     bool? isX,
     int? sequence,
@@ -3181,10 +3183,10 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     id: id ?? this.id,
     endId: endId ?? this.endId,
     faceIndex: faceIndex ?? this.faceIndex,
-    xMm: xMm ?? this.xMm,
-    yMm: yMm ?? this.yMm,
     x: x ?? this.x,
     y: y ?? this.y,
+    xMm: xMm ?? this.xMm,
+    yMm: yMm ?? this.yMm,
     score: score ?? this.score,
     isX: isX ?? this.isX,
     sequence: sequence ?? this.sequence,
@@ -3196,10 +3198,10 @@ class Arrow extends DataClass implements Insertable<Arrow> {
       id: data.id.present ? data.id.value : this.id,
       endId: data.endId.present ? data.endId.value : this.endId,
       faceIndex: data.faceIndex.present ? data.faceIndex.value : this.faceIndex,
-      xMm: data.xMm.present ? data.xMm.value : this.xMm,
-      yMm: data.yMm.present ? data.yMm.value : this.yMm,
       x: data.x.present ? data.x.value : this.x,
       y: data.y.present ? data.y.value : this.y,
+      xMm: data.xMm.present ? data.xMm.value : this.xMm,
+      yMm: data.yMm.present ? data.yMm.value : this.yMm,
       score: data.score.present ? data.score.value : this.score,
       isX: data.isX.present ? data.isX.value : this.isX,
       sequence: data.sequence.present ? data.sequence.value : this.sequence,
@@ -3216,10 +3218,10 @@ class Arrow extends DataClass implements Insertable<Arrow> {
           ..write('id: $id, ')
           ..write('endId: $endId, ')
           ..write('faceIndex: $faceIndex, ')
-          ..write('xMm: $xMm, ')
-          ..write('yMm: $yMm, ')
           ..write('x: $x, ')
           ..write('y: $y, ')
+          ..write('xMm: $xMm, ')
+          ..write('yMm: $yMm, ')
           ..write('score: $score, ')
           ..write('isX: $isX, ')
           ..write('sequence: $sequence, ')
@@ -3234,10 +3236,10 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     id,
     endId,
     faceIndex,
-    xMm,
-    yMm,
     x,
     y,
+    xMm,
+    yMm,
     score,
     isX,
     sequence,
@@ -3251,10 +3253,10 @@ class Arrow extends DataClass implements Insertable<Arrow> {
           other.id == this.id &&
           other.endId == this.endId &&
           other.faceIndex == this.faceIndex &&
-          other.xMm == this.xMm &&
-          other.yMm == this.yMm &&
           other.x == this.x &&
           other.y == this.y &&
+          other.xMm == this.xMm &&
+          other.yMm == this.yMm &&
           other.score == this.score &&
           other.isX == this.isX &&
           other.sequence == this.sequence &&
@@ -3266,10 +3268,10 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
   final Value<String> id;
   final Value<String> endId;
   final Value<int> faceIndex;
-  final Value<double> xMm;
-  final Value<double> yMm;
   final Value<double> x;
   final Value<double> y;
+  final Value<double> xMm;
+  final Value<double> yMm;
   final Value<int> score;
   final Value<bool> isX;
   final Value<int> sequence;
@@ -3280,10 +3282,10 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     this.id = const Value.absent(),
     this.endId = const Value.absent(),
     this.faceIndex = const Value.absent(),
-    this.xMm = const Value.absent(),
-    this.yMm = const Value.absent(),
     this.x = const Value.absent(),
     this.y = const Value.absent(),
+    this.xMm = const Value.absent(),
+    this.yMm = const Value.absent(),
     this.score = const Value.absent(),
     this.isX = const Value.absent(),
     this.sequence = const Value.absent(),
@@ -3295,10 +3297,10 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     required String id,
     required String endId,
     this.faceIndex = const Value.absent(),
+    required double x,
+    required double y,
     this.xMm = const Value.absent(),
     this.yMm = const Value.absent(),
-    this.x = const Value.absent(),
-    this.y = const Value.absent(),
     required int score,
     this.isX = const Value.absent(),
     required int sequence,
@@ -3307,16 +3309,18 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        endId = Value(endId),
+       x = Value(x),
+       y = Value(y),
        score = Value(score),
        sequence = Value(sequence);
   static Insertable<Arrow> custom({
     Expression<String>? id,
     Expression<String>? endId,
     Expression<int>? faceIndex,
-    Expression<double>? xMm,
-    Expression<double>? yMm,
     Expression<double>? x,
     Expression<double>? y,
+    Expression<double>? xMm,
+    Expression<double>? yMm,
     Expression<int>? score,
     Expression<bool>? isX,
     Expression<int>? sequence,
@@ -3328,10 +3332,10 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
       if (id != null) 'id': id,
       if (endId != null) 'end_id': endId,
       if (faceIndex != null) 'face_index': faceIndex,
-      if (xMm != null) 'x_mm': xMm,
-      if (yMm != null) 'y_mm': yMm,
       if (x != null) 'x': x,
       if (y != null) 'y': y,
+      if (xMm != null) 'x_mm': xMm,
+      if (yMm != null) 'y_mm': yMm,
       if (score != null) 'score': score,
       if (isX != null) 'is_x': isX,
       if (sequence != null) 'sequence': sequence,
@@ -3345,10 +3349,10 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     Value<String>? id,
     Value<String>? endId,
     Value<int>? faceIndex,
-    Value<double>? xMm,
-    Value<double>? yMm,
     Value<double>? x,
     Value<double>? y,
+    Value<double>? xMm,
+    Value<double>? yMm,
     Value<int>? score,
     Value<bool>? isX,
     Value<int>? sequence,
@@ -3360,10 +3364,10 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
       id: id ?? this.id,
       endId: endId ?? this.endId,
       faceIndex: faceIndex ?? this.faceIndex,
-      xMm: xMm ?? this.xMm,
-      yMm: yMm ?? this.yMm,
       x: x ?? this.x,
       y: y ?? this.y,
+      xMm: xMm ?? this.xMm,
+      yMm: yMm ?? this.yMm,
       score: score ?? this.score,
       isX: isX ?? this.isX,
       sequence: sequence ?? this.sequence,
@@ -3385,17 +3389,17 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     if (faceIndex.present) {
       map['face_index'] = Variable<int>(faceIndex.value);
     }
-    if (xMm.present) {
-      map['x_mm'] = Variable<double>(xMm.value);
-    }
-    if (yMm.present) {
-      map['y_mm'] = Variable<double>(yMm.value);
-    }
     if (x.present) {
       map['x'] = Variable<double>(x.value);
     }
     if (y.present) {
       map['y'] = Variable<double>(y.value);
+    }
+    if (xMm.present) {
+      map['x_mm'] = Variable<double>(xMm.value);
+    }
+    if (yMm.present) {
+      map['y_mm'] = Variable<double>(yMm.value);
     }
     if (score.present) {
       map['score'] = Variable<int>(score.value);
@@ -3424,10 +3428,10 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
           ..write('id: $id, ')
           ..write('endId: $endId, ')
           ..write('faceIndex: $faceIndex, ')
-          ..write('xMm: $xMm, ')
-          ..write('yMm: $yMm, ')
           ..write('x: $x, ')
           ..write('y: $y, ')
+          ..write('xMm: $xMm, ')
+          ..write('yMm: $yMm, ')
           ..write('score: $score, ')
           ..write('isX: $isX, ')
           ..write('sequence: $sequence, ')
@@ -8155,360 +8159,6 @@ class OlyTrainingLogsCompanion extends UpdateCompanion<OlyTrainingLog> {
   }
 }
 
-class $MilestonesTable extends Milestones
-    with TableInfo<$MilestonesTable, Milestone> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $MilestonesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _dateMeta = const VerificationMeta('date');
-  @override
-  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
-    'date',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _titleMeta = const VerificationMeta('title');
-  @override
-  late final GeneratedColumn<String> title = GeneratedColumn<String>(
-    'title',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _descriptionMeta = const VerificationMeta(
-    'description',
-  );
-  @override
-  late final GeneratedColumn<String> description = GeneratedColumn<String>(
-    'description',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _colorMeta = const VerificationMeta('color');
-  @override
-  late final GeneratedColumn<String> color = GeneratedColumn<String>(
-    'color',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('#FFD700'),
-  );
-  @override
-  List<GeneratedColumn> get $columns => [id, date, title, description, color];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'milestones';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<Milestone> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('date')) {
-      context.handle(
-        _dateMeta,
-        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_dateMeta);
-    }
-    if (data.containsKey('title')) {
-      context.handle(
-        _titleMeta,
-        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_titleMeta);
-    }
-    if (data.containsKey('description')) {
-      context.handle(
-        _descriptionMeta,
-        description.isAcceptableOrUnknown(
-          data['description']!,
-          _descriptionMeta,
-        ),
-      );
-    }
-    if (data.containsKey('color')) {
-      context.handle(
-        _colorMeta,
-        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  Milestone map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Milestone(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}id'],
-      )!,
-      date: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}date'],
-      )!,
-      title: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}title'],
-      )!,
-      description: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}description'],
-      ),
-      color: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}color'],
-      )!,
-    );
-  }
-
-  @override
-  $MilestonesTable createAlias(String alias) {
-    return $MilestonesTable(attachedDatabase, alias);
-  }
-}
-
-class Milestone extends DataClass implements Insertable<Milestone> {
-  final String id;
-  final DateTime date;
-  final String title;
-  final String? description;
-  final String color;
-  const Milestone({
-    required this.id,
-    required this.date,
-    required this.title,
-    this.description,
-    required this.color,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['date'] = Variable<DateTime>(date);
-    map['title'] = Variable<String>(title);
-    if (!nullToAbsent || description != null) {
-      map['description'] = Variable<String>(description);
-    }
-    map['color'] = Variable<String>(color);
-    return map;
-  }
-
-  MilestonesCompanion toCompanion(bool nullToAbsent) {
-    return MilestonesCompanion(
-      id: Value(id),
-      date: Value(date),
-      title: Value(title),
-      description: description == null && nullToAbsent
-          ? const Value.absent()
-          : Value(description),
-      color: Value(color),
-    );
-  }
-
-  factory Milestone.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Milestone(
-      id: serializer.fromJson<String>(json['id']),
-      date: serializer.fromJson<DateTime>(json['date']),
-      title: serializer.fromJson<String>(json['title']),
-      description: serializer.fromJson<String?>(json['description']),
-      color: serializer.fromJson<String>(json['color']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'date': serializer.toJson<DateTime>(date),
-      'title': serializer.toJson<String>(title),
-      'description': serializer.toJson<String?>(description),
-      'color': serializer.toJson<String>(color),
-    };
-  }
-
-  Milestone copyWith({
-    String? id,
-    DateTime? date,
-    String? title,
-    Value<String?> description = const Value.absent(),
-    String? color,
-  }) => Milestone(
-    id: id ?? this.id,
-    date: date ?? this.date,
-    title: title ?? this.title,
-    description: description.present ? description.value : this.description,
-    color: color ?? this.color,
-  );
-  Milestone copyWithCompanion(MilestonesCompanion data) {
-    return Milestone(
-      id: data.id.present ? data.id.value : this.id,
-      date: data.date.present ? data.date.value : this.date,
-      title: data.title.present ? data.title.value : this.title,
-      description: data.description.present
-          ? data.description.value
-          : this.description,
-      color: data.color.present ? data.color.value : this.color,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('Milestone(')
-          ..write('id: $id, ')
-          ..write('date: $date, ')
-          ..write('title: $title, ')
-          ..write('description: $description, ')
-          ..write('color: $color')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, date, title, description, color);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is Milestone &&
-          other.id == this.id &&
-          other.date == this.date &&
-          other.title == this.title &&
-          other.description == this.description &&
-          other.color == this.color);
-}
-
-class MilestonesCompanion extends UpdateCompanion<Milestone> {
-  final Value<String> id;
-  final Value<DateTime> date;
-  final Value<String> title;
-  final Value<String?> description;
-  final Value<String> color;
-  final Value<int> rowid;
-  const MilestonesCompanion({
-    this.id = const Value.absent(),
-    this.date = const Value.absent(),
-    this.title = const Value.absent(),
-    this.description = const Value.absent(),
-    this.color = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  MilestonesCompanion.insert({
-    required String id,
-    required DateTime date,
-    required String title,
-    this.description = const Value.absent(),
-    this.color = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       date = Value(date),
-       title = Value(title);
-  static Insertable<Milestone> custom({
-    Expression<String>? id,
-    Expression<DateTime>? date,
-    Expression<String>? title,
-    Expression<String>? description,
-    Expression<String>? color,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (date != null) 'date': date,
-      if (title != null) 'title': title,
-      if (description != null) 'description': description,
-      if (color != null) 'color': color,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  MilestonesCompanion copyWith({
-    Value<String>? id,
-    Value<DateTime>? date,
-    Value<String>? title,
-    Value<String?>? description,
-    Value<String>? color,
-    Value<int>? rowid,
-  }) {
-    return MilestonesCompanion(
-      id: id ?? this.id,
-      date: date ?? this.date,
-      title: title ?? this.title,
-      description: description ?? this.description,
-      color: color ?? this.color,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (date.present) {
-      map['date'] = Variable<DateTime>(date.value);
-    }
-    if (title.present) {
-      map['title'] = Variable<String>(title.value);
-    }
-    if (description.present) {
-      map['description'] = Variable<String>(description.value);
-    }
-    if (color.present) {
-      map['color'] = Variable<String>(color.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('MilestonesCompanion(')
-          ..write('id: $id, ')
-          ..write('date: $date, ')
-          ..write('title: $title, ')
-          ..write('description: $description, ')
-          ..write('color: $color, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $UserTrainingProgressTable extends UserTrainingProgress
     with TableInfo<$UserTrainingProgressTable, UserTrainingProgressData> {
   @override
@@ -9249,659 +8899,6 @@ class UserTrainingProgressCompanion
   }
 }
 
-class $BreathTrainingLogsTable extends BreathTrainingLogs
-    with TableInfo<$BreathTrainingLogsTable, BreathTrainingLog> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $BreathTrainingLogsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _sessionTypeMeta = const VerificationMeta(
-    'sessionType',
-  );
-  @override
-  late final GeneratedColumn<String> sessionType = GeneratedColumn<String>(
-    'session_type',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _totalHoldSecondsMeta = const VerificationMeta(
-    'totalHoldSeconds',
-  );
-  @override
-  late final GeneratedColumn<int> totalHoldSeconds = GeneratedColumn<int>(
-    'total_hold_seconds',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _bestHoldThisSessionMeta =
-      const VerificationMeta('bestHoldThisSession');
-  @override
-  late final GeneratedColumn<int> bestHoldThisSession = GeneratedColumn<int>(
-    'best_hold_this_session',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _bestExhaleSecondsMeta = const VerificationMeta(
-    'bestExhaleSeconds',
-  );
-  @override
-  late final GeneratedColumn<int> bestExhaleSeconds = GeneratedColumn<int>(
-    'best_exhale_seconds',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _roundsMeta = const VerificationMeta('rounds');
-  @override
-  late final GeneratedColumn<int> rounds = GeneratedColumn<int>(
-    'rounds',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _difficultyMeta = const VerificationMeta(
-    'difficulty',
-  );
-  @override
-  late final GeneratedColumn<String> difficulty = GeneratedColumn<String>(
-    'difficulty',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _durationMinutesMeta = const VerificationMeta(
-    'durationMinutes',
-  );
-  @override
-  late final GeneratedColumn<int> durationMinutes = GeneratedColumn<int>(
-    'duration_minutes',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _completedAtMeta = const VerificationMeta(
-    'completedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
-    'completed_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    sessionType,
-    totalHoldSeconds,
-    bestHoldThisSession,
-    bestExhaleSeconds,
-    rounds,
-    difficulty,
-    durationMinutes,
-    completedAt,
-    createdAt,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'breath_training_logs';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<BreathTrainingLog> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('session_type')) {
-      context.handle(
-        _sessionTypeMeta,
-        sessionType.isAcceptableOrUnknown(
-          data['session_type']!,
-          _sessionTypeMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_sessionTypeMeta);
-    }
-    if (data.containsKey('total_hold_seconds')) {
-      context.handle(
-        _totalHoldSecondsMeta,
-        totalHoldSeconds.isAcceptableOrUnknown(
-          data['total_hold_seconds']!,
-          _totalHoldSecondsMeta,
-        ),
-      );
-    }
-    if (data.containsKey('best_hold_this_session')) {
-      context.handle(
-        _bestHoldThisSessionMeta,
-        bestHoldThisSession.isAcceptableOrUnknown(
-          data['best_hold_this_session']!,
-          _bestHoldThisSessionMeta,
-        ),
-      );
-    }
-    if (data.containsKey('best_exhale_seconds')) {
-      context.handle(
-        _bestExhaleSecondsMeta,
-        bestExhaleSeconds.isAcceptableOrUnknown(
-          data['best_exhale_seconds']!,
-          _bestExhaleSecondsMeta,
-        ),
-      );
-    }
-    if (data.containsKey('rounds')) {
-      context.handle(
-        _roundsMeta,
-        rounds.isAcceptableOrUnknown(data['rounds']!, _roundsMeta),
-      );
-    }
-    if (data.containsKey('difficulty')) {
-      context.handle(
-        _difficultyMeta,
-        difficulty.isAcceptableOrUnknown(data['difficulty']!, _difficultyMeta),
-      );
-    }
-    if (data.containsKey('duration_minutes')) {
-      context.handle(
-        _durationMinutesMeta,
-        durationMinutes.isAcceptableOrUnknown(
-          data['duration_minutes']!,
-          _durationMinutesMeta,
-        ),
-      );
-    }
-    if (data.containsKey('completed_at')) {
-      context.handle(
-        _completedAtMeta,
-        completedAt.isAcceptableOrUnknown(
-          data['completed_at']!,
-          _completedAtMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_completedAtMeta);
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  BreathTrainingLog map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return BreathTrainingLog(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}id'],
-      )!,
-      sessionType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}session_type'],
-      )!,
-      totalHoldSeconds: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}total_hold_seconds'],
-      ),
-      bestHoldThisSession: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}best_hold_this_session'],
-      ),
-      bestExhaleSeconds: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}best_exhale_seconds'],
-      ),
-      rounds: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}rounds'],
-      ),
-      difficulty: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}difficulty'],
-      ),
-      durationMinutes: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}duration_minutes'],
-      ),
-      completedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}completed_at'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-    );
-  }
-
-  @override
-  $BreathTrainingLogsTable createAlias(String alias) {
-    return $BreathTrainingLogsTable(attachedDatabase, alias);
-  }
-}
-
-class BreathTrainingLog extends DataClass
-    implements Insertable<BreathTrainingLog> {
-  final String id;
-  final String sessionType;
-  final int? totalHoldSeconds;
-  final int? bestHoldThisSession;
-  final int? bestExhaleSeconds;
-  final int? rounds;
-  final String? difficulty;
-  final int? durationMinutes;
-  final DateTime completedAt;
-  final DateTime createdAt;
-  const BreathTrainingLog({
-    required this.id,
-    required this.sessionType,
-    this.totalHoldSeconds,
-    this.bestHoldThisSession,
-    this.bestExhaleSeconds,
-    this.rounds,
-    this.difficulty,
-    this.durationMinutes,
-    required this.completedAt,
-    required this.createdAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['session_type'] = Variable<String>(sessionType);
-    if (!nullToAbsent || totalHoldSeconds != null) {
-      map['total_hold_seconds'] = Variable<int>(totalHoldSeconds);
-    }
-    if (!nullToAbsent || bestHoldThisSession != null) {
-      map['best_hold_this_session'] = Variable<int>(bestHoldThisSession);
-    }
-    if (!nullToAbsent || bestExhaleSeconds != null) {
-      map['best_exhale_seconds'] = Variable<int>(bestExhaleSeconds);
-    }
-    if (!nullToAbsent || rounds != null) {
-      map['rounds'] = Variable<int>(rounds);
-    }
-    if (!nullToAbsent || difficulty != null) {
-      map['difficulty'] = Variable<String>(difficulty);
-    }
-    if (!nullToAbsent || durationMinutes != null) {
-      map['duration_minutes'] = Variable<int>(durationMinutes);
-    }
-    map['completed_at'] = Variable<DateTime>(completedAt);
-    map['created_at'] = Variable<DateTime>(createdAt);
-    return map;
-  }
-
-  BreathTrainingLogsCompanion toCompanion(bool nullToAbsent) {
-    return BreathTrainingLogsCompanion(
-      id: Value(id),
-      sessionType: Value(sessionType),
-      totalHoldSeconds: totalHoldSeconds == null && nullToAbsent
-          ? const Value.absent()
-          : Value(totalHoldSeconds),
-      bestHoldThisSession: bestHoldThisSession == null && nullToAbsent
-          ? const Value.absent()
-          : Value(bestHoldThisSession),
-      bestExhaleSeconds: bestExhaleSeconds == null && nullToAbsent
-          ? const Value.absent()
-          : Value(bestExhaleSeconds),
-      rounds: rounds == null && nullToAbsent
-          ? const Value.absent()
-          : Value(rounds),
-      difficulty: difficulty == null && nullToAbsent
-          ? const Value.absent()
-          : Value(difficulty),
-      durationMinutes: durationMinutes == null && nullToAbsent
-          ? const Value.absent()
-          : Value(durationMinutes),
-      completedAt: Value(completedAt),
-      createdAt: Value(createdAt),
-    );
-  }
-
-  factory BreathTrainingLog.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return BreathTrainingLog(
-      id: serializer.fromJson<String>(json['id']),
-      sessionType: serializer.fromJson<String>(json['sessionType']),
-      totalHoldSeconds: serializer.fromJson<int?>(json['totalHoldSeconds']),
-      bestHoldThisSession: serializer.fromJson<int?>(
-        json['bestHoldThisSession'],
-      ),
-      bestExhaleSeconds: serializer.fromJson<int?>(json['bestExhaleSeconds']),
-      rounds: serializer.fromJson<int?>(json['rounds']),
-      difficulty: serializer.fromJson<String?>(json['difficulty']),
-      durationMinutes: serializer.fromJson<int?>(json['durationMinutes']),
-      completedAt: serializer.fromJson<DateTime>(json['completedAt']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'sessionType': serializer.toJson<String>(sessionType),
-      'totalHoldSeconds': serializer.toJson<int?>(totalHoldSeconds),
-      'bestHoldThisSession': serializer.toJson<int?>(bestHoldThisSession),
-      'bestExhaleSeconds': serializer.toJson<int?>(bestExhaleSeconds),
-      'rounds': serializer.toJson<int?>(rounds),
-      'difficulty': serializer.toJson<String?>(difficulty),
-      'durationMinutes': serializer.toJson<int?>(durationMinutes),
-      'completedAt': serializer.toJson<DateTime>(completedAt),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-    };
-  }
-
-  BreathTrainingLog copyWith({
-    String? id,
-    String? sessionType,
-    Value<int?> totalHoldSeconds = const Value.absent(),
-    Value<int?> bestHoldThisSession = const Value.absent(),
-    Value<int?> bestExhaleSeconds = const Value.absent(),
-    Value<int?> rounds = const Value.absent(),
-    Value<String?> difficulty = const Value.absent(),
-    Value<int?> durationMinutes = const Value.absent(),
-    DateTime? completedAt,
-    DateTime? createdAt,
-  }) => BreathTrainingLog(
-    id: id ?? this.id,
-    sessionType: sessionType ?? this.sessionType,
-    totalHoldSeconds: totalHoldSeconds.present
-        ? totalHoldSeconds.value
-        : this.totalHoldSeconds,
-    bestHoldThisSession: bestHoldThisSession.present
-        ? bestHoldThisSession.value
-        : this.bestHoldThisSession,
-    bestExhaleSeconds: bestExhaleSeconds.present
-        ? bestExhaleSeconds.value
-        : this.bestExhaleSeconds,
-    rounds: rounds.present ? rounds.value : this.rounds,
-    difficulty: difficulty.present ? difficulty.value : this.difficulty,
-    durationMinutes: durationMinutes.present
-        ? durationMinutes.value
-        : this.durationMinutes,
-    completedAt: completedAt ?? this.completedAt,
-    createdAt: createdAt ?? this.createdAt,
-  );
-  BreathTrainingLog copyWithCompanion(BreathTrainingLogsCompanion data) {
-    return BreathTrainingLog(
-      id: data.id.present ? data.id.value : this.id,
-      sessionType: data.sessionType.present
-          ? data.sessionType.value
-          : this.sessionType,
-      totalHoldSeconds: data.totalHoldSeconds.present
-          ? data.totalHoldSeconds.value
-          : this.totalHoldSeconds,
-      bestHoldThisSession: data.bestHoldThisSession.present
-          ? data.bestHoldThisSession.value
-          : this.bestHoldThisSession,
-      bestExhaleSeconds: data.bestExhaleSeconds.present
-          ? data.bestExhaleSeconds.value
-          : this.bestExhaleSeconds,
-      rounds: data.rounds.present ? data.rounds.value : this.rounds,
-      difficulty: data.difficulty.present
-          ? data.difficulty.value
-          : this.difficulty,
-      durationMinutes: data.durationMinutes.present
-          ? data.durationMinutes.value
-          : this.durationMinutes,
-      completedAt: data.completedAt.present
-          ? data.completedAt.value
-          : this.completedAt,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('BreathTrainingLog(')
-          ..write('id: $id, ')
-          ..write('sessionType: $sessionType, ')
-          ..write('totalHoldSeconds: $totalHoldSeconds, ')
-          ..write('bestHoldThisSession: $bestHoldThisSession, ')
-          ..write('bestExhaleSeconds: $bestExhaleSeconds, ')
-          ..write('rounds: $rounds, ')
-          ..write('difficulty: $difficulty, ')
-          ..write('durationMinutes: $durationMinutes, ')
-          ..write('completedAt: $completedAt, ')
-          ..write('createdAt: $createdAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    id,
-    sessionType,
-    totalHoldSeconds,
-    bestHoldThisSession,
-    bestExhaleSeconds,
-    rounds,
-    difficulty,
-    durationMinutes,
-    completedAt,
-    createdAt,
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is BreathTrainingLog &&
-          other.id == this.id &&
-          other.sessionType == this.sessionType &&
-          other.totalHoldSeconds == this.totalHoldSeconds &&
-          other.bestHoldThisSession == this.bestHoldThisSession &&
-          other.bestExhaleSeconds == this.bestExhaleSeconds &&
-          other.rounds == this.rounds &&
-          other.difficulty == this.difficulty &&
-          other.durationMinutes == this.durationMinutes &&
-          other.completedAt == this.completedAt &&
-          other.createdAt == this.createdAt);
-}
-
-class BreathTrainingLogsCompanion extends UpdateCompanion<BreathTrainingLog> {
-  final Value<String> id;
-  final Value<String> sessionType;
-  final Value<int?> totalHoldSeconds;
-  final Value<int?> bestHoldThisSession;
-  final Value<int?> bestExhaleSeconds;
-  final Value<int?> rounds;
-  final Value<String?> difficulty;
-  final Value<int?> durationMinutes;
-  final Value<DateTime> completedAt;
-  final Value<DateTime> createdAt;
-  final Value<int> rowid;
-  const BreathTrainingLogsCompanion({
-    this.id = const Value.absent(),
-    this.sessionType = const Value.absent(),
-    this.totalHoldSeconds = const Value.absent(),
-    this.bestHoldThisSession = const Value.absent(),
-    this.bestExhaleSeconds = const Value.absent(),
-    this.rounds = const Value.absent(),
-    this.difficulty = const Value.absent(),
-    this.durationMinutes = const Value.absent(),
-    this.completedAt = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  BreathTrainingLogsCompanion.insert({
-    required String id,
-    required String sessionType,
-    this.totalHoldSeconds = const Value.absent(),
-    this.bestHoldThisSession = const Value.absent(),
-    this.bestExhaleSeconds = const Value.absent(),
-    this.rounds = const Value.absent(),
-    this.difficulty = const Value.absent(),
-    this.durationMinutes = const Value.absent(),
-    required DateTime completedAt,
-    this.createdAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       sessionType = Value(sessionType),
-       completedAt = Value(completedAt);
-  static Insertable<BreathTrainingLog> custom({
-    Expression<String>? id,
-    Expression<String>? sessionType,
-    Expression<int>? totalHoldSeconds,
-    Expression<int>? bestHoldThisSession,
-    Expression<int>? bestExhaleSeconds,
-    Expression<int>? rounds,
-    Expression<String>? difficulty,
-    Expression<int>? durationMinutes,
-    Expression<DateTime>? completedAt,
-    Expression<DateTime>? createdAt,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (sessionType != null) 'session_type': sessionType,
-      if (totalHoldSeconds != null) 'total_hold_seconds': totalHoldSeconds,
-      if (bestHoldThisSession != null)
-        'best_hold_this_session': bestHoldThisSession,
-      if (bestExhaleSeconds != null) 'best_exhale_seconds': bestExhaleSeconds,
-      if (rounds != null) 'rounds': rounds,
-      if (difficulty != null) 'difficulty': difficulty,
-      if (durationMinutes != null) 'duration_minutes': durationMinutes,
-      if (completedAt != null) 'completed_at': completedAt,
-      if (createdAt != null) 'created_at': createdAt,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  BreathTrainingLogsCompanion copyWith({
-    Value<String>? id,
-    Value<String>? sessionType,
-    Value<int?>? totalHoldSeconds,
-    Value<int?>? bestHoldThisSession,
-    Value<int?>? bestExhaleSeconds,
-    Value<int?>? rounds,
-    Value<String?>? difficulty,
-    Value<int?>? durationMinutes,
-    Value<DateTime>? completedAt,
-    Value<DateTime>? createdAt,
-    Value<int>? rowid,
-  }) {
-    return BreathTrainingLogsCompanion(
-      id: id ?? this.id,
-      sessionType: sessionType ?? this.sessionType,
-      totalHoldSeconds: totalHoldSeconds ?? this.totalHoldSeconds,
-      bestHoldThisSession: bestHoldThisSession ?? this.bestHoldThisSession,
-      bestExhaleSeconds: bestExhaleSeconds ?? this.bestExhaleSeconds,
-      rounds: rounds ?? this.rounds,
-      difficulty: difficulty ?? this.difficulty,
-      durationMinutes: durationMinutes ?? this.durationMinutes,
-      completedAt: completedAt ?? this.completedAt,
-      createdAt: createdAt ?? this.createdAt,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (sessionType.present) {
-      map['session_type'] = Variable<String>(sessionType.value);
-    }
-    if (totalHoldSeconds.present) {
-      map['total_hold_seconds'] = Variable<int>(totalHoldSeconds.value);
-    }
-    if (bestHoldThisSession.present) {
-      map['best_hold_this_session'] = Variable<int>(bestHoldThisSession.value);
-    }
-    if (bestExhaleSeconds.present) {
-      map['best_exhale_seconds'] = Variable<int>(bestExhaleSeconds.value);
-    }
-    if (rounds.present) {
-      map['rounds'] = Variable<int>(rounds.value);
-    }
-    if (difficulty.present) {
-      map['difficulty'] = Variable<String>(difficulty.value);
-    }
-    if (durationMinutes.present) {
-      map['duration_minutes'] = Variable<int>(durationMinutes.value);
-    }
-    if (completedAt.present) {
-      map['completed_at'] = Variable<DateTime>(completedAt.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('BreathTrainingLogsCompanion(')
-          ..write('id: $id, ')
-          ..write('sessionType: $sessionType, ')
-          ..write('totalHoldSeconds: $totalHoldSeconds, ')
-          ..write('bestHoldThisSession: $bestHoldThisSession, ')
-          ..write('bestExhaleSeconds: $bestExhaleSeconds, ')
-          ..write('rounds: $rounds, ')
-          ..write('difficulty: $difficulty, ')
-          ..write('durationMinutes: $durationMinutes, ')
-          ..write('completedAt: $completedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -9927,11 +8924,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $OlyTrainingLogsTable olyTrainingLogs = $OlyTrainingLogsTable(
     this,
   );
-  late final $MilestonesTable milestones = $MilestonesTable(this);
   late final $UserTrainingProgressTable userTrainingProgress =
       $UserTrainingProgressTable(this);
-  late final $BreathTrainingLogsTable breathTrainingLogs =
-      $BreathTrainingLogsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -9951,9 +8945,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     olySessionTemplates,
     olySessionExercises,
     olyTrainingLogs,
-    milestones,
     userTrainingProgress,
-    breathTrainingLogs,
   ];
 }
 
@@ -12503,10 +11495,10 @@ typedef $$ArrowsTableCreateCompanionBuilder =
       required String id,
       required String endId,
       Value<int> faceIndex,
+      required double x,
+      required double y,
       Value<double> xMm,
       Value<double> yMm,
-      Value<double> x,
-      Value<double> y,
       required int score,
       Value<bool> isX,
       required int sequence,
@@ -12519,10 +11511,10 @@ typedef $$ArrowsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> endId,
       Value<int> faceIndex,
-      Value<double> xMm,
-      Value<double> yMm,
       Value<double> x,
       Value<double> y,
+      Value<double> xMm,
+      Value<double> yMm,
       Value<int> score,
       Value<bool> isX,
       Value<int> sequence,
@@ -12572,16 +11564,6 @@ class $$ArrowsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<double> get xMm => $composableBuilder(
-    column: $table.xMm,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get yMm => $composableBuilder(
-    column: $table.yMm,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<double> get x => $composableBuilder(
     column: $table.x,
     builder: (column) => ColumnFilters(column),
@@ -12589,6 +11571,16 @@ class $$ArrowsTableFilterComposer
 
   ColumnFilters<double> get y => $composableBuilder(
     column: $table.y,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get xMm => $composableBuilder(
+    column: $table.xMm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get yMm => $composableBuilder(
+    column: $table.yMm,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -12660,16 +11652,6 @@ class $$ArrowsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<double> get xMm => $composableBuilder(
-    column: $table.xMm,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get yMm => $composableBuilder(
-    column: $table.yMm,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<double> get x => $composableBuilder(
     column: $table.x,
     builder: (column) => ColumnOrderings(column),
@@ -12677,6 +11659,16 @@ class $$ArrowsTableOrderingComposer
 
   ColumnOrderings<double> get y => $composableBuilder(
     column: $table.y,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get xMm => $composableBuilder(
+    column: $table.xMm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get yMm => $composableBuilder(
+    column: $table.yMm,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -12744,17 +11736,17 @@ class $$ArrowsTableAnnotationComposer
   GeneratedColumn<int> get faceIndex =>
       $composableBuilder(column: $table.faceIndex, builder: (column) => column);
 
-  GeneratedColumn<double> get xMm =>
-      $composableBuilder(column: $table.xMm, builder: (column) => column);
-
-  GeneratedColumn<double> get yMm =>
-      $composableBuilder(column: $table.yMm, builder: (column) => column);
-
   GeneratedColumn<double> get x =>
       $composableBuilder(column: $table.x, builder: (column) => column);
 
   GeneratedColumn<double> get y =>
       $composableBuilder(column: $table.y, builder: (column) => column);
+
+  GeneratedColumn<double> get xMm =>
+      $composableBuilder(column: $table.xMm, builder: (column) => column);
+
+  GeneratedColumn<double> get yMm =>
+      $composableBuilder(column: $table.yMm, builder: (column) => column);
 
   GeneratedColumn<int> get score =>
       $composableBuilder(column: $table.score, builder: (column) => column);
@@ -12828,10 +11820,10 @@ class $$ArrowsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> endId = const Value.absent(),
                 Value<int> faceIndex = const Value.absent(),
-                Value<double> xMm = const Value.absent(),
-                Value<double> yMm = const Value.absent(),
                 Value<double> x = const Value.absent(),
                 Value<double> y = const Value.absent(),
+                Value<double> xMm = const Value.absent(),
+                Value<double> yMm = const Value.absent(),
                 Value<int> score = const Value.absent(),
                 Value<bool> isX = const Value.absent(),
                 Value<int> sequence = const Value.absent(),
@@ -12842,10 +11834,10 @@ class $$ArrowsTableTableManager
                 id: id,
                 endId: endId,
                 faceIndex: faceIndex,
-                xMm: xMm,
-                yMm: yMm,
                 x: x,
                 y: y,
+                xMm: xMm,
+                yMm: yMm,
                 score: score,
                 isX: isX,
                 sequence: sequence,
@@ -12858,10 +11850,10 @@ class $$ArrowsTableTableManager
                 required String id,
                 required String endId,
                 Value<int> faceIndex = const Value.absent(),
+                required double x,
+                required double y,
                 Value<double> xMm = const Value.absent(),
                 Value<double> yMm = const Value.absent(),
-                Value<double> x = const Value.absent(),
-                Value<double> y = const Value.absent(),
                 required int score,
                 Value<bool> isX = const Value.absent(),
                 required int sequence,
@@ -12872,10 +11864,10 @@ class $$ArrowsTableTableManager
                 id: id,
                 endId: endId,
                 faceIndex: faceIndex,
-                xMm: xMm,
-                yMm: yMm,
                 x: x,
                 y: y,
+                xMm: xMm,
+                yMm: yMm,
                 score: score,
                 isX: isX,
                 sequence: sequence,
@@ -13756,6 +12748,7 @@ typedef $$VolumeEntriesTableCreateCompanionBuilder =
       required String id,
       required DateTime date,
       required int arrowCount,
+      Value<String?> title,
       Value<String?> notes,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -13766,6 +12759,7 @@ typedef $$VolumeEntriesTableUpdateCompanionBuilder =
       Value<String> id,
       Value<DateTime> date,
       Value<int> arrowCount,
+      Value<String?> title,
       Value<String?> notes,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -13793,6 +12787,11 @@ class $$VolumeEntriesTableFilterComposer
 
   ColumnFilters<int> get arrowCount => $composableBuilder(
     column: $table.arrowCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -13836,6 +12835,11 @@ class $$VolumeEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get notes => $composableBuilder(
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
@@ -13871,6 +12875,9 @@ class $$VolumeEntriesTableAnnotationComposer
     column: $table.arrowCount,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
@@ -13916,6 +12923,7 @@ class $$VolumeEntriesTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<DateTime> date = const Value.absent(),
                 Value<int> arrowCount = const Value.absent(),
+                Value<String?> title = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -13924,6 +12932,7 @@ class $$VolumeEntriesTableTableManager
                 id: id,
                 date: date,
                 arrowCount: arrowCount,
+                title: title,
                 notes: notes,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -13934,6 +12943,7 @@ class $$VolumeEntriesTableTableManager
                 required String id,
                 required DateTime date,
                 required int arrowCount,
+                Value<String?> title = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -13942,6 +12952,7 @@ class $$VolumeEntriesTableTableManager
                 id: id,
                 date: date,
                 arrowCount: arrowCount,
+                title: title,
                 notes: notes,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -15856,205 +14867,6 @@ typedef $$OlyTrainingLogsTableProcessedTableManager =
       OlyTrainingLog,
       PrefetchHooks Function()
     >;
-typedef $$MilestonesTableCreateCompanionBuilder =
-    MilestonesCompanion Function({
-      required String id,
-      required DateTime date,
-      required String title,
-      Value<String?> description,
-      Value<String> color,
-      Value<int> rowid,
-    });
-typedef $$MilestonesTableUpdateCompanionBuilder =
-    MilestonesCompanion Function({
-      Value<String> id,
-      Value<DateTime> date,
-      Value<String> title,
-      Value<String?> description,
-      Value<String> color,
-      Value<int> rowid,
-    });
-
-class $$MilestonesTableFilterComposer
-    extends Composer<_$AppDatabase, $MilestonesTable> {
-  $$MilestonesTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get date => $composableBuilder(
-    column: $table.date,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get title => $composableBuilder(
-    column: $table.title,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get color => $composableBuilder(
-    column: $table.color,
-    builder: (column) => ColumnFilters(column),
-  );
-}
-
-class $$MilestonesTableOrderingComposer
-    extends Composer<_$AppDatabase, $MilestonesTable> {
-  $$MilestonesTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get date => $composableBuilder(
-    column: $table.date,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get title => $composableBuilder(
-    column: $table.title,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get color => $composableBuilder(
-    column: $table.color,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $$MilestonesTableAnnotationComposer
-    extends Composer<_$AppDatabase, $MilestonesTable> {
-  $$MilestonesTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get date =>
-      $composableBuilder(column: $table.date, builder: (column) => column);
-
-  GeneratedColumn<String> get title =>
-      $composableBuilder(column: $table.title, builder: (column) => column);
-
-  GeneratedColumn<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get color =>
-      $composableBuilder(column: $table.color, builder: (column) => column);
-}
-
-class $$MilestonesTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $MilestonesTable,
-          Milestone,
-          $$MilestonesTableFilterComposer,
-          $$MilestonesTableOrderingComposer,
-          $$MilestonesTableAnnotationComposer,
-          $$MilestonesTableCreateCompanionBuilder,
-          $$MilestonesTableUpdateCompanionBuilder,
-          (
-            Milestone,
-            BaseReferences<_$AppDatabase, $MilestonesTable, Milestone>,
-          ),
-          Milestone,
-          PrefetchHooks Function()
-        > {
-  $$MilestonesTableTableManager(_$AppDatabase db, $MilestonesTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$MilestonesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$MilestonesTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$MilestonesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> id = const Value.absent(),
-                Value<DateTime> date = const Value.absent(),
-                Value<String> title = const Value.absent(),
-                Value<String?> description = const Value.absent(),
-                Value<String> color = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => MilestonesCompanion(
-                id: id,
-                date: date,
-                title: title,
-                description: description,
-                color: color,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String id,
-                required DateTime date,
-                required String title,
-                Value<String?> description = const Value.absent(),
-                Value<String> color = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => MilestonesCompanion.insert(
-                id: id,
-                date: date,
-                title: title,
-                description: description,
-                color: color,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: null,
-        ),
-      );
-}
-
-typedef $$MilestonesTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $MilestonesTable,
-      Milestone,
-      $$MilestonesTableFilterComposer,
-      $$MilestonesTableOrderingComposer,
-      $$MilestonesTableAnnotationComposer,
-      $$MilestonesTableCreateCompanionBuilder,
-      $$MilestonesTableUpdateCompanionBuilder,
-      (Milestone, BaseReferences<_$AppDatabase, $MilestonesTable, Milestone>),
-      Milestone,
-      PrefetchHooks Function()
-    >;
 typedef $$UserTrainingProgressTableCreateCompanionBuilder =
     UserTrainingProgressCompanion Function({
       required String id,
@@ -16401,328 +15213,6 @@ typedef $$UserTrainingProgressTableProcessedTableManager =
       UserTrainingProgressData,
       PrefetchHooks Function()
     >;
-typedef $$BreathTrainingLogsTableCreateCompanionBuilder =
-    BreathTrainingLogsCompanion Function({
-      required String id,
-      required String sessionType,
-      Value<int?> totalHoldSeconds,
-      Value<int?> bestHoldThisSession,
-      Value<int?> bestExhaleSeconds,
-      Value<int?> rounds,
-      Value<String?> difficulty,
-      Value<int?> durationMinutes,
-      required DateTime completedAt,
-      Value<DateTime> createdAt,
-      Value<int> rowid,
-    });
-typedef $$BreathTrainingLogsTableUpdateCompanionBuilder =
-    BreathTrainingLogsCompanion Function({
-      Value<String> id,
-      Value<String> sessionType,
-      Value<int?> totalHoldSeconds,
-      Value<int?> bestHoldThisSession,
-      Value<int?> bestExhaleSeconds,
-      Value<int?> rounds,
-      Value<String?> difficulty,
-      Value<int?> durationMinutes,
-      Value<DateTime> completedAt,
-      Value<DateTime> createdAt,
-      Value<int> rowid,
-    });
-
-class $$BreathTrainingLogsTableFilterComposer
-    extends Composer<_$AppDatabase, $BreathTrainingLogsTable> {
-  $$BreathTrainingLogsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get sessionType => $composableBuilder(
-    column: $table.sessionType,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get totalHoldSeconds => $composableBuilder(
-    column: $table.totalHoldSeconds,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get bestHoldThisSession => $composableBuilder(
-    column: $table.bestHoldThisSession,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get bestExhaleSeconds => $composableBuilder(
-    column: $table.bestExhaleSeconds,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get rounds => $composableBuilder(
-    column: $table.rounds,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get difficulty => $composableBuilder(
-    column: $table.difficulty,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get durationMinutes => $composableBuilder(
-    column: $table.durationMinutes,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get completedAt => $composableBuilder(
-    column: $table.completedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-}
-
-class $$BreathTrainingLogsTableOrderingComposer
-    extends Composer<_$AppDatabase, $BreathTrainingLogsTable> {
-  $$BreathTrainingLogsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get sessionType => $composableBuilder(
-    column: $table.sessionType,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get totalHoldSeconds => $composableBuilder(
-    column: $table.totalHoldSeconds,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get bestHoldThisSession => $composableBuilder(
-    column: $table.bestHoldThisSession,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get bestExhaleSeconds => $composableBuilder(
-    column: $table.bestExhaleSeconds,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get rounds => $composableBuilder(
-    column: $table.rounds,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get difficulty => $composableBuilder(
-    column: $table.difficulty,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get durationMinutes => $composableBuilder(
-    column: $table.durationMinutes,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
-    column: $table.completedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $$BreathTrainingLogsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $BreathTrainingLogsTable> {
-  $$BreathTrainingLogsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get sessionType => $composableBuilder(
-    column: $table.sessionType,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get totalHoldSeconds => $composableBuilder(
-    column: $table.totalHoldSeconds,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get bestHoldThisSession => $composableBuilder(
-    column: $table.bestHoldThisSession,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get bestExhaleSeconds => $composableBuilder(
-    column: $table.bestExhaleSeconds,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get rounds =>
-      $composableBuilder(column: $table.rounds, builder: (column) => column);
-
-  GeneratedColumn<String> get difficulty => $composableBuilder(
-    column: $table.difficulty,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get durationMinutes => $composableBuilder(
-    column: $table.durationMinutes,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
-    column: $table.completedAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-}
-
-class $$BreathTrainingLogsTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $BreathTrainingLogsTable,
-          BreathTrainingLog,
-          $$BreathTrainingLogsTableFilterComposer,
-          $$BreathTrainingLogsTableOrderingComposer,
-          $$BreathTrainingLogsTableAnnotationComposer,
-          $$BreathTrainingLogsTableCreateCompanionBuilder,
-          $$BreathTrainingLogsTableUpdateCompanionBuilder,
-          (
-            BreathTrainingLog,
-            BaseReferences<
-              _$AppDatabase,
-              $BreathTrainingLogsTable,
-              BreathTrainingLog
-            >,
-          ),
-          BreathTrainingLog,
-          PrefetchHooks Function()
-        > {
-  $$BreathTrainingLogsTableTableManager(
-    _$AppDatabase db,
-    $BreathTrainingLogsTable table,
-  ) : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$BreathTrainingLogsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$BreathTrainingLogsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$BreathTrainingLogsTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
-          updateCompanionCallback:
-              ({
-                Value<String> id = const Value.absent(),
-                Value<String> sessionType = const Value.absent(),
-                Value<int?> totalHoldSeconds = const Value.absent(),
-                Value<int?> bestHoldThisSession = const Value.absent(),
-                Value<int?> bestExhaleSeconds = const Value.absent(),
-                Value<int?> rounds = const Value.absent(),
-                Value<String?> difficulty = const Value.absent(),
-                Value<int?> durationMinutes = const Value.absent(),
-                Value<DateTime> completedAt = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => BreathTrainingLogsCompanion(
-                id: id,
-                sessionType: sessionType,
-                totalHoldSeconds: totalHoldSeconds,
-                bestHoldThisSession: bestHoldThisSession,
-                bestExhaleSeconds: bestExhaleSeconds,
-                rounds: rounds,
-                difficulty: difficulty,
-                durationMinutes: durationMinutes,
-                completedAt: completedAt,
-                createdAt: createdAt,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String id,
-                required String sessionType,
-                Value<int?> totalHoldSeconds = const Value.absent(),
-                Value<int?> bestHoldThisSession = const Value.absent(),
-                Value<int?> bestExhaleSeconds = const Value.absent(),
-                Value<int?> rounds = const Value.absent(),
-                Value<String?> difficulty = const Value.absent(),
-                Value<int?> durationMinutes = const Value.absent(),
-                required DateTime completedAt,
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => BreathTrainingLogsCompanion.insert(
-                id: id,
-                sessionType: sessionType,
-                totalHoldSeconds: totalHoldSeconds,
-                bestHoldThisSession: bestHoldThisSession,
-                bestExhaleSeconds: bestExhaleSeconds,
-                rounds: rounds,
-                difficulty: difficulty,
-                durationMinutes: durationMinutes,
-                completedAt: completedAt,
-                createdAt: createdAt,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: null,
-        ),
-      );
-}
-
-typedef $$BreathTrainingLogsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $BreathTrainingLogsTable,
-      BreathTrainingLog,
-      $$BreathTrainingLogsTableFilterComposer,
-      $$BreathTrainingLogsTableOrderingComposer,
-      $$BreathTrainingLogsTableAnnotationComposer,
-      $$BreathTrainingLogsTableCreateCompanionBuilder,
-      $$BreathTrainingLogsTableUpdateCompanionBuilder,
-      (
-        BreathTrainingLog,
-        BaseReferences<
-          _$AppDatabase,
-          $BreathTrainingLogsTable,
-          BreathTrainingLog
-        >,
-      ),
-      BreathTrainingLog,
-      PrefetchHooks Function()
-    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -16753,10 +15243,6 @@ class $AppDatabaseManager {
       $$OlySessionExercisesTableTableManager(_db, _db.olySessionExercises);
   $$OlyTrainingLogsTableTableManager get olyTrainingLogs =>
       $$OlyTrainingLogsTableTableManager(_db, _db.olyTrainingLogs);
-  $$MilestonesTableTableManager get milestones =>
-      $$MilestonesTableTableManager(_db, _db.milestones);
   $$UserTrainingProgressTableTableManager get userTrainingProgress =>
       $$UserTrainingProgressTableTableManager(_db, _db.userTrainingProgress);
-  $$BreathTrainingLogsTableTableManager get breathTrainingLogs =>
-      $$BreathTrainingLogsTableTableManager(_db, _db.breathTrainingLogs);
 }

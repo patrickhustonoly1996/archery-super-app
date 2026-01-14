@@ -44,13 +44,33 @@ class _BowTrainingHomeScreenState extends State<BowTrainingHomeScreen> {
 
   void _startQuickDrill(QuickDrillPreset preset) {
     final provider = context.read<BowTrainingProvider>();
-    provider.startQuickDrill(preset);
+    // Map preset to CustomSessionConfig
+    final config = CustomSessionConfig(
+      durationMinutes: (preset.reps * (preset.holdSeconds + preset.restSeconds) / 60).ceil(),
+      ratio: _getRatioForPreset(preset),
+      movementStimulus: MovementStimulus.none,
+    );
+    provider.startCustomSession(config);
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => const BowTrainingScreen(isQuickDrill: true),
+        builder: (_) => const BowTrainingScreen(),
       ),
     ).then((_) => _loadMinimalData());
+  }
+
+  HoldRestRatio _getRatioForPreset(QuickDrillPreset preset) {
+    // Find closest ratio match from available options
+    switch (preset) {
+      case QuickDrillPreset.warmup:
+        return HoldRestRatio.ratio15_45; // Light warmup with more rest
+      case QuickDrillPreset.standard:
+        return HoldRestRatio.ratio25_35; // Balanced hold/rest
+      case QuickDrillPreset.endurance:
+        return HoldRestRatio.ratio30_30; // More hold time
+      case QuickDrillPreset.burnout:
+        return HoldRestRatio.ratio30_30; // Max effort
+    }
   }
 
   void _openLibrary() {

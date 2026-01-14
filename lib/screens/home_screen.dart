@@ -61,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen>
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const BowTrainingScreen(resumePaused: true)),
+            MaterialPageRoute(builder: (_) => const BowTrainingScreen()),
           ).then((_) => _refreshSessions());
         },
       ),
@@ -142,17 +142,11 @@ class _HomeScreenState extends State<HomeScreen>
   ];
 
   String _getBowTrainingSubtitle() {
-    final provider = context.read<BowTrainingProvider>();
-    return provider.pausedSessionSubtitle.isNotEmpty
-        ? provider.pausedSessionSubtitle
-        : 'Resume drill';
+    return 'Resume drill';
   }
 
   String _getBreathTrainingSubtitle() {
-    final provider = context.read<BreathTrainingProvider>();
-    return provider.pausedSessionSubtitle.isNotEmpty
-        ? provider.pausedSessionSubtitle
-        : 'Resume breath';
+    return 'Resume breath';
   }
 
   void _resumeBreathTraining() {

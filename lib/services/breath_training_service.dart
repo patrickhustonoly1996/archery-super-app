@@ -8,6 +8,7 @@ class BreathTrainingService {
   static const String _holdSessionRoundsKey = 'breath_hold_session_rounds';
   static const String _patrickBestExhaleKey = 'patrick_best_exhale';
   static const String _difficultyLevelKey = 'breath_hold_difficulty';
+  static const String _beepsEnabledKey = 'breath_beeps_enabled';
 
   SharedPreferences? _prefs;
 
@@ -90,5 +91,17 @@ class BreathTrainingService {
   Future<void> setDifficultyLevel(int level) async {
     await _ensureInitialized();
     await _prefs!.setInt(_difficultyLevelKey, level.clamp(0, 2));
+  }
+
+  /// Get whether beeps are enabled for breathing sessions
+  Future<bool> getBeepsEnabled() async {
+    await _ensureInitialized();
+    return _prefs!.getBool(_beepsEnabledKey) ?? false;
+  }
+
+  /// Set whether beeps are enabled for breathing sessions
+  Future<void> setBeepsEnabled(bool enabled) async {
+    await _ensureInitialized();
+    await _prefs!.setBool(_beepsEnabledKey, enabled);
   }
 }

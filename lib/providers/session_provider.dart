@@ -212,8 +212,8 @@ class SessionProvider extends ChangeNotifier {
       faceIndex: Value(faceIndex),
       xMm: Value(coord.xMm),
       yMm: Value(coord.yMm),
-      x: Value(coord.normalizedX), // Legacy: keep normalized for backward compat
-      y: Value(coord.normalizedY),
+      x: coord.normalizedX, // Legacy: keep normalized for backward compat
+      y: coord.normalizedY,
       score: result.score,
       isX: Value(result.isX),
       sequence: _currentEndArrows.length + 1,

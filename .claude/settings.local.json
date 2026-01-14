@@ -79,7 +79,8 @@
       "Skill(ralph-loop:ralph-loop)",
       "Bash(find:*)",
       "Bash(start \"\" \"C:\\\\Users\\\\patri\\\\Desktop\\\\x_breath_web\\\\index.html\")",
-      "Bash(firebase hosting:sites:list:*)"
+      "Bash(firebase hosting:sites:list:*)",
+      "Bash(git stash:*)"
     ]
   }
 }

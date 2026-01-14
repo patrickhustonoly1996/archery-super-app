@@ -69,7 +69,7 @@ class _BowTrainingLibraryScreenState extends State<BowTrainingLibraryScreen> {
 
   void _startSession(OlySessionTemplate session) async {
     final provider = context.read<BowTrainingProvider>();
-    await provider.loadSessionForStart(session);
+    await provider.startSession(session);
 
     if (mounted) {
       Navigator.push(

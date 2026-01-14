@@ -71,6 +71,8 @@ class Arrows extends Table {
       integer().withDefault(const Constant(0))(); // 0 for single, 0-2 for tri-spot
   RealColumn get x => real()(); // normalized -1 to +1 from center
   RealColumn get y => real()(); // normalized -1 to +1 from center
+  RealColumn get xMm => real().withDefault(const Constant(0))(); // mm from center (new precision)
+  RealColumn get yMm => real().withDefault(const Constant(0))(); // mm from center (new precision)
   IntColumn get score => integer()();
   BoolColumn get isX => boolean().withDefault(const Constant(false))();
   IntColumn get sequence => integer()(); // order shot within end
@@ -497,6 +499,17 @@ class AppDatabase extends _$AppDatabase {
           ..where((t) =>
               t.date.equals(date) &
               t.score.equals(score)))
+        .getSingleOrNull();
+    return existing != null;
+  }
+
+  /// Check for duplicate by date, score, and round name
+  Future<bool> isDuplicateScoreWithRound(DateTime date, int score, String roundName) async {
+    final existing = await (select(importedScores)
+          ..where((t) =>
+              t.date.equals(date) &
+              t.score.equals(score) &
+              t.roundName.equals(roundName)))
         .getSingleOrNull();
     return existing != null;
   }
