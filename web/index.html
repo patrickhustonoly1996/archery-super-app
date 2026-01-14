@@ -14,6 +14,11 @@
   <meta name="apple-mobile-web-app-title" content="Archery">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/Icon-192.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="icons/Icon-192.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="icons/Icon-192.png">
+
+  <!-- iOS Splash Screens - uses a simple dark background with centered content -->
+  <meta name="apple-mobile-web-app-orientations" content="portrait">
 
   <!-- Android/Chrome PWA -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -62,6 +67,63 @@
     #update-banner:hover {
       background: linear-gradient(90deg, #FFA500, #FF8C00);
     }
+    /* Install prompt */
+    #install-prompt {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #2a2a2a;
+      color: #fff;
+      padding: 16px;
+      padding-bottom: calc(16px + env(safe-area-inset-bottom));
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      z-index: 999998;
+      border-top: 1px solid #FFD700;
+    }
+    #install-prompt .install-content {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    #install-prompt h3 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+      color: #FFD700;
+    }
+    #install-prompt p {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      color: #ccc;
+      line-height: 1.4;
+    }
+    #install-prompt .install-steps {
+      font-size: 13px;
+      color: #aaa;
+    }
+    #install-prompt .install-btn {
+      background: #FFD700;
+      color: #1a1a1a;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-right: 8px;
+    }
+    #install-prompt .dismiss-btn {
+      background: transparent;
+      color: #888;
+      border: 1px solid #444;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    #install-prompt .btn-row {
+      margin-top: 12px;
+    }
   </style>
 </head>
 <body>
@@ -70,7 +132,81 @@
     New version available! Tap to update.
   </div>
 
+  <!-- Install prompt for browser users -->
+  <div id="install-prompt">
+    <div class="install-content">
+      <h3>Install Archery App</h3>
+      <p id="install-instructions"></p>
+      <div class="btn-row">
+        <button class="install-btn" id="install-btn" style="display:none;">Install</button>
+        <button class="dismiss-btn" onclick="dismissInstall()">Not now</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // Install prompt handling
+    let deferredPrompt = null;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                      || window.navigator.standalone === true
+                      || document.referrer.includes('android-app://');
+    const installDismissed = localStorage.getItem('install-dismissed');
+
+    function showInstallPrompt() {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      const instructions = document.getElementById('install-instructions');
+      const installBtn = document.getElementById('install-btn');
+
+      if (isIOS) {
+        instructions.innerHTML = 'Tap the <strong>Share</strong> button below, then <strong>"Add to Home Screen"</strong> to install as an app.';
+      } else if (deferredPrompt) {
+        instructions.textContent = 'Install for quick access and a full-screen experience.';
+        installBtn.style.display = 'inline-block';
+        installBtn.onclick = async () => {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          if (outcome === 'accepted') {
+            document.getElementById('install-prompt').style.display = 'none';
+          }
+          deferredPrompt = null;
+        };
+      } else {
+        instructions.innerHTML = 'Use your browser menu to <strong>"Install"</strong> or <strong>"Add to Home Screen"</strong> for the best experience.';
+      }
+
+      document.getElementById('install-prompt').style.display = 'block';
+    }
+
+    function dismissInstall() {
+      document.getElementById('install-prompt').style.display = 'none';
+      localStorage.setItem('install-dismissed', Date.now());
+    }
+
+    // Capture the install prompt for Android/Chrome
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (!isStandalone && !installDismissed) {
+        showInstallPrompt();
+      }
+    });
+
+    // Show install prompt after app loads (if not already installed)
+    window.addEventListener('load', () => {
+      if (!isStandalone && !installDismissed) {
+        // Delay showing prompt to let the app load first
+        setTimeout(() => {
+          if (!deferredPrompt) { // iOS or other browsers without beforeinstallprompt
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            if (isIOS) {
+              showInstallPrompt();
+            }
+          }
+        }, 3000);
+      }
+    });
+
     // Service Worker Registration with Update Handling
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async function() {
