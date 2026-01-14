@@ -4656,6 +4656,15 @@ class $VolumeEntriesTable extends VolumeEntries
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
@@ -4694,6 +4703,7 @@ class $VolumeEntriesTable extends VolumeEntries
     id,
     date,
     arrowCount,
+    title,
     notes,
     createdAt,
     updatedAt,
@@ -4730,6 +4740,12 @@ class $VolumeEntriesTable extends VolumeEntries
       );
     } else if (isInserting) {
       context.missing(_arrowCountMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
     }
     if (data.containsKey('notes')) {
       context.handle(
@@ -4770,6 +4786,10 @@ class $VolumeEntriesTable extends VolumeEntries
         DriftSqlType.int,
         data['${effectivePrefix}arrow_count'],
       )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      ),
       notes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
@@ -4795,6 +4815,7 @@ class VolumeEntry extends DataClass implements Insertable<VolumeEntry> {
   final String id;
   final DateTime date;
   final int arrowCount;
+  final String? title;
   final String? notes;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -4802,6 +4823,7 @@ class VolumeEntry extends DataClass implements Insertable<VolumeEntry> {
     required this.id,
     required this.date,
     required this.arrowCount,
+    this.title,
     this.notes,
     required this.createdAt,
     required this.updatedAt,
@@ -4812,6 +4834,9 @@ class VolumeEntry extends DataClass implements Insertable<VolumeEntry> {
     map['id'] = Variable<String>(id);
     map['date'] = Variable<DateTime>(date);
     map['arrow_count'] = Variable<int>(arrowCount);
+    if (!nullToAbsent || title != null) {
+      map['title'] = Variable<String>(title);
+    }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
@@ -4825,6 +4850,9 @@ class VolumeEntry extends DataClass implements Insertable<VolumeEntry> {
       id: Value(id),
       date: Value(date),
       arrowCount: Value(arrowCount),
+      title: title == null && nullToAbsent
+          ? const Value.absent()
+          : Value(title),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
@@ -4842,6 +4870,7 @@ class VolumeEntry extends DataClass implements Insertable<VolumeEntry> {
       id: serializer.fromJson<String>(json['id']),
       date: serializer.fromJson<DateTime>(json['date']),
       arrowCount: serializer.fromJson<int>(json['arrowCount']),
+      title: serializer.fromJson<String?>(json['title']),
       notes: serializer.fromJson<String?>(json['notes']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -4854,6 +4883,7 @@ class VolumeEntry extends DataClass implements Insertable<VolumeEntry> {
       'id': serializer.toJson<String>(id),
       'date': serializer.toJson<DateTime>(date),
       'arrowCount': serializer.toJson<int>(arrowCount),
+      'title': serializer.toJson<String?>(title),
       'notes': serializer.toJson<String?>(notes),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -4864,6 +4894,7 @@ class VolumeEntry extends DataClass implements Insertable<VolumeEntry> {
     String? id,
     DateTime? date,
     int? arrowCount,
+    Value<String?> title = const Value.absent(),
     Value<String?> notes = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -4871,6 +4902,7 @@ class VolumeEntry extends DataClass implements Insertable<VolumeEntry> {
     id: id ?? this.id,
     date: date ?? this.date,
     arrowCount: arrowCount ?? this.arrowCount,
+    title: title.present ? title.value : this.title,
     notes: notes.present ? notes.value : this.notes,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -4882,6 +4914,7 @@ class VolumeEntry extends DataClass implements Insertable<VolumeEntry> {
       arrowCount: data.arrowCount.present
           ? data.arrowCount.value
           : this.arrowCount,
+      title: data.title.present ? data.title.value : this.title,
       notes: data.notes.present ? data.notes.value : this.notes,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -4894,6 +4927,7 @@ class VolumeEntry extends DataClass implements Insertable<VolumeEntry> {
           ..write('id: $id, ')
           ..write('date: $date, ')
           ..write('arrowCount: $arrowCount, ')
+          ..write('title: $title, ')
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -4903,7 +4937,7 @@ class VolumeEntry extends DataClass implements Insertable<VolumeEntry> {
 
   @override
   int get hashCode =>
-      Object.hash(id, date, arrowCount, notes, createdAt, updatedAt);
+      Object.hash(id, date, arrowCount, title, notes, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4911,6 +4945,7 @@ class VolumeEntry extends DataClass implements Insertable<VolumeEntry> {
           other.id == this.id &&
           other.date == this.date &&
           other.arrowCount == this.arrowCount &&
+          other.title == this.title &&
           other.notes == this.notes &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -4920,6 +4955,7 @@ class VolumeEntriesCompanion extends UpdateCompanion<VolumeEntry> {
   final Value<String> id;
   final Value<DateTime> date;
   final Value<int> arrowCount;
+  final Value<String?> title;
   final Value<String?> notes;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -4928,6 +4964,7 @@ class VolumeEntriesCompanion extends UpdateCompanion<VolumeEntry> {
     this.id = const Value.absent(),
     this.date = const Value.absent(),
     this.arrowCount = const Value.absent(),
+    this.title = const Value.absent(),
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -4937,6 +4974,7 @@ class VolumeEntriesCompanion extends UpdateCompanion<VolumeEntry> {
     required String id,
     required DateTime date,
     required int arrowCount,
+    this.title = const Value.absent(),
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -4948,6 +4986,7 @@ class VolumeEntriesCompanion extends UpdateCompanion<VolumeEntry> {
     Expression<String>? id,
     Expression<DateTime>? date,
     Expression<int>? arrowCount,
+    Expression<String>? title,
     Expression<String>? notes,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -4957,6 +4996,7 @@ class VolumeEntriesCompanion extends UpdateCompanion<VolumeEntry> {
       if (id != null) 'id': id,
       if (date != null) 'date': date,
       if (arrowCount != null) 'arrow_count': arrowCount,
+      if (title != null) 'title': title,
       if (notes != null) 'notes': notes,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -4968,6 +5008,7 @@ class VolumeEntriesCompanion extends UpdateCompanion<VolumeEntry> {
     Value<String>? id,
     Value<DateTime>? date,
     Value<int>? arrowCount,
+    Value<String?>? title,
     Value<String?>? notes,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -4977,6 +5018,7 @@ class VolumeEntriesCompanion extends UpdateCompanion<VolumeEntry> {
       id: id ?? this.id,
       date: date ?? this.date,
       arrowCount: arrowCount ?? this.arrowCount,
+      title: title ?? this.title,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -4995,6 +5037,9 @@ class VolumeEntriesCompanion extends UpdateCompanion<VolumeEntry> {
     }
     if (arrowCount.present) {
       map['arrow_count'] = Variable<int>(arrowCount.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
     }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
@@ -5017,6 +5062,7 @@ class VolumeEntriesCompanion extends UpdateCompanion<VolumeEntry> {
           ..write('id: $id, ')
           ..write('date: $date, ')
           ..write('arrowCount: $arrowCount, ')
+          ..write('title: $title, ')
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')

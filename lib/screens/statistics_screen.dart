@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../utils/volume_calculator.dart';
+import 'volume_import_screen.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -41,6 +42,19 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       appBar: AppBar(
         title: const Text('Training Volume'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.file_upload_outlined),
+            tooltip: 'Import CSV',
+            onPressed: () async {
+              final result = await Navigator.push<bool>(
+                context,
+                MaterialPageRoute(builder: (_) => const VolumeImportScreen()),
+              );
+              if (result == true) {
+                _loadVolumeData();
+              }
+            },
+          ),
           PopupMenuButton<int>(
             initialValue: _selectedDays,
             icon: const Icon(Icons.filter_list),
@@ -94,12 +108,27 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             style: TextStyle(
               color: AppColors.textMuted,
             ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.lg),
           ElevatedButton.icon(
             onPressed: () => _showAddVolumeDialog(),
             icon: const Icon(Icons.add),
             label: const Text('Add Volume'),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          OutlinedButton.icon(
+            onPressed: () async {
+              final result = await Navigator.push<bool>(
+                context,
+                MaterialPageRoute(builder: (_) => const VolumeImportScreen()),
+              );
+              if (result == true) {
+                _loadVolumeData();
+              }
+            },
+            icon: const Icon(Icons.file_upload_outlined),
+            label: const Text('Import from CSV'),
           ),
         ],
       ),
@@ -472,13 +501,28 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Recent Entries',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Text(
+                  'Recent Entries',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () => _showSpreadsheetView(),
+                  icon: const Icon(Icons.table_chart, size: 16),
+                  label: const Text('View All'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.gold,
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.md),
             ...recentEntries.map((entry) => _buildEntryRow(entry)),
@@ -489,35 +533,63 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   Widget _buildEntryRow(VolumeEntry entry) {
+    final dateStr = '${entry.date.day}/${entry.date.month}';
+    final title = entry.title ?? '';
+
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
         children: [
-          Text(
-            '${entry.date.day}/${entry.date.month}/${entry.date.year}',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 14,
+          SizedBox(
+            width: 48,
+            child: Text(
+              dateStr,
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+              ),
             ),
           ),
-          const Spacer(),
+          Expanded(
+            child: Text(
+              title.isNotEmpty ? title : '-',
+              style: TextStyle(
+                color: title.isNotEmpty ? AppColors.textPrimary : AppColors.textMuted,
+                fontSize: 13,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           Text(
-            '${entry.arrowCount} arrows',
+            '${entry.arrowCount}',
             style: TextStyle(
               color: AppColors.gold,
               fontSize: 14,
               fontWeight: FontWeight.bold,
             ),
           ),
-          if (entry.notes != null && entry.notes!.isNotEmpty) ...[
-            const SizedBox(width: AppSpacing.sm),
-            Icon(
-              Icons.note,
-              size: 16,
-              color: AppColors.textMuted,
-            ),
-          ],
         ],
+      ),
+    );
+  }
+
+  void _showSpreadsheetView() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.backgroundDark,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => _VolumeSpreadsheet(
+          entries: _volumeEntries,
+          scrollController: scrollController,
+          onEntryUpdated: () {
+            _loadVolumeData();
+          },
+        ),
       ),
     );
   }
@@ -525,6 +597,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Future<void> _showAddVolumeDialog() async {
     final dateController = TextEditingController();
     final arrowCountController = TextEditingController();
+    final titleController = TextEditingController();
     final notesController = TextEditingController();
     DateTime selectedDate = DateTime.now();
 
@@ -536,49 +609,59 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Add Volume Entry'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: dateController,
-              decoration: const InputDecoration(
-                labelText: 'Date',
-                suffixIcon: Icon(Icons.calendar_today),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: dateController,
+                decoration: const InputDecoration(
+                  labelText: 'Date',
+                  suffixIcon: Icon(Icons.calendar_today),
+                ),
+                readOnly: true,
+                onTap: () async {
+                  final date = await showDatePicker(
+                    context: context,
+                    initialDate: selectedDate,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime.now(),
+                  );
+                  if (date != null) {
+                    selectedDate = date;
+                    dateController.text = '${date.day}/${date.month}/${date.year}';
+                  }
+                },
               ),
-              readOnly: true,
-              onTap: () async {
-                final date = await showDatePicker(
-                  context: context,
-                  initialDate: selectedDate,
-                  firstDate: DateTime(2020),
-                  lastDate: DateTime.now(),
-                );
-                if (date != null) {
-                  selectedDate = date;
-                  dateController.text = '${date.day}/${date.month}/${date.year}';
-                }
-              },
-            ),
-            const SizedBox(height: AppSpacing.md),
-            TextField(
-              controller: arrowCountController,
-              decoration: const InputDecoration(
-                labelText: 'Arrow Count',
-                hintText: 'e.g., 120',
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: arrowCountController,
+                decoration: const InputDecoration(
+                  labelText: 'Arrow Count',
+                  hintText: 'e.g., 120',
+                ),
+                keyboardType: TextInputType.number,
+                autofocus: true,
               ),
-              keyboardType: TextInputType.number,
-              autofocus: true,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            TextField(
-              controller: notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optional)',
-                hintText: 'e.g., Competition day',
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Title (optional)',
+                  hintText: 'e.g., World Cup, Practice',
+                ),
               ),
-              maxLines: 2,
-            ),
-          ],
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: notesController,
+                decoration: const InputDecoration(
+                  labelText: 'Notes (optional)',
+                  hintText: 'Any additional details',
+                ),
+                maxLines: 2,
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -599,6 +682,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               await db.setVolumeForDate(
                 selectedDate,
                 arrowCount,
+                title: titleController.text.isEmpty ? null : titleController.text,
                 notes: notesController.text.isEmpty ? null : notesController.text,
               );
 
@@ -612,6 +696,298 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             child: const Text('Add'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Spreadsheet view for all volume entries
+class _VolumeSpreadsheet extends StatelessWidget {
+  final List<VolumeEntry> entries;
+  final ScrollController scrollController;
+  final VoidCallback onEntryUpdated;
+
+  const _VolumeSpreadsheet({
+    required this.entries,
+    required this.scrollController,
+    required this.onEntryUpdated,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final sortedEntries = List<VolumeEntry>.from(entries)
+      ..sort((a, b) => b.date.compareTo(a.date));
+
+    return Column(
+      children: [
+        // Header
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceDark,
+            border: Border(
+              bottom: BorderSide(color: AppColors.surfaceLight),
+            ),
+          ),
+          child: Row(
+            children: [
+              const SizedBox(width: 4),
+              Container(
+                width: 4,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.textMuted,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Volume Data',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${sortedEntries.length} entries',
+                style: TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
+                iconSize: 20,
+              ),
+            ],
+          ),
+        ),
+
+        // Column headers
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          color: AppColors.surfaceDark.withOpacity(0.5),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 80,
+                child: Text(
+                  'Date',
+                  style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 60,
+                child: Text(
+                  'Arrows',
+                  style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Text(
+                  'Title',
+                  style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  'Notes',
+                  style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Data rows
+        Expanded(
+          child: ListView.builder(
+            controller: scrollController,
+            itemCount: sortedEntries.length,
+            itemBuilder: (context, index) {
+              final entry = sortedEntries[index];
+              return _SpreadsheetRow(
+                entry: entry,
+                isEven: index.isEven,
+                onTap: () => _showEditDialog(context, entry),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showEditDialog(BuildContext context, VolumeEntry entry) {
+    final arrowController = TextEditingController(text: entry.arrowCount.toString());
+    final titleController = TextEditingController(text: entry.title ?? '');
+    final notesController = TextEditingController(text: entry.notes ?? '');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        title: Text('${entry.date.day}/${entry.date.month}/${entry.date.year}'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: arrowController,
+                decoration: const InputDecoration(labelText: 'Arrow Count'),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(labelText: 'Title'),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: notesController,
+                decoration: const InputDecoration(labelText: 'Notes'),
+                maxLines: 2,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              final db = Provider.of<AppDatabase>(ctx, listen: false);
+              await db.deleteVolumeEntry(entry.id);
+              Navigator.pop(ctx);
+              onEntryUpdated();
+              Navigator.pop(context); // Close spreadsheet to refresh
+            },
+            child: Text('Delete', style: TextStyle(color: AppColors.error)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final arrowCount = int.tryParse(arrowController.text);
+              if (arrowCount == null || arrowCount <= 0) return;
+
+              final db = Provider.of<AppDatabase>(ctx, listen: false);
+              await db.setVolumeForDate(
+                entry.date,
+                arrowCount,
+                title: titleController.text.isEmpty ? null : titleController.text,
+                notes: notesController.text.isEmpty ? null : notesController.text,
+              );
+              Navigator.pop(ctx);
+              onEntryUpdated();
+              Navigator.pop(context); // Close spreadsheet to refresh
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SpreadsheetRow extends StatelessWidget {
+  final VolumeEntry entry;
+  final bool isEven;
+  final VoidCallback onTap;
+
+  const _SpreadsheetRow({
+    required this.entry,
+    required this.isEven,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: isEven ? Colors.transparent : AppColors.surfaceDark.withOpacity(0.3),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 80,
+                child: Text(
+                  '${entry.date.day}/${entry.date.month}/${entry.date.year}',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 60,
+                child: Text(
+                  '${entry.arrowCount}',
+                  style: TextStyle(
+                    color: AppColors.gold,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Text(
+                  entry.title ?? '-',
+                  style: TextStyle(
+                    color: entry.title != null ? AppColors.textPrimary : AppColors.textMuted,
+                    fontSize: 12,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  entry.notes ?? '-',
+                  style: TextStyle(
+                    color: entry.notes != null ? AppColors.textSecondary : AppColors.textMuted,
+                    fontSize: 12,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
