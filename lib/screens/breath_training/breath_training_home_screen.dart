@@ -279,7 +279,10 @@ class _SettingsSheet extends StatefulWidget {
 class _SettingsSheetState extends State<_SettingsSheet> {
   int _holdDuration = 15;
   int _rounds = 5;
-  bool _beepsEnabled = false;
+  int _difficulty = 1; // 0=beginner, 1=intermediate, 2=advanced
+
+  static const List<String> _difficultyLabels = ['Beginner', 'Intermediate', 'Advanced'];
+  static const List<String> _difficultyDescriptions = ['+10%/round', '+20%/round', '+30%/round'];
 
   @override
   void initState() {
@@ -290,12 +293,12 @@ class _SettingsSheetState extends State<_SettingsSheet> {
   Future<void> _loadSettings() async {
     final holdDuration = await widget.service.getHoldDuration();
     final rounds = await widget.service.getHoldSessionRounds();
-    final beepsEnabled = await widget.service.getBeepsEnabled();
+    final difficulty = await widget.service.getDifficultyLevel();
     if (mounted) {
       setState(() {
         _holdDuration = holdDuration;
         _rounds = rounds;
-        _beepsEnabled = beepsEnabled;
+        _difficulty = difficulty;
       });
     }
   }
@@ -388,59 +391,44 @@ class _SettingsSheetState extends State<_SettingsSheet> {
             ],
           ),
 
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
 
-          // Beep signals toggle
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: AppColors.backgroundDark,
-              borderRadius: BorderRadius.circular(AppSpacing.sm),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.volume_up_outlined,
-                  color: AppColors.gold,
-                  size: 24,
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Beep Signals',
-                        style: Theme.of(context).textTheme.labelLarge,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'One beep for inhale, two for exhale',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textMuted,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-                Switch(
-                  value: _beepsEnabled,
-                  activeColor: AppColors.gold,
-                  onChanged: (value) async {
-                    setState(() => _beepsEnabled = value);
-                    await widget.service.setBeepsEnabled(value);
+          // Difficulty level
+          Text(
+            'Difficulty Level',
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: AppSpacing.sm,
+            children: List.generate(3, (index) {
+              final isSelected = _difficulty == index;
+              return ChoiceChip(
+                label: Text('${_difficultyLabels[index]} (${_difficultyDescriptions[index]})'),
+                selected: isSelected,
+                onSelected: (selected) async {
+                  if (selected) {
+                    setState(() => _difficulty = index);
+                    await widget.service.setDifficultyLevel(index);
                     widget.onSettingsChanged();
-                  },
+                  }
+                },
+                selectedColor: AppColors.gold,
+                backgroundColor: AppColors.surfaceDark,
+                labelStyle: TextStyle(
+                  color: isSelected ? AppColors.backgroundDark : AppColors.textPrimary,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  fontSize: 12,
                 ),
-              ],
-            ),
+              );
+            }),
           ),
 
           const SizedBox(height: AppSpacing.lg),
 
           // Info
           Text(
-            'Hold settings apply to Breath Hold sessions. The session will progressively increase difficulty.',
+            'These settings apply to Breath Hold sessions. The session will progressively increase difficulty.',
             style: Theme.of(context).textTheme.bodySmall,
           ),
 
