@@ -212,60 +212,58 @@ class _HomeScreenState extends State<HomeScreen>
                 // Top bar
                 _TopBar(onSettings: () => _showSettingsMenu(context)),
 
-                // Main content area
+                // Main content area - collapsing header + menu
                 Expanded(
                   child: AnimatedBuilder(
                     animation: _introController,
                     builder: (context, _) {
-                      final slideUp = Tween<Offset>(
-                        begin: Offset.zero,
-                        end: const Offset(0, -0.15),
-                      ).animate(CurvedAnimation(
-                        parent: _introController,
-                        curve: Curves.easeOutCubic,
-                      ));
-
-                      final logoScale = Tween<double>(
-                        begin: 1.0,
-                        end: 0.6,
-                      ).animate(CurvedAnimation(
-                        parent: _introController,
-                        curve: Curves.easeOutCubic,
-                      ));
-
                       final menuOpacity = CurvedAnimation(
                         parent: _introController,
                         curve: const Interval(0.3, 1.0, curve: Curves.easeOut),
                       );
 
-                      return Column(
-                        children: [
-                          // Logo section - slides up and shrinks
-                          SlideTransition(
-                            position: slideUp,
-                            child: ScaleTransition(
-                              scale: logoScale,
-                              child: _PixelLogo(
-                                pulseController: _pulseController,
-                              ),
+                      return CustomScrollView(
+                        slivers: [
+                          // Collapsing logo header
+                          SliverPersistentHeader(
+                            pinned: true,
+                            delegate: _CollapsingLogoHeader(
+                              pulseController: _pulseController,
+                              expandedHeight: 200,
+                              collapsedHeight: 56,
                             ),
                           ),
 
-                          // Menu section - fades in
-                          Expanded(
-                            child: FadeTransition(
-                              opacity: menuOpacity,
-                              child: _introComplete
-                                  ? _MenuSection(
-                                      items: _menuItems,
-                                      selectedIndex: _selectedIndex,
-                                      onSelect: (i) =>
-                                          setState(() => _selectedIndex = i),
-                                      pulseController: _pulseController,
-                                    )
-                                  : const SizedBox.shrink(),
+                          // Menu items
+                          if (_introComplete)
+                            SliverPadding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                              sliver: SliverList(
+                                delegate: SliverChildBuilderDelegate(
+                                  (context, index) {
+                                    final item = _menuItems[index];
+                                    final isSelected = index == _selectedIndex;
+
+                                    return FadeTransition(
+                                      opacity: menuOpacity,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(bottom: 6),
+                                        child: _MenuItemWidget(
+                                          item: item,
+                                          isSelected: isSelected,
+                                          pulseController: _pulseController,
+                                          onTap: () {
+                                            setState(() => _selectedIndex = index);
+                                            item.onTap();
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  childCount: _menuItems.length,
+                                ),
+                              ),
                             ),
-                          ),
                         ],
                       );
                     },
@@ -421,98 +419,6 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-// =============================================================================
-// PIXEL LOGO
-// =============================================================================
-
-class _PixelLogo extends StatelessWidget {
-  final AnimationController pulseController;
-
-  const _PixelLogo({required this.pulseController});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 40),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Pixel arrow icon
-          AnimatedBuilder(
-            animation: pulseController,
-            builder: (context, child) {
-              final glow = 0.3 + (pulseController.value * 0.3);
-              return Container(
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.gold.withValues(alpha: glow),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: const _PixelArrowIcon(size: 64),
-              );
-            },
-          ),
-
-          const SizedBox(height: 24),
-
-          // ARCHERY text
-          Text(
-            'ARCHERY',
-            style: TextStyle(
-              fontFamily: AppFonts.pixel,
-              fontSize: 20,
-              color: AppColors.gold,
-              letterSpacing: 4,
-              shadows: [
-                Shadow(
-                  color: AppColors.gold.withValues(alpha: 0.5),
-                  blurRadius: 10,
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          // Decorative line
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _PixelDot(),
-              Container(
-                width: 60,
-                height: 2,
-                color: AppColors.gold.withValues(alpha: 0.4),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'SUPER APP',
-                style: TextStyle(
-                  fontFamily: AppFonts.pixel,
-                  fontSize: 8,
-                  color: AppColors.textMuted,
-                  letterSpacing: 2,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                width: 60,
-                height: 2,
-                color: AppColors.gold.withValues(alpha: 0.4),
-              ),
-              _PixelDot(),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _PixelDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -520,6 +426,232 @@ class _PixelDot extends StatelessWidget {
       width: 6,
       height: 6,
       color: AppColors.gold,
+    );
+  }
+}
+
+// =============================================================================
+// COLLAPSING LOGO HEADER - Smooth scroll-linked collapse effect
+// =============================================================================
+
+class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
+  final AnimationController pulseController;
+  final double expandedHeight;
+  final double collapsedHeight;
+
+  _CollapsingLogoHeader({
+    required this.pulseController,
+    required this.expandedHeight,
+    required this.collapsedHeight,
+  });
+
+  @override
+  double get maxExtent => expandedHeight;
+
+  @override
+  double get minExtent => collapsedHeight;
+
+  @override
+  bool shouldRebuild(covariant _CollapsingLogoHeader oldDelegate) =>
+      expandedHeight != oldDelegate.expandedHeight ||
+      collapsedHeight != oldDelegate.collapsedHeight;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    // Calculate collapse progress (0 = expanded, 1 = collapsed)
+    final progress = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
+    final expandedProgress = 1.0 - progress;
+
+    // Interpolated values
+    final iconSize = 64 * (0.5 + (expandedProgress * 0.5)); // 32-64
+    final titleSize = 20 * (0.6 + (expandedProgress * 0.4)); // 12-20
+    final subtitleOpacity = expandedProgress; // Fades out completely
+    final decorationOpacity = expandedProgress * 0.4; // Fades faster
+    final verticalPadding = 40 * expandedProgress + 8; // 8-48
+    final spacing = 24 * expandedProgress + 4; // 4-28
+
+    return AnimatedBuilder(
+      animation: pulseController,
+      builder: (context, _) {
+        final glow = 0.3 + (pulseController.value * 0.3);
+
+        return Container(
+          color: AppColors.backgroundDark,
+          child: Stack(
+            children: [
+              // Subtle bottom border when collapsed
+              if (progress > 0.5)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    height: 1,
+                    color: AppColors.gold.withValues(alpha: (progress - 0.5) * 0.4),
+                  ),
+                ),
+
+              // Main content
+              Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: verticalPadding),
+                  child: progress < 0.85
+                      ? _buildExpandedLayout(
+                          iconSize: iconSize,
+                          titleSize: titleSize,
+                          spacing: spacing,
+                          subtitleOpacity: subtitleOpacity,
+                          decorationOpacity: decorationOpacity,
+                          glow: glow,
+                        )
+                      : _buildCollapsedLayout(glow: glow),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildExpandedLayout({
+    required double iconSize,
+    required double titleSize,
+    required double spacing,
+    required double subtitleOpacity,
+    required double decorationOpacity,
+    required double glow,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Pulsing arrow icon
+        Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.gold.withValues(alpha: glow),
+                blurRadius: 20,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: _PixelArrowIcon(size: iconSize),
+        ),
+
+        SizedBox(height: spacing),
+
+        // ARCHERY title
+        Text(
+          'ARCHERY',
+          style: TextStyle(
+            fontFamily: AppFonts.pixel,
+            fontSize: titleSize,
+            color: AppColors.gold,
+            letterSpacing: 4,
+            shadows: [
+              Shadow(
+                color: AppColors.gold.withValues(alpha: 0.5),
+                blurRadius: 10,
+              ),
+            ],
+          ),
+        ),
+
+        // Decorative line + subtitle (fades out on collapse)
+        if (subtitleOpacity > 0.1) ...[
+          SizedBox(height: 8 * subtitleOpacity),
+          Opacity(
+            opacity: subtitleOpacity,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _PixelDot(),
+                Container(
+                  width: 60 * subtitleOpacity,
+                  height: 2,
+                  color: AppColors.gold.withValues(alpha: decorationOpacity),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'SUPER APP',
+                  style: TextStyle(
+                    fontFamily: AppFonts.pixel,
+                    fontSize: 8,
+                    color: AppColors.textMuted.withValues(alpha: subtitleOpacity),
+                    letterSpacing: 2,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 60 * subtitleOpacity,
+                  height: 2,
+                  color: AppColors.gold.withValues(alpha: decorationOpacity),
+                ),
+                _PixelDot(),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildCollapsedLayout({required double glow}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Compact icon
+        Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.gold.withValues(alpha: glow * 0.5),
+                blurRadius: 12,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: const _PixelArrowIcon(size: 28),
+        ),
+        const SizedBox(width: 12),
+        // Inline title
+        Text(
+          'ARCHERY',
+          style: TextStyle(
+            fontFamily: AppFonts.pixel,
+            fontSize: 12,
+            color: AppColors.gold,
+            letterSpacing: 2,
+            shadows: [
+              Shadow(
+                color: AppColors.gold.withValues(alpha: 0.3),
+                blurRadius: 6,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 6),
+        Container(
+          width: 4,
+          height: 4,
+          color: AppColors.gold.withValues(alpha: 0.5),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          'SUPER APP',
+          style: TextStyle(
+            fontFamily: AppFonts.pixel,
+            fontSize: 6,
+            color: AppColors.textMuted,
+            letterSpacing: 1,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -956,47 +1088,8 @@ class _PixelMenuIconPainter extends CustomPainter {
 }
 
 // =============================================================================
-// MENU SECTION
+// MENU ITEM WIDGET
 // =============================================================================
-
-class _MenuSection extends StatelessWidget {
-  final List<_MenuItem> items;
-  final int selectedIndex;
-  final ValueChanged<int> onSelect;
-  final AnimationController pulseController;
-
-  const _MenuSection({
-    required this.items,
-    required this.selectedIndex,
-    required this.onSelect,
-    required this.pulseController,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        final isSelected = index == selectedIndex;
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: _MenuItemWidget(
-            item: item,
-            isSelected: isSelected,
-            pulseController: pulseController,
-            onTap: () {
-              onSelect(index);
-              item.onTap();
-            },
-          ),
-        );
-      },
-    );
-  }
-}
 
 class _MenuItemWidget extends StatelessWidget {
   final _MenuItem item;
