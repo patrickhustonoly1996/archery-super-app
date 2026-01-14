@@ -33,10 +33,13 @@ Think of it like this: You wouldn't trust a sight setting without verifying it. 
 
 | What | Risk Without Tests | Priority |
 |------|-------------------|----------|
-| Data saves correctly | Training logs could be lost | High |
-| Score imports work | Historical data could fail | Medium |
+| Volume EMA calculations | Training load analysis could be wrong | High |
+| Handicap calculations | Progress tracking could be inaccurate | High |
+| Database save/load | Training logs could be lost | High |
+| Session state management | Session flow could break | Medium |
+| Score imports | Historical data could fail | Medium |
 | Timer accuracy | Bow training timing could drift | Medium |
-| Session history | Past sessions could display wrong | Medium |
+| Charts rendering | Visual data could display wrong | Low |
 
 ---
 
@@ -131,25 +134,143 @@ flutter test --reporter=expanded
 
 ---
 
-## Priority Testing Roadmap
+## Complete Testing Roadmap
 
-### Now (Protecting Core Features)
-- [x] Arrow coordinate math
-- [x] Group analysis calculations
-- [x] Target face widget rendering
-- [x] Scoring algorithm
-- [x] Coordinate system conversions
+### Phase 1: Core Math (COMPLETE)
 
-### Next (Protecting Data)
-- [ ] Database save/load operations
-- [ ] Session creation and completion
-- [ ] Score import validation
-- [ ] Historical data display
+| Component | File | Tests | Status |
+|-----------|------|-------|--------|
+| Arrow coordinates | `models/arrow_coordinate.dart` | ~30 | Done |
+| Group analysis | `models/group_analysis.dart` | ~20 | Done |
+| Coordinate system | `utils/target_coordinate_system.dart` | ~35 | Done |
+| Ring scoring | (in coordinate system) | ~15 | Done |
 
-### Later (Protecting User Flows)
-- [ ] Full plotting session: touch to save
-- [ ] Bow training: timer accuracy and preset loading
-- [ ] Score history: filter and display
+### Phase 2: Calculation Utilities (HIGH PRIORITY)
+
+| Component | File | Why Critical | Status |
+|-----------|------|--------------|--------|
+| Volume calculator | `utils/volume_calculator.dart` | Training load EMAs (7/28/90 day) | TODO |
+| Handicap calculator | `utils/handicap_calculator.dart` | Progress tracking accuracy | TODO |
+| Performance profile | `utils/performance_profile.dart` | Radar chart data | TODO |
+| Smart zoom | `utils/smart_zoom.dart` | Auto-zoom logic | TODO |
+
+### Phase 3: Widget Tests (MEDIUM PRIORITY)
+
+| Component | File | Status |
+|-----------|------|--------|
+| Target face | `widgets/target_face.dart` | Done |
+| Rolling average | `widgets/rolling_average_widget.dart` | Done |
+| Scorecard | `widgets/scorecard_widget.dart` | TODO |
+| Volume chart | `widgets/volume_chart.dart` | TODO |
+| Handicap chart | `widgets/handicap_chart.dart` | TODO |
+| Radar chart | `widgets/radar_chart.dart` | TODO |
+| Group centre | `widgets/group_centre_widget.dart` | TODO |
+| Breathing visualizer | `widgets/breathing_visualizer.dart` | TODO |
+| Shaft selector | `widgets/shaft_selector_bottom_sheet.dart` | TODO |
+
+### Phase 4: Database & Services (HIGH PRIORITY)
+
+| Component | File | Why Critical | Status |
+|-----------|------|--------------|--------|
+| Database operations | `db/database.dart` | Data persistence | TODO |
+| Round types seed | `db/round_types_seed.dart` | Scoring rules | TODO |
+| OLY training seed | `db/oly_training_seed.dart` | Training presets | TODO |
+| Auth service | `services/auth_service.dart` | Login/logout | TODO |
+| Firestore sync | `services/firestore_sync_service.dart` | Cloud backup | TODO |
+| Breath training service | `services/breath_training_service.dart` | Session logic | TODO |
+| Beep service | `services/beep_service.dart` | Audio timing | TODO |
+
+### Phase 5: State Management (MEDIUM PRIORITY)
+
+| Component | File | What It Manages | Status |
+|-----------|------|-----------------|--------|
+| Session provider | `providers/session_provider.dart` | Current session state | TODO |
+| Bow training provider | `providers/bow_training_provider.dart` | Timer & preset state | TODO |
+| Breath training provider | `providers/breath_training_provider.dart` | Breath session state | TODO |
+| Equipment provider | `providers/equipment_provider.dart` | Bow/arrow selection | TODO |
+| Active sessions provider | `providers/active_sessions_provider.dart` | Session tracking | TODO |
+
+### Phase 6: Screen Tests (LOW PRIORITY)
+
+| Screen | File | Status |
+|--------|------|--------|
+| Plotting | `screens/plotting_screen.dart` | TODO |
+| Bow training home | `screens/bow_training_home_screen.dart` | TODO |
+| Bow training | `screens/bow_training_screen.dart` | TODO |
+| Bow training library | `screens/bow_training_library_screen.dart` | TODO |
+| Breath training home | `screens/breath_training/breath_training_home_screen.dart` | TODO |
+| Paced breathing | `screens/breath_training/paced_breathing_screen.dart` | TODO |
+| Breath hold | `screens/breath_training/breath_hold_screen.dart` | TODO |
+| Patrick breath | `screens/breath_training/patrick_breath_screen.dart` | TODO |
+| History | `screens/history_screen.dart` | TODO |
+| Session detail | `screens/session_detail_screen.dart` | TODO |
+| Session complete | `screens/session_complete_screen.dart` | TODO |
+| Session start | `screens/session_start_screen.dart` | TODO |
+| Equipment | `screens/equipment_screen.dart` | TODO |
+| Bow form | `screens/bow_form_screen.dart` | TODO |
+| Quiver form | `screens/quiver_form_screen.dart` | TODO |
+| Shaft management | `screens/shaft_management_screen.dart` | TODO |
+| Import | `screens/import_screen.dart` | TODO |
+| Volume import | `screens/volume_import_screen.dart` | TODO |
+| Statistics | `screens/statistics_screen.dart` | TODO |
+| Scores graph | `screens/scores_graph_screen.dart` | TODO |
+| Performance profile | `screens/performance_profile_screen.dart` | TODO |
+| Delayed camera | `screens/delayed_camera_screen.dart` | TODO |
+| Login | `screens/login_screen.dart` | TODO |
+| Home | `screens/home_screen.dart` | TODO |
+
+### Phase 7: Integration Tests (FUTURE)
+
+| Flow | What It Tests | Status |
+|------|---------------|--------|
+| Full plotting session | Touch → Plot → Save → Display | TODO |
+| Score import | File → Parse → Validate → Store | TODO |
+| Bow training cycle | Start → Timer → Complete → Log | TODO |
+| Breath training cycle | Select → Run → Complete → Log | TODO |
+| Session lifecycle | Start → Record → End → Review | TODO |
+| Equipment setup | Add bow → Add arrows → Select | TODO |
+
+### Phase 8: Golden Tests (FUTURE)
+
+Visual regression tests for:
+- Target face appearance at different sizes
+- Chart rendering consistency
+- Theme/color accuracy
+
+---
+
+## Priority Summary
+
+**Test these first (calculations users rely on):**
+1. Volume calculator (EMA math)
+2. Handicap calculator (progress tracking)
+3. Database operations (data safety)
+
+**Test these next (core features):**
+4. Session provider (session flow)
+5. Bow training provider (timer accuracy)
+6. Scorecard widget (score display)
+
+**Test later (visual/UI):**
+7. Charts and visualizations
+8. Screen layouts
+9. Golden tests
+
+---
+
+## Current Coverage
+
+| Category | Total Files | Tested | Coverage |
+|----------|-------------|--------|----------|
+| Models | 2 | 2 | 100% |
+| Utils | 7 | 1 | 14% |
+| Widgets | 10 | 2 | 20% |
+| Providers | 5 | 0 | 0% |
+| Services | 4 | 0 | 0% |
+| Database | 3 | 0 | 0% |
+| Screens | 20+ | 0 | 0% |
+
+**Overall:** Core math is solid. Calculation utilities and data layer need attention.
 
 ---
 
