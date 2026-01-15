@@ -55,6 +55,26 @@ Hard to reverse → ask ONE question. Reversible → do it, state what you did.
 - Test core interactions work reliably before adding complexity
 - Simple and correct beats feature-rich and flaky
 
+## Code Review & Upgrade Roadmap
+
+**[Full Code Review Document](./docs/CODE_REVIEW_AND_UPGRADE_ROADMAP.md)**
+
+A comprehensive code review was conducted in January 2026 covering all aspects of the codebase. Key findings:
+
+**Overall Grade: B** - Good foundation, needs polish in error handling and testing.
+
+**Critical P0 Issues to Address:**
+1. Timer doesn't pause when app backgrounds (bow training ruined)
+2. Silent CSV parsing failures (user thinks import worked)
+3. ID collision potential with millisecond timestamps
+
+**Best Patterns to Follow:**
+- `SessionDetailScreen` - reference implementation for loading/error/empty states
+- `ActiveSessionsProvider` - excellent session persistence pattern
+- `HandicapCalculator` - well-documented utility with clear structure
+
+**Step-by-Step Upgrade Roadmap:** See Phase 1-5 in the full document for prioritized fixes.
+
 ---
 
 ## Multi-Agent System
