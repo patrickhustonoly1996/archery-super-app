@@ -25,6 +25,10 @@ class VolumeCalculator {
 
   /// Calculate EMA for all entries in a dataset
   /// Returns a list of EMA values corresponding to each date
+  ///
+  /// The EMA is seeded with the average of the first `period` values (or all
+  /// available values if fewer than `period` exist). This prevents the EMA
+  /// from starting at an extreme value and "dropping down" to the true average.
   static List<double> calculateEMATimeSeries({
     required List<DailyVolume> data,
     required int period,
@@ -34,8 +38,13 @@ class VolumeCalculator {
     final multiplier = 2.0 / (period + 1);
     final emaValues = <double>[];
 
-    // Start with first value
-    double ema = data.first.arrowCount.toDouble();
+    // Calculate initial seed value: average of first N values (up to period)
+    final seedCount = data.length < period ? data.length : period;
+    double seedSum = 0;
+    for (int i = 0; i < seedCount; i++) {
+      seedSum += data[i].arrowCount;
+    }
+    double ema = seedSum / seedCount;
     emaValues.add(ema);
 
     // Calculate EMA for rest of values

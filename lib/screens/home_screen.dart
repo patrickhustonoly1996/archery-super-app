@@ -104,15 +104,6 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     ),
     _MenuItem(
-      label: 'PROFILE',
-      sublabel: 'Performance radar',
-      pixelIcon: PixelIconType.radar,
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const PerformanceProfileScreen()),
-      ),
-    ),
-    _MenuItem(
       label: 'BOW DRILLS',
       sublabel: 'Timed training',
       pixelIcon: PixelIconType.bow,
@@ -138,6 +129,24 @@ class _HomeScreenState extends State<HomeScreen>
         context,
         MaterialPageRoute(builder: (_) => const BreathTrainingHomeScreen()),
       ).then((_) => _refreshSessions()),
+    ),
+    _MenuItem(
+      label: 'GEAR',
+      sublabel: 'Bows & arrows',
+      pixelIcon: PixelIconType.gear,
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const EquipmentScreen()),
+      ),
+    ),
+    _MenuItem(
+      label: 'PROFILE',
+      sublabel: 'Performance radar',
+      pixelIcon: PixelIconType.radar,
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const PerformanceProfileScreen()),
+      ),
     ),
   ];
 
@@ -420,7 +429,7 @@ class _HomeScreenState extends State<HomeScreen>
 // DATA MODEL
 // =============================================================================
 
-enum PixelIconType { resume, target, scroll, chart, bow, lungs, video, radar }
+enum PixelIconType { resume, target, scroll, chart, bow, lungs, video, radar, gear }
 
 class _MenuItem {
   final String label;
@@ -861,6 +870,8 @@ class _PixelMenuIconPainter extends CustomPainter {
         _drawVideo(canvas, p, paint, dimPaint);
       case PixelIconType.radar:
         _drawRadar(canvas, p, paint, dimPaint);
+      case PixelIconType.gear:
+        _drawGear(canvas, p, paint, dimPaint);
     }
   }
 
@@ -1150,6 +1161,57 @@ class _PixelMenuIconPainter extends CustomPainter {
     _px(canvas, 4, 4, p, paint);
     _px(canvas, 3, 3, p, paint);
     // Center dot
+    _px(canvas, 5, 5, p, paint);
+    _px(canvas, 6, 5, p, paint);
+    _px(canvas, 5, 6, p, paint);
+    _px(canvas, 6, 6, p, paint);
+  }
+
+  // Gear/cog for equipment
+  void _drawGear(Canvas canvas, double p, Paint paint, Paint dimPaint) {
+    // Outer teeth (8 teeth around)
+    // Top
+    _px(canvas, 5, 1, p, paint);
+    _px(canvas, 6, 1, p, paint);
+    // Top-right
+    _px(canvas, 9, 3, p, paint);
+    _px(canvas, 9, 4, p, paint);
+    // Right
+    _px(canvas, 10, 5, p, paint);
+    _px(canvas, 10, 6, p, paint);
+    // Bottom-right
+    _px(canvas, 9, 8, p, paint);
+    _px(canvas, 8, 9, p, paint);
+    // Bottom
+    _px(canvas, 5, 10, p, paint);
+    _px(canvas, 6, 10, p, paint);
+    // Bottom-left
+    _px(canvas, 2, 8, p, paint);
+    _px(canvas, 3, 9, p, paint);
+    // Left
+    _px(canvas, 1, 5, p, paint);
+    _px(canvas, 1, 6, p, paint);
+    // Top-left
+    _px(canvas, 2, 3, p, paint);
+    _px(canvas, 3, 2, p, paint);
+    // Inner circle (gear body)
+    _px(canvas, 4, 3, p, dimPaint);
+    _px(canvas, 5, 3, p, dimPaint);
+    _px(canvas, 6, 3, p, dimPaint);
+    _px(canvas, 7, 3, p, dimPaint);
+    _px(canvas, 3, 4, p, dimPaint);
+    _px(canvas, 8, 4, p, dimPaint);
+    _px(canvas, 3, 5, p, dimPaint);
+    _px(canvas, 8, 5, p, dimPaint);
+    _px(canvas, 3, 6, p, dimPaint);
+    _px(canvas, 8, 6, p, dimPaint);
+    _px(canvas, 3, 7, p, dimPaint);
+    _px(canvas, 8, 7, p, dimPaint);
+    _px(canvas, 4, 8, p, dimPaint);
+    _px(canvas, 5, 8, p, dimPaint);
+    _px(canvas, 6, 8, p, dimPaint);
+    _px(canvas, 7, 8, p, dimPaint);
+    // Center hole
     _px(canvas, 5, 5, p, paint);
     _px(canvas, 6, 5, p, paint);
     _px(canvas, 5, 6, p, paint);

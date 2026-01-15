@@ -769,6 +769,8 @@ class BowTrainingProvider extends ChangeNotifier {
     switch (_phase) {
       case TimerPhase.idle:
         return 'Ready';
+      case TimerPhase.prep:
+        return 'Get Ready';
       case TimerPhase.hold:
         return 'HOLD';
       case TimerPhase.rest:
@@ -786,6 +788,9 @@ class BowTrainingProvider extends ChangeNotifier {
     if (_customConfig != null) {
       int totalSeconds;
       switch (_phase) {
+        case TimerPhase.prep:
+          totalSeconds = kPrepCountdownSeconds;
+          break;
         case TimerPhase.hold:
           totalSeconds = _customConfig!.ratio.holdSeconds;
           break;
@@ -800,15 +805,18 @@ class BowTrainingProvider extends ChangeNotifier {
     }
 
     final exercise = currentExercise;
-    if (exercise == null) return 0;
+    if (exercise == null && _phase != TimerPhase.prep) return 0;
 
     int totalSeconds;
     switch (_phase) {
+      case TimerPhase.prep:
+        totalSeconds = kPrepCountdownSeconds;
+        break;
       case TimerPhase.hold:
-        totalSeconds = exercise.workSeconds;
+        totalSeconds = exercise?.workSeconds ?? 0;
         break;
       case TimerPhase.rest:
-        totalSeconds = exercise.restSeconds;
+        totalSeconds = exercise?.restSeconds ?? 0;
         break;
       case TimerPhase.exerciseBreak:
         totalSeconds = 3;

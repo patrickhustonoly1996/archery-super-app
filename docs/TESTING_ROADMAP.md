@@ -28,17 +28,22 @@ Think of it like this: You wouldn't trust a sight setting without verifying it. 
 | Target face rendering | Arrows appear where they should | Verified |
 | Coordinate conversions | Different face sizes work correctly | Verified |
 | Rolling average display | Quick feedback during sessions | Verified |
+| Volume EMA calculations | Training load analysis | Verified |
+| Handicap calculations | Progress tracking accuracy | Verified |
+| Performance profile | Radar chart data | Verified |
+| Smart zoom | Auto-zoom logic | Verified |
+| Session state management | Session flow logic | Verified |
+| Timer accuracy | Bow training timing | Verified |
+| Breath training logic | Breath hold progression | Verified |
+| Equipment management | Bow/arrow selection | Verified |
 
 ### Not Yet Verified
 
 | What | Risk Without Tests | Priority |
 |------|-------------------|----------|
-| Volume EMA calculations | Training load analysis could be wrong | High |
-| Handicap calculations | Progress tracking could be inaccurate | High |
 | Database save/load | Training logs could be lost | High |
-| Session state management | Session flow could break | Medium |
 | Score imports | Historical data could fail | Medium |
-| Timer accuracy | Bow training timing could drift | Medium |
+| Cloud sync | Backup/restore reliability | Medium |
 | Charts rendering | Visual data could display wrong | Low |
 
 ---
@@ -145,14 +150,14 @@ flutter test --reporter=expanded
 | Coordinate system | `utils/target_coordinate_system.dart` | ~35 | Done |
 | Ring scoring | (in coordinate system) | ~15 | Done |
 
-### Phase 2: Calculation Utilities (HIGH PRIORITY)
+### Phase 2: Calculation Utilities (COMPLETE)
 
 | Component | File | Why Critical | Status |
 |-----------|------|--------------|--------|
-| Volume calculator | `utils/volume_calculator.dart` | Training load EMAs (7/28/90 day) | TODO |
-| Handicap calculator | `utils/handicap_calculator.dart` | Progress tracking accuracy | TODO |
-| Performance profile | `utils/performance_profile.dart` | Radar chart data | TODO |
-| Smart zoom | `utils/smart_zoom.dart` | Auto-zoom logic | TODO |
+| Volume calculator | `utils/volume_calculator.dart` | Training load EMAs (7/28/90 day) | Done |
+| Handicap calculator | `utils/handicap_calculator.dart` | Progress tracking accuracy | Done |
+| Performance profile | `utils/performance_profile.dart` | Radar chart data | Done |
+| Smart zoom | `utils/smart_zoom.dart` | Auto-zoom logic | Done |
 
 ### Phase 3: Widget Tests (MEDIUM PRIORITY)
 
@@ -168,26 +173,26 @@ flutter test --reporter=expanded
 | Breathing visualizer | `widgets/breathing_visualizer.dart` | TODO |
 | Shaft selector | `widgets/shaft_selector_bottom_sheet.dart` | TODO |
 
-### Phase 4: Database & Services (HIGH PRIORITY)
+### Phase 4: Database & Services (PARTIAL)
 
 | Component | File | Why Critical | Status |
 |-----------|------|--------------|--------|
 | Database operations | `db/database.dart` | Data persistence | TODO |
-| Round types seed | `db/round_types_seed.dart` | Scoring rules | TODO |
-| OLY training seed | `db/oly_training_seed.dart` | Training presets | TODO |
+| Round types seed | `db/round_types_seed.dart` | Scoring rules | Done |
+| OLY training seed | `db/oly_training_seed.dart` | Training presets | Done |
 | Auth service | `services/auth_service.dart` | Login/logout | TODO |
 | Firestore sync | `services/firestore_sync_service.dart` | Cloud backup | TODO |
 | Breath training service | `services/breath_training_service.dart` | Session logic | TODO |
 | Beep service | `services/beep_service.dart` | Audio timing | TODO |
 
-### Phase 5: State Management (MEDIUM PRIORITY)
+### Phase 5: State Management (COMPLETE)
 
 | Component | File | What It Manages | Status |
 |-----------|------|-----------------|--------|
-| Session provider | `providers/session_provider.dart` | Current session state | TODO |
-| Bow training provider | `providers/bow_training_provider.dart` | Timer & preset state | TODO |
-| Breath training provider | `providers/breath_training_provider.dart` | Breath session state | TODO |
-| Equipment provider | `providers/equipment_provider.dart` | Bow/arrow selection | TODO |
+| Session provider | `providers/session_provider.dart` | Current session state | Done |
+| Bow training provider | `providers/bow_training_provider.dart` | Timer & preset state | Done |
+| Breath training provider | `providers/breath_training_provider.dart` | Breath session state | Done |
+| Equipment provider | `providers/equipment_provider.dart` | Bow/arrow selection | Done |
 | Active sessions provider | `providers/active_sessions_provider.dart` | Session tracking | TODO |
 
 ### Phase 6: Screen Tests (LOW PRIORITY)
@@ -241,20 +246,27 @@ Visual regression tests for:
 
 ## Priority Summary
 
-**Test these first (calculations users rely on):**
-1. Volume calculator (EMA math)
-2. Handicap calculator (progress tracking)
-3. Database operations (data safety)
+**Completed (calculations users rely on):**
+1. ~~Volume calculator (EMA math)~~ Done
+2. ~~Handicap calculator (progress tracking)~~ Done
+3. ~~Performance profile (radar chart data)~~ Done
+4. ~~Smart zoom (auto-zoom logic)~~ Done
 
-**Test these next (core features):**
-4. Session provider (session flow)
-5. Bow training provider (timer accuracy)
-6. Scorecard widget (score display)
+**Completed (core features):**
+5. ~~Session provider (session flow)~~ Done
+6. ~~Bow training provider (timer accuracy)~~ Done
+7. ~~Breath training provider (session state)~~ Done
+8. ~~Equipment provider (bow/arrow selection)~~ Done
+
+**Next priority (data safety):**
+9. Database operations (data persistence)
+10. Auth service (login/logout)
+11. Firestore sync (cloud backup)
 
 **Test later (visual/UI):**
-7. Charts and visualizations
-8. Screen layouts
-9. Golden tests
+12. Charts and visualizations
+13. Screen layouts
+14. Golden tests
 
 ---
 
@@ -263,14 +275,14 @@ Visual regression tests for:
 | Category | Total Files | Tested | Coverage |
 |----------|-------------|--------|----------|
 | Models | 2 | 2 | 100% |
-| Utils | 7 | 1 | 14% |
+| Utils | 7 | 5 | 71% |
 | Widgets | 10 | 2 | 20% |
-| Providers | 5 | 0 | 0% |
+| Providers | 5 | 4 | 80% |
 | Services | 4 | 0 | 0% |
-| Database | 3 | 0 | 0% |
+| Database | 3 | 2 | 67% |
 | Screens | 20+ | 0 | 0% |
 
-**Overall:** Core math is solid. Calculation utilities and data layer need attention.
+**Overall:** Core math, calculation utilities, and state management are well-tested. Services and screens need attention.
 
 ---
 

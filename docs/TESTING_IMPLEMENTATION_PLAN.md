@@ -4,6 +4,8 @@
 
 This document tracks the professional testing infrastructure implementation for the Archery Super App.
 
+**Current Test Count: 671 tests passing**
+
 ---
 
 ## COMPLETED ✅
@@ -23,75 +25,63 @@ This document tracks the professional testing infrastructure implementation for 
 - [x] `test/providers/session_provider_test.dart` - Scoring logic (45+ tests)
 - [x] `test/providers/breath_training_provider_test.dart` - Breathing exercises (35+ tests)
 - [x] `test/providers/equipment_provider_test.dart` - Equipment management (25+ tests)
+- [x] `test/providers/active_sessions_provider_test.dart` - Session persistence (41 tests)
+
+### Database Tests
+- [x] `test/db/oly_training_seed_test.dart` - OLY training data validation
+- [x] `test/db/round_types_seed_test.dart` - Round types validation
+
+### Mock Infrastructure (Phase 1) ✅
+- [x] `test/mocks/mock_database.dart` - In-memory database mock with all tables
+- [x] `test/mocks/mock_auth_service.dart` - Auth simulation with error flags
+- [x] `test/mocks/mock_firestore_service.dart` - Cloud sync simulation
+- [x] `test/mocks/mocks.dart` - Central export file
+
+### Service Tests (Phase 2) ✅
+- [x] `test/services/auth_service_test.dart` - 40+ tests covering:
+  - Authentication state management
+  - Google Sign-In flow
+  - Email/password auth
+  - Magic link authentication
+  - Error simulation
+
+- [x] `test/services/firestore_sync_service_test.dart` - 35+ tests covering:
+  - Backup/restore operations
+  - All data types (scores, sessions, equipment, volume, OLY logs)
+  - Full sync operations
+  - Error handling
+  - Authentication checks
+
+- [x] `test/services/beep_service_test.dart` - 25+ tests covering:
+  - WAV file generation
+  - Audio format validation (PCM, 44100Hz, 16-bit, mono)
+  - Single/double beep variations
+  - File size calculations
 
 ### Pre-Existing Tests (Already in codebase)
 - [x] `test/models/arrow_coordinate_test.dart`
 - [x] `test/models/group_analysis_test.dart`
 - [x] `test/utils/target_coordinate_system_test.dart` (488 lines, comprehensive)
 - [x] `test/widgets/rolling_average_widget_test.dart`
-- [x] `test/widgets/target_face_test.dart` (needs parameter fix - being handled separately)
+- [x] `test/widgets/target_face_test.dart`
 
 ---
 
 ## PENDING ⏳
 
-### Phase 1: Database Mock Infrastructure
-**Priority: HIGH**
+### Phase 4: Widget Tests ✅
+**Priority: LOW** - COMPLETED
 
-Create mock database for provider integration tests:
-
-```dart
-// test/mocks/mock_database.dart
-class MockAppDatabase extends Mock implements AppDatabase {
-  // Mock all database methods used by providers
-}
-```
-
-Files to create:
-- [ ] `test/mocks/mock_database.dart`
-- [ ] `test/mocks/mock_auth_service.dart`
-- [ ] `test/mocks/mock_firestore_service.dart`
-
-### Phase 2: Service Tests
-**Priority: MEDIUM**
-
-- [ ] `test/services/auth_service_test.dart`
-  - Authentication state management
-  - Google Sign-In flow mocking
-  - Token handling
-
-- [ ] `test/services/firestore_sync_service_test.dart`
-  - Backup/restore logic
-  - Conflict resolution
-  - Network error handling
-
-- [ ] `test/services/beep_service_test.dart`
-  - Audio timing
-  - Sequence playback
-
-### Phase 3: Provider Integration Tests
-**Priority: MEDIUM**
-
-With mocked database:
-- [ ] `test/providers/active_sessions_provider_test.dart`
-  - Session persistence
-  - Resume logic
-
-- [ ] Full integration tests for existing providers with DB mocks
-
-### Phase 4: Widget Tests
-**Priority: LOW**
-
-- [ ] `test/widgets/scorecard_widget_test.dart`
-- [ ] `test/widgets/breathing_visualizer_test.dart`
-- [ ] `test/widgets/radar_chart_test.dart`
+- [x] `test/widgets/scorecard_widget_test.dart` - Scorecard display tests (27 tests)
+- [x] `test/widgets/breathing_visualizer_test.dart` - Breathing animation tests (48 tests)
+- [x] `test/widgets/radar_chart_test.dart` - Radar/spider chart tests (61 tests)
 
 ### Phase 5: Integration/E2E Tests
-**Priority: LOW**
+**Priority: URGENT** ⚠️
 
-- [ ] Complete scoring session flow
-- [ ] Training session completion
-- [ ] Data export/import
+- [ ] Complete scoring session flow (start → plot arrows → commit ends → final score)
+- [ ] Training session completion (select workout → exercises → timer → save)
+- [ ] Data export/import (score → export CSV → import → verify)
 
 ---
 
@@ -105,73 +95,125 @@ With mocked database:
    flutter test
    ```
 
-2. **Fix any failing tests** (target_face_test.dart parameter issue)
+2. **Add widget tests** for remaining widgets (Phase 4)
 
-3. **Create database mocks** for Phase 1:
-   - Add `mockito` to dev dependencies if not present
-   - Create `test/mocks/` directory
-   - Implement MockAppDatabase
+3. **Add integration tests** for end-to-end flows (Phase 5)
 
 ### Adding New Tests
 
 When implementing new features:
 1. Create test file in appropriate directory
 2. Use factories from `test_helpers.dart`
-3. Cover: happy path, edge cases, error handling
-4. Run `flutter test` before committing
+3. Use mocks from `test/mocks/` for services
+4. Cover: happy path, edge cases, error handling
+5. Run `flutter test` before committing
 
 ### Test Patterns to Follow
 
 Reference implementations:
 - **Best utility test**: `target_coordinate_system_test.dart` (comprehensive)
-- **Best provider test**: `bow_training_provider_test.dart` (logic-focused)
+- **Best provider test**: `active_sessions_provider_test.dart` (persistence + logic)
+- **Best service test**: `firestore_sync_service_test.dart` (mock-based)
 - **Best factories**: `test_helpers.dart`
 
 ---
 
-## FILES CREATED THIS SESSION
+## FILES CREATED
 
 ```
 test/
-├── test_helpers.dart              # NEW - Test utilities
-├── README.md                      # NEW - Documentation
+├── test_helpers.dart                      # Test utilities & factories
+├── README.md                              # Documentation
+├── mocks/
+│   ├── mocks.dart                         # Central export
+│   ├── mock_database.dart                 # In-memory DB mock
+│   ├── mock_auth_service.dart             # Auth simulation
+│   └── mock_firestore_service.dart        # Cloud sync simulation
+├── db/
+│   ├── oly_training_seed_test.dart        # OLY data validation
+│   └── round_types_seed_test.dart         # Round types validation
+├── services/
+│   ├── auth_service_test.dart             # Auth tests
+│   ├── firestore_sync_service_test.dart   # Sync tests
+│   └── beep_service_test.dart             # Audio tests
 ├── utils/
-│   ├── volume_calculator_test.dart      # NEW
-│   ├── handicap_calculator_test.dart    # NEW
-│   ├── smart_zoom_test.dart             # NEW
-│   └── performance_profile_test.dart    # NEW
-└── providers/
-    ├── bow_training_provider_test.dart      # NEW
-    ├── session_provider_test.dart           # NEW
-    ├── breath_training_provider_test.dart   # NEW
-    └── equipment_provider_test.dart         # NEW
+│   ├── volume_calculator_test.dart        # EMA calculations
+│   ├── handicap_calculator_test.dart      # Handicap tables
+│   ├── smart_zoom_test.dart               # Zoom logic
+│   ├── performance_profile_test.dart      # Performance metrics
+│   └── target_coordinate_system_test.dart # Coordinate math
+├── providers/
+│   ├── bow_training_provider_test.dart    # Timer/progression
+│   ├── session_provider_test.dart         # Scoring logic
+│   ├── breath_training_provider_test.dart # Breathing exercises
+│   ├── equipment_provider_test.dart       # Equipment management
+│   └── active_sessions_provider_test.dart # Session persistence
+├── models/
+│   ├── arrow_coordinate_test.dart         # Arrow data model
+│   └── group_analysis_test.dart           # Group statistics
+└── widgets/
+    ├── rolling_average_widget_test.dart   # UI tests
+    ├── target_face_test.dart              # Target rendering
+    ├── scorecard_widget_test.dart         # Scorecard display
+    ├── breathing_visualizer_test.dart     # Breathing animation
+    └── radar_chart_test.dart              # Radar/spider chart
 ```
 
 ---
 
-## COVERAGE TARGETS
+## COVERAGE SUMMARY
 
 | Category | Target | Current Status |
 |----------|--------|----------------|
-| Models | 90% | Good (existing tests) |
-| Utils | 90% | Good (new tests added) |
-| Providers | 80% | Partial (logic only, needs mocks for DB) |
-| Widgets | 70% | Partial |
-| Services | 70% | Not started |
+| Models | 90% | ✅ Complete |
+| Utils | 90% | ✅ Complete |
+| Providers | 80% | ✅ Complete |
+| Services | 70% | ✅ Complete |
+| Widgets | 70% | ✅ Complete (5/5) |
+| Database | 80% | ✅ Complete (seed data) |
+
+---
+
+## MOCK INFRASTRUCTURE
+
+### MockAppDatabase
+In-memory database simulation for testing without SQLite:
+- All CRUD operations for sessions, ends, arrows
+- Equipment management (bows, quivers, shafts)
+- Volume entries and imported scores
+- OLY training logs
+- User preferences
+
+### MockAuthService
+Authentication simulation with error injection:
+- Google Sign-In, Email/Password, Magic Link flows
+- Auth state stream
+- Error flags: network, credentials, weak password, email in use
+
+### MockFirestoreSyncService
+Cloud sync simulation:
+- Backup/restore all data types
+- Last backup timestamp
+- Error injection for network/auth failures
 
 ---
 
 ## NOTES FOR FUTURE SESSIONS
 
-1. The linter auto-fixed some test assertions (handicap comparisons, EMA values) - these corrections are intentional
+1. **671 tests passing** as of January 2026
 
-2. Provider tests are logic-only; full integration requires MockAppDatabase
+2. Mock infrastructure complete - use for provider integration testing
 
-3. Tests use `test_helpers.dart` factories - extend these when adding new test types
+3. Tests use `test_helpers.dart` factories - extend when adding new test types
 
-4. Current test count: ~300+ assertions across new files
-
-5. All new tests follow the pattern:
+4. All new tests follow the pattern:
    - group('ClassName')
    - group('methodName')
    - test('does X when Y')
+
+5. Services tests use mock implementations rather than Firebase mocks
+   - This avoids complex Firebase setup while still testing logic
+
+6. Added `mockito: ^5.4.4` to dev_dependencies for future use
+
+7. GitHub Actions CI workflow added (`.github/workflows/test.yml`) - runs tests on every push/PR to main

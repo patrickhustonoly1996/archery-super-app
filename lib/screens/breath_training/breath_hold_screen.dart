@@ -21,11 +21,15 @@ class BreathHoldScreen extends StatefulWidget {
 enum SessionState {
   setup,      // Initial setup screen
   idle,       // Ready to start session
+  prep,       // Get ready countdown before starting
   pacedBreathing,
   holding,
   recovery,
   complete,
 }
+
+/// Prep countdown duration (seconds)
+const int _prepCountdownSeconds = 10;
 
 enum DifficultyLevel {
   beginner,     // +10% per round
@@ -33,7 +37,8 @@ enum DifficultyLevel {
   advanced,     // +30% per round
 }
 
-class _BreathHoldScreenState extends State<BreathHoldScreen> {
+class _BreathHoldScreenState extends State<BreathHoldScreen>
+    with WidgetsBindingObserver {
   static const int _inhaleSeconds = 4;
   static const int _exhaleSeconds = 6;
   static const int _pacedBreathsPerCycle = 3;
@@ -63,6 +68,11 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
   // Tick counter for smooth animation
   int _tickCount = 0;
 
+  // Track if we paused due to app backgrounding
+  bool _pausedOnBackground = false;
+  SessionState? _stateBeforePause;
+  BreathPhase? _phaseBeforePause;
+
   // Get progression increment based on difficulty
   double get _progressionIncrement {
     switch (_difficulty) {
@@ -84,7 +94,88 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadSettings();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      // App going to background - pause if session is active
+      if (_state != SessionState.setup &&
+          _state != SessionState.idle &&
+          _state != SessionState.complete) {
+        _stateBeforePause = _state;
+        _phaseBeforePause = _breathPhase;
+        _timer?.cancel();
+        _pausedOnBackground = true;
+      }
+    } else if (state == AppLifecycleState.resumed) {
+      // App coming back - show resume dialog if we auto-paused
+      if (_pausedOnBackground) {
+        _pausedOnBackground = false;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showResumeDialog();
+        });
+      }
+    }
+  }
+
+  void _showResumeDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        title: const Text('Session Paused'),
+        content: const Text(
+          'Your breath training was paused while the app was in the background. '
+          'Ready to continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _endSession();
+            },
+            child: Text('End Session', style: TextStyle(color: AppColors.error)),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _resumeFromPause();
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.gold,
+              foregroundColor: Colors.black,
+            ),
+            child: const Text('Resume'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _resumeFromPause() {
+    if (_stateBeforePause != null) {
+      setState(() {
+        _state = _stateBeforePause!;
+        _breathPhase = _phaseBeforePause ?? BreathPhase.idle;
+      });
+      // Restart the timer
+      _timer = Timer.periodic(const Duration(milliseconds: 100), _tick);
+    }
+  }
+
+  void _endSession() {
+    setState(() {
+      _state = SessionState.idle;
+      _breathPhase = BreathPhase.idle;
+      _currentRound = 0;
+      _pacedBreathCount = 0;
+      _totalHoldTime = 0;
+    });
   }
 
   Future<void> _loadSettings() async {
@@ -102,6 +193,7 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     super.dispose();
   }
@@ -109,11 +201,11 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
   void _startSession() {
     HapticFeedback.mediumImpact();
     setState(() {
-      _state = SessionState.pacedBreathing;
-      _breathPhase = BreathPhase.inhale;
+      _state = SessionState.prep;
+      _breathPhase = BreathPhase.idle;
       _currentRound = 0;
       _pacedBreathCount = 0;
-      _phaseSecondsRemaining = _inhaleSeconds;
+      _phaseSecondsRemaining = _prepCountdownSeconds;
       _phaseProgress = 0.0;
       _totalHoldTime = 0;
       _tickCount = 0;
@@ -135,7 +227,8 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
   Future<bool> _onWillPop() async {
     final isActive = _state != SessionState.idle &&
                      _state != SessionState.complete &&
-                     _state != SessionState.setup;
+                     _state != SessionState.setup &&
+                     _state != SessionState.prep;
     if (isActive) {
       final result = await showDialog<String>(
         context: context,
@@ -200,6 +293,9 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
       _phaseSecondsRemaining--;
 
       switch (_state) {
+        case SessionState.prep:
+          _handlePrep();
+          break;
         case SessionState.pacedBreathing:
           _handlePacedBreathing();
           break;
@@ -215,9 +311,23 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
     });
   }
 
+  void _handlePrep() {
+    if (_phaseSecondsRemaining <= 0) {
+      HapticFeedback.heavyImpact();
+      // Prep done - start paced breathing
+      _state = SessionState.pacedBreathing;
+      _breathPhase = BreathPhase.inhale;
+      _phaseSecondsRemaining = _inhaleSeconds;
+      _phaseProgress = 0.0;
+    }
+  }
+
   void _updateProgress() {
     int totalPhaseMs;
     switch (_state) {
+      case SessionState.prep:
+        totalPhaseMs = _prepCountdownSeconds * 1000;
+        break;
       case SessionState.pacedBreathing:
       case SessionState.recovery:
         totalPhaseMs =
@@ -319,6 +429,8 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
         return 'Setup';
       case SessionState.idle:
         return 'Ready';
+      case SessionState.prep:
+        return 'Get Ready';
       case SessionState.pacedBreathing:
         return _breathPhase == BreathPhase.inhale ? 'Breathe In' : 'Breathe Out';
       case SessionState.holding:
@@ -336,6 +448,8 @@ class _BreathHoldScreenState extends State<BreathHoldScreen> {
         return 'Configure your session';
       case SessionState.idle:
         return 'Tap Start to begin';
+      case SessionState.prep:
+        return 'Session starting soon';
       case SessionState.pacedBreathing:
         return 'Preparing for hold';
       case SessionState.holding:

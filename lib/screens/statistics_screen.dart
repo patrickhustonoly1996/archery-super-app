@@ -84,54 +84,220 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 
+  /// Generate sample data for a month showing typical elite archer volume
+  List<DailyVolume> _generateSampleData() {
+    final now = DateTime.now();
+    final data = <DailyVolume>[];
+
+    // 30 days of sample data for a decent level athlete
+    // Pattern: ~100-150 arrows/day training, with rest days and competitions
+    final volumes = [
+      120, 0, 140, 130, 0, 150, 120, // Week 1 (Sun rest, Wed rest)
+      110, 135, 0, 140, 125, 200, 0, // Week 2 (competition Saturday)
+      130, 140, 120, 0, 145, 130, 110, // Week 3
+      0, 150, 140, 130, 0, 160, 120, // Week 4
+      115, 0, // Final days
+    ];
+
+    for (int i = 0; i < volumes.length; i++) {
+      if (volumes[i] > 0) {
+        data.add(DailyVolume(
+          date: now.subtract(Duration(days: volumes.length - i - 1)),
+          arrowCount: volumes[i],
+        ));
+      }
+    }
+
+    return data;
+  }
+
   Widget _buildEmptyState() {
-    return Center(
+    // Show sample data with demo mode indicator
+    final sampleData = _generateSampleData();
+    final metrics = VolumeCalculator.calculateAllMetrics(sampleData);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.bar_chart,
-            size: 64,
-            color: AppColors.textMuted,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            'No volume data yet',
-            style: TextStyle(
-              fontSize: 18,
-              color: AppColors.textSecondary,
+          // Demo mode banner
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            margin: const EdgeInsets.only(bottom: AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.gold.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(AppSpacing.sm),
+              border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.lightbulb_outline, color: AppColors.gold, size: 20),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      'Sample Data Preview',
+                      style: TextStyle(
+                        color: AppColors.gold,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'This shows what your training volume chart will look like. Add your own data to see your personal stats.',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'Add your daily arrow count to track training load',
-            style: TextStyle(
-              color: AppColors.textMuted,
-            ),
-            textAlign: TextAlign.center,
-          ),
+
+          // Sample summary cards
+          _buildSampleSummaryCards(sampleData, metrics),
           const SizedBox(height: AppSpacing.lg),
-          ElevatedButton.icon(
-            onPressed: () => _showAddVolumeDialog(),
-            icon: const Icon(Icons.add),
-            label: const Text('Add Volume'),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          OutlinedButton.icon(
-            onPressed: () async {
-              final result = await Navigator.push<bool>(
-                context,
-                MaterialPageRoute(builder: (_) => const VolumeImportScreen()),
-              );
-              if (result == true) {
-                _loadVolumeData();
-              }
-            },
-            icon: const Icon(Icons.file_upload_outlined),
-            label: const Text('Import from CSV'),
+
+          // Sample chart
+          _buildSampleVolumeChart(sampleData, metrics),
+          const SizedBox(height: AppSpacing.lg),
+
+          // Call to action
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceDark,
+              borderRadius: BorderRadius.circular(AppSpacing.sm),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  'Start Tracking Your Volume',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'Track daily arrow counts to monitor training load and prevent overtraining.',
+                  style: TextStyle(color: AppColors.textMuted),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _showAddVolumeDialog(),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add Entry'),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final result = await Navigator.push<bool>(
+                            context,
+                            MaterialPageRoute(builder: (_) => const VolumeImportScreen()),
+                          );
+                          if (result == true) {
+                            _loadVolumeData();
+                          }
+                        },
+                        icon: const Icon(Icons.file_upload_outlined),
+                        label: const Text('Import CSV'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.gold,
+                          side: BorderSide(color: AppColors.gold.withOpacity(0.5)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSampleSummaryCards(List<DailyVolume> data, VolumeMetrics metrics) {
+    final total7Days = VolumeCalculator.calculateRollingSum(data, 7);
+    final avg7Days = VolumeCalculator.calculateRollingAverage(data, 7);
+    final current7EMA = metrics.ema7.isNotEmpty ? metrics.ema7.last : 0.0;
+    final current28EMA = metrics.ema28.isNotEmpty ? metrics.ema28.last : 0.0;
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                'Last 7 Days',
+                '$total7Days',
+                'arrows',
+                AppColors.gold.withOpacity(0.6),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: _buildStatCard(
+                '7-Day Avg',
+                avg7Days.toStringAsFixed(0),
+                'per day',
+                AppColors.textSecondary.withOpacity(0.6),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                '7-Day EMA',
+                current7EMA.toStringAsFixed(0),
+                'arrows',
+                Colors.blue.withOpacity(0.6),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: _buildStatCard(
+                '28-Day EMA',
+                current28EMA.toStringAsFixed(0),
+                'arrows',
+                Colors.green.withOpacity(0.6),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSampleVolumeChart(List<DailyVolume> data, VolumeMetrics metrics) {
+    // Convert to VolumeEntry format for chart
+    final entries = data.map((d) => VolumeEntry(
+      id: 'sample_${d.date.millisecondsSinceEpoch}',
+      date: d.date,
+      arrowCount: d.arrowCount,
+      title: null,
+      notes: null,
+      createdAt: d.date,
+      updatedAt: d.date,
+    )).toList();
+
+    return Opacity(
+      opacity: 0.7,
+      child: _buildVolumeChartWithEMA(entries, metrics),
     );
   }
 

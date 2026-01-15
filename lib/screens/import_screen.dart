@@ -19,7 +19,12 @@ class ImportScreen extends StatefulWidget {
 class _ImportScreenState extends State<ImportScreen> {
   List<_ImportDraft> _drafts = [];
   bool _isLoading = false;
+  bool _isImporting = false;
+  int _importProgress = 0;
+  int _importTotal = 0;
   String? _error;
+  int _skippedRows = 0;
+  List<String> _skippedReasons = [];
 
   /// Trigger cloud backup in background (non-blocking)
   void _triggerCloudBackup(AppDatabase db) {
@@ -75,10 +80,12 @@ class _ImportScreenState extends State<ImportScreen> {
       }
 
       // Parse CSV
-      final drafts = _parseCSV(rows);
+      final parseResult = _parseCSV(rows);
 
       setState(() {
-        _drafts = drafts;
+        _drafts = parseResult.drafts;
+        _skippedRows = parseResult.skipped;
+        _skippedReasons = parseResult.reasons;
         _isLoading = false;
       });
     } catch (e) {
@@ -107,10 +114,12 @@ class _ImportScreenState extends State<ImportScreen> {
       }
 
       // Parse CSV
-      final drafts = _parseCSV(rows);
+      final result = _parseCSV(rows);
 
       setState(() {
-        _drafts = drafts;
+        _drafts = result.drafts;
+        _skippedRows = result.skipped;
+        _skippedReasons = result.reasons;
         _isLoading = false;
       });
     } catch (e) {
@@ -121,8 +130,8 @@ class _ImportScreenState extends State<ImportScreen> {
     }
   }
 
-  List<_ImportDraft> _parseCSV(List<List<dynamic>> rows) {
-    if (rows.isEmpty) return [];
+  ({List<_ImportDraft> drafts, int skipped, List<String> reasons}) _parseCSV(List<List<dynamic>> rows) {
+    if (rows.isEmpty) return (drafts: [], skipped: 0, reasons: []);
 
     // Try to detect header row
     final firstRow = rows.first.map((e) => e.toString().toLowerCase().trim()).toList();
@@ -180,9 +189,15 @@ class _ImportScreenState extends State<ImportScreen> {
     if (roundCol < 0) roundCol = 2;
 
     final drafts = <_ImportDraft>[];
+    int skippedCount = 0;
+    final skippedReasons = <String>[];
 
+    int rowNumber = hasHeader ? 2 : 1; // Start counting from 1, skip header
     for (final row in dataRows) {
-      if (row.isEmpty) continue;
+      if (row.isEmpty) {
+        rowNumber++;
+        continue;
+      }
 
       try {
         final dateStr = dateCol < row.length ? row[dateCol].toString() : '';
@@ -196,11 +211,25 @@ class _ImportScreenState extends State<ImportScreen> {
 
         // Parse date
         final date = _parseDate(dateStr);
-        if (date == null) continue;
+        if (date == null) {
+          skippedCount++;
+          if (skippedReasons.length < 5) {
+            skippedReasons.add('Row $rowNumber: Invalid date "$dateStr"');
+          }
+          rowNumber++;
+          continue;
+        }
 
         // Parse score - handle commas (e.g., "1,296" -> 1296)
         final score = int.tryParse(scoreStr.replaceAll(RegExp(r'[^0-9]'), ''));
-        if (score == null || score <= 0) continue;
+        if (score == null || score <= 0) {
+          skippedCount++;
+          if (skippedReasons.length < 5) {
+            skippedReasons.add('Row $rowNumber: Invalid score "$scoreStr"');
+          }
+          rowNumber++;
+          continue;
+        }
 
         // Parse optional fields
         final handicap = handicapCol >= 0 && handicapCol < row.length
@@ -247,12 +276,17 @@ class _ImportScreenState extends State<ImportScreen> {
           xs: xs,
           classification: classification?.isEmpty == true ? null : classification,
         ));
-      } catch (_) {
-        // Skip invalid rows
+      } catch (e) {
+        // Track the error
+        skippedCount++;
+        if (skippedReasons.length < 5) {
+          skippedReasons.add('Row $rowNumber: Parse error - $e');
+        }
       }
+      rowNumber++;
     }
 
-    return drafts;
+    return (drafts: drafts, skipped: skippedCount, reasons: skippedReasons);
   }
 
   DateTime? _parseDate(String dateStr) {
@@ -291,10 +325,15 @@ class _ImportScreenState extends State<ImportScreen> {
   Future<void> _importAll() async {
     final db = context.read<AppDatabase>();
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isImporting = true;
+      _importProgress = 0;
+      _importTotal = _drafts.length;
+    });
 
     int imported = 0;
     int skipped = 0;
+    int processed = 0;
 
     // Process in batches for large imports
     const batchSize = 50;
@@ -302,6 +341,8 @@ class _ImportScreenState extends State<ImportScreen> {
       final batch = _drafts.skip(i).take(batchSize);
 
       for (final draft in batch) {
+        processed++;
+
         // Check for duplicates - match on date, score, AND round name for accuracy
         final isDuplicate = await db.isDuplicateScoreWithRound(
           draft.date,
@@ -356,15 +397,14 @@ class _ImportScreenState extends State<ImportScreen> {
         imported++;
       }
 
-      // Yield to UI every batch for responsiveness
-      if (i + batchSize < _drafts.length) {
-        await Future.delayed(Duration.zero);
-      }
+      // Update progress and yield to UI every batch
+      setState(() => _importProgress = processed);
+      await Future.delayed(Duration.zero);
     }
 
     setState(() {
       _drafts = [];
-      _isLoading = false;
+      _isImporting = false;
     });
 
     if (mounted && imported > 0) {
@@ -398,22 +438,29 @@ class _ImportScreenState extends State<ImportScreen> {
       appBar: AppBar(
         title: const Text('Import Scores'),
       ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.gold),
+      body: _isImporting
+          ? _ImportProgressView(
+              progress: _importProgress,
+              total: _importTotal,
             )
-          : _drafts.isEmpty
-              ? _ImportOptions(
-                  onPickCSV: _pickAndParseCSV,
-                  onPasteCSV: _showPasteCSVDialog,
-                  onManualEntry: _showManualEntryDialog,
-                  error: _error,
+          : _isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.gold),
                 )
-              : _DraftReview(
-                  drafts: _drafts,
-                  onImport: _importAll,
-                  onCancel: () => setState(() => _drafts = []),
-                ),
+              : _drafts.isEmpty
+                  ? _ImportOptions(
+                      onPickCSV: _pickAndParseCSV,
+                      onPasteCSV: _showPasteCSVDialog,
+                      onManualEntry: _showManualEntryDialog,
+                      error: _error,
+                    )
+                  : _DraftReview(
+                      drafts: _drafts,
+                      onImport: _importAll,
+                      onCancel: () => setState(() => _drafts = []),
+                      skippedRows: _skippedRows,
+                      skippedReasons: _skippedReasons,
+                    ),
     );
   }
 
@@ -477,6 +524,68 @@ class _ImportScreenState extends State<ImportScreen> {
             );
           }
         },
+      ),
+    );
+  }
+}
+
+class _ImportProgressView extends StatelessWidget {
+  final int progress;
+  final int total;
+
+  const _ImportProgressView({
+    required this.progress,
+    required this.total,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final percent = total > 0 ? progress / total : 0.0;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 120,
+              height: 120,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  CircularProgressIndicator(
+                    value: percent,
+                    strokeWidth: 8,
+                    backgroundColor: AppColors.surfaceLight,
+                    color: AppColors.gold,
+                  ),
+                  Center(
+                    child: Text(
+                      '${(percent * 100).toInt()}%',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            color: AppColors.gold,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              'Importing scores...',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              '$progress / $total',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -600,11 +709,15 @@ class _DraftReview extends StatelessWidget {
   final List<_ImportDraft> drafts;
   final VoidCallback onImport;
   final VoidCallback onCancel;
+  final int skippedRows;
+  final List<String> skippedReasons;
 
   const _DraftReview({
     required this.drafts,
     required this.onImport,
     required this.onCancel,
+    this.skippedRows = 0,
+    this.skippedReasons = const [],
   });
 
   @override
@@ -640,6 +753,60 @@ class _DraftReview extends StatelessWidget {
                 Text(
                   'Date range: ${_formatDate(drafts.last.date)} - ${_formatDate(drafts.first.date)}',
                   style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+              // Show skipped rows warning
+              if (skippedRows > 0) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(AppSpacing.xs),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.warning_amber, color: Colors.orange, size: 16),
+                          const SizedBox(width: AppSpacing.xs),
+                          Text(
+                            '$skippedRows row${skippedRows == 1 ? '' : 's'} skipped',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Colors.orange,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ],
+                      ),
+                      if (skippedReasons.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.xs),
+                        ...skippedReasons.take(3).map((reason) => Padding(
+                              padding: const EdgeInsets.only(left: 20),
+                              child: Text(
+                                reason,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppColors.textMuted,
+                                      fontSize: 11,
+                                    ),
+                              ),
+                            )),
+                        if (skippedReasons.length > 3)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 20),
+                            child: Text(
+                              '... and ${skippedReasons.length - 3} more',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.textMuted,
+                                    fontSize: 11,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                            ),
+                          ),
+                      ],
+                    ],
+                  ),
                 ),
               ],
             ],

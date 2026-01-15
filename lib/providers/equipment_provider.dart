@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
 import '../db/database.dart';
+import '../utils/unique_id.dart';
 
 class EquipmentProvider extends ChangeNotifier {
   final AppDatabase _db;
@@ -40,7 +41,7 @@ class EquipmentProvider extends ChangeNotifier {
     String? settings,
     bool setAsDefault = false,
   }) async {
-    final bowId = DateTime.now().millisecondsSinceEpoch.toString();
+    final bowId = UniqueId.generate();
 
     await _db.insertBow(BowsCompanion.insert(
       id: bowId,
@@ -64,7 +65,7 @@ class EquipmentProvider extends ChangeNotifier {
     int shaftCount = 12,
     bool setAsDefault = false,
   }) async {
-    final quiverId = DateTime.now().millisecondsSinceEpoch.toString();
+    final quiverId = UniqueId.generate();
 
     await _db.insertQuiver(QuiversCompanion.insert(
       id: quiverId,

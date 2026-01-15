@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'round_types_seed.dart';
 import 'oly_training_seed.dart';
+import '../utils/unique_id.dart';
 
 part 'database.g.dart';
 
@@ -682,7 +683,7 @@ class AppDatabase extends _$AppDatabase {
     } else {
       await insertVolumeEntry(
         VolumeEntriesCompanion.insert(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: UniqueId.generate(),
           date: dayStart,
           arrowCount: arrowCount,
           title: Value(title),

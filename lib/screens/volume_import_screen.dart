@@ -17,6 +17,9 @@ class VolumeImportScreen extends StatefulWidget {
 class _VolumeImportScreenState extends State<VolumeImportScreen> {
   List<_VolumeDraft> _drafts = [];
   bool _isLoading = false;
+  bool _isImporting = false;
+  int _importProgress = 0;
+  int _importTotal = 0;
   String? _error;
 
   Future<void> _pickAndParseCSV() async {
@@ -232,39 +235,56 @@ class _VolumeImportScreenState extends State<VolumeImportScreen> {
   Future<void> _importAll() async {
     final db = context.read<AppDatabase>();
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isImporting = true;
+      _importProgress = 0;
+      _importTotal = _drafts.length;
+    });
 
     int imported = 0;
     int updated = 0;
+    int processed = 0;
 
-    for (final draft in _drafts) {
-      // Check if entry exists for this date
-      final existing = await db.getVolumeEntryForDate(draft.date);
+    // Process in batches for large imports
+    const batchSize = 50;
+    for (int i = 0; i < _drafts.length; i += batchSize) {
+      final batch = _drafts.skip(i).take(batchSize);
 
-      if (existing != null) {
-        // Update existing entry (add to existing count or replace)
-        await db.setVolumeForDate(
-          draft.date,
-          draft.arrowCount,
-          title: draft.title ?? existing.title,
-          notes: draft.notes ?? existing.notes,
-        );
-        updated++;
-      } else {
-        // Insert new entry
-        await db.setVolumeForDate(
-          draft.date,
-          draft.arrowCount,
-          title: draft.title,
-          notes: draft.notes,
-        );
-        imported++;
+      for (final draft in batch) {
+        processed++;
+
+        // Check if entry exists for this date
+        final existing = await db.getVolumeEntryForDate(draft.date);
+
+        if (existing != null) {
+          // Update existing entry (add to existing count or replace)
+          await db.setVolumeForDate(
+            draft.date,
+            draft.arrowCount,
+            title: draft.title ?? existing.title,
+            notes: draft.notes ?? existing.notes,
+          );
+          updated++;
+        } else {
+          // Insert new entry
+          await db.setVolumeForDate(
+            draft.date,
+            draft.arrowCount,
+            title: draft.title,
+            notes: draft.notes,
+          );
+          imported++;
+        }
       }
+
+      // Update progress and yield to UI every batch
+      setState(() => _importProgress = processed);
+      await Future.delayed(Duration.zero);
     }
 
     setState(() {
       _drafts = [];
-      _isLoading = false;
+      _isImporting = false;
     });
 
     if (mounted) {
@@ -291,22 +311,27 @@ class _VolumeImportScreenState extends State<VolumeImportScreen> {
       appBar: AppBar(
         title: const Text('Import Volume'),
       ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.gold),
+      body: _isImporting
+          ? _ImportProgressView(
+              progress: _importProgress,
+              total: _importTotal,
             )
-          : _drafts.isEmpty
-              ? _ImportOptions(
-                  onPickCSV: _pickAndParseCSV,
-                  onPasteCSV: _showPasteCSVDialog,
-                  onManualEntry: _showManualEntryDialog,
-                  error: _error,
+          : _isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.gold),
                 )
-              : _DraftReview(
-                  drafts: _drafts,
-                  onImport: _importAll,
-                  onCancel: () => setState(() => _drafts = []),
-                ),
+              : _drafts.isEmpty
+                  ? _ImportOptions(
+                      onPickCSV: _pickAndParseCSV,
+                      onPasteCSV: _showPasteCSVDialog,
+                      onManualEntry: _showManualEntryDialog,
+                      error: _error,
+                    )
+                  : _DraftReview(
+                      drafts: _drafts,
+                      onImport: _importAll,
+                      onCancel: () => setState(() => _drafts = []),
+                    ),
     );
   }
 
@@ -383,6 +408,68 @@ class _VolumeImportScreenState extends State<VolumeImportScreen> {
             );
           }
         },
+      ),
+    );
+  }
+}
+
+class _ImportProgressView extends StatelessWidget {
+  final int progress;
+  final int total;
+
+  const _ImportProgressView({
+    required this.progress,
+    required this.total,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final percent = total > 0 ? progress / total : 0.0;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 120,
+              height: 120,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  CircularProgressIndicator(
+                    value: percent,
+                    strokeWidth: 8,
+                    backgroundColor: AppColors.surfaceLight,
+                    color: AppColors.gold,
+                  ),
+                  Center(
+                    child: Text(
+                      '${(percent * 100).toInt()}%',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            color: AppColors.gold,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              'Importing volume data...',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              '$progress / $total',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -5,14 +5,15 @@ void main() {
   group('TimerPhase', () {
     test('has all expected phases', () {
       expect(TimerPhase.values, contains(TimerPhase.idle));
+      expect(TimerPhase.values, contains(TimerPhase.prep));
       expect(TimerPhase.values, contains(TimerPhase.hold));
       expect(TimerPhase.values, contains(TimerPhase.rest));
       expect(TimerPhase.values, contains(TimerPhase.exerciseBreak));
       expect(TimerPhase.values, contains(TimerPhase.complete));
     });
 
-    test('has 5 phases total', () {
-      expect(TimerPhase.values.length, equals(5));
+    test('has 6 phases total', () {
+      expect(TimerPhase.values.length, equals(6));
     });
   });
 

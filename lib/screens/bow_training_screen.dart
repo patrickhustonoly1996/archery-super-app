@@ -14,7 +14,8 @@ class BowTrainingScreen extends StatefulWidget {
   State<BowTrainingScreen> createState() => _BowTrainingScreenState();
 }
 
-class _BowTrainingScreenState extends State<BowTrainingScreen> {
+class _BowTrainingScreenState extends State<BowTrainingScreen>
+    with WidgetsBindingObserver {
   final TextEditingController _notesController = TextEditingController();
 
   // Feedback slider values
@@ -22,9 +23,13 @@ class _BowTrainingScreenState extends State<BowTrainingScreen> {
   int _feedbackStructure = 5;
   int _feedbackRest = 5;
 
+  // Track if we auto-paused due to app backgrounding
+  bool _autoPausedOnBackground = false;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<BowTrainingProvider>();
       provider.loadData();
@@ -38,8 +43,67 @@ class _BowTrainingScreenState extends State<BowTrainingScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _notesController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final provider = context.read<BowTrainingProvider>();
+
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      // App going to background - pause timer if running
+      if (provider.timerState == TimerState.running) {
+        provider.pauseTimer();
+        _autoPausedOnBackground = true;
+      }
+    } else if (state == AppLifecycleState.resumed) {
+      // App coming back - show dialog if we auto-paused
+      if (_autoPausedOnBackground && provider.timerState == TimerState.paused) {
+        _autoPausedOnBackground = false;
+        // Show resume dialog
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showResumeDialog(provider);
+        });
+      }
+    }
+  }
+
+  void _showResumeDialog(BowTrainingProvider provider) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        title: const Text('Session Paused'),
+        content: const Text(
+          'Your training was paused while the app was in the background. '
+          'Ready to continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              provider.cancelSession();
+            },
+            child: Text('End Session', style: TextStyle(color: AppColors.error)),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              provider.resumeTimer();
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.gold,
+              foregroundColor: Colors.black,
+            ),
+            child: const Text('Resume'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<bool> _onWillPop(BowTrainingProvider provider) async {
@@ -795,13 +859,16 @@ class _ActiveTimerView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isPrep = provider.phase == TimerPhase.prep;
     final isHold = provider.phase == TimerPhase.hold;
     final isBreak = provider.phase == TimerPhase.exerciseBreak;
-    final phaseColor = isHold
-        ? AppColors.gold
-        : isBreak
-            ? const Color(0xFF26C6DA) // Cyan for exercise transitions
-            : AppColors.textSecondary;
+    final phaseColor = isPrep
+        ? const Color(0xFF26C6DA) // Cyan for prep/get ready
+        : isHold
+            ? AppColors.gold
+            : isBreak
+                ? const Color(0xFF26C6DA) // Cyan for exercise transitions
+                : AppColors.textSecondary;
 
     final isCustom = provider.isCustomSession;
 
@@ -853,7 +920,24 @@ class _ActiveTimerView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: Column(
                 children: [
-                  if (isCustom) ...[
+                  if (isPrep) ...[
+                    // Show prep message
+                    Text(
+                      'Prepare to draw',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: AppColors.textPrimary,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      'Session starting soon',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ] else if (isCustom) ...[
                     // Show movement cue for custom sessions
                     if (provider.movementCue != null && isHold) ...[
                       Container(

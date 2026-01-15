@@ -6,6 +6,7 @@ import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../models/arrow_coordinate.dart';
 import '../services/firestore_sync_service.dart';
+import '../utils/unique_id.dart';
 
 /// Manages the active scoring session state
 class SessionProvider extends ChangeNotifier {
@@ -144,7 +145,7 @@ class SessionProvider extends ChangeNotifier {
       throw Exception('Invalid round type');
     }
 
-    final sessionId = DateTime.now().millisecondsSinceEpoch.toString();
+    final sessionId = UniqueId.generate();
 
     await _db.insertSession(SessionsCompanion.insert(
       id: sessionId,
