@@ -8,11 +8,15 @@ import '../services/firestore_sync_service.dart';
 /// Timer phases for bow training
 enum TimerPhase {
   idle,           // Not started
+  prep,           // Preparation countdown before first hold
   hold,           // Holding at draw
   rest,           // Resting between reps
   exerciseBreak,  // Transition between exercises
   complete,       // Session finished
 }
+
+/// Default prep/intro time before exercises (seconds)
+const int kPrepCountdownSeconds = 10;
 
 /// State of the timer
 enum TimerState {
@@ -234,9 +238,9 @@ class BowTrainingProvider extends ChangeNotifier {
 
     _currentExerciseIndex = 0;
     _currentRep = 1;
-    _phase = TimerPhase.hold;
+    _phase = TimerPhase.prep;
     _timerState = TimerState.running;
-    _secondsRemaining = _exercises.first.workSeconds;
+    _secondsRemaining = kPrepCountdownSeconds;
     _sessionStartedAt = DateTime.now();
     _totalHoldSecondsActual = 0;
     _totalRestSecondsActual = 0;
@@ -256,16 +260,13 @@ class BowTrainingProvider extends ChangeNotifier {
     _customCurrentRep = 1;
     _currentExerciseIndex = 0;
     _currentRep = 1;
-    _phase = TimerPhase.hold;
+    _phase = TimerPhase.prep;
     _timerState = TimerState.running;
-    _secondsRemaining = config.ratio.holdSeconds;
+    _secondsRemaining = kPrepCountdownSeconds;
     _sessionStartedAt = DateTime.now();
     _totalHoldSecondsActual = 0;
     _totalRestSecondsActual = 0;
     _completedExercises = 0;
-
-    // Generate initial movement cue if enabled
-    _updateMovementCue();
 
     _startTimer();
     _playStartBeep();
@@ -487,6 +488,13 @@ class BowTrainingProvider extends ChangeNotifier {
     if (exercise == null || _activeSession == null) return;
 
     switch (_phase) {
+      case TimerPhase.prep:
+        // Prep countdown finished - start first hold
+        _phase = TimerPhase.hold;
+        _secondsRemaining = exercise.workSeconds;
+        _playHoldBeep();
+        break;
+
       case TimerPhase.hold:
         // Finished a hold rep
         if (_currentRep < exercise.reps) {
@@ -551,6 +559,14 @@ class BowTrainingProvider extends ChangeNotifier {
     final config = _customConfig!;
 
     switch (_phase) {
+      case TimerPhase.prep:
+        // Prep countdown finished - start first hold
+        _phase = TimerPhase.hold;
+        _secondsRemaining = config.ratio.holdSeconds;
+        _updateMovementCue(); // Generate initial cue for hold
+        _playHoldBeep();
+        break;
+
       case TimerPhase.hold:
         // Finished a hold - start rest or complete
         if (_customCurrentRep < _customTotalReps) {

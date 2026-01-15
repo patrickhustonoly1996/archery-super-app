@@ -71,7 +71,7 @@ class _BowsTab extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(
-              Icons.sports_tennis,
+              Icons.adjust,
               size: 64,
               color: AppColors.textMuted,
             ),
@@ -169,7 +169,7 @@ class _BowTile extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                Icons.sports_tennis,
+                Icons.adjust,
                 color: bow.isDefault ? AppColors.gold : AppColors.textSecondary,
                 size: 32,
               ),
