@@ -1,107 +1,195 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pixel Arrow</title>
+  <title>Broadhead Arrows</title>
   <style>
     body {
       background: #121212;
       color: #fff;
       font-family: 'Space Mono', monospace;
       padding: 40px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 40px;
     }
-    h1 { color: #FFD700; }
-    .preview-row {
+    h1 { color: #FFD700; text-align: center; }
+    .version-row {
       display: flex;
-      gap: 40px;
+      gap: 30px;
+      align-items: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #1E1E1E;
+      border-radius: 8px;
+    }
+    .version-num {
+      color: #FFD700;
+      font-size: 32px;
+      font-weight: bold;
+      width: 50px;
+    }
+    .previews {
+      display: flex;
+      gap: 20px;
       align-items: flex-end;
     }
     .preview {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
     .preview label {
       color: #888;
-      font-size: 12px;
+      font-size: 11px;
     }
     canvas {
       border: 1px solid #333;
       image-rendering: pixelated;
     }
+    .grid-canvas {
+      border: 1px solid #FFD700;
+    }
   </style>
 </head>
 <body>
-  <h1>Flat Pixel Arrow</h1>
+  <h1>Broadhead Arrow Variations</h1>
 
-  <div class="preview-row">
-    <div class="preview">
-      <canvas id="c32" width="32" height="32"></canvas>
-      <label>32px</label>
-    </div>
-    <div class="preview">
-      <canvas id="c64" width="64" height="64"></canvas>
-      <label>64px</label>
-    </div>
-    <div class="preview">
-      <canvas id="c128" width="128" height="128"></canvas>
-      <label>128px</label>
+  <div class="version-row">
+    <span class="version-num">1</span>
+    <div class="previews">
+      <div class="preview"><canvas id="v1_32" width="32" height="32"></canvas><label>32px</label></div>
+      <div class="preview"><canvas id="v1_64" width="64" height="64"></canvas><label>64px</label></div>
+      <div class="preview"><canvas id="v1_grid" width="320" height="320" class="grid-canvas"></canvas><label>Grid</label></div>
     </div>
   </div>
 
-  <h2 style="color: #FFD700;">Grid View (16x16)</h2>
-  <canvas id="grid" width="320" height="320"></canvas>
+  <div class="version-row">
+    <span class="version-num">2</span>
+    <div class="previews">
+      <div class="preview"><canvas id="v2_32" width="32" height="32"></canvas><label>32px</label></div>
+      <div class="preview"><canvas id="v2_64" width="64" height="64"></canvas><label>64px</label></div>
+      <div class="preview"><canvas id="v2_grid" width="320" height="320" class="grid-canvas"></canvas><label>Grid</label></div>
+    </div>
+  </div>
+
+  <div class="version-row">
+    <span class="version-num">3</span>
+    <div class="previews">
+      <div class="preview"><canvas id="v3_32" width="32" height="32"></canvas><label>32px</label></div>
+      <div class="preview"><canvas id="v3_64" width="64" height="64"></canvas><label>64px</label></div>
+      <div class="preview"><canvas id="v3_grid" width="320" height="320" class="grid-canvas"></canvas><label>Grid</label></div>
+    </div>
+  </div>
+
+  <div class="version-row">
+    <span class="version-num">4</span>
+    <div class="previews">
+      <div class="preview"><canvas id="v4_32" width="32" height="32"></canvas><label>32px</label></div>
+      <div class="preview"><canvas id="v4_64" width="64" height="64"></canvas><label>64px</label></div>
+      <div class="preview"><canvas id="v4_grid" width="320" height="320" class="grid-canvas"></canvas><label>Grid</label></div>
+    </div>
+  </div>
+
+  <div class="version-row">
+    <span class="version-num">5</span>
+    <div class="previews">
+      <div class="preview"><canvas id="v5_32" width="32" height="32"></canvas><label>32px</label></div>
+      <div class="preview"><canvas id="v5_64" width="64" height="64"></canvas><label>64px</label></div>
+      <div class="preview"><canvas id="v5_grid" width="320" height="320" class="grid-canvas"></canvas><label>Grid</label></div>
+    </div>
+  </div>
 
   <script>
     const GOLD = '#FFD700';
     const GOLD_DIM = 'rgba(255, 215, 0, 0.7)';
     const GOLD_FAINT = 'rgba(255, 215, 0, 0.4)';
 
-    function drawArrow(ctx, size) {
+    // VERSION 1: Classic broadhead - medium triangle
+    function drawV1(ctx, size) {
       const p = size / 16;
-      const px = (x, y, color) => {
-        ctx.fillStyle = color;
-        ctx.fillRect(x * p, y * p, p, p);
-      };
+      const px = (x, y, color) => { ctx.fillStyle = color; ctx.fillRect(x * p, y * p, p, p); };
 
-      // Horizontal arrow pointing right
-      // Big fletching (left side) - V shape
-      px(0, 4, GOLD_FAINT);
-      px(0, 5, GOLD_DIM);
+      // Fletching - big V
+      px(0, 3, GOLD_FAINT);
+      px(0, 4, GOLD_DIM);
+      px(1, 5, GOLD);
       px(1, 6, GOLD);
       px(2, 7, GOLD);
-      px(0, 11, GOLD_FAINT);
-      px(0, 10, GOLD_DIM);
+      px(0, 12, GOLD_FAINT);
+      px(0, 11, GOLD_DIM);
+      px(1, 10, GOLD);
       px(1, 9, GOLD);
       px(2, 8, GOLD);
 
-      // Shaft (horizontal through center)
-      px(3, 7, GOLD);
-      px(3, 8, GOLD);
-      px(4, 7, GOLD);
-      px(4, 8, GOLD);
-      px(5, 7, GOLD);
-      px(5, 8, GOLD);
-      px(6, 7, GOLD);
-      px(6, 8, GOLD);
-      px(7, 7, GOLD);
-      px(7, 8, GOLD);
-      px(8, 7, GOLD);
-      px(8, 8, GOLD);
-      px(9, 7, GOLD);
-      px(9, 8, GOLD);
+      // Shaft
+      for (let x = 3; x <= 9; x++) {
+        px(x, 7, GOLD);
+        px(x, 8, GOLD);
+      }
+
+      // Broadhead - triangle with flare back
       px(10, 7, GOLD);
       px(10, 8, GOLD);
-
-      // Sharp point (right side) - narrowing to tip
-      px(11, 6, GOLD_DIM);
+      px(11, 6, GOLD);
       px(11, 7, GOLD);
       px(11, 8, GOLD);
-      px(11, 9, GOLD_DIM);
+      px(11, 9, GOLD);
+      px(12, 5, GOLD);
+      px(12, 6, GOLD);
+      px(12, 7, GOLD);
+      px(12, 8, GOLD);
+      px(12, 9, GOLD);
+      px(12, 10, GOLD);
+      px(13, 6, GOLD);
+      px(13, 7, GOLD);
+      px(13, 8, GOLD);
+      px(13, 9, GOLD);
+      px(14, 7, GOLD);
+      px(14, 8, GOLD);
+      px(15, 7, GOLD);
+      // Flare back edges
+      px(12, 4, GOLD_DIM);
+      px(12, 11, GOLD_DIM);
+    }
+
+    // VERSION 2: Sharper broadhead - longer point
+    function drawV2(ctx, size) {
+      const p = size / 16;
+      const px = (x, y, color) => { ctx.fillStyle = color; ctx.fillRect(x * p, y * p, p, p); };
+
+      // Fletching - big V
+      px(0, 3, GOLD_FAINT);
+      px(0, 4, GOLD_DIM);
+      px(1, 5, GOLD);
+      px(1, 6, GOLD);
+      px(2, 7, GOLD);
+      px(0, 12, GOLD_FAINT);
+      px(0, 11, GOLD_DIM);
+      px(1, 10, GOLD);
+      px(1, 9, GOLD);
+      px(2, 8, GOLD);
+
+      // Shaft
+      for (let x = 3; x <= 8; x++) {
+        px(x, 7, GOLD);
+        px(x, 8, GOLD);
+      }
+
+      // Broadhead - sharper, longer triangle
+      px(9, 5, GOLD_DIM);
+      px(9, 6, GOLD);
+      px(9, 7, GOLD);
+      px(9, 8, GOLD);
+      px(9, 9, GOLD);
+      px(9, 10, GOLD_DIM);
+      px(10, 5, GOLD);
+      px(10, 6, GOLD);
+      px(10, 7, GOLD);
+      px(10, 8, GOLD);
+      px(10, 9, GOLD);
+      px(10, 10, GOLD);
+      px(11, 6, GOLD);
+      px(11, 7, GOLD);
+      px(11, 8, GOLD);
+      px(11, 9, GOLD);
       px(12, 6, GOLD);
       px(12, 7, GOLD);
       px(12, 8, GOLD);
@@ -113,7 +201,162 @@
       px(15, 7, GOLD);
     }
 
-    function drawGrid(ctx) {
+    // VERSION 3: Wide broadhead - more dramatic flare
+    function drawV3(ctx, size) {
+      const p = size / 16;
+      const px = (x, y, color) => { ctx.fillStyle = color; ctx.fillRect(x * p, y * p, p, p); };
+
+      // Fletching - big V
+      px(0, 2, GOLD_FAINT);
+      px(0, 3, GOLD_DIM);
+      px(1, 4, GOLD);
+      px(1, 5, GOLD);
+      px(2, 6, GOLD);
+      px(2, 7, GOLD);
+      px(0, 13, GOLD_FAINT);
+      px(0, 12, GOLD_DIM);
+      px(1, 11, GOLD);
+      px(1, 10, GOLD);
+      px(2, 9, GOLD);
+      px(2, 8, GOLD);
+
+      // Shaft
+      for (let x = 3; x <= 8; x++) {
+        px(x, 7, GOLD);
+        px(x, 8, GOLD);
+      }
+
+      // Broadhead - wide with dramatic flare
+      px(9, 7, GOLD);
+      px(9, 8, GOLD);
+      px(10, 4, GOLD_DIM);
+      px(10, 5, GOLD);
+      px(10, 6, GOLD);
+      px(10, 7, GOLD);
+      px(10, 8, GOLD);
+      px(10, 9, GOLD);
+      px(10, 10, GOLD);
+      px(10, 11, GOLD_DIM);
+      px(11, 5, GOLD);
+      px(11, 6, GOLD);
+      px(11, 7, GOLD);
+      px(11, 8, GOLD);
+      px(11, 9, GOLD);
+      px(11, 10, GOLD);
+      px(12, 6, GOLD);
+      px(12, 7, GOLD);
+      px(12, 8, GOLD);
+      px(12, 9, GOLD);
+      px(13, 7, GOLD);
+      px(13, 8, GOLD);
+      px(14, 7, GOLD);
+      px(14, 8, GOLD);
+      px(15, 7, GOLD);
+    }
+
+    // VERSION 4: Sleek broadhead - thinner shaft, elegant
+    function drawV4(ctx, size) {
+      const p = size / 16;
+      const px = (x, y, color) => { ctx.fillStyle = color; ctx.fillRect(x * p, y * p, p, p); };
+
+      // Fletching - sleek V
+      px(0, 4, GOLD_FAINT);
+      px(1, 5, GOLD_DIM);
+      px(2, 6, GOLD);
+      px(0, 11, GOLD_FAINT);
+      px(1, 10, GOLD_DIM);
+      px(2, 9, GOLD);
+
+      // Thin shaft (single pixel height)
+      for (let x = 3; x <= 9; x++) {
+        px(x, 7, GOLD);
+        px(x, 8, GOLD);
+      }
+
+      // Broadhead - elegant diamond
+      px(10, 6, GOLD);
+      px(10, 7, GOLD);
+      px(10, 8, GOLD);
+      px(10, 9, GOLD);
+      px(11, 5, GOLD);
+      px(11, 6, GOLD);
+      px(11, 7, GOLD);
+      px(11, 8, GOLD);
+      px(11, 9, GOLD);
+      px(11, 10, GOLD);
+      px(12, 6, GOLD);
+      px(12, 7, GOLD);
+      px(12, 8, GOLD);
+      px(12, 9, GOLD);
+      px(13, 7, GOLD);
+      px(13, 8, GOLD);
+      px(14, 7, GOLD);
+      px(15, 7, GOLD);
+    }
+
+    // VERSION 5: Chunky broadhead - bold and heavy
+    function drawV5(ctx, size) {
+      const p = size / 16;
+      const px = (x, y, color) => { ctx.fillStyle = color; ctx.fillRect(x * p, y * p, p, p); };
+
+      // Fletching - chunky V
+      px(0, 2, GOLD_FAINT);
+      px(0, 3, GOLD_DIM);
+      px(1, 3, GOLD_DIM);
+      px(1, 4, GOLD);
+      px(2, 5, GOLD);
+      px(2, 6, GOLD);
+      px(3, 7, GOLD);
+      px(0, 13, GOLD_FAINT);
+      px(0, 12, GOLD_DIM);
+      px(1, 12, GOLD_DIM);
+      px(1, 11, GOLD);
+      px(2, 10, GOLD);
+      px(2, 9, GOLD);
+      px(3, 8, GOLD);
+
+      // Thick shaft
+      for (let x = 4; x <= 8; x++) {
+        px(x, 6, GOLD);
+        px(x, 7, GOLD);
+        px(x, 8, GOLD);
+        px(x, 9, GOLD);
+      }
+
+      // Broadhead - chunky triangle
+      px(9, 5, GOLD);
+      px(9, 6, GOLD);
+      px(9, 7, GOLD);
+      px(9, 8, GOLD);
+      px(9, 9, GOLD);
+      px(9, 10, GOLD);
+      px(10, 4, GOLD_DIM);
+      px(10, 5, GOLD);
+      px(10, 6, GOLD);
+      px(10, 7, GOLD);
+      px(10, 8, GOLD);
+      px(10, 9, GOLD);
+      px(10, 10, GOLD);
+      px(10, 11, GOLD_DIM);
+      px(11, 5, GOLD);
+      px(11, 6, GOLD);
+      px(11, 7, GOLD);
+      px(11, 8, GOLD);
+      px(11, 9, GOLD);
+      px(11, 10, GOLD);
+      px(12, 6, GOLD);
+      px(12, 7, GOLD);
+      px(12, 8, GOLD);
+      px(12, 9, GOLD);
+      px(13, 7, GOLD);
+      px(13, 8, GOLD);
+      px(14, 7, GOLD);
+      px(14, 8, GOLD);
+      px(15, 7, GOLD);
+    }
+
+    // Grid drawing helper
+    function drawGrid(ctx, drawFn) {
       const p = 20;
       ctx.strokeStyle = '#333';
       for (let i = 0; i <= 16; i++) {
@@ -126,22 +369,25 @@
         ctx.lineTo(320, i * p);
         ctx.stroke();
       }
-
       const tempCanvas = document.createElement('canvas');
       tempCanvas.width = 16;
       tempCanvas.height = 16;
-      drawArrow(tempCanvas.getContext('2d'), 16);
+      drawFn(tempCanvas.getContext('2d'), 16);
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(tempCanvas, 0, 0, 320, 320);
     }
 
-    // Draw all previews
-    [32, 64, 128].forEach(size => {
-      const canvas = document.getElementById('c' + size);
-      drawArrow(canvas.getContext('2d'), size);
+    // Render all
+    const versions = [drawV1, drawV2, drawV3, drawV4, drawV5];
+    versions.forEach((fn, i) => {
+      const n = i + 1;
+      [32, 64].forEach(size => {
+        const canvas = document.getElementById(`v${n}_${size}`);
+        if (canvas) fn(canvas.getContext('2d'), size);
+      });
+      const gridCanvas = document.getElementById(`v${n}_grid`);
+      if (gridCanvas) drawGrid(gridCanvas.getContext('2d'), fn);
     });
-
-    drawGrid(document.getElementById('grid').getContext('2d'));
   </script>
 </body>
 </html>

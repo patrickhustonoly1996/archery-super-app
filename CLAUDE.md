@@ -65,12 +65,17 @@ Hard to reverse → ask ONE question. Reversible → do it, state what you did.
 
 ## Version Control (STRICT)
 
-**Work on main branch** unless explicitly asked to create a feature branch.
+**Branch strategy - protect main:**
+- Small fixes (typos, one-file changes): OK to work on main
+- Medium features: Create branch, merge to main when tested, same session
+- Large/risky features: Create branch, can span multiple sessions
+
+**Main branch = stable, working code.** Don't commit broken code to main.
 
 **Commit discipline:**
 - Commit after completing logical chunks of work (not mid-change)
 - Commit before making risky changes (escape hatch for Patrick)
-- Never commit broken code or failing tests
+- Never commit broken code or failing tests to main
 - Use descriptive messages: "Add 5-zone scoring" not "updates"
 
 **Push to GitHub:**
@@ -78,19 +83,20 @@ Hard to reverse → ask ONE question. Reversible → do it, state what you did.
 - Always push at end of session
 
 **Branch hygiene:**
-- Don't create branches without asking - they get orphaned
-- If you create a branch, either merge it or delete it before session ends
-- Prefer working on main for small-medium changes
+- Always tell Patrick when creating a branch and why
+- Before session ends: merge branch to main OR explicitly ask Patrick if he wants to keep it for later
+- Never leave a branch without telling Patrick it exists
 
 **Before big changes:**
 - Suggest Patrick commits current state first
 - State clearly: "This is a significant change - recommend committing first"
+- For risky work, create a branch so main stays safe
 
 **Never do:**
 - `git push --force` (destroys history)
 - `git reset --hard` without asking
-- Leave uncommitted work at session end
-- Create branches that won't be merged same session
+- Commit broken code to main
+- Leave branches without telling Patrick
 
 ## Code Review & Upgrade Roadmap
 
