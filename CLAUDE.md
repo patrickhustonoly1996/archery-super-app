@@ -63,6 +63,35 @@ Hard to reverse → ask ONE question. Reversible → do it, state what you did.
 - Test core interactions work reliably before adding complexity
 - Simple and correct beats feature-rich and flaky
 
+## Version Control (STRICT)
+
+**Work on main branch** unless explicitly asked to create a feature branch.
+
+**Commit discipline:**
+- Commit after completing logical chunks of work (not mid-change)
+- Commit before making risky changes (escape hatch for Patrick)
+- Never commit broken code or failing tests
+- Use descriptive messages: "Add 5-zone scoring" not "updates"
+
+**Push to GitHub:**
+- Push after committing (backup!)
+- Always push at end of session
+
+**Branch hygiene:**
+- Don't create branches without asking - they get orphaned
+- If you create a branch, either merge it or delete it before session ends
+- Prefer working on main for small-medium changes
+
+**Before big changes:**
+- Suggest Patrick commits current state first
+- State clearly: "This is a significant change - recommend committing first"
+
+**Never do:**
+- `git push --force` (destroys history)
+- `git reset --hard` without asking
+- Leave uncommitted work at session end
+- Create branches that won't be merged same session
+
 ## Code Review & Upgrade Roadmap
 
 **[Full Code Review Document](./docs/CODE_REVIEW_AND_UPGRADE_ROADMAP.md)**

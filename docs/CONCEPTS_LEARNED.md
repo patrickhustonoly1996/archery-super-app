@@ -308,6 +308,119 @@ The 42px value comes from `60 / √2 ≈ 42` - same total distance as the origin
 
 ---
 
+## 3. Version Control (Git) - Save Points for Your Code
+
+### The Problem Git Solves
+
+Imagine editing a bow setup across multiple sessions. You tweak the tiller, then the brace height, then the plunger. A month later something's wrong but you can't remember what you changed or when. You wish you had a logbook of every change.
+
+Git is that logbook for code. Every change is recorded with a description, timestamp, and the ability to go back.
+
+### Core Concepts
+
+| Term | Plain English |
+|------|---------------|
+| **Repository (repo)** | Your project folder, tracked by git |
+| **Commit** | A save point with a message describing what changed |
+| **Branch** | A parallel timeline - experiment without affecting main |
+| **Main** | The "known good" branch - what actually works |
+| **Merge** | Bring changes from one branch into another |
+| **Push** | Upload commits to GitHub (backup + sharing) |
+| **Pull** | Download changes from GitHub |
+
+### The Two-Step Save
+
+```
+YOUR LAPTOP                          GITHUB (cloud)
+───────────────────                  ──────────────────
+
+  [edit files]
+       │
+       ▼
+  git commit  ───► Save point
+               (LOCAL only)         (nothing on GitHub yet)
+       │
+       ▼
+  git push    ─────────────────────► Backup uploaded
+```
+
+**Commit** = Save to your machine (like Ctrl+S but for the whole project)
+**Push** = Upload that save to GitHub (backup in the cloud)
+
+You can commit 10 times offline. Nothing reaches GitHub until you push.
+
+### Branches - Parallel Universes
+
+```
+                    ┌── google-login (experiment: add Google auth)
+                    │
+main ───●───●───●───●───●───●  (the "real" version)
+                    │
+                    └── handicap-graph (experiment: add graphs)
+```
+
+Each branch is a safe space to try things. If the experiment fails, main is untouched. If it works, you merge it in.
+
+### When to Do What
+
+**COMMIT when:**
+- You've finished a logical piece of work
+- Tests pass
+- Before asking Claude for big changes (escape hatch!)
+- Before leaving your computer
+- You think "this works, don't want to lose it"
+
+**DON'T COMMIT when:**
+- Code is broken
+- Tests are failing
+- You're mid-change
+
+**PUSH when:**
+- After committing (backup!)
+- End of work session
+- You want it on another device
+
+**BRANCH when:**
+- Trying something risky
+- Feature might take multiple sessions
+- Want main to stay stable while experimenting
+
+### Common Commands
+
+```bash
+git status              # What's changed?
+git add .               # Stage all changes for commit
+git commit -m "msg"     # Create save point
+git push                # Upload to GitHub
+git checkout .          # Undo all uncommitted changes (escape!)
+git log --oneline -10   # See recent history
+```
+
+### File States
+
+| State | Meaning |
+|-------|---------|
+| **Untracked** | New file git doesn't know about |
+| **Modified** | Known file you've changed |
+| **Staged** | Marked for next commit |
+| **Committed** | Saved in history |
+
+### Good Commit Messages
+
+Read like a changelog:
+- ✅ "Add 5-zone scoring for imperial rounds"
+- ✅ "Fix zoom window alignment bug"
+- ❌ "stuff"
+- ❌ "updates"
+
+Six months from now, you'll thank yourself.
+
+### The Golden Rule
+
+**Commit before experimenting.** Then you can always escape back to "it was working 5 minutes ago."
+
+---
+
 ## Concepts Still to Cover
 
 *Will be added as we encounter them:*

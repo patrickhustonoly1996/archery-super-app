@@ -87,7 +87,12 @@
       "Bash(grep:*)",
       "Bash(start \"\" \"C:\\\\Users\\\\patri\\\\Desktop\\\\archery_super_app_v1\\\\pixel_preview.html\")",
       "Bash(start http://localhost:8888/pixel_preview.html)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(start http://localhost:8889/pixel_preview.html)",
+      "Bash(for branch in firebase-google-login archery-handicap-graph arrow-volume-upload progressive-web-app bow-training-timer selfie-camera training-intro-screen bow-equipment-specs coding-during-training fix-arrow-plotter-zoom fix-logo-scroll-overlay integrate-video-feedback optional-otp-login review-project-structure test-score-upload-storage)",
+      "Bash(do echo \"=== $branch ===\" git log main..origin/claude/*$branch* --oneline)",
+      "Bash(explorer \"C:\\\\Users\\\\patri\\\\Desktop\\\\archery_super_app_v1\\\\pixel_preview.html\")",
+      "Bash(cmd.exe /c start \"\" \"C:\\\\Users\\\\patri\\\\Desktop\\\\archery_super_app_v1\\\\pixel_preview.html\")"
     ]
   }
 }
