@@ -518,10 +518,11 @@ class _WebCameraScreenState extends State<_WebCameraScreen> {
                         ),
                         child: Text(
                           '${_delaySeconds.toStringAsFixed(1)}s delay',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.gold,
-                            fontSize: 16,
-                            fontFamily: 'VT323',
+                            fontSize: 14,
+                            fontFamily: AppFonts.main,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),

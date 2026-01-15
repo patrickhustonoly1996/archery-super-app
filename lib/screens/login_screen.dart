@@ -130,14 +130,42 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo
-                  const PixelBowIcon(size: 80),
-                  const SizedBox(height: AppSpacing.md),
+                  // Logo with glow
+                  Container(
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.gold.withValues(alpha: 0.5),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: const PixelBowIcon(size: 64),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
 
-                  // Title
+                  // Title - ARCHERY
                   Text(
-                    'Archery Super App',
-                    style: Theme.of(context).textTheme.headlineMedium,
+                    'ARCHERY',
+                    style: TextStyle(
+                      fontFamily: AppFonts.pixel,
+                      fontSize: 32,
+                      color: AppColors.gold,
+                      letterSpacing: 4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  // Subtitle - SUPER APP
+                  Text(
+                    'SUPER APP',
+                    style: TextStyle(
+                      fontFamily: AppFonts.pixel,
+                      fontSize: 14,
+                      color: AppColors.textMuted,
+                      letterSpacing: 2,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: AppSpacing.xl),

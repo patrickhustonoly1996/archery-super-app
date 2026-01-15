@@ -1097,6 +1097,8 @@ The 700+ lines of handicap tables are hardcoded. If AGB updates tables, the app 
 | P0 | Timer doesn't pause on background | UX Critical | bow_training_provider.dart |
 | P0 | Silent CSV parsing failures | Data Integrity | import_screen.dart, volume_import_screen.dart |
 | P0 | ID collision potential | Data Integrity | equipment_provider.dart, import_screen.dart |
+| P1 | Menu scrolling issue | UX | home_screen.dart |
+| P1 | Arrows not dropping (plotting) | UX Critical | plotting_screen.dart |
 | P1 | No undo for deletes | UX | Multiple screens |
 | P1 | Sequential shaft loading | Performance | equipment_provider.dart |
 | P1 | No offline indicator | UX | App-wide |

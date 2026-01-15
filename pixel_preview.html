@@ -50,7 +50,7 @@
   </style>
 </head>
 <body>
-  <h1>Broadhead Arrow Variations</h1>
+  <h1>Broadhead Arrow Variations (Symmetrical)</h1>
 
   <div class="version-row">
     <span class="version-num">1</span>
@@ -102,257 +102,176 @@
     const GOLD_DIM = 'rgba(255, 215, 0, 0.7)';
     const GOLD_FAINT = 'rgba(255, 215, 0, 0.4)';
 
-    // VERSION 1: Classic broadhead - medium triangle
+    // Helper: draw pixel and its mirror (center is between 7 and 8)
+    function symPx(px, x, y, color) {
+      px(x, y, color);
+      px(x, 15 - y, color);  // mirror
+    }
+
+    // VERSION 1: Classic broadhead
     function drawV1(ctx, size) {
       const p = size / 16;
       const px = (x, y, color) => { ctx.fillStyle = color; ctx.fillRect(x * p, y * p, p, p); };
 
-      // Fletching - big V
-      px(0, 3, GOLD_FAINT);
-      px(0, 4, GOLD_DIM);
-      px(1, 5, GOLD);
-      px(1, 6, GOLD);
-      px(2, 7, GOLD);
-      px(0, 12, GOLD_FAINT);
-      px(0, 11, GOLD_DIM);
-      px(1, 10, GOLD);
-      px(1, 9, GOLD);
-      px(2, 8, GOLD);
+      // Fletching - symmetrical V
+      symPx(px, 0, 3, GOLD_FAINT);
+      symPx(px, 0, 4, GOLD_DIM);
+      symPx(px, 1, 5, GOLD);
+      symPx(px, 1, 6, GOLD);
+      symPx(px, 2, 7, GOLD);
 
-      // Shaft
+      // Shaft (center)
       for (let x = 3; x <= 9; x++) {
-        px(x, 7, GOLD);
-        px(x, 8, GOLD);
+        symPx(px, x, 7, GOLD);
       }
 
-      // Broadhead - triangle with flare back
-      px(10, 7, GOLD);
-      px(10, 8, GOLD);
-      px(11, 6, GOLD);
-      px(11, 7, GOLD);
-      px(11, 8, GOLD);
-      px(11, 9, GOLD);
-      px(12, 5, GOLD);
-      px(12, 6, GOLD);
-      px(12, 7, GOLD);
-      px(12, 8, GOLD);
-      px(12, 9, GOLD);
-      px(12, 10, GOLD);
-      px(13, 6, GOLD);
-      px(13, 7, GOLD);
-      px(13, 8, GOLD);
-      px(13, 9, GOLD);
-      px(14, 7, GOLD);
-      px(14, 8, GOLD);
-      px(15, 7, GOLD);
-      // Flare back edges
-      px(12, 4, GOLD_DIM);
-      px(12, 11, GOLD_DIM);
+      // Broadhead
+      symPx(px, 10, 7, GOLD);
+      symPx(px, 11, 6, GOLD);
+      symPx(px, 11, 7, GOLD);
+      symPx(px, 12, 5, GOLD);
+      symPx(px, 12, 6, GOLD);
+      symPx(px, 12, 7, GOLD);
+      symPx(px, 13, 6, GOLD);
+      symPx(px, 13, 7, GOLD);
+      symPx(px, 14, 7, GOLD);
+      symPx(px, 15, 7, GOLD);
+      // Flare
+      symPx(px, 12, 4, GOLD_DIM);
     }
 
-    // VERSION 2: Sharper broadhead - longer point
+    // VERSION 2: Sharper broadhead
     function drawV2(ctx, size) {
       const p = size / 16;
       const px = (x, y, color) => { ctx.fillStyle = color; ctx.fillRect(x * p, y * p, p, p); };
 
-      // Fletching - big V
-      px(0, 3, GOLD_FAINT);
-      px(0, 4, GOLD_DIM);
-      px(1, 5, GOLD);
-      px(1, 6, GOLD);
-      px(2, 7, GOLD);
-      px(0, 12, GOLD_FAINT);
-      px(0, 11, GOLD_DIM);
-      px(1, 10, GOLD);
-      px(1, 9, GOLD);
-      px(2, 8, GOLD);
+      // Fletching
+      symPx(px, 0, 3, GOLD_FAINT);
+      symPx(px, 0, 4, GOLD_DIM);
+      symPx(px, 1, 5, GOLD);
+      symPx(px, 1, 6, GOLD);
+      symPx(px, 2, 7, GOLD);
 
       // Shaft
       for (let x = 3; x <= 8; x++) {
-        px(x, 7, GOLD);
-        px(x, 8, GOLD);
+        symPx(px, x, 7, GOLD);
       }
 
-      // Broadhead - sharper, longer triangle
-      px(9, 5, GOLD_DIM);
-      px(9, 6, GOLD);
-      px(9, 7, GOLD);
-      px(9, 8, GOLD);
-      px(9, 9, GOLD);
-      px(9, 10, GOLD_DIM);
-      px(10, 5, GOLD);
-      px(10, 6, GOLD);
-      px(10, 7, GOLD);
-      px(10, 8, GOLD);
-      px(10, 9, GOLD);
-      px(10, 10, GOLD);
-      px(11, 6, GOLD);
-      px(11, 7, GOLD);
-      px(11, 8, GOLD);
-      px(11, 9, GOLD);
-      px(12, 6, GOLD);
-      px(12, 7, GOLD);
-      px(12, 8, GOLD);
-      px(12, 9, GOLD);
-      px(13, 7, GOLD);
-      px(13, 8, GOLD);
-      px(14, 7, GOLD);
-      px(14, 8, GOLD);
-      px(15, 7, GOLD);
+      // Broadhead - longer point
+      symPx(px, 9, 5, GOLD_DIM);
+      symPx(px, 9, 6, GOLD);
+      symPx(px, 9, 7, GOLD);
+      symPx(px, 10, 5, GOLD);
+      symPx(px, 10, 6, GOLD);
+      symPx(px, 10, 7, GOLD);
+      symPx(px, 11, 6, GOLD);
+      symPx(px, 11, 7, GOLD);
+      symPx(px, 12, 6, GOLD);
+      symPx(px, 12, 7, GOLD);
+      symPx(px, 13, 7, GOLD);
+      symPx(px, 14, 7, GOLD);
+      symPx(px, 15, 7, GOLD);
     }
 
-    // VERSION 3: Wide broadhead - more dramatic flare
+    // VERSION 3: Wide broadhead
     function drawV3(ctx, size) {
       const p = size / 16;
       const px = (x, y, color) => { ctx.fillStyle = color; ctx.fillRect(x * p, y * p, p, p); };
 
-      // Fletching - big V
-      px(0, 2, GOLD_FAINT);
-      px(0, 3, GOLD_DIM);
-      px(1, 4, GOLD);
-      px(1, 5, GOLD);
-      px(2, 6, GOLD);
-      px(2, 7, GOLD);
-      px(0, 13, GOLD_FAINT);
-      px(0, 12, GOLD_DIM);
-      px(1, 11, GOLD);
-      px(1, 10, GOLD);
-      px(2, 9, GOLD);
-      px(2, 8, GOLD);
+      // Big fletching
+      symPx(px, 0, 2, GOLD_FAINT);
+      symPx(px, 0, 3, GOLD_DIM);
+      symPx(px, 1, 4, GOLD);
+      symPx(px, 1, 5, GOLD);
+      symPx(px, 2, 6, GOLD);
+      symPx(px, 2, 7, GOLD);
 
       // Shaft
       for (let x = 3; x <= 8; x++) {
-        px(x, 7, GOLD);
-        px(x, 8, GOLD);
+        symPx(px, x, 7, GOLD);
       }
 
-      // Broadhead - wide with dramatic flare
-      px(9, 7, GOLD);
-      px(9, 8, GOLD);
-      px(10, 4, GOLD_DIM);
-      px(10, 5, GOLD);
-      px(10, 6, GOLD);
-      px(10, 7, GOLD);
-      px(10, 8, GOLD);
-      px(10, 9, GOLD);
-      px(10, 10, GOLD);
-      px(10, 11, GOLD_DIM);
-      px(11, 5, GOLD);
-      px(11, 6, GOLD);
-      px(11, 7, GOLD);
-      px(11, 8, GOLD);
-      px(11, 9, GOLD);
-      px(11, 10, GOLD);
-      px(12, 6, GOLD);
-      px(12, 7, GOLD);
-      px(12, 8, GOLD);
-      px(12, 9, GOLD);
-      px(13, 7, GOLD);
-      px(13, 8, GOLD);
-      px(14, 7, GOLD);
-      px(14, 8, GOLD);
-      px(15, 7, GOLD);
+      // Wide broadhead
+      symPx(px, 9, 7, GOLD);
+      symPx(px, 10, 4, GOLD_DIM);
+      symPx(px, 10, 5, GOLD);
+      symPx(px, 10, 6, GOLD);
+      symPx(px, 10, 7, GOLD);
+      symPx(px, 11, 5, GOLD);
+      symPx(px, 11, 6, GOLD);
+      symPx(px, 11, 7, GOLD);
+      symPx(px, 12, 6, GOLD);
+      symPx(px, 12, 7, GOLD);
+      symPx(px, 13, 7, GOLD);
+      symPx(px, 14, 7, GOLD);
+      symPx(px, 15, 7, GOLD);
     }
 
-    // VERSION 4: Sleek broadhead - thinner shaft, elegant
+    // VERSION 4: Sleek broadhead
     function drawV4(ctx, size) {
       const p = size / 16;
       const px = (x, y, color) => { ctx.fillStyle = color; ctx.fillRect(x * p, y * p, p, p); };
 
-      // Fletching - sleek V
-      px(0, 4, GOLD_FAINT);
-      px(1, 5, GOLD_DIM);
-      px(2, 6, GOLD);
-      px(0, 11, GOLD_FAINT);
-      px(1, 10, GOLD_DIM);
-      px(2, 9, GOLD);
+      // Sleek fletching
+      symPx(px, 0, 4, GOLD_FAINT);
+      symPx(px, 1, 5, GOLD_DIM);
+      symPx(px, 2, 6, GOLD);
+      symPx(px, 2, 7, GOLD);
 
-      // Thin shaft (single pixel height)
+      // Shaft
       for (let x = 3; x <= 9; x++) {
-        px(x, 7, GOLD);
-        px(x, 8, GOLD);
+        symPx(px, x, 7, GOLD);
       }
 
-      // Broadhead - elegant diamond
-      px(10, 6, GOLD);
-      px(10, 7, GOLD);
-      px(10, 8, GOLD);
-      px(10, 9, GOLD);
-      px(11, 5, GOLD);
-      px(11, 6, GOLD);
-      px(11, 7, GOLD);
-      px(11, 8, GOLD);
-      px(11, 9, GOLD);
-      px(11, 10, GOLD);
-      px(12, 6, GOLD);
-      px(12, 7, GOLD);
-      px(12, 8, GOLD);
-      px(12, 9, GOLD);
-      px(13, 7, GOLD);
-      px(13, 8, GOLD);
-      px(14, 7, GOLD);
-      px(15, 7, GOLD);
+      // Elegant diamond broadhead
+      symPx(px, 10, 6, GOLD);
+      symPx(px, 10, 7, GOLD);
+      symPx(px, 11, 5, GOLD);
+      symPx(px, 11, 6, GOLD);
+      symPx(px, 11, 7, GOLD);
+      symPx(px, 12, 6, GOLD);
+      symPx(px, 12, 7, GOLD);
+      symPx(px, 13, 7, GOLD);
+      symPx(px, 14, 7, GOLD);
+      symPx(px, 15, 7, GOLD);
     }
 
-    // VERSION 5: Chunky broadhead - bold and heavy
+    // VERSION 5: Chunky broadhead
     function drawV5(ctx, size) {
       const p = size / 16;
       const px = (x, y, color) => { ctx.fillStyle = color; ctx.fillRect(x * p, y * p, p, p); };
 
-      // Fletching - chunky V
-      px(0, 2, GOLD_FAINT);
-      px(0, 3, GOLD_DIM);
-      px(1, 3, GOLD_DIM);
-      px(1, 4, GOLD);
-      px(2, 5, GOLD);
-      px(2, 6, GOLD);
-      px(3, 7, GOLD);
-      px(0, 13, GOLD_FAINT);
-      px(0, 12, GOLD_DIM);
-      px(1, 12, GOLD_DIM);
-      px(1, 11, GOLD);
-      px(2, 10, GOLD);
-      px(2, 9, GOLD);
-      px(3, 8, GOLD);
+      // Chunky fletching
+      symPx(px, 0, 2, GOLD_FAINT);
+      symPx(px, 0, 3, GOLD_DIM);
+      symPx(px, 1, 3, GOLD_DIM);
+      symPx(px, 1, 4, GOLD);
+      symPx(px, 2, 5, GOLD);
+      symPx(px, 2, 6, GOLD);
+      symPx(px, 3, 7, GOLD);
 
       // Thick shaft
       for (let x = 4; x <= 8; x++) {
-        px(x, 6, GOLD);
-        px(x, 7, GOLD);
-        px(x, 8, GOLD);
-        px(x, 9, GOLD);
+        symPx(px, x, 6, GOLD);
+        symPx(px, x, 7, GOLD);
       }
 
-      // Broadhead - chunky triangle
-      px(9, 5, GOLD);
-      px(9, 6, GOLD);
-      px(9, 7, GOLD);
-      px(9, 8, GOLD);
-      px(9, 9, GOLD);
-      px(9, 10, GOLD);
-      px(10, 4, GOLD_DIM);
-      px(10, 5, GOLD);
-      px(10, 6, GOLD);
-      px(10, 7, GOLD);
-      px(10, 8, GOLD);
-      px(10, 9, GOLD);
-      px(10, 10, GOLD);
-      px(10, 11, GOLD_DIM);
-      px(11, 5, GOLD);
-      px(11, 6, GOLD);
-      px(11, 7, GOLD);
-      px(11, 8, GOLD);
-      px(11, 9, GOLD);
-      px(11, 10, GOLD);
-      px(12, 6, GOLD);
-      px(12, 7, GOLD);
-      px(12, 8, GOLD);
-      px(12, 9, GOLD);
-      px(13, 7, GOLD);
-      px(13, 8, GOLD);
-      px(14, 7, GOLD);
-      px(14, 8, GOLD);
-      px(15, 7, GOLD);
+      // Chunky broadhead
+      symPx(px, 9, 5, GOLD);
+      symPx(px, 9, 6, GOLD);
+      symPx(px, 9, 7, GOLD);
+      symPx(px, 10, 4, GOLD_DIM);
+      symPx(px, 10, 5, GOLD);
+      symPx(px, 10, 6, GOLD);
+      symPx(px, 10, 7, GOLD);
+      symPx(px, 11, 5, GOLD);
+      symPx(px, 11, 6, GOLD);
+      symPx(px, 11, 7, GOLD);
+      symPx(px, 12, 6, GOLD);
+      symPx(px, 12, 7, GOLD);
+      symPx(px, 13, 7, GOLD);
+      symPx(px, 14, 7, GOLD);
+      symPx(px, 15, 7, GOLD);
     }
 
     // Grid drawing helper

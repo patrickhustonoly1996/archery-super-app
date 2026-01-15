@@ -192,6 +192,128 @@ Uses `onScaleStart/Update/End` with `details.pointerCount` to distinguish.
 
 ---
 
+## P1: Menu Scrolling Issue
+
+**Status:** Not started
+**Problem:** Menu scrolling on home screen has issues - reported by user.
+
+**Files:**
+- `lib/screens/home_screen.dart`
+
+**Needs investigation:** What specific scrolling issue? Janky? Doesn't scroll? Wrong scroll physics?
+
+---
+
+## P1: Arrows Not Dropping (Plotting Issue)
+
+**Status:** Not started
+**Problem:** Arrows not dropping when plotting on target - reported by user.
+
+**Files:**
+- `lib/screens/plotting_screen.dart`
+- `lib/widgets/target_face.dart`
+
+**Needs investigation:** Is it touch detection? Visual feedback? Database not saving?
+
+---
+
+## P1: Volume Input Interface Saves
+
+**Status:** Not started
+**Problem:** Volume input interface not saving properly - reported by user.
+
+**Files:**
+- `lib/screens/volume_import_screen.dart`
+- `lib/db/database.dart` (volume tables)
+
+**Needs investigation:** What's not saving? Manual entry? CSV import? Both?
+
+---
+
+## P1: Inter-Device Data Push
+
+**Status:** Not started
+**Problem:** Need to sync data between devices (phone, tablet, web).
+
+**Files:**
+- `lib/services/firestore_sync_service.dart`
+
+**Implementation needed:**
+- Push local data to Firestore
+- Pull remote data to local
+- Conflict resolution strategy
+- User authentication link
+
+---
+
+## P1: Selfie Camera
+
+**Status:** Not started
+**Problem:** Selfie/front camera feature needed or broken.
+
+**Files:**
+- `lib/screens/delayed_camera_native.dart`
+- `lib/screens/delayed_camera_web.dart`
+
+**Needs investigation:** Is it camera switching? Front camera not available? Mirror mode?
+
+---
+
+## P1: Breathing Cues Visibility
+
+**Status:** Not started
+**Problem:** Breathing cues not visible enough during training.
+
+**Files:**
+- `lib/screens/breath_training/paced_breathing_screen.dart`
+- `lib/screens/breath_training/patrick_breath_screen.dart`
+- `lib/screens/breath_training/breath_hold_screen.dart`
+
+**Needs investigation:** Text too small? Low contrast? Need larger visual indicator?
+
+---
+
+## P1: Haptic Feedback / Beeps
+
+**Status:** Not started
+**Problem:** Haptic feedback and audio beeps not working or need improvement.
+
+**Files:**
+- `lib/services/beep_service.dart`
+- `lib/providers/bow_training_provider.dart`
+- `lib/screens/breath_training/*.dart`
+
+**Needs investigation:** Not triggering? Wrong timing? Need user settings? Web vs native differences?
+
+---
+
+## P1: Exhale Test Structure Edit
+
+**Status:** Not started
+**Problem:** Need to edit/improve the exhale test structure in breath training.
+
+**Files:**
+- `lib/screens/breath_training/breath_hold_screen.dart`
+- `lib/providers/breath_training_provider.dart`
+
+**Needs investigation:** What structure changes needed? Different phases? Timing adjustments?
+
+---
+
+## P1: Equipment Log Details
+
+**Status:** Not started
+**Problem:** Equipment log needs more detail/features.
+
+**Files:**
+- `lib/screens/equipment_screen.dart`
+- `lib/screens/bow_form_screen.dart`
+- `lib/providers/equipment_provider.dart`
+
+**Needs investigation:** What details missing? Arrow counts? Maintenance logs? Usage history?
+
+---
+
 ## P2: Timer Pause When App Backgrounds
 
 **Status:** Not started (from code review doc)

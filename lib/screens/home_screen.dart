@@ -651,9 +651,8 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
         Text(
           'ARCHERY',
           style: TextStyle(
-            fontFamily: AppFonts.main,
+            fontFamily: AppFonts.pixel,
             fontSize: titleSize,
-            fontWeight: FontWeight.bold,
             color: AppColors.gold,
             letterSpacing: 4,
             shadows: [
@@ -726,9 +725,8 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
         Text(
           'ARCHERY',
           style: TextStyle(
-            fontFamily: AppFonts.main,
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
+            fontFamily: AppFonts.pixel,
+            fontSize: 16,
             color: AppColors.gold,
             letterSpacing: 2,
             shadows: [
@@ -1389,9 +1387,8 @@ class _MenuItemWidget extends StatelessWidget {
                       Text(
                         item.label,
                         style: TextStyle(
-                          fontFamily: AppFonts.main,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                          fontFamily: AppFonts.pixel,
+                          fontSize: 18,
                           color: item.isHighlight || isSelected
                               ? AppColors.gold
                               : AppColors.textPrimary,
@@ -1401,8 +1398,8 @@ class _MenuItemWidget extends StatelessWidget {
                       Text(
                         item.sublabel,
                         style: TextStyle(
-                          fontFamily: AppFonts.mono,
-                          fontSize: 11,
+                          fontFamily: AppFonts.pixel,
+                          fontSize: 12,
                           color: AppColors.textMuted,
                         ),
                       ),
@@ -1468,8 +1465,9 @@ class _PixelLoadingIndicatorState extends State<_PixelLoadingIndicator>
         Text(
           'LOADING',
           style: TextStyle(
-            fontFamily: AppFonts.pixel,
-            fontSize: 12,
+            fontFamily: AppFonts.main,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
             color: AppColors.gold,
             letterSpacing: 2,
           ),
@@ -1571,8 +1569,9 @@ class _RetroBottomSheet extends StatelessWidget {
               Text(
                 'OPTIONS',
                 style: TextStyle(
-                  fontFamily: AppFonts.pixel,
-                  fontSize: 10,
+                  fontFamily: AppFonts.main,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
                   color: AppColors.gold,
                   letterSpacing: 2,
                 ),
@@ -1619,8 +1618,8 @@ class _RetroSheetItem extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontFamily: AppFonts.pixel,
-                fontSize: 9,
+                fontFamily: AppFonts.main,
+                fontSize: 12,
                 color: color,
               ),
             ),
