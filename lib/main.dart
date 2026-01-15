@@ -193,7 +193,7 @@ class _AuthGateState extends State<AuthGate> {
   User? _cachedUser;
   String? _magicLinkUrl;
   final _authService = AuthService();
-  bool _hasTriggeredBackup = false;
+  bool _hasTriggeredSync = false;
 
   @override
   void initState() {
@@ -213,25 +213,36 @@ class _AuthGateState extends State<AuthGate> {
       });
     }
 
-    // Trigger background backup if user is already logged in
+    // Trigger background sync if user is already logged in
     if (_cachedUser != null) {
-      _triggerBackgroundBackup();
+      _triggerBackgroundSync();
     }
   }
 
-  /// Trigger a background backup of local data to Firestore
-  void _triggerBackgroundBackup() {
-    if (_hasTriggeredBackup) return;
-    _hasTriggeredBackup = true;
+  /// Trigger cloud restore (if local empty) then backup
+  /// This ensures data is never lost across devices/browser clears
+  void _triggerBackgroundSync() {
+    if (_hasTriggeredSync) return;
+    _hasTriggeredSync = true;
 
-    // Run backup in background without blocking UI
+    // Run sync in background without blocking UI
     Future.microtask(() async {
       try {
         final db = context.read<AppDatabase>();
         final syncService = FirestoreSyncService();
+
+        // First try to restore from cloud if local is empty
+        // This handles the case where user clears browser data or logs in on new device
+        final result = await syncService.restoreAllData(db);
+        if (result.totalRestored > 0) {
+          debugPrint('Cloud restore completed: ${result.message}');
+        }
+
+        // Then backup any local data to cloud
         await syncService.backupAllData(db);
+        debugPrint('Background sync completed');
       } catch (e) {
-        debugPrint('Background backup error (non-fatal): $e');
+        debugPrint('Background sync error (non-fatal): $e');
       }
     });
   }
@@ -279,8 +290,8 @@ class _AuthGateState extends State<AuthGate> {
 
         // User is logged in (stream confirmed)
         if (snapshot.hasData) {
-          // Trigger backup when user logs in
-          _triggerBackgroundBackup();
+          // Trigger restore/backup when user logs in
+          _triggerBackgroundSync();
           return const HomeScreen();
         }
 

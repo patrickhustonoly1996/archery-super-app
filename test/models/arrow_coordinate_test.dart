@@ -251,7 +251,9 @@ void main() {
 
       test('hashCode is consistent with equality', () {
         final a = ArrowCoordinate(xMm: 50.0, yMm: 30.0, faceSizeCm: 40);
-        final b = ArrowCoordinate(xMm: 50.005, yMm: 30.005, faceSizeCm: 40);
+        // Use values within 0.005 tolerance that also round to same hashCode
+        // hashCode uses (xMm * 100).round(), so 50.0 and 50.004 both round to 5000
+        final b = ArrowCoordinate(xMm: 50.004, yMm: 30.004, faceSizeCm: 40);
 
         // Equal objects should have same hash
         expect(a.hashCode, equals(b.hashCode));

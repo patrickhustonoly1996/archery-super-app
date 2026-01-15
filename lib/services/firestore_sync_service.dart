@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:firebase_auth/firebase_auth.dart';
 import '../db/database.dart';
 
@@ -372,4 +373,205 @@ class FirestoreSyncService {
       return false;
     }
   }
+
+  /// Restore all user data from Firestore to local database
+  /// Only restores if local database is empty to avoid duplicates
+  Future<RestoreResult> restoreAllData(AppDatabase db) async {
+    if (_userId == null) {
+      print('Cannot restore: user not authenticated');
+      return RestoreResult(success: false, message: 'Not authenticated');
+    }
+
+    try {
+      print('Starting restore for user: $_userId');
+      int importedScoresRestored = 0;
+      int sessionsRestored = 0;
+      int volumeEntriesRestored = 0;
+      int olyLogsRestored = 0;
+
+      // Check if local DB has data - only restore if empty
+      final existingScores = await db.getAllImportedScores();
+      final existingSessions = await db.getCompletedSessions();
+
+      // Restore imported scores if local is empty
+      if (existingScores.isEmpty) {
+        final cloudScores = await restoreImportedScores();
+        for (final scoreData in cloudScores) {
+          try {
+            await db.insertImportedScore(ImportedScoresCompanion.insert(
+              id: scoreData['id'] as String,
+              date: DateTime.parse(scoreData['date'] as String),
+              roundName: scoreData['roundName'] as String,
+              score: scoreData['score'] as int,
+              xCount: Value(scoreData['xCount'] as int?),
+              location: Value(scoreData['location'] as String?),
+              notes: Value(scoreData['notes'] as String?),
+              sessionType: Value(scoreData['sessionType'] as String? ?? 'competition'),
+              source: Value(scoreData['source'] as String? ?? 'manual'),
+            ));
+            importedScoresRestored++;
+          } catch (e) {
+            print('Error restoring score ${scoreData['id']}: $e');
+          }
+        }
+        print('Restored $importedScoresRestored imported scores');
+      }
+
+      // Restore sessions if local is empty
+      if (existingSessions.isEmpty) {
+        final cloudSessions = await restoreSessions();
+        for (final sessionData in cloudSessions) {
+          try {
+            // Insert session
+            await db.insertSession(SessionsCompanion.insert(
+              id: sessionData['id'] as String,
+              roundTypeId: sessionData['roundTypeId'] as String,
+              sessionType: Value(sessionData['sessionType'] as String? ?? 'practice'),
+              location: Value(sessionData['location'] as String?),
+              notes: Value(sessionData['notes'] as String?),
+              startedAt: Value(DateTime.parse(sessionData['startedAt'] as String)),
+              completedAt: Value(sessionData['completedAt'] != null
+                  ? DateTime.parse(sessionData['completedAt'] as String)
+                  : null),
+              totalScore: Value(sessionData['totalScore'] as int? ?? 0),
+              totalXs: Value(sessionData['totalXs'] as int? ?? 0),
+              bowId: Value(sessionData['bowId'] as String?),
+              quiverId: Value(sessionData['quiverId'] as String?),
+              shaftTaggingEnabled: Value(sessionData['shaftTaggingEnabled'] as bool? ?? false),
+            ));
+
+            // Insert ends
+            final ends = sessionData['ends'] as List<dynamic>? ?? [];
+            for (final endData in ends) {
+              final end = endData as Map<String, dynamic>;
+              await db.insertEnd(EndsCompanion.insert(
+                id: end['id'] as String,
+                sessionId: sessionData['id'] as String,
+                endNumber: end['endNumber'] as int,
+                endScore: Value(end['endScore'] as int? ?? 0),
+                endXs: Value(end['endXs'] as int? ?? 0),
+                status: Value(end['status'] as String? ?? 'active'),
+                committedAt: Value(end['committedAt'] != null
+                    ? DateTime.parse(end['committedAt'] as String)
+                    : null),
+              ));
+            }
+
+            // Insert arrows
+            final arrows = sessionData['arrows'] as List<dynamic>? ?? [];
+            for (final arrowData in arrows) {
+              final arrow = arrowData as Map<String, dynamic>;
+              await db.insertArrow(ArrowsCompanion.insert(
+                id: arrow['id'] as String,
+                endId: arrow['endId'] as String,
+                faceIndex: Value(arrow['faceIndex'] as int? ?? 0),
+                x: (arrow['x'] as num).toDouble(),
+                y: (arrow['y'] as num).toDouble(),
+                score: arrow['score'] as int,
+                isX: Value(arrow['isX'] as bool? ?? false),
+                sequence: arrow['sequence'] as int,
+                shaftNumber: Value(arrow['shaftNumber'] as int?),
+              ));
+            }
+
+            sessionsRestored++;
+          } catch (e) {
+            print('Error restoring session ${sessionData['id']}: $e');
+          }
+        }
+        print('Restored $sessionsRestored sessions');
+      }
+
+      // Restore volume entries
+      final existingVolume = await db.getAllVolumeEntries();
+      if (existingVolume.isEmpty) {
+        final cloudVolume = await restoreVolumeEntries();
+        for (final entry in cloudVolume) {
+          try {
+            await db.insertVolumeEntry(VolumeEntriesCompanion.insert(
+              id: entry['id'] as String,
+              date: DateTime.parse(entry['date'] as String),
+              arrowCount: entry['arrowCount'] as int,
+              notes: Value(entry['notes'] as String?),
+            ));
+            volumeEntriesRestored++;
+          } catch (e) {
+            print('Error restoring volume entry: $e');
+          }
+        }
+        print('Restored $volumeEntriesRestored volume entries');
+      }
+
+      // Restore OLY training logs
+      final existingLogs = await db.getAllOlyTrainingLogs();
+      if (existingLogs.isEmpty) {
+        final cloudLogs = await restoreOlyTrainingLogs();
+        for (final logData in cloudLogs) {
+          try {
+            await db.insertOlyTrainingLog(OlyTrainingLogsCompanion.insert(
+              id: logData['id'] as String,
+              sessionTemplateId: Value(logData['sessionTemplateId'] as String?),
+              sessionVersion: logData['sessionVersion'] as String,
+              sessionName: logData['sessionName'] as String,
+              plannedDurationSeconds: logData['plannedDurationSeconds'] as int,
+              actualDurationSeconds: logData['actualDurationSeconds'] as int,
+              plannedExercises: logData['plannedExercises'] as int,
+              completedExercises: logData['completedExercises'] as int,
+              totalHoldSeconds: logData['totalHoldSeconds'] as int,
+              totalRestSeconds: logData['totalRestSeconds'] as int,
+              feedbackShaking: Value(logData['feedbackShaking'] as int?),
+              feedbackStructure: Value(logData['feedbackStructure'] as int?),
+              feedbackRest: Value(logData['feedbackRest'] as int?),
+              progressionSuggestion: Value(logData['progressionSuggestion'] as String?),
+              suggestedNextVersion: Value(logData['suggestedNextVersion'] as String?),
+              notes: Value(logData['notes'] as String?),
+              startedAt: DateTime.parse(logData['startedAt'] as String),
+              completedAt: DateTime.parse(logData['completedAt'] as String),
+            ));
+            olyLogsRestored++;
+          } catch (e) {
+            print('Error restoring OLY log: $e');
+          }
+        }
+        print('Restored $olyLogsRestored OLY training logs');
+      }
+
+      final totalRestored = importedScoresRestored + sessionsRestored + volumeEntriesRestored + olyLogsRestored;
+      print('Restore completed: $totalRestored total items');
+
+      return RestoreResult(
+        success: true,
+        message: 'Restored $totalRestored items from cloud',
+        importedScoresRestored: importedScoresRestored,
+        sessionsRestored: sessionsRestored,
+        volumeEntriesRestored: volumeEntriesRestored,
+        olyLogsRestored: olyLogsRestored,
+      );
+    } catch (e) {
+      print('Error during restore: $e');
+      return RestoreResult(success: false, message: 'Restore failed: $e');
+    }
+  }
+}
+
+/// Result of a restore operation
+class RestoreResult {
+  final bool success;
+  final String message;
+  final int importedScoresRestored;
+  final int sessionsRestored;
+  final int volumeEntriesRestored;
+  final int olyLogsRestored;
+
+  RestoreResult({
+    required this.success,
+    required this.message,
+    this.importedScoresRestored = 0,
+    this.sessionsRestored = 0,
+    this.volumeEntriesRestored = 0,
+    this.olyLogsRestored = 0,
+  });
+
+  int get totalRestored =>
+      importedScoresRestored + sessionsRestored + volumeEntriesRestored + olyLogsRestored;
 }

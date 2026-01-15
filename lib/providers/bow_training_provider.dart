@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:drift/drift.dart';
 import '../db/database.dart';
+import '../services/firestore_sync_service.dart';
 
 /// Timer phases for bow training
 enum TimerPhase {
@@ -370,6 +371,7 @@ class BowTrainingProvider extends ChangeNotifier {
 
     await _db.insertOlyTrainingLog(log);
     await loadData(); // Refresh recent logs
+    _triggerCloudBackup(); // Backup to cloud
     _resetState();
     notifyListeners();
   }
@@ -421,8 +423,24 @@ class BowTrainingProvider extends ChangeNotifier {
     );
 
     await loadData(); // Refresh data
+    _triggerCloudBackup(); // Backup to cloud
     _resetState();
     notifyListeners();
+  }
+
+  /// Trigger cloud backup in background (non-blocking)
+  void _triggerCloudBackup() {
+    Future.microtask(() async {
+      try {
+        final syncService = FirestoreSyncService();
+        if (syncService.isAuthenticated) {
+          await syncService.backupAllData(_db);
+          debugPrint('Cloud backup completed after bow training session');
+        }
+      } catch (e) {
+        debugPrint('Cloud backup error (non-fatal): $e');
+      }
+    });
   }
 
   // ===========================================================================

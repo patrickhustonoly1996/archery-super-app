@@ -37,6 +37,9 @@ dependencies:
   # Local preferences
   shared_preferences: ^2.3.4
 
+  # Web platform support
+  web: ^1.1.0
+
   # Audio playback for gentle beeps
   audioplayers: ^6.1.0
 
