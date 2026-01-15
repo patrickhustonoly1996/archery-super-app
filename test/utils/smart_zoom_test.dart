@@ -1,124 +1,96 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:archery_super_app/db/database.dart';
 import 'package:archery_super_app/utils/smart_zoom.dart';
-import 'package:archery_super_app/theme/app_theme.dart';
 import '../test_helpers.dart';
 
 void main() {
   group('SmartZoom', () {
     group('calculateZoomFactor', () {
-      test('returns minimum zoom (2.0) with insufficient data', () {
-        final arrows = createArrowGroup(count: 5); // Less than 12 required
-        final result = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
-        expect(result, equals(SmartZoom.minZoom));
+      test('returns minimum zoom with insufficient data (< 3 arrows)', () {
+        // Need at least 3 arrows for adaptive zoom
+        expect(
+          SmartZoom.calculateZoomFactor([], isIndoor: true),
+          equals(SmartZoom.minZoom),
+        );
+        expect(
+          SmartZoom.calculateZoomFactor(
+            [createFakeArrow(id: '1', xMm: 0, yMm: 0, score: 10)],
+            isIndoor: true,
+          ),
+          equals(SmartZoom.minZoom),
+        );
+        expect(
+          SmartZoom.calculateZoomFactor(
+            [
+              createFakeArrow(id: '1', xMm: 0, yMm: 0, score: 10),
+              createFakeArrow(id: '2', xMm: 10, yMm: 0, score: 10),
+            ],
+            isIndoor: true,
+          ),
+          equals(SmartZoom.minZoom),
+        );
       });
 
-      test('returns minimum zoom for empty arrow list', () {
-        final result = SmartZoom.calculateZoomFactor([], isIndoor: true);
-        expect(result, equals(SmartZoom.minZoom));
-      });
+      test('calculates zoom based on actual arrow spread', () {
+        // Tight group: all arrows within 30mm of each other
+        // On 122cm target, 30mm ≈ 0.05 normalized radius
+        final tightGroup = [
+          createFakeArrow(id: '1', xMm: 0, yMm: 0, score: 10),
+          createFakeArrow(id: '2', xMm: 10, yMm: 5, score: 10),
+          createFakeArrow(id: '3', xMm: -5, yMm: 10, score: 10),
+          createFakeArrow(id: '4', xMm: 5, yMm: -5, score: 10),
+        ];
 
-      test('returns minimum zoom for exactly 11 arrows', () {
-        final arrows = createArrowGroup(count: 11);
-        final result = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
-        expect(result, equals(SmartZoom.minZoom));
-      });
+        // Wide group: arrows spread across 200mm
+        // On 122cm target, 200mm ≈ 0.33 normalized radius
+        final wideGroup = [
+          createFakeArrow(id: '1', xMm: 0, yMm: 0, score: 10),
+          createFakeArrow(id: '2', xMm: 100, yMm: 0, score: 8),
+          createFakeArrow(id: '3', xMm: -100, yMm: 0, score: 8),
+          createFakeArrow(id: '4', xMm: 0, yMm: 100, score: 8),
+        ];
 
-      test('calculates zoom for 12+ arrows', () {
-        // Create arrows mostly scoring 10s (in the gold)
-        final arrows = List.generate(15, (i) => createFakeArrow(
-          id: 'arrow_$i',
-          xMm: 10 + (i % 5),
-          yMm: 10 + (i % 3),
-          score: 10,
-          isX: i < 3,
-        ));
+        final tightZoom = SmartZoom.calculateZoomFactor(tightGroup, isIndoor: true);
+        final wideZoom = SmartZoom.calculateZoomFactor(wideGroup, isIndoor: false);
 
-        final result = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
-
-        // With mostly 10s, zoom should be high (focused on gold)
-        expect(result, greaterThanOrEqualTo(SmartZoom.minZoom));
-        expect(result, lessThanOrEqualTo(6.0));
-      });
-
-      test('lower zoom for arrows spread across rings', () {
-        // Create arrows with varied scores
-        final arrows = <Arrow>[];
-        for (int i = 0; i < 15; i++) {
-          final score = 10 - (i % 5); // Scores: 10, 9, 8, 7, 6 repeated
-          final distance = (10 - score + 1) * 20.0; // Spread out
-          arrows.add(createFakeArrow(
-            id: 'arrow_$i',
-            xMm: distance,
-            yMm: 0,
-            score: score,
-          ));
-        }
-
-        final result = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
-
-        // With spread arrows, zoom should be closer to minimum
-        expect(result, greaterThanOrEqualTo(SmartZoom.minZoom));
-      });
-
-      test('finds most frequent score correctly', () {
-        // Create 15 arrows: 10 arrows scoring 9, 5 arrows scoring 10
-        final arrows = <Arrow>[];
-        for (int i = 0; i < 10; i++) {
-          arrows.add(createFakeArrow(
-            id: 'arrow_9_$i',
-            xMm: 30, // In 9 ring
-            yMm: 0,
-            score: 9,
-          ));
-        }
-        for (int i = 0; i < 5; i++) {
-          arrows.add(createFakeArrow(
-            id: 'arrow_10_$i',
-            xMm: 5,
-            yMm: 0,
-            score: 10,
-            isX: true,
-          ));
-        }
-
-        final result = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
-
-        // Should base zoom on score 9 (most frequent)
-        // Ring 9 is at 0.2 radius, plus 0.3 padding = 0.5
-        // Zoom = 1/0.5 = 2.0
-        expect(result, greaterThanOrEqualTo(2.0));
-      });
-
-      test('respects maximum zoom of 6.0', () {
-        // All arrows in X ring
-        final arrows = List.generate(15, (i) => createFakeArrow(
-          id: 'arrow_$i',
-          xMm: 2,
-          yMm: 2,
-          score: 10,
-          isX: true,
-        ));
-
-        final result = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
-        expect(result, lessThanOrEqualTo(6.0));
+        // Tighter group should have HIGHER zoom (more magnification)
+        expect(tightZoom, greaterThan(wideZoom));
       });
 
       test('respects minimum zoom of 2.0', () {
-        // Arrows spread to outer rings
-        final arrows = List.generate(15, (i) => createFakeArrow(
-          id: 'arrow_$i',
-          xMm: 180, // Near edge
-          yMm: 0,
-          score: 1,
-        ));
+        // Even with very wide spread, minimum is 2.0
+        final veryWideGroup = [
+          createFakeArrow(id: '1', xMm: 0, yMm: 0, score: 5),
+          createFakeArrow(id: '2', xMm: 200, yMm: 200, score: 3),
+          createFakeArrow(id: '3', xMm: -200, yMm: -200, score: 3),
+        ];
 
-        final result = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
-        expect(result, greaterThanOrEqualTo(2.0));
+        final result = SmartZoom.calculateZoomFactor(veryWideGroup, isIndoor: true);
+        expect(result, equals(SmartZoom.minZoom));
+      });
+
+      test('respects maximum zoom of 6.0', () {
+        // Super tight group - all arrows very close together
+        // With 0.2 padding, practical max is ~5.0 (when spread → 0)
+        final superTightGroup = [
+          createFakeArrow(id: '1', xMm: 0, yMm: 0, score: 10),
+          createFakeArrow(id: '2', xMm: 1, yMm: 1, score: 10),
+          createFakeArrow(id: '3', xMm: -1, yMm: -1, score: 10),
+          createFakeArrow(id: '4', xMm: 1, yMm: -1, score: 10),
+        ];
+
+        final result = SmartZoom.calculateZoomFactor(superTightGroup, isIndoor: true);
+        // Should be close to max (limited by 0.2 padding)
+        expect(result, greaterThan(4.5));
+        expect(result, lessThanOrEqualTo(SmartZoom.maxZoom));
       });
 
       test('isIndoor parameter is accepted', () {
-        final arrows = createArrowGroup(count: 15, baseScore: 9);
+        final arrows = [
+          createFakeArrow(id: '1', xMm: 20, yMm: 10, score: 10),
+          createFakeArrow(id: '2', xMm: -15, yMm: 20, score: 10),
+          createFakeArrow(id: '3', xMm: 10, yMm: -15, score: 10),
+        ];
 
         // Should work for both indoor and outdoor
         final indoorZoom = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
@@ -128,207 +100,234 @@ void main() {
         expect(indoorZoom, greaterThanOrEqualTo(SmartZoom.minZoom));
         expect(outdoorZoom, greaterThanOrEqualTo(SmartZoom.minZoom));
       });
-    });
 
-    group('_scoreToNormalizedRadius', () {
-      // These tests verify the internal mapping is correct
-      // We test indirectly through the public API
-
-      test('score 10 maps to X ring radius', () {
-        // If all arrows score 10 (X), the base radius should be TargetRings.x
-        final arrows = List.generate(15, (i) => createFakeArrow(
-          id: 'arrow_$i',
-          xMm: 5,
-          yMm: 5,
-          score: 10,
-          isX: true,
-        ));
+      test('handles all arrows at same position', () {
+        // Degenerate case: all arrows in exact same spot
+        final arrows = [
+          createFakeArrow(id: '1', xMm: 50, yMm: 50, score: 9),
+          createFakeArrow(id: '2', xMm: 50, yMm: 50, score: 9),
+          createFakeArrow(id: '3', xMm: 50, yMm: 50, score: 9),
+        ];
 
         final result = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
-
-        // X ring is very small (0.05), plus 0.3 padding = 0.35
-        // Zoom = 1/0.35 ≈ 2.86, clamped to min 2.0 max 6.0
-        expect(result, greaterThan(2.0));
-        expect(result, lessThanOrEqualTo(6.0));
+        // Should return high zoom (spread = 0, only padding matters)
+        expect(result, greaterThan(4.0));
       });
 
-      test('score 5 maps to ring 5 radius', () {
-        final arrows = List.generate(15, (i) => createFakeArrow(
-          id: 'arrow_$i',
-          xMm: 110, // In blue ring
-          yMm: 0,
-          score: 5,
-        ));
+      test('handles score 0 (miss) arrows', () {
+        // Arrows that missed the target entirely
+        final arrows = [
+          createFakeArrow(id: '1', xMm: 250, yMm: 0, score: 0),
+          createFakeArrow(id: '2', xMm: -250, yMm: 0, score: 0),
+          createFakeArrow(id: '3', xMm: 0, yMm: 250, score: 0),
+        ];
 
-        final result = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
-
-        // Ring 5 is at 0.5-0.6, plus 0.3 padding = 0.8-0.9
-        // Zoom should be close to minimum
-        expect(result, closeTo(SmartZoom.minZoom, 0.5));
-      });
-
-      test('score 1 maps to ring 1 radius (outer edge)', () {
-        final arrows = List.generate(15, (i) => createFakeArrow(
-          id: 'arrow_$i',
-          xMm: 190,
-          yMm: 0,
-          score: 1,
-        ));
-
-        final result = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
-
-        // Ring 1 is at 1.0, plus 0.3 = 1.3, clamped to 1.0
-        // Zoom = 1/1.0 = 1.0, but minimum is 2.0
-        expect(result, equals(SmartZoom.minZoom));
-      });
-    });
-
-    group('Constants', () {
-      test('minCalibrationArrows is 12', () {
-        expect(SmartZoom.minCalibrationArrows, equals(12));
-      });
-
-      test('minZoom is 2.0', () {
-        expect(SmartZoom.minZoom, equals(2.0));
-      });
-    });
-
-    group('Edge Cases', () {
-      test('handles all arrows with same score', () {
-        final arrows = List.generate(20, (i) => createFakeArrow(
-          id: 'arrow_$i',
-          xMm: 40,
-          yMm: 40,
-          score: 8,
-        ));
-
-        final result = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
-        expect(result, greaterThanOrEqualTo(SmartZoom.minZoom));
-        expect(result, lessThanOrEqualTo(6.0));
-      });
-
-      test('handles tie in score frequency', () {
-        // Equal number of 9s and 10s
-        final arrows = <Arrow>[];
-        for (int i = 0; i < 8; i++) {
-          arrows.add(createFakeArrow(
-            id: 'arrow_9_$i',
-            xMm: 30,
-            yMm: 0,
-            score: 9,
-          ));
-        }
-        for (int i = 0; i < 8; i++) {
-          arrows.add(createFakeArrow(
-            id: 'arrow_10_$i',
-            xMm: 10,
-            yMm: 0,
-            score: 10,
-          ));
-        }
-
-        // Should not crash, returns valid zoom
-        final result = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
-        expect(result, greaterThanOrEqualTo(SmartZoom.minZoom));
-      });
-
-      test('handles score 0 (miss)', () {
-        final arrows = List.generate(15, (i) => createFakeArrow(
-          id: 'arrow_$i',
-          xMm: 250, // Outside target
-          yMm: 0,
-          score: 0,
-        ));
-
-        // Should handle miss scores without crashing
+        // Should handle misses without crashing
         final result = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
         expect(result, greaterThanOrEqualTo(SmartZoom.minZoom));
       });
 
       test('handles mixed scores including misses', () {
-        final arrows = <Arrow>[];
-        // Mix of good shots and misses
-        for (int i = 0; i < 12; i++) {
-          arrows.add(createFakeArrow(
-            id: 'arrow_good_$i',
-            xMm: 30,
-            yMm: 0,
-            score: 9,
-          ));
-        }
-        for (int i = 0; i < 3; i++) {
-          arrows.add(createFakeArrow(
-            id: 'arrow_miss_$i',
-            xMm: 250,
-            yMm: 0,
-            score: 0,
-          ));
-        }
+        final arrows = [
+          createFakeArrow(id: '1', xMm: 10, yMm: 5, score: 10),
+          createFakeArrow(id: '2', xMm: 20, yMm: -10, score: 9),
+          createFakeArrow(id: '3', xMm: -15, yMm: 15, score: 10),
+          createFakeArrow(id: 'miss', xMm: 300, yMm: 0, score: 0), // Wild miss
+        ];
 
         final result = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
+        // Should return valid zoom despite miss
         expect(result, greaterThanOrEqualTo(SmartZoom.minZoom));
+        expect(result, lessThanOrEqualTo(SmartZoom.maxZoom));
+      });
+
+      test('uses 90th percentile to ignore outliers', () {
+        // 9 tight arrows + 1 wild outlier
+        final groupWithOutlier = [
+          createFakeArrow(id: '1', xMm: 0, yMm: 0, score: 10),
+          createFakeArrow(id: '2', xMm: 5, yMm: 5, score: 10),
+          createFakeArrow(id: '3', xMm: -5, yMm: 5, score: 10),
+          createFakeArrow(id: '4', xMm: 5, yMm: -5, score: 10),
+          createFakeArrow(id: '5', xMm: -5, yMm: -5, score: 10),
+          createFakeArrow(id: '6', xMm: 0, yMm: 5, score: 10),
+          createFakeArrow(id: '7', xMm: 5, yMm: 0, score: 10),
+          createFakeArrow(id: '8', xMm: -5, yMm: 0, score: 10),
+          createFakeArrow(id: '9', xMm: 0, yMm: -5, score: 10),
+          createFakeArrow(id: 'outlier', xMm: 200, yMm: 0, score: 3), // Wild miss
+        ];
+
+        // Same group without outlier
+        final groupWithoutOutlier = groupWithOutlier.sublist(0, 9);
+
+        final zoomWithOutlier = SmartZoom.calculateZoomFactor(groupWithOutlier, isIndoor: true);
+        final zoomWithoutOutlier = SmartZoom.calculateZoomFactor(groupWithoutOutlier, isIndoor: true);
+
+        // Both should give high zoom (tight groups)
+        // The 90th percentile helps reduce impact of outlier
+        expect(zoomWithOutlier, greaterThan(3.0));
+        expect(zoomWithoutOutlier, greaterThan(3.0));
+        // Zooms don't need to be identical, but should be in similar range
+        expect((zoomWithOutlier - zoomWithoutOutlier).abs(), lessThan(2.0));
+      });
+    });
+
+    group('calculateGroupStats', () {
+      test('returns zeros for empty list', () {
+        final stats = SmartZoom.calculateGroupStats([]);
+        expect(stats.centerX, equals(0));
+        expect(stats.centerY, equals(0));
+        expect(stats.spreadRadius, equals(0));
+      });
+
+      test('calculates center correctly for symmetric group', () {
+        final arrows = [
+          createFakeArrow(id: '1', xMm: 100, yMm: 0, score: 8),
+          createFakeArrow(id: '2', xMm: -100, yMm: 0, score: 8),
+          createFakeArrow(id: '3', xMm: 0, yMm: 100, score: 8),
+          createFakeArrow(id: '4', xMm: 0, yMm: -100, score: 8),
+        ];
+
+        final stats = SmartZoom.calculateGroupStats(arrows);
+
+        // Center should be near (0, 0) normalized
+        expect(stats.centerX, closeTo(0, 0.01));
+        expect(stats.centerY, closeTo(0, 0.01));
+      });
+
+      test('calculates center correctly for offset group', () {
+        // All arrows in the upper-right quadrant
+        final arrows = [
+          createFakeArrow(id: '1', xMm: 50, yMm: 50, score: 9),
+          createFakeArrow(id: '2', xMm: 70, yMm: 50, score: 9),
+          createFakeArrow(id: '3', xMm: 50, yMm: 70, score: 9),
+          createFakeArrow(id: '4', xMm: 70, yMm: 70, score: 9),
+        ];
+
+        final stats = SmartZoom.calculateGroupStats(arrows);
+
+        // Center should be at approximately (60mm, 60mm) from target center
+        // Normalized: 60/610 ≈ 0.098 (122cm face has 610mm radius)
+        expect(stats.centerX, greaterThan(0)); // Positive X
+        expect(stats.centerY, greaterThan(0)); // Positive Y (up from center)
+      });
+
+      test('calculates spread radius correctly', () {
+        // Group with known spread: all 100mm from center at 0mm
+        // Using 40cm face (default), radius = 200mm
+        // So 100mm = 0.5 normalized
+        final arrows = [
+          createFakeArrow(id: '1', xMm: 100, yMm: 0, score: 8),
+          createFakeArrow(id: '2', xMm: -100, yMm: 0, score: 8),
+          createFakeArrow(id: '3', xMm: 0, yMm: 100, score: 8),
+          createFakeArrow(id: '4', xMm: 0, yMm: -100, score: 8),
+        ];
+
+        final stats = SmartZoom.calculateGroupStats(arrows);
+
+        // Group center is at (0, 0) in normalized coords
+        // All arrows are 100mm from center = 0.5 normalized (on 40cm face)
+        expect(stats.spreadRadius, closeTo(0.5, 0.02));
+      });
+    });
+
+    group('Constants', () {
+      test('minArrowsForAdaptiveZoom is 3', () {
+        expect(SmartZoom.minArrowsForAdaptiveZoom, equals(3));
+      });
+
+      test('minZoom is 2.0', () {
+        expect(SmartZoom.minZoom, equals(2.0));
+      });
+
+      test('maxZoom is 6.0', () {
+        expect(SmartZoom.maxZoom, equals(6.0));
+      });
+
+      test('paddingRings is 0.2', () {
+        expect(SmartZoom.paddingRings, equals(0.2));
       });
     });
 
     group('Real-World Scenarios', () {
       test('beginner archer pattern (wide spread)', () {
-        // Beginner with arrows from 5-10
-        final arrows = <Arrow>[];
-        final scores = [10, 9, 9, 8, 7, 8, 6, 7, 5, 8, 9, 7, 6, 8, 9];
-        for (int i = 0; i < scores.length; i++) {
-          final score = scores[i];
-          final distance = (11 - score) * 20.0;
-          arrows.add(createFakeArrow(
-            id: 'arrow_$i',
-            xMm: distance,
-            yMm: (i % 2 == 0 ? 1 : -1) * 10.0,
-            score: score,
-          ));
-        }
+        // Beginner with arrows scattered across target
+        final arrows = [
+          createFakeArrow(id: '1', xMm: 50, yMm: 30, score: 9),
+          createFakeArrow(id: '2', xMm: -80, yMm: -20, score: 8),
+          createFakeArrow(id: '3', xMm: 30, yMm: -90, score: 7),
+          createFakeArrow(id: '4', xMm: -40, yMm: 70, score: 8),
+          createFakeArrow(id: '5', xMm: 100, yMm: 0, score: 7),
+          createFakeArrow(id: '6', xMm: -20, yMm: -60, score: 8),
+        ];
 
         final result = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
 
-        // Most frequent is probably 8 or 9, zoom should be moderate
-        expect(result, greaterThanOrEqualTo(2.0));
+        // Wide spread should have low zoom (close to minimum)
+        expect(result, greaterThanOrEqualTo(SmartZoom.minZoom));
         expect(result, lessThan(4.0));
       });
 
       test('advanced archer pattern (tight group)', () {
-        // Advanced archer with mostly 10s and 9s
-        final arrows = <Arrow>[];
-        final scores = [10, 10, 10, 10, 9, 10, 10, 9, 10, 10, 10, 10, 9, 10, 10];
-        for (int i = 0; i < scores.length; i++) {
-          final score = scores[i];
-          final distance = score == 10 ? 8.0 : 25.0;
-          arrows.add(createFakeArrow(
-            id: 'arrow_$i',
-            xMm: distance + (i % 3) * 3,
-            yMm: (i % 2 == 0 ? 1 : -1) * 5.0,
-            score: score,
-            isX: score == 10 && i % 3 == 0,
-          ));
-        }
+        // Advanced archer with most arrows in gold
+        // Spread ~15mm on 40cm face = ~0.075 normalized spread
+        // viewRadius ≈ 0.075 + 0.2 = 0.275 → zoom ≈ 3.6
+        final arrows = [
+          createFakeArrow(id: '1', xMm: 10, yMm: 5, score: 10),
+          createFakeArrow(id: '2', xMm: -5, yMm: 10, score: 10),
+          createFakeArrow(id: '3', xMm: 8, yMm: -3, score: 10),
+          createFakeArrow(id: '4', xMm: -10, yMm: -8, score: 10),
+          createFakeArrow(id: '5', xMm: 0, yMm: 15, score: 10),
+          createFakeArrow(id: '6', xMm: 12, yMm: 0, score: 10),
+        ];
 
         final result = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
 
-        // Most frequent is 10, should zoom in more
-        expect(result, greaterThan(2.0));
+        // Tight group should have moderate-high zoom
+        expect(result, greaterThan(3.0));
+        expect(result, lessThan(5.0));
       });
 
-      test('olympic archer pattern (all in gold)', () {
-        // Olympic level - all 10s with good X rate
-        final arrows = List.generate(15, (i) => createFakeArrow(
-          id: 'arrow_$i',
-          xMm: 8 + (i % 4),
-          yMm: (i % 2 == 0 ? 1 : -1) * 4.0,
-          score: 10,
-          isX: i < 10, // 66% X rate
-        ));
+      test('olympic archer pattern (all in X ring)', () {
+        // Olympic level - all arrows in X ring
+        // Spread ~3mm on 40cm face = ~0.015 normalized spread
+        // viewRadius ≈ 0.015 + 0.2 = 0.215 → zoom ≈ 4.65
+        final arrows = [
+          createFakeArrow(id: '1', xMm: 2, yMm: 1, score: 10, isX: true),
+          createFakeArrow(id: '2', xMm: -1, yMm: 2, score: 10, isX: true),
+          createFakeArrow(id: '3', xMm: 1, yMm: -2, score: 10, isX: true),
+          createFakeArrow(id: '4', xMm: -2, yMm: -1, score: 10, isX: true),
+          createFakeArrow(id: '5', xMm: 0, yMm: 3, score: 10, isX: true),
+          createFakeArrow(id: '6', xMm: 3, yMm: 0, score: 10, isX: true),
+        ];
 
         final result = SmartZoom.calculateZoomFactor(arrows, isIndoor: true);
 
-        // Should maximize zoom for gold focus
-        expect(result, greaterThan(2.5));
+        // Super tight group should be close to max zoom
+        // Max achievable with 0.2 padding is ~5.0
+        expect(result, greaterThan(4.0));
+        expect(result, lessThanOrEqualTo(SmartZoom.maxZoom));
+      });
+
+      test('mixed session with improving groups', () {
+        // First half: scattered
+        final firstHalf = [
+          createFakeArrow(id: '1', xMm: 80, yMm: -50, score: 8),
+          createFakeArrow(id: '2', xMm: -60, yMm: 40, score: 8),
+          createFakeArrow(id: '3', xMm: 30, yMm: 90, score: 7),
+        ];
+
+        // Second half: tighter
+        final secondHalf = [
+          createFakeArrow(id: '4', xMm: 15, yMm: 10, score: 10),
+          createFakeArrow(id: '5', xMm: -10, yMm: 15, score: 10),
+          createFakeArrow(id: '6', xMm: 5, yMm: -12, score: 10),
+        ];
+
+        final firstZoom = SmartZoom.calculateZoomFactor(firstHalf, isIndoor: true);
+        final secondZoom = SmartZoom.calculateZoomFactor(secondHalf, isIndoor: true);
+
+        // Second half should zoom in more (tighter group)
+        expect(secondZoom, greaterThan(firstZoom));
       });
     });
   });

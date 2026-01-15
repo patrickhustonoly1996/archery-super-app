@@ -23,6 +23,8 @@ class RoundTypes extends Table {
   BoolColumn get isIndoor => boolean()();
   IntColumn get faceCount =>
       integer().withDefault(const Constant(1))(); // 1 or 3 for tri-spot
+  TextColumn get scoringType =>
+      text().withDefault(const Constant('10-zone'))(); // 10-zone or 5-zone
 
   @override
   Set<Column> get primaryKey => {id};
@@ -299,7 +301,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -337,6 +339,16 @@ class AppDatabase extends _$AppDatabase {
         if (from <= 4) {
           // Add title column to volume entries
           await m.addColumn(volumeEntries, volumeEntries.title);
+        }
+        if (from <= 5) {
+          // Add scoring type column to round types (10-zone default, 5-zone for imperial)
+          await m.addColumn(roundTypes, roundTypes.scoringType);
+          // Update existing imperial rounds to use 5-zone scoring
+          await customStatement('''
+            UPDATE round_types
+            SET scoring_type = '5-zone'
+            WHERE category = 'agb_imperial'
+          ''');
         }
       },
     );

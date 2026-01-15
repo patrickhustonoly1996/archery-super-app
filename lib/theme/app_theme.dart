@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 
 /// Archery Super App design system
 /// Dark base + Gold primary, minimal animation, 8px grid
-/// Clean system fonts with subtle retro accent (VT323) for data/technical elements
+/// Space Mono as main font (retro character, readable), VT323 for accents
 
 class AppFonts {
-  // System sans-serif for headlines and UI - professional, readable
-  static const String display = '.SF Pro Display'; // Falls back to system default
-  // VT323 for data readouts, scores, technical info - subtle retro nod
-  static const String mono = 'VT323';
-  // PressStart2P for chunky pixel titles - arcade vibe
-  static const String pixel = 'PressStart2P';
-  // Body uses system default for maximum readability
-  static const String body = '.SF Pro Text';
+  // Space Mono - main font for UI, headers, labels (retro-modern, readable)
+  static const String main = 'SpaceMono';
+  // VT323 - accents only: version numbers, tiny labels, special moments
+  static const String pixel = 'VT323';
+  // Aliases for compatibility
+  static const String mono = 'SpaceMono';
+  static const String display = 'SpaceMono';
+  static const String body = 'SpaceMono';
 }
 
 class AppColors {
@@ -128,44 +128,51 @@ class AppTheme {
         color: AppColors.surfaceLight,
         thickness: 1,
       ),
-      textTheme: const TextTheme(
-        // Headlines - clean system font, professional
+      textTheme: TextTheme(
+        // Headlines - Space Mono, sized for impact
         headlineLarge: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.w600,
+          fontFamily: AppFonts.main,
+          fontSize: 32,
+          fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
           letterSpacing: -0.5,
         ),
         headlineMedium: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w600,
+          fontFamily: AppFonts.main,
+          fontSize: 26,
+          fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
           letterSpacing: -0.3,
         ),
         headlineSmall: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w500,
+          fontFamily: AppFonts.main,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        // Body text - system default for readability
+        // Body text - Space Mono, slightly smaller for readability
         bodyLarge: TextStyle(
-          fontSize: 17,
-          color: AppColors.textPrimary,
-        ),
-        bodyMedium: TextStyle(
+          fontFamily: AppFonts.main,
           fontSize: 15,
           color: AppColors.textPrimary,
         ),
+        bodyMedium: TextStyle(
+          fontFamily: AppFonts.main,
+          fontSize: 14,
+          color: AppColors.textPrimary,
+        ),
         bodySmall: TextStyle(
-          fontSize: 13,
+          fontFamily: AppFonts.main,
+          fontSize: 12,
           color: AppColors.textSecondary,
         ),
         labelLarge: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
+          fontFamily: AppFonts.main,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        // Use VT323 mono for scores/data via explicit styling, not in base theme
+        // VT323 (AppFonts.pixel) used via explicit styling for accents only
       ),
     );
   }
@@ -292,24 +299,55 @@ class TargetRingsMm {
 
   /// Get score from distance in mm with epsilon tolerance.
   /// This is the definitive scoring function - visual display must match this.
-  static int scoreFromDistanceMm(double distanceMm, int faceSizeCm) {
-    final radiusMm = faceSizeCm * 5.0;
+  /// For 10-zone scoring, returns the ring number (10-1).
+  /// For 5-zone scoring, returns the color score (9-7-5-3-1).
+  static int scoreFromDistanceMm(
+    double distanceMm,
+    int faceSizeCm, {
+    String scoringType = '10-zone',
+  }) {
+    // First get the 10-zone ring number
+    int ring;
 
     // Check each ring from inside out
     // X ring counts as 10
     if (distanceMm <= getXRingMm(faceSizeCm) + epsilon) {
-      return 10;
-    }
-
-    // Ring 10 through Ring 1
-    for (int ring = 10; ring >= 1; ring--) {
-      final boundaryMm = getRingBoundaryMm(ring, faceSizeCm);
-      if (distanceMm <= boundaryMm + epsilon) {
-        return ring;
+      ring = 10;
+    } else {
+      ring = 0; // Default to miss
+      // Ring 10 through Ring 1
+      for (int r = 10; r >= 1; r--) {
+        final boundaryMm = getRingBoundaryMm(r, faceSizeCm);
+        if (distanceMm <= boundaryMm + epsilon) {
+          ring = r;
+          break;
+        }
       }
     }
 
-    return 0; // Miss - outside all rings
+    // Convert to 5-zone scoring if needed
+    if (scoringType == '5-zone') {
+      return ringTo5ZoneScore(ring);
+    }
+
+    return ring;
+  }
+
+  /// Convert a 10-zone ring number to a 5-zone score.
+  /// 5-zone scoring: Gold=9, Red=7, Blue=5, Black=3, White=1, Miss=0
+  static int ringTo5ZoneScore(int ring) {
+    // Gold (X/10/9) → 9
+    if (ring >= 9) return 9;
+    // Red (8/7) → 7
+    if (ring >= 7) return 7;
+    // Blue (6/5) → 5
+    if (ring >= 5) return 5;
+    // Black (4/3) → 3
+    if (ring >= 3) return 3;
+    // White (2/1) → 1
+    if (ring >= 1) return 1;
+    // Miss
+    return 0;
   }
 
   /// Check if distance is in the X ring (for X count tracking)
@@ -318,9 +356,13 @@ class TargetRingsMm {
   }
 
   /// Get score and X status in one call
-  static ({int score, bool isX}) scoreAndX(double distanceMm, int faceSizeCm) {
+  static ({int score, bool isX}) scoreAndX(
+    double distanceMm,
+    int faceSizeCm, {
+    String scoringType = '10-zone',
+  }) {
     return (
-      score: scoreFromDistanceMm(distanceMm, faceSizeCm),
+      score: scoreFromDistanceMm(distanceMm, faceSizeCm, scoringType: scoringType),
       isX: isXRing(distanceMm, faceSizeCm),
     );
   }

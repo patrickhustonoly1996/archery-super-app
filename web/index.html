@@ -42,10 +42,8 @@
       height: 100%;
       overflow: hidden;
     }
-    /* iOS safe area handling */
-    body {
-      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-    }
+    /* iOS safe area - handled by Flutter's SafeArea widget, not CSS */
+    /* DO NOT add padding here - it breaks touch detection in PWA standalone mode */
     /* Update notification banner */
     #update-banner {
       display: none;

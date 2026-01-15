@@ -1,8 +1,7 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../db/database.dart';
+import '../utils/smart_zoom.dart';
 
 /// Shows the group centre of a set of arrows with a high-contrast cross
 /// The cross indicates where the group centre is, NOT the target centre
@@ -21,54 +20,12 @@ class GroupCentreWidget extends StatelessWidget {
     this.minZoom = 2.0,
   });
 
-  /// Calculate zoom factor based on most frequently used rings + 3 rings
-  double _calculateAutoZoom() {
-    if (arrows.isEmpty) return minZoom;
-
-    // Count score frequency
-    final scoreCounts = <int, int>{};
-    for (final arrow in arrows) {
-      scoreCounts[arrow.score] = (scoreCounts[arrow.score] ?? 0) + 1;
-    }
-
-    // Find most frequent score
-    int mostFrequentScore = 10;
-    int maxCount = 0;
-    for (final entry in scoreCounts.entries) {
-      if (entry.value > maxCount) {
-        maxCount = entry.value;
-        mostFrequentScore = entry.key;
-      }
-    }
-
-    // Convert score to radius and add 3 rings padding
-    final baseRadius = _scoreToRadius(mostFrequentScore);
-    final paddedRadius = baseRadius + 0.3; // +3 rings (each ring = 0.1)
-
-    // Calculate zoom to show this area (clamped to fit)
-    final calculatedZoom = 1.0 / paddedRadius.clamp(0.2, 1.0);
-
-    // Ensure minimum 2x zoom
-    return math.max(calculatedZoom, minZoom);
-  }
-
-  /// Convert score to normalized radius
-  double _scoreToRadius(int score) {
-    if (score >= 10) return TargetRings.ring10;
-    if (score == 9) return TargetRings.ring9;
-    if (score == 8) return TargetRings.ring8;
-    if (score == 7) return TargetRings.ring7;
-    if (score == 6) return TargetRings.ring6;
-    if (score == 5) return TargetRings.ring5;
-    if (score == 4) return TargetRings.ring4;
-    if (score == 3) return TargetRings.ring3;
-    if (score == 2) return TargetRings.ring2;
-    return TargetRings.ring1;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final zoomFactor = _calculateAutoZoom();
+    // Use SmartZoom which calculates based on actual arrow spread, not scores
+    final zoomFactor = arrows.isEmpty
+        ? minZoom
+        : SmartZoom.calculateZoomFactor(arrows, isIndoor: false).clamp(minZoom, 6.0);
 
     // Calculate group centre
     double avgX = 0;
@@ -171,7 +128,10 @@ class _ZoomedTargetView extends StatelessWidget {
     final offsetX = -groupCentreX * halfTargetSize;
     final offsetY = -groupCentreY * halfTargetSize;
 
+    // Use topLeft alignment so the transform math works correctly
+    // Without this, the default center alignment shifts everything
     return OverflowBox(
+      alignment: Alignment.topLeft,
       maxWidth: targetSize,
       maxHeight: targetSize,
       child: Transform.translate(

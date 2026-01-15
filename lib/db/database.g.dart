@@ -119,6 +119,18 @@ class $RoundTypesTable extends RoundTypes
     requiredDuringInsert: false,
     defaultValue: const Constant(1),
   );
+  static const VerificationMeta _scoringTypeMeta = const VerificationMeta(
+    'scoringType',
+  );
+  @override
+  late final GeneratedColumn<String> scoringType = GeneratedColumn<String>(
+    'scoring_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('10-zone'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -131,6 +143,7 @@ class $RoundTypesTable extends RoundTypes
     maxScore,
     isIndoor,
     faceCount,
+    scoringType,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -222,6 +235,15 @@ class $RoundTypesTable extends RoundTypes
         faceCount.isAcceptableOrUnknown(data['face_count']!, _faceCountMeta),
       );
     }
+    if (data.containsKey('scoring_type')) {
+      context.handle(
+        _scoringTypeMeta,
+        scoringType.isAcceptableOrUnknown(
+          data['scoring_type']!,
+          _scoringTypeMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -271,6 +293,10 @@ class $RoundTypesTable extends RoundTypes
         DriftSqlType.int,
         data['${effectivePrefix}face_count'],
       )!,
+      scoringType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scoring_type'],
+      )!,
     );
   }
 
@@ -291,6 +317,7 @@ class RoundType extends DataClass implements Insertable<RoundType> {
   final int maxScore;
   final bool isIndoor;
   final int faceCount;
+  final String scoringType;
   const RoundType({
     required this.id,
     required this.name,
@@ -302,6 +329,7 @@ class RoundType extends DataClass implements Insertable<RoundType> {
     required this.maxScore,
     required this.isIndoor,
     required this.faceCount,
+    required this.scoringType,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -316,6 +344,7 @@ class RoundType extends DataClass implements Insertable<RoundType> {
     map['max_score'] = Variable<int>(maxScore);
     map['is_indoor'] = Variable<bool>(isIndoor);
     map['face_count'] = Variable<int>(faceCount);
+    map['scoring_type'] = Variable<String>(scoringType);
     return map;
   }
 
@@ -331,6 +360,7 @@ class RoundType extends DataClass implements Insertable<RoundType> {
       maxScore: Value(maxScore),
       isIndoor: Value(isIndoor),
       faceCount: Value(faceCount),
+      scoringType: Value(scoringType),
     );
   }
 
@@ -350,6 +380,7 @@ class RoundType extends DataClass implements Insertable<RoundType> {
       maxScore: serializer.fromJson<int>(json['maxScore']),
       isIndoor: serializer.fromJson<bool>(json['isIndoor']),
       faceCount: serializer.fromJson<int>(json['faceCount']),
+      scoringType: serializer.fromJson<String>(json['scoringType']),
     );
   }
   @override
@@ -366,6 +397,7 @@ class RoundType extends DataClass implements Insertable<RoundType> {
       'maxScore': serializer.toJson<int>(maxScore),
       'isIndoor': serializer.toJson<bool>(isIndoor),
       'faceCount': serializer.toJson<int>(faceCount),
+      'scoringType': serializer.toJson<String>(scoringType),
     };
   }
 
@@ -380,6 +412,7 @@ class RoundType extends DataClass implements Insertable<RoundType> {
     int? maxScore,
     bool? isIndoor,
     int? faceCount,
+    String? scoringType,
   }) => RoundType(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -391,6 +424,7 @@ class RoundType extends DataClass implements Insertable<RoundType> {
     maxScore: maxScore ?? this.maxScore,
     isIndoor: isIndoor ?? this.isIndoor,
     faceCount: faceCount ?? this.faceCount,
+    scoringType: scoringType ?? this.scoringType,
   );
   RoundType copyWithCompanion(RoundTypesCompanion data) {
     return RoundType(
@@ -406,6 +440,9 @@ class RoundType extends DataClass implements Insertable<RoundType> {
       maxScore: data.maxScore.present ? data.maxScore.value : this.maxScore,
       isIndoor: data.isIndoor.present ? data.isIndoor.value : this.isIndoor,
       faceCount: data.faceCount.present ? data.faceCount.value : this.faceCount,
+      scoringType: data.scoringType.present
+          ? data.scoringType.value
+          : this.scoringType,
     );
   }
 
@@ -421,7 +458,8 @@ class RoundType extends DataClass implements Insertable<RoundType> {
           ..write('totalEnds: $totalEnds, ')
           ..write('maxScore: $maxScore, ')
           ..write('isIndoor: $isIndoor, ')
-          ..write('faceCount: $faceCount')
+          ..write('faceCount: $faceCount, ')
+          ..write('scoringType: $scoringType')
           ..write(')'))
         .toString();
   }
@@ -438,6 +476,7 @@ class RoundType extends DataClass implements Insertable<RoundType> {
     maxScore,
     isIndoor,
     faceCount,
+    scoringType,
   );
   @override
   bool operator ==(Object other) =>
@@ -452,7 +491,8 @@ class RoundType extends DataClass implements Insertable<RoundType> {
           other.totalEnds == this.totalEnds &&
           other.maxScore == this.maxScore &&
           other.isIndoor == this.isIndoor &&
-          other.faceCount == this.faceCount);
+          other.faceCount == this.faceCount &&
+          other.scoringType == this.scoringType);
 }
 
 class RoundTypesCompanion extends UpdateCompanion<RoundType> {
@@ -466,6 +506,7 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
   final Value<int> maxScore;
   final Value<bool> isIndoor;
   final Value<int> faceCount;
+  final Value<String> scoringType;
   final Value<int> rowid;
   const RoundTypesCompanion({
     this.id = const Value.absent(),
@@ -478,6 +519,7 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
     this.maxScore = const Value.absent(),
     this.isIndoor = const Value.absent(),
     this.faceCount = const Value.absent(),
+    this.scoringType = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   RoundTypesCompanion.insert({
@@ -491,6 +533,7 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
     required int maxScore,
     required bool isIndoor,
     this.faceCount = const Value.absent(),
+    this.scoringType = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -512,6 +555,7 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
     Expression<int>? maxScore,
     Expression<bool>? isIndoor,
     Expression<int>? faceCount,
+    Expression<String>? scoringType,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -525,6 +569,7 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
       if (maxScore != null) 'max_score': maxScore,
       if (isIndoor != null) 'is_indoor': isIndoor,
       if (faceCount != null) 'face_count': faceCount,
+      if (scoringType != null) 'scoring_type': scoringType,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -540,6 +585,7 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
     Value<int>? maxScore,
     Value<bool>? isIndoor,
     Value<int>? faceCount,
+    Value<String>? scoringType,
     Value<int>? rowid,
   }) {
     return RoundTypesCompanion(
@@ -553,6 +599,7 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
       maxScore: maxScore ?? this.maxScore,
       isIndoor: isIndoor ?? this.isIndoor,
       faceCount: faceCount ?? this.faceCount,
+      scoringType: scoringType ?? this.scoringType,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -590,6 +637,9 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
     if (faceCount.present) {
       map['face_count'] = Variable<int>(faceCount.value);
     }
+    if (scoringType.present) {
+      map['scoring_type'] = Variable<String>(scoringType.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -609,6 +659,7 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
           ..write('maxScore: $maxScore, ')
           ..write('isIndoor: $isIndoor, ')
           ..write('faceCount: $faceCount, ')
+          ..write('scoringType: $scoringType, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -8961,6 +9012,7 @@ typedef $$RoundTypesTableCreateCompanionBuilder =
       required int maxScore,
       required bool isIndoor,
       Value<int> faceCount,
+      Value<String> scoringType,
       Value<int> rowid,
     });
 typedef $$RoundTypesTableUpdateCompanionBuilder =
@@ -8975,6 +9027,7 @@ typedef $$RoundTypesTableUpdateCompanionBuilder =
       Value<int> maxScore,
       Value<bool> isIndoor,
       Value<int> faceCount,
+      Value<String> scoringType,
       Value<int> rowid,
     });
 
@@ -9058,6 +9111,11 @@ class $$RoundTypesTableFilterComposer
 
   ColumnFilters<int> get faceCount => $composableBuilder(
     column: $table.faceCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scoringType => $composableBuilder(
+    column: $table.scoringType,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9145,6 +9203,11 @@ class $$RoundTypesTableOrderingComposer
     column: $table.faceCount,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get scoringType => $composableBuilder(
+    column: $table.scoringType,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$RoundTypesTableAnnotationComposer
@@ -9187,6 +9250,11 @@ class $$RoundTypesTableAnnotationComposer
 
   GeneratedColumn<int> get faceCount =>
       $composableBuilder(column: $table.faceCount, builder: (column) => column);
+
+  GeneratedColumn<String> get scoringType => $composableBuilder(
+    column: $table.scoringType,
+    builder: (column) => column,
+  );
 
   Expression<T> sessionsRefs<T extends Object>(
     Expression<T> Function($$SessionsTableAnnotationComposer a) f,
@@ -9252,6 +9320,7 @@ class $$RoundTypesTableTableManager
                 Value<int> maxScore = const Value.absent(),
                 Value<bool> isIndoor = const Value.absent(),
                 Value<int> faceCount = const Value.absent(),
+                Value<String> scoringType = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RoundTypesCompanion(
                 id: id,
@@ -9264,6 +9333,7 @@ class $$RoundTypesTableTableManager
                 maxScore: maxScore,
                 isIndoor: isIndoor,
                 faceCount: faceCount,
+                scoringType: scoringType,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -9278,6 +9348,7 @@ class $$RoundTypesTableTableManager
                 required int maxScore,
                 required bool isIndoor,
                 Value<int> faceCount = const Value.absent(),
+                Value<String> scoringType = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RoundTypesCompanion.insert(
                 id: id,
@@ -9290,6 +9361,7 @@ class $$RoundTypesTableTableManager
                 maxScore: maxScore,
                 isIndoor: isIndoor,
                 faceCount: faceCount,
+                scoringType: scoringType,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

@@ -5,6 +5,7 @@ import '../providers/session_provider.dart';
 import '../providers/bow_training_provider.dart';
 import '../providers/breath_training_provider.dart';
 import '../services/auth_service.dart';
+import '../widgets/pixel_bow_icon.dart';
 import 'session_start_screen.dart';
 import 'plotting_screen.dart';
 import 'history_screen.dart';
@@ -147,6 +148,21 @@ class _HomeScreenState extends State<HomeScreen>
         context,
         MaterialPageRoute(builder: (_) => const PerformanceProfileScreen()),
       ),
+    ),
+    _MenuItem(
+      label: 'SIGN OUT',
+      sublabel: 'Log out',
+      pixelIcon: PixelIconType.exit,
+      isDestructive: true,
+      onTap: () async {
+        await AuthService().signOut();
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+            (route) => false,
+          );
+        }
+      },
     ),
   ];
 
@@ -296,9 +312,6 @@ class _HomeScreenState extends State<HomeScreen>
           SafeArea(
             child: Column(
               children: [
-                // Top bar
-                _TopBar(onSettings: () => _showSettingsMenu(context)),
-
                 // Main content area - collapsing header + menu
                 Expanded(
                   child: AnimatedBuilder(
@@ -316,8 +329,8 @@ class _HomeScreenState extends State<HomeScreen>
                             pinned: true,
                             delegate: _CollapsingLogoHeader(
                               pulseController: _pulseController,
-                              expandedHeight: 200,
-                              collapsedHeight: 56,
+                              expandedHeight: 80,
+                              collapsedHeight: 40,
                             ),
                           ),
 
@@ -429,7 +442,7 @@ class _HomeScreenState extends State<HomeScreen>
 // DATA MODEL
 // =============================================================================
 
-enum PixelIconType { resume, target, scroll, chart, bow, lungs, video, radar, gear }
+enum PixelIconType { resume, target, scroll, chart, bow, lungs, video, radar, gear, exit }
 
 class _MenuItem {
   final String label;
@@ -437,6 +450,7 @@ class _MenuItem {
   final PixelIconType pixelIcon;
   final VoidCallback onTap;
   final bool isHighlight;
+  final bool isDestructive;
 
   const _MenuItem({
     required this.label,
@@ -444,6 +458,7 @@ class _MenuItem {
     required this.pixelIcon,
     required this.onTap,
     this.isHighlight = false,
+    this.isDestructive = false,
   });
 }
 
@@ -555,11 +570,11 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
 
     // Interpolated values
     final iconSize = 64 * (0.5 + (expandedProgress * 0.5)); // 32-64
-    final titleSize = 20 * (0.6 + (expandedProgress * 0.4)); // 12-20
+    final titleSize = 28 * (0.65 + (expandedProgress * 0.35)); // 18-28
     final subtitleOpacity = expandedProgress; // Fades out completely
     final decorationOpacity = expandedProgress * 0.4; // Fades faster
-    final verticalPadding = 40 * expandedProgress + 8; // 8-48
-    final spacing = 24 * expandedProgress + 4; // 4-28
+    final verticalPadding = 12 * expandedProgress + 4; // 4-16
+    final spacing = 8 * expandedProgress + 2; // 2-10
 
     return AnimatedBuilder(
       animation: pulseController,
@@ -627,7 +642,7 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
               ),
             ],
           ),
-          child: _PixelArrowIcon(size: iconSize),
+          child: PixelBowIcon(size: iconSize),
         ),
 
         SizedBox(height: spacing),
@@ -636,8 +651,9 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
         Text(
           'ARCHERY',
           style: TextStyle(
-            fontFamily: AppFonts.pixel,
+            fontFamily: AppFonts.main,
             fontSize: titleSize,
+            fontWeight: FontWeight.bold,
             color: AppColors.gold,
             letterSpacing: 4,
             shadows: [
@@ -651,7 +667,7 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
 
         // Decorative line + subtitle (fades out on collapse)
         if (subtitleOpacity > 0.1) ...[
-          SizedBox(height: 8 * subtitleOpacity),
+          SizedBox(height: 4 * subtitleOpacity),
           Opacity(
             opacity: subtitleOpacity,
             child: Row(
@@ -659,24 +675,24 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
               children: [
                 _PixelDot(),
                 Container(
-                  width: 60 * subtitleOpacity,
-                  height: 2,
+                  width: 30 * subtitleOpacity,
+                  height: 1,
                   color: AppColors.gold.withValues(alpha: decorationOpacity),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Text(
                   'SUPER APP',
                   style: TextStyle(
                     fontFamily: AppFonts.pixel,
-                    fontSize: 8,
+                    fontSize: 10,
                     color: AppColors.textMuted.withValues(alpha: subtitleOpacity),
                     letterSpacing: 2,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Container(
-                  width: 60 * subtitleOpacity,
-                  height: 2,
+                  width: 30 * subtitleOpacity,
+                  height: 1,
                   color: AppColors.gold.withValues(alpha: decorationOpacity),
                 ),
                 _PixelDot(),
@@ -703,15 +719,16 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
               ),
             ],
           ),
-          child: const _PixelArrowIcon(size: 28),
+          child: const PixelBowIcon(size: 28),
         ),
         const SizedBox(width: 12),
         // Inline title
         Text(
           'ARCHERY',
           style: TextStyle(
-            fontFamily: AppFonts.pixel,
-            fontSize: 12,
+            fontFamily: AppFonts.main,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
             color: AppColors.gold,
             letterSpacing: 2,
             shadows: [
@@ -767,43 +784,63 @@ class _PixelArrowPainter extends CustomPainter {
     final pixelSize = size.width / 16;
     final paint = Paint()..color = AppColors.gold;
 
-    // Draw a stylized pixel arrow pointing right
-    // Arrow shaft
-    for (int x = 2; x <= 12; x++) {
+    // Bow riser and limbs (curved D-shape on left)
+    final bowPaint = Paint()..color = AppColors.gold.withValues(alpha: 0.8);
+    // Top limb tip
+    _drawPixel(canvas, 0, 1, pixelSize, bowPaint);
+    _drawPixel(canvas, 1, 2, pixelSize, bowPaint);
+    // Upper limb curving out
+    _drawPixel(canvas, 2, 3, pixelSize, bowPaint);
+    _drawPixel(canvas, 2, 4, pixelSize, bowPaint);
+    _drawPixel(canvas, 2, 5, pixelSize, bowPaint);
+    _drawPixel(canvas, 2, 6, pixelSize, bowPaint);
+    // Riser/grip (thicker, brighter)
+    _drawPixel(canvas, 2, 7, pixelSize, paint);
+    _drawPixel(canvas, 2, 8, pixelSize, paint);
+    // Lower limb curving out
+    _drawPixel(canvas, 2, 9, pixelSize, bowPaint);
+    _drawPixel(canvas, 2, 10, pixelSize, bowPaint);
+    _drawPixel(canvas, 2, 11, pixelSize, bowPaint);
+    _drawPixel(canvas, 2, 12, pixelSize, bowPaint);
+    // Bottom limb tip
+    _drawPixel(canvas, 1, 13, pixelSize, bowPaint);
+    _drawPixel(canvas, 0, 14, pixelSize, bowPaint);
+
+    // String - from limb tips, pulled back to nock point
+    final stringPaint = Paint()..color = AppColors.gold.withValues(alpha: 0.5);
+    // Top string segment (diagonal from tip to nock)
+    _drawPixel(canvas, 1, 2, pixelSize, stringPaint);
+    _drawPixel(canvas, 2, 3, pixelSize, stringPaint);
+    _drawPixel(canvas, 3, 4, pixelSize, stringPaint);
+    _drawPixel(canvas, 4, 5, pixelSize, stringPaint);
+    _drawPixel(canvas, 5, 6, pixelSize, stringPaint);
+    _drawPixel(canvas, 6, 7, pixelSize, stringPaint);
+    // Bottom string segment (diagonal from tip to nock)
+    _drawPixel(canvas, 1, 13, pixelSize, stringPaint);
+    _drawPixel(canvas, 2, 12, pixelSize, stringPaint);
+    _drawPixel(canvas, 3, 11, pixelSize, stringPaint);
+    _drawPixel(canvas, 4, 10, pixelSize, stringPaint);
+    _drawPixel(canvas, 5, 9, pixelSize, stringPaint);
+    _drawPixel(canvas, 6, 8, pixelSize, stringPaint);
+
+    // Arrow shaft (from nock point going right)
+    for (int x = 6; x <= 13; x++) {
       _drawPixel(canvas, x, 7, pixelSize, paint);
       _drawPixel(canvas, x, 8, pixelSize, paint);
     }
 
-    // Arrow head - top part
-    _drawPixel(canvas, 10, 4, pixelSize, paint);
-    _drawPixel(canvas, 11, 5, pixelSize, paint);
-    _drawPixel(canvas, 12, 6, pixelSize, paint);
-    _drawPixel(canvas, 13, 7, pixelSize, paint);
-    _drawPixel(canvas, 13, 8, pixelSize, paint);
+    // Arrow point
+    _drawPixel(canvas, 14, 7, pixelSize, paint);
+    _drawPixel(canvas, 14, 8, pixelSize, paint);
+    _drawPixel(canvas, 15, 7, pixelSize, paint);
+    _drawPixel(canvas, 15, 8, pixelSize, paint);
 
-    // Arrow head - bottom part
-    _drawPixel(canvas, 12, 9, pixelSize, paint);
-    _drawPixel(canvas, 11, 10, pixelSize, paint);
-    _drawPixel(canvas, 10, 11, pixelSize, paint);
-
-    // Fletching at back
-    final fletchPaint = Paint()..color = AppColors.gold.withValues(alpha: 0.6);
-    _drawPixel(canvas, 2, 5, pixelSize, fletchPaint);
-    _drawPixel(canvas, 3, 6, pixelSize, fletchPaint);
-    _drawPixel(canvas, 2, 10, pixelSize, fletchPaint);
-    _drawPixel(canvas, 3, 9, pixelSize, fletchPaint);
-
-    // Target circle in corner
-    final targetPaint = Paint()
-      ..color = AppColors.gold.withValues(alpha: 0.4)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = pixelSize * 0.5;
-
-    canvas.drawCircle(
-      Offset(size.width * 0.85, size.height * 0.15),
-      pixelSize * 2,
-      targetPaint,
-    );
+    // Fletching at nock end
+    final fletchPaint = Paint()..color = AppColors.gold.withValues(alpha: 0.5);
+    _drawPixel(canvas, 6, 5, pixelSize, fletchPaint);
+    _drawPixel(canvas, 7, 6, pixelSize, fletchPaint);
+    _drawPixel(canvas, 6, 10, pixelSize, fletchPaint);
+    _drawPixel(canvas, 7, 9, pixelSize, fletchPaint);
   }
 
   void _drawPixel(Canvas canvas, int x, int y, double pixelSize, Paint paint) {
@@ -872,6 +909,8 @@ class _PixelMenuIconPainter extends CustomPainter {
         _drawRadar(canvas, p, paint, dimPaint);
       case PixelIconType.gear:
         _drawGear(canvas, p, paint, dimPaint);
+      case PixelIconType.exit:
+        _drawExit(canvas, p, paint, dimPaint);
     }
   }
 
@@ -1218,6 +1257,37 @@ class _PixelMenuIconPainter extends CustomPainter {
     _px(canvas, 6, 6, p, paint);
   }
 
+  // Exit/logout icon (door with arrow)
+  void _drawExit(Canvas canvas, double p, Paint paint, Paint dimPaint) {
+    // Door frame (left side)
+    _px(canvas, 2, 2, p, dimPaint);
+    _px(canvas, 2, 3, p, dimPaint);
+    _px(canvas, 2, 4, p, dimPaint);
+    _px(canvas, 2, 5, p, dimPaint);
+    _px(canvas, 2, 6, p, dimPaint);
+    _px(canvas, 2, 7, p, dimPaint);
+    _px(canvas, 2, 8, p, dimPaint);
+    _px(canvas, 2, 9, p, dimPaint);
+    // Door frame (top and bottom)
+    _px(canvas, 3, 2, p, dimPaint);
+    _px(canvas, 4, 2, p, dimPaint);
+    _px(canvas, 5, 2, p, dimPaint);
+    _px(canvas, 3, 9, p, dimPaint);
+    _px(canvas, 4, 9, p, dimPaint);
+    _px(canvas, 5, 9, p, dimPaint);
+    // Arrow pointing right (exit direction)
+    _px(canvas, 6, 5, p, paint);
+    _px(canvas, 7, 5, p, paint);
+    _px(canvas, 8, 5, p, paint);
+    _px(canvas, 9, 5, p, paint);
+    _px(canvas, 10, 5, p, paint);
+    // Arrow head
+    _px(canvas, 8, 3, p, paint);
+    _px(canvas, 9, 4, p, paint);
+    _px(canvas, 9, 6, p, paint);
+    _px(canvas, 8, 7, p, paint);
+  }
+
   void _px(Canvas canvas, int x, int y, double p, Paint paint) {
     canvas.drawRect(Rect.fromLTWH(x * p, y * p, p, p), paint);
   }
@@ -1319,8 +1389,9 @@ class _MenuItemWidget extends StatelessWidget {
                       Text(
                         item.label,
                         style: TextStyle(
-                          fontFamily: AppFonts.pixel,
-                          fontSize: 10,
+                          fontFamily: AppFonts.main,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
                           color: item.isHighlight || isSelected
                               ? AppColors.gold
                               : AppColors.textPrimary,

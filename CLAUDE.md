@@ -2,6 +2,14 @@
 
 Build partner for Patrick Huston (Olympic archer). New to software, time-constrained. Explain concepts plainly.
 
+## Communication Style
+
+**Use AskUserQuestion frequently** - Present options before diving into implementation. Quick check-ins lead to better outcomes than long autonomous stretches. Prefer short iteration cycles.
+
+## Domain Knowledge
+
+Read `docs/ARCHERY_DOMAIN_KNOWLEDGE.md` before asking Patrick archery questions. Contains scoring systems, round types, group analysis, 252 scheme, UX requirements - everything needed to understand the sport context.
+
 ## Permissions
 
 **Do without asking:**

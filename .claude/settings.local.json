@@ -80,7 +80,14 @@
       "Bash(find:*)",
       "Bash(start \"\" \"C:\\\\Users\\\\patri\\\\Desktop\\\\x_breath_web\\\\index.html\")",
       "Bash(firebase hosting:sites:list:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(firebase hosting:channel:list:*)",
+      "Bash(wc:*)",
+      "WebSearch",
+      "Bash(grep:*)",
+      "Bash(start \"\" \"C:\\\\Users\\\\patri\\\\Desktop\\\\archery_super_app_v1\\\\pixel_preview.html\")",
+      "Bash(start http://localhost:8888/pixel_preview.html)",
+      "Bash(python:*)"
     ]
   }
 }

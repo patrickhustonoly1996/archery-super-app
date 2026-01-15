@@ -174,7 +174,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
     ),
 
     // =========================================================================
-    // AGB IMPERIAL OUTDOOR
+    // AGB IMPERIAL OUTDOOR (5-zone scoring: 9-7-5-3-1 by color)
     // =========================================================================
     // York / Hereford / Bristol series
     RoundTypesCompanion.insert(
@@ -188,6 +188,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 1296,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'hereford',
@@ -200,6 +201,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 1296,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'bristol_1',
@@ -212,6 +214,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 1296,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'bristol_2',
@@ -224,6 +227,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 1296,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'bristol_3',
@@ -236,6 +240,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 1296,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'bristol_4',
@@ -248,6 +253,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 1296,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'bristol_5',
@@ -260,6 +266,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 1296,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
 
     // St George / Albion / Windsor series
@@ -274,6 +281,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 648,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'albion',
@@ -286,6 +294,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 648,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'windsor',
@@ -298,6 +307,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 648,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
 
     // Short series
@@ -312,6 +322,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 648,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'junior_windsor',
@@ -324,6 +335,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 648,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'short_junior_windsor',
@@ -336,6 +348,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 648,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
 
     // National series
@@ -350,6 +363,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 864,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'national',
@@ -362,6 +376,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 864,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'short_national',
@@ -374,6 +389,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 864,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'junior_national',
@@ -386,6 +402,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 864,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'short_junior_national',
@@ -398,6 +415,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 864,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
 
     // Western series
@@ -412,6 +430,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 864,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'short_western',
@@ -424,6 +443,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 864,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'junior_western',
@@ -436,6 +456,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 864,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'short_junior_western',
@@ -448,6 +469,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 864,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
 
     // American series
@@ -462,6 +484,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 810,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'short_american',
@@ -474,6 +497,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 810,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
 
     // Long/Short Warwick
@@ -488,6 +512,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 432,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'warwick',
@@ -500,6 +525,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 432,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
     RoundTypesCompanion.insert(
       id: 'short_warwick',
@@ -512,6 +538,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 432,
       isIndoor: false,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
 
     // =========================================================================

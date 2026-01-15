@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pixel Art Preview</title>
+  <style>
+    body {
+      background: #121212;
+      color: #fff;
+      font-family: monospace;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+    }
+    h1 { color: #FFD700; }
+    .preview-row {
+      display: flex;
+      gap: 40px;
+      align-items: flex-end;
+    }
+    .preview {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .preview label {
+      color: #888;
+      font-size: 12px;
+    }
+    canvas {
+      border: 1px solid #333;
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pixel Bow + Arrow Logo</h1>
+
+  <div class="preview-row">
+    <div class="preview">
+      <canvas id="c32" width="32" height="32"></canvas>
+      <label>32px</label>
+    </div>
+    <div class="preview">
+      <canvas id="c64" width="64" height="64"></canvas>
+      <label>64px</label>
+    </div>
+    <div class="preview">
+      <canvas id="c128" width="128" height="128"></canvas>
+      <label>128px</label>
+    </div>
+    <div class="preview">
+      <canvas id="c256" width="256" height="256"></canvas>
+      <label>256px</label>
+    </div>
+  </div>
+
+  <h2>Grid View (16x16)</h2>
+  <canvas id="grid" width="320" height="320"></canvas>
+
+  <script>
+    const GOLD = '#FFD700';
+    const GOLD_DIM = 'rgba(255, 215, 0, 0.7)';
+    const GOLD_STRING = 'rgba(255, 215, 0, 0.4)';
+    const GOLD_FLETCH = 'rgba(255, 215, 0, 0.5)';
+
+    function drawPixelBow(ctx, size) {
+      const p = size / 16; // pixel size
+
+      function px(x, y, color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(x * p, y * p, p, p);
+      }
+
+      // === BOW (vertical, curved) ===
+      // Upper limb tip (curves left)
+      px(4, 1, GOLD_DIM);
+      px(3, 0, GOLD_DIM);
+      // Upper limb curving right
+      px(5, 2, GOLD);
+      px(6, 3, GOLD);
+      px(6, 4, GOLD);
+      px(7, 5, GOLD);
+      px(7, 6, GOLD);
+      // Grip
+      px(8, 7, GOLD);
+      px(8, 8, GOLD);
+      // Lower limb curving right
+      px(7, 9, GOLD);
+      px(7, 10, GOLD);
+      px(6, 11, GOLD);
+      px(6, 12, GOLD);
+      px(5, 13, GOLD);
+      // Lower limb tip (curves left)
+      px(4, 14, GOLD_DIM);
+      px(3, 15, GOLD_DIM);
+
+      // === STRING (vertical) ===
+      for (let y = 1; y <= 14; y++) {
+        px(3, y, GOLD_STRING);
+      }
+
+      // === ARROW (diagonal) ===
+      // Fletching
+      px(0, 14, GOLD_FLETCH);
+      px(0, 12, GOLD_FLETCH);
+      px(1, 13, GOLD_FLETCH);
+
+      // Shaft
+      px(2, 12, GOLD);
+      px(3, 11, GOLD);
+      px(4, 10, GOLD);
+      px(5, 9, GOLD);
+      px(6, 8, GOLD);
+      px(7, 7, GOLD);
+      px(8, 6, GOLD);
+      px(9, 5, GOLD);
+      px(10, 4, GOLD);
+      px(11, 3, GOLD);
+      px(12, 2, GOLD);
+
+      // Point
+      px(13, 1, GOLD);
+      px(14, 0, GOLD);
+      px(14, 2, GOLD_DIM);
+      px(15, 1, GOLD_DIM);
+    }
+
+    function drawGrid(ctx) {
+      const p = 20; // 20px per pixel for visibility
+
+      // Draw grid lines
+      ctx.strokeStyle = '#333';
+      for (let i = 0; i <= 16; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * p, 0);
+        ctx.lineTo(i * p, 320);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, i * p);
+        ctx.lineTo(320, i * p);
+        ctx.stroke();
+      }
+
+      function px(x, y, color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(x * p + 1, y * p + 1, p - 2, p - 2);
+      }
+
+      // Same drawing code
+      px(4, 1, GOLD_DIM);
+      px(3, 0, GOLD_DIM);
+      px(5, 2, GOLD);
+      px(6, 3, GOLD);
+      px(6, 4, GOLD);
+      px(7, 5, GOLD);
+      px(7, 6, GOLD);
+      px(8, 7, GOLD);
+      px(8, 8, GOLD);
+      px(7, 9, GOLD);
+      px(7, 10, GOLD);
+      px(6, 11, GOLD);
+      px(6, 12, GOLD);
+      px(5, 13, GOLD);
+      px(4, 14, GOLD_DIM);
+      px(3, 15, GOLD_DIM);
+
+      for (let y = 1; y <= 14; y++) {
+        px(3, y, GOLD_STRING);
+      }
+
+      px(0, 14, GOLD_FLETCH);
+      px(0, 12, GOLD_FLETCH);
+      px(1, 13, GOLD_FLETCH);
+
+      px(2, 12, GOLD);
+      px(3, 11, GOLD);
+      px(4, 10, GOLD);
+      px(5, 9, GOLD);
+      px(6, 8, GOLD);
+      px(7, 7, GOLD);
+      px(8, 6, GOLD);
+      px(9, 5, GOLD);
+      px(10, 4, GOLD);
+      px(11, 3, GOLD);
+      px(12, 2, GOLD);
+
+      px(13, 1, GOLD);
+      px(14, 0, GOLD);
+      px(14, 2, GOLD_DIM);
+      px(15, 1, GOLD_DIM);
+    }
+
+    // Draw all previews
+    ['c32', 'c64', 'c128', 'c256'].forEach(id => {
+      const canvas = document.getElementById(id);
+      const ctx = canvas.getContext('2d');
+      drawPixelBow(ctx, canvas.width);
+    });
+
+    // Draw grid view
+    drawGrid(document.getElementById('grid').getContext('2d'));
+  </script>
+</body>
+</html>

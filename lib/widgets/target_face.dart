@@ -215,6 +215,7 @@ class InteractiveTargetFace extends StatefulWidget {
   final bool enabled;
   final bool isIndoor;
   final bool triSpot;
+  final bool isLeftHanded;
 
   const InteractiveTargetFace({
     super.key,
@@ -224,6 +225,7 @@ class InteractiveTargetFace extends StatefulWidget {
     this.enabled = true,
     this.isIndoor = false,
     this.triSpot = false,
+    this.isLeftHanded = false,
   });
 
   @override
@@ -246,10 +248,17 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   // Overlay for zoom window
   OverlayEntry? _zoomOverlay;
 
+  // Pinch-to-zoom state
+  double _userZoomScale = 1.0;
+  bool _isPinchZooming = false;
+
   // Zoom window constants
   static const double _linecutterZoomFactor = 6.0;
   static const double _zoomWindowSize = 120.0;
-  static const double _holdOffset = 60.0; // Offset so finger doesn't cover target point
+  // Diagonal offset: 60px total distance at ~45° angle
+  // sqrt(42² + 42²) ≈ 59.4px ≈ 60px
+  static const double _holdOffsetX = 42.0; // Horizontal component (sign flipped for lefties)
+  static const double _holdOffsetY = 42.0; // Vertical component (always upward)
   static const double _boundaryProximityThreshold = 0.04; // 4% of radius - wider detection zone
   static const Duration _linecutterActivationDelay = Duration(milliseconds: 300); // Quick activation
 
@@ -339,10 +348,12 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
 
     setState(() {
       _touchPosition = details.localPosition;
-      // Apply the same offset from the start so arrow doesn't jump
+      // Apply diagonal offset: up-left for right-handers, up-right for left-handers
+      // This keeps the arrow visible without your palm/arm blocking it
+      final xOffset = widget.isLeftHanded ? _holdOffsetX : -_holdOffsetX;
       _arrowPosition = Offset(
-        details.localPosition.dx,
-        details.localPosition.dy - _holdOffset,
+        details.localPosition.dx + xOffset,
+        details.localPosition.dy - _holdOffsetY,
       );
       _isHolding = true;
     });
@@ -356,10 +367,11 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
 
     setState(() {
       _touchPosition = details.localPosition;
-      // Arrow position is where the actual impact will be (above the thumb)
+      // Arrow position is where the actual impact will be (diagonal from thumb)
+      final xOffset = widget.isLeftHanded ? _holdOffsetX : -_holdOffsetX;
       _arrowPosition = Offset(
-        details.localPosition.dx,
-        details.localPosition.dy - _holdOffset,
+        details.localPosition.dx + xOffset,
+        details.localPosition.dy - _holdOffsetY,
       );
 
       // Check boundary proximity for linecutter mode
@@ -513,59 +525,181 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
     _zoomOverlay = null;
   }
 
+  // Handle scale gesture (used for both 1-finger plotting and 2-finger zoom)
+  void _onScaleStart(ScaleStartDetails details) {
+    if (!widget.enabled) return;
+
+    if (details.pointerCount >= 2) {
+      // 2+ fingers: start pinch-to-zoom
+      setState(() {
+        _isPinchZooming = true;
+      });
+    } else {
+      // 1 finger: start arrow plotting
+      _cachedZoomFactor = SmartZoom.calculateZoomFactor(
+        widget.arrows,
+        isIndoor: widget.isIndoor,
+      );
+
+      setState(() {
+        _touchPosition = details.localFocalPoint;
+        final xOffset = widget.isLeftHanded ? _holdOffsetX : -_holdOffsetX;
+        _arrowPosition = Offset(
+          details.localFocalPoint.dx + xOffset,
+          details.localFocalPoint.dy - _holdOffsetY,
+        );
+        _isHolding = true;
+      });
+
+      _showZoomOverlay();
+    }
+  }
+
+  void _onScaleUpdate(ScaleUpdateDetails details) {
+    if (!widget.enabled) return;
+
+    if (_isPinchZooming && details.pointerCount >= 2) {
+      // Pinch-to-zoom: update scale
+      setState(() {
+        _userZoomScale = (_userZoomScale * details.scale).clamp(1.0, 6.0);
+      });
+    } else if (_isHolding && details.pointerCount == 1) {
+      // Arrow plotting: update position
+      setState(() {
+        _touchPosition = details.localFocalPoint;
+        final xOffset = widget.isLeftHanded ? _holdOffsetX : -_holdOffsetX;
+        _arrowPosition = Offset(
+          details.localFocalPoint.dx + xOffset,
+          details.localFocalPoint.dy - _holdOffsetY,
+        );
+
+        // Check boundary proximity for linecutter mode
+        final proximity = _checkBoundaryProximity(_arrowPosition!);
+
+        if (proximity.isNear && !_isLinecutterMode) {
+          _isNearBoundary = true;
+          _nearestBoundaryDistance = proximity.distance;
+          _nearestBoundaryRing = proximity.ring;
+
+          _linecutterActivationTimer ??= Timer(_linecutterActivationDelay, () {
+            if (_isNearBoundary && !_isLinecutterMode) {
+              setState(() {
+                _isLinecutterMode = true;
+              });
+              HapticFeedback.mediumImpact();
+            }
+          });
+        } else if (!proximity.isNear) {
+          _isNearBoundary = false;
+          _nearestBoundaryDistance = null;
+          _nearestBoundaryRing = null;
+          _cancelLinecutterTimer();
+          if (_isLinecutterMode) {
+            _isLinecutterMode = false;
+          }
+        } else if (_isLinecutterMode && proximity.isNear) {
+          _nearestBoundaryDistance = proximity.distance;
+          _nearestBoundaryRing = proximity.ring;
+        }
+      });
+
+      _updateZoomOverlay();
+    }
+  }
+
+  void _onScaleEnd(ScaleEndDetails details) {
+    if (_isPinchZooming) {
+      // End pinch-to-zoom
+      setState(() {
+        _isPinchZooming = false;
+      });
+    } else if (_isHolding && _arrowPosition != null) {
+      // End arrow plotting - place arrow
+      final finalArrowPosition = _arrowPosition!;
+      _removeZoomOverlay();
+
+      final center = Offset(widget.size / 2, widget.size / 2);
+      final radius = widget.size / 2;
+
+      final normalizedX = (finalArrowPosition.dx - center.dx) / radius;
+      final normalizedY = (finalArrowPosition.dy - center.dy) / radius;
+
+      final distance = math.sqrt(normalizedX * normalizedX + normalizedY * normalizedY);
+      if (distance <= 1.0) {
+        widget.onArrowPlotted(normalizedX, normalizedY);
+      }
+
+      _cancelLinecutterTimer();
+      setState(() {
+        _touchPosition = null;
+        _arrowPosition = null;
+        _isHolding = false;
+        _cachedZoomFactor = null;
+        _isLinecutterMode = false;
+        _isNearBoundary = false;
+        _nearestBoundaryDistance = null;
+        _nearestBoundaryRing = null;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: widget.size,
       height: widget.size,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Main target
-          GestureDetector(
-            onPanStart: _onPanStart,
-            onPanUpdate: _onPanUpdate,
-            onPanEnd: _onPanEnd,
-            child: TargetFace(
-              arrows: widget.arrows,
-              size: widget.size,
-              triSpot: widget.triSpot,
-            ),
-          ),
-
-          // Offset line from touch to arrow
-          if (_isHolding && _touchPosition != null && _arrowPosition != null)
-            CustomPaint(
-              size: Size(widget.size, widget.size),
-              painter: _OffsetLinePainter(
-                from: _touchPosition!,
-                to: _arrowPosition!,
+      child: GestureDetector(
+        // Use scale gestures which handle both 1-finger drag and 2-finger pinch
+        onScaleStart: _onScaleStart,
+        onScaleUpdate: _onScaleUpdate,
+        onScaleEnd: _onScaleEnd,
+        child: Transform.scale(
+          scale: _userZoomScale,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Main target
+              TargetFace(
+                arrows: widget.arrows,
+                size: widget.size,
+                triSpot: widget.triSpot,
               ),
-            ),
 
-          // Preview arrow position (proportional to target size)
-          if (_isHolding && _arrowPosition != null)
-            Builder(
-              builder: (context) {
-                // Preview marker slightly larger than arrow markers for visibility
-                final previewSize = (widget.size * _ArrowMarker._markerFraction * 1.3).clamp(5.0, 12.0);
-                final halfPreview = previewSize / 2;
-                return Positioned(
-                  left: _arrowPosition!.dx - halfPreview,
-                  top: _arrowPosition!.dy - halfPreview,
-                  child: Container(
-                    width: previewSize,
-                    height: previewSize,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.gold.withOpacity(0.8),
-                      border: Border.all(color: Colors.black, width: 1.5),
-                    ),
+              // Offset line from touch to arrow
+              if (_isHolding && _touchPosition != null && _arrowPosition != null)
+                CustomPaint(
+                  size: Size(widget.size, widget.size),
+                  painter: _OffsetLinePainter(
+                    from: _touchPosition!,
+                    to: _arrowPosition!,
                   ),
-                );
-              },
-            ),
-        ],
+                ),
+
+              // Preview arrow position (proportional to target size)
+              if (_isHolding && _arrowPosition != null)
+                Builder(
+                  builder: (context) {
+                    // Preview marker slightly larger than arrow markers for visibility
+                    final previewSize = (widget.size * _ArrowMarker._markerFraction * 1.3).clamp(5.0, 12.0);
+                    final halfPreview = previewSize / 2;
+                    return Positioned(
+                      left: _arrowPosition!.dx - halfPreview,
+                      top: _arrowPosition!.dy - halfPreview,
+                      child: Container(
+                        width: previewSize,
+                        height: previewSize,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.gold.withOpacity(0.8),
+                          border: Border.all(color: Colors.black, width: 1.5),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -636,8 +770,9 @@ class _ZoomWindow extends StatelessWidget {
           child: ClipOval(
             child: Stack(
               children: [
-                // Target and arrows
+                // Target and arrows - use topLeft alignment to match Transform.scale
                 OverflowBox(
+                  alignment: Alignment.topLeft,
                   maxWidth: targetSize * zoomFactor,
                   maxHeight: targetSize * zoomFactor,
                   child: Transform.translate(

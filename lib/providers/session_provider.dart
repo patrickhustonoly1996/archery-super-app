@@ -51,6 +51,9 @@ class SessionProvider extends ChangeNotifier {
   /// Whether this is an indoor round
   bool get isIndoor => _currentRoundType?.isIndoor ?? true;
 
+  /// Scoring type for the round (10-zone or 5-zone)
+  String get scoringType => _currentRoundType?.scoringType ?? '10-zone';
+
   int get arrowsInCurrentEnd => _currentEndArrows.length;
   bool get isEndComplete => arrowsInCurrentEnd >= arrowsPerEnd;
 
@@ -202,7 +205,12 @@ class SessionProvider extends ChangeNotifier {
     if (_activeEnd == null || isEndComplete) return;
 
     // Use mm-based scoring with epsilon tolerance
-    final result = TargetRingsMm.scoreAndX(coord.distanceMm, faceSizeCm);
+    // Pass scoringType to use correct scoring system (10-zone or 5-zone)
+    final result = TargetRingsMm.scoreAndX(
+      coord.distanceMm,
+      faceSizeCm,
+      scoringType: scoringType,
+    );
 
     final arrowId =
         '${_activeEnd!.id}_arrow_${_currentEndArrows.length + 1}';

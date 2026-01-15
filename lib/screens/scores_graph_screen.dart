@@ -61,7 +61,7 @@ class _ScoresGraphScreenState extends State<ScoresGraphScreen> {
 
     // Process imported scores
     for (final score in imported) {
-      final roundTypeId = _matchRoundName(score.roundName);
+      final roundTypeId = _matchRoundName(score.roundName, score: score.score);
       if (roundTypeId == null) continue;
 
       final handicap = HandicapCalculator.calculateHandicap(
@@ -126,45 +126,71 @@ class _ScoresGraphScreenState extends State<ScoresGraphScreen> {
     return indoorRounds.contains(roundTypeId);
   }
 
-  String? _matchRoundName(String roundName) {
+  String? _matchRoundName(String roundName, {int? score}) {
     final lower = roundName.toLowerCase().trim();
 
-    // WA Outdoor - 720 rounds
-    if (lower.contains('720') && lower.contains('70')) return 'wa_720_70m';
-    if (lower.contains('720') && lower.contains('60')) return 'wa_720_60m';
-    if (lower.contains('720') && lower.contains('50')) return 'wa_720_50m';
+    // WA Outdoor - 720 rounds (many variations)
+    // But if score <= 360, it's probably a half round (36 arrows), not a bad 720
+    if (lower.contains('720')) {
+      if (score != null && score <= 360) {
+        // Score too low for a 720 - likely a 36-arrow round
+        return 'half_metric_70m';
+      }
+      if (lower.contains('70') || lower.contains('gent') || lower.contains('men')) return 'wa_720_70m';
+      if (lower.contains('60') || lower.contains('ladi') || lower.contains('women')) return 'wa_720_60m';
+      if (lower.contains('50') || lower.contains('cadet') || lower.contains('junior')) return 'wa_720_50m';
+      // Default to 70m for Olympic archer
+      return 'wa_720_70m';
+    }
 
     // WA Outdoor - 1440 rounds (FITA)
-    if (lower.contains('1440')) {
-      if (lower.contains('gent') || lower.contains('90')) return 'wa_1440_90m';
-      if (lower.contains('ladi') || lower.contains('70')) return 'wa_1440_70m';
+    if (lower.contains('1440') || lower.contains('fita')) {
+      if (lower.contains('gent') || lower.contains('90') || lower.contains('men')) return 'wa_1440_90m';
+      if (lower.contains('ladi') || lower.contains('70') || lower.contains('women')) return 'wa_1440_70m';
       if (lower.contains('60')) return 'wa_1440_60m';
       // Default to gents for "WA 1440" without specifier
       return 'wa_1440_90m';
     }
 
-    // 70m half round (36 arrows at 70m - used in head-to-heads)
-    if ((lower.contains('70m') || lower.contains('70 m')) &&
-        (lower.contains('122') || lower.contains('10 zone') || lower.contains('10zone'))) {
+    // 70m rounds - if score <= 360, definitely a half round
+    // Also matches explicit half/match/h2h keywords
+    if (lower.contains('70m') || lower.contains('70 m') || lower.contains('h2h') ||
+        lower.contains('head') || lower.contains('match') || lower.contains('half')) {
+      // Check if score suggests full 720 or half round
+      if (score != null && score > 360) {
+        return 'wa_720_70m'; // Full 720 round
+      }
+      return 'half_metric_70m'; // 36 arrow round
+    }
+
+    // Generic "70" without "m" - use score to decide
+    if (lower.contains('70') && !lower.contains('1440') && !lower.contains('720')) {
+      if (score != null && score > 360) {
+        return 'wa_720_70m';
+      }
       return 'half_metric_70m';
     }
 
-    // WA Indoor
-    if (lower.contains('wa') && lower.contains('18')) return 'wa_18m';
-    if (lower.contains('wa') && lower.contains('25')) return 'wa_25m';
+    // WA Indoor 18m
+    if (lower.contains('18m') || lower.contains('18 m') ||
+        (lower.contains('wa') && lower.contains('18'))) return 'wa_18m';
+
+    // WA Indoor 25m
+    if (lower.contains('25m') || lower.contains('25 m') ||
+        (lower.contains('wa') && lower.contains('25'))) return 'wa_25m';
 
     // AGB Indoor
-    if (lower.contains('portsmouth')) return 'portsmouth';
+    if (lower.contains('portsmouth') || lower.contains('portsm')) return 'portsmouth';
     if (lower.contains('worcester')) return 'worcester';
     if (lower.contains('vegas')) return 'vegas';
     if (lower.contains('bray')) {
       if (lower.contains('ii') || lower.contains('2')) return 'bray_2';
-      return 'bray_1'; // Bray I is the default
+      return 'bray_1';
     }
     if (lower.contains('stafford')) return 'stafford';
 
     // AGB Outdoor Imperial
-    if (lower == 'york') return 'york';
+    if (lower == 'york' || lower.contains('york')) return 'york';
     if (lower.contains('hereford')) return 'hereford';
     if (lower.contains('st george') || lower.contains('st. george')) {
       return 'st_george';
@@ -194,6 +220,13 @@ class _ScoresGraphScreenState extends State<ScoresGraphScreen> {
       if (lower.contains('ii')) return 'metric_ii';
       if (lower.contains('i')) return 'metric_i';
     }
+
+    // Fallback: try to guess based on common patterns
+    // "Indoor" without specific round - assume Portsmouth (most common UK indoor)
+    if (lower.contains('indoor')) return 'portsmouth';
+
+    // "Outdoor" without specific round - assume 720 70m (Olympic round)
+    if (lower.contains('outdoor')) return 'wa_720_70m';
 
     return null;
   }

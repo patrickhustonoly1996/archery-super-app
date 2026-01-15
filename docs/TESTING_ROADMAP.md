@@ -235,7 +235,35 @@ flutter test --reporter=expanded
 | Session lifecycle | Start → Record → End → Review | TODO |
 | Equipment setup | Add bow → Add arrows → Select | TODO |
 
-### Phase 8: Golden Tests (FUTURE)
+### Phase 8: PWA Testing (CRITICAL)
+
+**Why:** The app behaves differently when installed as a PWA vs running in browser. Touch handling, safe areas, and service worker caching can all cause issues that only appear in standalone mode.
+
+**Manual PWA Test Checklist (run after each web deploy):**
+
+| Test | iOS PWA | Android PWA | Browser |
+|------|---------|-------------|---------|
+| Home screen menu taps work | ☐ | ☐ | ☐ |
+| Navigation to all screens | ☐ | ☐ | ☐ |
+| Touch targets respond correctly | ☐ | ☐ | ☐ |
+| Safe areas don't cut off content | ☐ | ☐ | ☐ |
+| Service worker updates apply | ☐ | ☐ | ☐ |
+| Offline mode works | ☐ | ☐ | ☐ |
+| Camera permission prompt | ☐ | ☐ | ☐ |
+
+**Known PWA Gotchas:**
+1. **CSS body padding breaks touch** - Never add padding to body for safe areas; let Flutter handle it
+2. **Service worker caches old code** - May need to uninstall/reinstall PWA to see updates
+3. **iOS standalone has different viewport** - Test specifically on iPhone with notch
+4. **Touch offset bug** - If taps don't work, check for CSS transforms or padding on html/body
+
+**After deploying web changes:**
+1. Test in browser first (easy to debug)
+2. Test in existing installed PWA
+3. If PWA broken: uninstall, clear cache, reinstall
+4. Test fresh install on iOS and Android
+
+### Phase 9: Golden Tests (FUTURE)
 
 Visual regression tests for:
 - Target face appearance at different sizes

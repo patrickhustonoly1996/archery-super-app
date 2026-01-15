@@ -14,9 +14,13 @@ class TargetCoordinateSystem {
   /// Widget size in pixels for rendering
   final double widgetSize;
 
+  /// Scoring type: '10-zone' (WA/metric) or '5-zone' (imperial)
+  final String scoringType;
+
   const TargetCoordinateSystem({
     required this.faceSizeCm,
     required this.widgetSize,
+    this.scoringType = '10-zone',
   });
 
   // ============================================================================
@@ -164,9 +168,14 @@ class TargetCoordinateSystem {
   // SCORING
   // ============================================================================
 
-  /// Get score for an ArrowCoordinate using epsilon-based boundary detection
+  /// Get score for an ArrowCoordinate using epsilon-based boundary detection.
+  /// Uses the scoringType configured for this coordinate system.
   int scoreFromCoordinate(ArrowCoordinate coord) {
-    return TargetRingsMm.scoreFromDistanceMm(coord.distanceMm, faceSizeCm);
+    return TargetRingsMm.scoreFromDistanceMm(
+      coord.distanceMm,
+      faceSizeCm,
+      scoringType: scoringType,
+    );
   }
 
   /// Check if coordinate is in the X ring
@@ -174,7 +183,8 @@ class TargetCoordinateSystem {
     return TargetRingsMm.isXRing(coord.distanceMm, faceSizeCm);
   }
 
-  /// Get score and isX for an ArrowCoordinate
+  /// Get score and isX for an ArrowCoordinate.
+  /// Uses the scoringType configured for this coordinate system.
   ({int score, bool isX}) scoreAndX(ArrowCoordinate coord) {
     return (
       score: scoreFromCoordinate(coord),

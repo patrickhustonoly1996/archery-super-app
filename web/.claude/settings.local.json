@@ -5,7 +5,8 @@
       "Skill(ralph-loop:ralph-loop)",
       "Bash(flutter pub get:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nComplete testing infrastructure with 671 tests passing\n\n- Add mock infrastructure \\(MockDatabase, MockAuthService, MockFirestoreService\\)\n- Add service tests \\(auth, Firestore sync, beep service\\)\n- Add provider tests \\(active sessions provider\\)\n- Add widget tests \\(scorecard, breathing visualizer, radar chart\\)\n- Add GitHub Actions CI workflow for automated testing\n- Update testing implementation plan with Phase 5 E2E marked urgent\n- Add unique_id utility for collision-resistant ID generation\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nComplete testing infrastructure with 671 tests passing\n\n- Add mock infrastructure \\(MockDatabase, MockAuthService, MockFirestoreService\\)\n- Add service tests \\(auth, Firestore sync, beep service\\)\n- Add provider tests \\(active sessions provider\\)\n- Add widget tests \\(scorecard, breathing visualizer, radar chart\\)\n- Add GitHub Actions CI workflow for automated testing\n- Update testing implementation plan with Phase 5 E2E marked urgent\n- Add unique_id utility for collision-resistant ID generation\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)"
     ]
   }
 }

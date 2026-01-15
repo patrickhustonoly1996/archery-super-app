@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,9 +12,7 @@ import 'providers/breath_training_provider.dart';
 import 'providers/active_sessions_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
-import 'services/auth_service.dart';
 import 'services/firestore_sync_service.dart';
-import 'utils/web_url_helper.dart' if (dart.library.io) 'utils/web_url_helper_stub.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -179,7 +176,6 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
 
 /// Checks auth state and shows login or home screen
 /// Offline-first: Uses cached auth state, doesn't block on network
-/// Also handles magic link sign-in URLs
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
 
@@ -191,8 +187,6 @@ class _AuthGateState extends State<AuthGate> {
   bool _timedOut = false;
   bool _hasReceivedData = false;
   User? _cachedUser;
-  String? _magicLinkUrl;
-  final _authService = AuthService();
   bool _hasTriggeredSync = false;
 
   @override
@@ -201,11 +195,8 @@ class _AuthGateState extends State<AuthGate> {
     // Check cached auth state immediately (works offline)
     _cachedUser = FirebaseAuth.instance.currentUser;
 
-    // Check for magic link in URL (web only)
-    _checkForMagicLink();
-
     // Only set timeout if no cached user - need to wait for stream
-    if (_cachedUser == null && _magicLinkUrl == null) {
+    if (_cachedUser == null) {
       Future.delayed(const Duration(seconds: 3), () {
         if (mounted && !_hasReceivedData) {
           setState(() => _timedOut = true);
@@ -247,24 +238,8 @@ class _AuthGateState extends State<AuthGate> {
     });
   }
 
-  void _checkForMagicLink() {
-    if (!kIsWeb) return;
-
-    final url = getCurrentUrl();
-    if (url != null && _authService.isSignInLink(url)) {
-      _magicLinkUrl = url;
-      // Clear the URL to prevent re-triggering on refresh
-      clearUrlQueryParams();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    // If returning from a magic link, show login screen with the link
-    if (_magicLinkUrl != null) {
-      return LoginScreen(emailLink: _magicLinkUrl);
-    }
-
     // If we have a cached user, go straight to home (offline-first)
     if (_cachedUser != null) {
       return const HomeScreen();

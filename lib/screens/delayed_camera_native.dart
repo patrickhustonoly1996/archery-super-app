@@ -55,7 +55,7 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
 
   // Capture timer
   Timer? _captureTimer;
-  static const int _captureIntervalMs = 200;
+  static const int _captureIntervalMs = 100; // 10fps for smoother playback
 
   // Saving state
   bool _isSaving = false;

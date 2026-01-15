@@ -215,6 +215,7 @@ RoundType createFakeRoundType({
   bool isIndoor = true,
   String category = 'wa_indoor',
   int distance = 18,
+  String scoringType = '10-zone',
 }) {
   return RoundType(
     id: id,
@@ -227,6 +228,7 @@ RoundType createFakeRoundType({
     faceSize: faceSize,
     faceCount: faceCount,
     isIndoor: isIndoor,
+    scoringType: scoringType,
   );
 }
 
