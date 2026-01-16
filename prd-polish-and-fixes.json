@@ -173,7 +173,7 @@
       "title": "Undo for Destructive Operations",
       "priority": "P3",
       "session": 2,
-      "status": "pending",
+      "status": "complete",
       "problem": "Deleting sessions, equipment is permanent with no undo.",
       "locations": [
         "Multiple screens with delete functionality"
