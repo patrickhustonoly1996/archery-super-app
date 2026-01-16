@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../widgets/handicap_chart.dart';
+import '../widgets/empty_state.dart';
 import '../utils/handicap_calculator.dart';
 import 'session_detail_screen.dart';
 import 'import_screen.dart';
@@ -235,7 +236,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
               child: CircularProgressIndicator(color: AppColors.gold),
             )
           : _sessions.isEmpty && _importedScores.isEmpty
-              ? _EmptyState()
+              ? EmptyState(
+                  icon: Icons.history,
+                  title: 'No sessions yet',
+                  subtitle: 'Start training to see your history here',
+                  actionLabel: 'Import Score History',
+                  onAction: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ImportScreen()),
+                    );
+                    _loadHistory();
+                  },
+                )
               : RefreshIndicator(
                   onRefresh: _loadHistory,
                   color: AppColors.gold,
@@ -413,296 +425,6 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  /// Generate sample score data for demonstration
-  List<_SampleScore> _generateSampleScores() {
-    final now = DateTime.now();
-    return [
-      _SampleScore(
-        date: now.subtract(const Duration(days: 2)),
-        roundName: 'WA 720 70m',
-        score: 658,
-        handicap: 32,
-        isIndoor: false,
-        isCompetition: false,
-      ),
-      _SampleScore(
-        date: now.subtract(const Duration(days: 7)),
-        roundName: 'Portsmouth',
-        score: 572,
-        handicap: 28,
-        isIndoor: true,
-        isCompetition: true,
-      ),
-      _SampleScore(
-        date: now.subtract(const Duration(days: 12)),
-        roundName: 'WA 720 70m',
-        score: 645,
-        handicap: 35,
-        isIndoor: false,
-        isCompetition: false,
-      ),
-      _SampleScore(
-        date: now.subtract(const Duration(days: 18)),
-        roundName: 'Portsmouth',
-        score: 568,
-        handicap: 29,
-        isIndoor: true,
-        isCompetition: false,
-      ),
-      _SampleScore(
-        date: now.subtract(const Duration(days: 25)),
-        roundName: 'WA 18m',
-        score: 565,
-        handicap: 30,
-        isIndoor: true,
-        isCompetition: true,
-      ),
-    ];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final sampleScores = _generateSampleScores();
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Demo mode banner
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppSpacing.md),
-            margin: const EdgeInsets.only(bottom: AppSpacing.md),
-            decoration: BoxDecoration(
-              color: AppColors.gold.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(AppSpacing.sm),
-              border: Border.all(color: AppColors.gold.withOpacity(0.3)),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.lightbulb_outline, color: AppColors.gold, size: 20),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text(
-                      'Sample Scores Preview',
-                      style: TextStyle(
-                        color: AppColors.gold,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  'This shows what your score history will look like. Record sessions or import scores to track your progress.',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Sample score tiles (faded)
-          Opacity(
-            opacity: 0.6,
-            child: Column(
-              children: sampleScores.map((s) => _SampleScoreTile(score: s)).toList(),
-            ),
-          ),
-
-          const SizedBox(height: AppSpacing.lg),
-
-          // Call to action
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceDark,
-              borderRadius: BorderRadius.circular(AppSpacing.sm),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  'Start Tracking Your Scores',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.textPrimary,
-                      ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  'Record sessions in the app or import historical scores to track handicap progression.',
-                  style: TextStyle(color: AppColors.textMuted),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const ImportScreen()),
-                      );
-                    },
-                    icon: const Icon(Icons.file_upload_outlined),
-                    label: const Text('Import Score History'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.gold,
-                      side: BorderSide(color: AppColors.gold.withOpacity(0.5)),
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SampleScore {
-  final DateTime date;
-  final String roundName;
-  final int score;
-  final int handicap;
-  final bool isIndoor;
-  final bool isCompetition;
-
-  _SampleScore({
-    required this.date,
-    required this.roundName,
-    required this.score,
-    required this.handicap,
-    required this.isIndoor,
-    required this.isCompetition,
-  });
-}
-
-class _SampleScoreTile extends StatelessWidget {
-  final _SampleScore score;
-
-  const _SampleScoreTile({required this.score});
-
-  @override
-  Widget build(BuildContext context) {
-    final dateStr = '${score.date.day}/${score.date.month}';
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      color: AppColors.surfaceDark,
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Row(
-          children: [
-            // Date badge
-            Container(
-              width: 48,
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceLight,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                dateStr,
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-
-            // Round info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    score.roundName,
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: score.isIndoor ? AppColors.cyan : AppColors.magenta,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        score.isIndoor ? 'Indoor' : 'Outdoor',
-                        style: TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 12,
-                        ),
-                      ),
-                      if (score.isCompetition) ...[
-                        const SizedBox(width: AppSpacing.sm),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.gold.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'Comp',
-                            style: TextStyle(
-                              color: AppColors.gold,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // Score and handicap
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${score.score}',
-                  style: TextStyle(
-                    color: AppColors.gold,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'HC ${score.handicap}',
-                  style: TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _UnifiedScoreTile extends StatelessWidget {
   final UnifiedScore score;

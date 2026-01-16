@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import '../db/database.dart';
 import '../theme/app_theme.dart';
+import '../widgets/empty_state.dart';
 import '../utils/volume_calculator.dart';
 import 'volume_upload_screen.dart';
 
@@ -89,96 +90,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.bar_chart,
-              size: 64,
-              color: AppColors.textMuted,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'No volume data yet',
-              style: TextStyle(
-                fontSize: 18,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Track your daily arrow count to monitor training load',
-              style: TextStyle(
-                color: AppColors.textMuted,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.xl),
-
-            // Bulk upload option
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceDark,
-                borderRadius: BorderRadius.circular(AppSpacing.md),
-                border: Border.all(color: AppColors.gold.withOpacity(0.3)),
-              ),
-              child: Column(
-                children: [
-                  Icon(Icons.file_upload_outlined, color: AppColors.gold, size: 32),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    'Have existing training data?',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    'Bulk upload from spreadsheet',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  ElevatedButton.icon(
-                    onPressed: () => _navigateToUpload(),
-                    icon: const Icon(Icons.upload_file),
-                    label: const Text('Upload Volume Data'),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: AppSpacing.lg),
-
-            Row(
-              children: [
-                Expanded(child: Divider(color: AppColors.surfaceLight)),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                  child: Text('or', style: TextStyle(color: AppColors.textMuted)),
-                ),
-                Expanded(child: Divider(color: AppColors.surfaceLight)),
-              ],
-            ),
-
-            const SizedBox(height: AppSpacing.lg),
-
-            OutlinedButton.icon(
-              onPressed: () => _showAddVolumeDialog(),
-              icon: const Icon(Icons.add),
-              label: const Text('Add Single Entry'),
-            ),
-          ],
-        ),
-      ),
+    return EmptyState(
+      icon: Icons.bar_chart,
+      title: 'No volume data yet',
+      subtitle: 'Track your daily arrow count to monitor training load',
+      actionLabel: 'Add Volume Entry',
+      onAction: _showAddVolumeDialog,
     );
   }
 

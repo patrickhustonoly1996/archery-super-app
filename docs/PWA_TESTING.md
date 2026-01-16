@@ -63,37 +63,79 @@ These cannot be caught by `flutter test`.
 
 Run this checklist after any web deploy:
 
-### Installation
+### iOS (iPhone/iPad Safari)
+
+**Installation:**
 - [ ] Safari: Share > Add to Home Screen works
+- [ ] Icon appears correctly (pixelated gold arrow)
+- [ ] App name shows as "Archery"
+
+**Launch & Interaction:**
+- [ ] App opens fullscreen (no Safari UI)
+- [ ] Splash screen dismisses (within 5 seconds)
+- [ ] All buttons/inputs respond to taps
+- [ ] Login flow completes
+- [ ] Menu opens/closes
+- [ ] Can navigate to all screens and back
+
+**Offline:**
+- [ ] Enable airplane mode
+- [ ] App still opens from home screen
+- [ ] Can view existing data
+- [ ] Changes sync when back online
+
+---
+
+### Android (Chrome)
+
+**Installation:**
+- [ ] Install prompt appears (or menu > Install app)
 - [ ] Icon appears correctly on home screen
 - [ ] App name shows correctly
 
-### Launch & Splash
-- [ ] App opens in fullscreen (no Safari UI)
-- [ ] Splash screen shows briefly
-- [ ] Splash screen dismisses (within 5 seconds max)
-- [ ] App becomes interactive
-
-### Core Functionality
-- [ ] Can tap login button
+**Launch & Interaction:**
+- [ ] App opens fullscreen
+- [ ] Splash screen dismisses quickly
+- [ ] All buttons respond to taps
+- [ ] Hardware back button works (doesn't exit immediately)
 - [ ] Login flow completes
-- [ ] Menu opens/closes
-- [ ] Can navigate to all screens
-- [ ] Can navigate back from all screens
-- [ ] Data entry works (score plotting, etc.)
+- [ ] All navigation works
 
-### Offline Mode
-- [ ] Turn on airplane mode
+**Offline:**
+- [ ] Enable airplane mode
 - [ ] App still opens
-- [ ] Can view existing data
-- [ ] Can create new sessions (local)
-- [ ] Changes sync when back online
+- [ ] Data persists
 
-### Update Flow
-- [ ] Deploy new version
-- [ ] Open app, see update banner
-- [ ] Tap banner, app refreshes
-- [ ] Running new version
+---
+
+### Desktop (Chrome/Edge)
+
+**Installation:**
+- [ ] Install icon in address bar works
+- [ ] App appears in system app list
+- [ ] Desktop shortcut created (optional)
+
+**Launch & Interaction:**
+- [ ] Opens in standalone window
+- [ ] Window is reasonably sized
+- [ ] All click interactions work
+- [ ] Keyboard navigation works (Tab, Enter)
+- [ ] Login flow completes
+- [ ] All navigation works
+
+**Offline:**
+- [ ] Disconnect network
+- [ ] App still loads
+- [ ] Data persists
+
+---
+
+### All Platforms - Update Flow
+- [ ] Deploy new version to Firebase
+- [ ] Open existing installed PWA
+- [ ] Update banner appears
+- [ ] Tap/click banner refreshes app
+- [ ] New version is running
 
 ---
 

@@ -34,8 +34,9 @@
         "All existing data continues to work (UUIDs are strings, same as before)"
       ],
       "priority": 1,
-      "passes": false,
-      "dependsOn": []
+      "passes": true,
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-003",
@@ -52,10 +53,11 @@
         "Database write fails shows error message, not silent failure"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "dependsOn": [
         "US-001"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-004",
@@ -71,8 +73,9 @@
         "Validation shows as user types (not just on submit)"
       ],
       "priority": 2,
-      "passes": false,
-      "dependsOn": []
+      "passes": true,
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-005",
@@ -243,6 +246,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-01-16T22:55:23.302Z"
+    "updatedAt": "2026-01-16T23:19:45.552Z"
   }
 }

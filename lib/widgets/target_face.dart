@@ -267,20 +267,23 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   double? _cachedZoomFactor;
 
   /// Get the current zoom factor based on mode and smart zoom calculation
+  /// This is RELATIVE to the user's current pinch zoom level
   double get _zoomFactor {
+    double baseZoom;
     if (_isLinecutterMode) {
-      return _linecutterZoomFactor;
+      baseZoom = _linecutterZoomFactor;
+    } else if (_isHolding && _cachedZoomFactor != null) {
+      // Use cached zoom if we're in the middle of a drag to prevent jumping
+      baseZoom = _cachedZoomFactor!;
+    } else {
+      // Smart zoom calculates optimal zoom (minimum 2x) based on arrow grouping
+      baseZoom = SmartZoom.calculateZoomFactor(
+        widget.arrows,
+        isIndoor: widget.isIndoor,
+      );
     }
-    // Use cached zoom if we're in the middle of a drag to prevent jumping
-    if (_isHolding && _cachedZoomFactor != null) {
-      return _cachedZoomFactor!;
-    }
-    // Smart zoom calculates optimal zoom (minimum 2x) based on arrow grouping
-    final baseZoom = SmartZoom.calculateZoomFactor(
-      widget.arrows,
-      isIndoor: widget.isIndoor,
-    );
-    return baseZoom;
+    // Multiply by user's current pinch zoom so the window is useful when zoomed in
+    return baseZoom * _userZoomScale;
   }
 
   /// Calculate distance from arrow position to nearest ring boundary
@@ -563,9 +566,10 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
     if (!widget.enabled) return;
 
     if (_isPinchZooming && details.pointerCount >= 2) {
-      // Pinch-to-zoom: update scale
+      // Pinch-to-zoom: update scale (dampen sensitivity - use 30% of gesture scale)
+      final dampedScale = 1.0 + (details.scale - 1.0) * 0.3;
       setState(() {
-        _userZoomScale = (_userZoomScale * details.scale).clamp(1.0, 6.0);
+        _userZoomScale = (_userZoomScale * dampedScale).clamp(1.0, 6.0);
       });
     } else if (_isHolding && details.pointerCount == 1) {
       // Arrow plotting: update position
@@ -761,117 +765,10 @@ class _ZoomWindow extends StatelessWidget {
     return Stack(
       alignment: Alignment.center,
       children: [
-        // Main zoom window
-        Container(
-          width: windowSize,
-          height: windowSize,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: isLinecutterMode ? AppColors.success : AppColors.gold,
-              width: isLinecutterMode ? 6 : 2, // Thicker border in linecutter mode
-            ),
-            boxShadow: isLinecutterMode
-                ? [
-                    BoxShadow(
-                      color: AppColors.success.withOpacity(0.6),
-                      blurRadius: 12,
-                      spreadRadius: 2,
-                    ),
-                  ]
-                : null,
-            color: AppColors.backgroundDark,
-          ),
-          child: ClipOval(
-            child: Stack(
-              children: [
-                // Target and arrows - use topLeft alignment to match Transform.scale
-                OverflowBox(
-                  alignment: Alignment.topLeft,
-                  maxWidth: targetSize * zoomFactor,
-                  maxHeight: targetSize * zoomFactor,
-                  child: Transform.translate(
-                    offset: Offset(
-                      -(arrowPosition.dx * zoomFactor) + (windowSize / 2),
-                      -(arrowPosition.dy * zoomFactor) + (windowSize / 2),
-                    ),
-                    child: Transform.scale(
-                      scale: zoomFactor,
-                      alignment: Alignment.topLeft,
-                      child: SizedBox(
-                        width: targetSize,
-                        height: targetSize,
-                        child: Stack(
-                          children: [
-                            // Base target face
-                            CustomPaint(
-                              size: Size(targetSize, targetSize),
-                              painter: _TargetFacePainter(triSpot: triSpot),
-                            ),
-                            // Arrows and current position
-                            Builder(
-                              builder: (context) {
-                                // Calculate marker size - smaller in zoom window to avoid huge markers
-                                // Divide by zoomFactor to counteract the transform scale
-                                final baseMarkerSize = (targetSize * _ArrowMarker._markerFraction).clamp(4.0, 10.0);
-                                final markerSize = (baseMarkerSize / zoomFactor).clamp(1.5, 4.0);
-                                final halfMarker = markerSize / 2;
-                                return Stack(
-                                  children: [
-                                    // Show existing arrows
-                                    ...arrows.map((arrow) {
-                                      final centerX = targetSize / 2;
-                                      final centerY = targetSize / 2;
-                                      final radius = targetSize / 2;
-                                      final x = centerX + (arrow.x * radius);
-                                      final y = centerY + (arrow.y * radius);
-                                      return Positioned(
-                                        left: x - halfMarker,
-                                        top: y - halfMarker,
-                                        child: _ZoomWindowArrowMarker(
-                                          score: arrow.score,
-                                          size: markerSize,
-                                        ),
-                                      );
-                                    }),
-                                    // Show current arrow position (slightly larger for visibility)
-                                    Positioned(
-                                      left: arrowPosition.dx - halfMarker - 0.5,
-                                      top: arrowPosition.dy - halfMarker - 0.5,
-                                      child: Container(
-                                        width: markerSize + 1,
-                                        height: markerSize + 1,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: AppColors.gold,
-                                          border: Border.all(color: Colors.black, width: 0.5),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                // Crosshair overlay (centered on zoom window)
-                CustomPaint(
-                  size: Size(windowSize, windowSize),
-                  painter: _CrosshairPainter(),
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        // Linecutter mode label - prominent "Line cutter?" prompt
+        // Linecutter mode label - at TOP so finger doesn't cover it
         if (isLinecutterMode)
           Positioned(
-            bottom: -8,
+            top: -32,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
@@ -881,7 +778,7 @@ class _ZoomWindow extends StatelessWidget {
                   BoxShadow(
                     color: Colors.black.withOpacity(0.5),
                     blurRadius: 4,
-                    offset: const Offset(0, 2),
+                    offset: const Offset(0, -2),
                   ),
                 ],
               ),
@@ -896,6 +793,35 @@ class _ZoomWindow extends StatelessWidget {
               ),
             ),
           ),
+
+        // Main zoom window - just crosshair, nothing else
+        Container(
+          width: windowSize,
+          height: windowSize,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isLinecutterMode ? AppColors.success : AppColors.gold,
+              width: isLinecutterMode ? 6 : 2,
+            ),
+            boxShadow: isLinecutterMode
+                ? [
+                    BoxShadow(
+                      color: AppColors.success.withOpacity(0.6),
+                      blurRadius: 12,
+                      spreadRadius: 2,
+                    ),
+                  ]
+                : null,
+            color: AppColors.backgroundDark,
+          ),
+          child: ClipOval(
+            child: CustomPaint(
+              size: Size(windowSize, windowSize),
+              painter: _CrosshairPainter(),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -906,77 +832,27 @@ class _CrosshairPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
 
-    // Maximum contrast crosshair - thick black outline, bright magenta/cyan inner
-    final outlinePaint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 6
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
+    // Simple thin black crosshair
     final crosshairPaint = Paint()
-      ..color = const Color(0xFFFF00FF) // Magenta - high visibility
-      ..strokeWidth = 3
+      ..color = Colors.black
+      ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    // Gap in center so crosshair doesn't obscure exact point
-    const gapSize = 8.0;
-    const armLength = 24.0;
-
-    // Draw outline first, then white line on top for contrast
-    // Vertical lines (with gap in center)
+    // Full lines through center (no gap)
+    // Vertical line
     canvas.drawLine(
-      Offset(center.dx, center.dy - armLength),
-      Offset(center.dx, center.dy - gapSize),
-      outlinePaint,
-    );
-    canvas.drawLine(
-      Offset(center.dx, center.dy + gapSize),
-      Offset(center.dx, center.dy + armLength),
-      outlinePaint,
-    );
-    canvas.drawLine(
-      Offset(center.dx, center.dy - armLength),
-      Offset(center.dx, center.dy - gapSize),
-      crosshairPaint,
-    );
-    canvas.drawLine(
-      Offset(center.dx, center.dy + gapSize),
-      Offset(center.dx, center.dy + armLength),
+      Offset(center.dx, 0),
+      Offset(center.dx, size.height),
       crosshairPaint,
     );
 
-    // Horizontal lines (with gap in center)
+    // Horizontal line
     canvas.drawLine(
-      Offset(center.dx - armLength, center.dy),
-      Offset(center.dx - gapSize, center.dy),
-      outlinePaint,
-    );
-    canvas.drawLine(
-      Offset(center.dx + gapSize, center.dy),
-      Offset(center.dx + armLength, center.dy),
-      outlinePaint,
-    );
-    canvas.drawLine(
-      Offset(center.dx - armLength, center.dy),
-      Offset(center.dx - gapSize, center.dy),
+      Offset(0, center.dy),
+      Offset(size.width, center.dy),
       crosshairPaint,
     );
-    canvas.drawLine(
-      Offset(center.dx + gapSize, center.dy),
-      Offset(center.dx + armLength, center.dy),
-      crosshairPaint,
-    );
-
-    // Bold center dot to mark exact arrow position
-    final dotOutlinePaint = Paint()
-      ..color = Colors.black
-      ..style = PaintingStyle.fill;
-    final dotPaint = Paint()
-      ..color = const Color(0xFFFF00FF) // Magenta to match crosshair
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, 5, dotOutlinePaint);
-    canvas.drawCircle(center, 3, dotPaint);
   }
 
   @override

@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
 import '../db/database.dart';
 import '../widgets/bow_icon.dart';
+import '../widgets/empty_state.dart';
 import '../models/bow_specifications.dart';
 import '../models/arrow_specifications.dart';
 import 'bow_form_screen.dart';
@@ -71,39 +72,19 @@ class _BowsTab extends StatelessWidget {
     final bows = equipmentProvider.bows;
 
     if (bows.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            BowIcon(
-              size: 64,
-              color: AppColors.textMuted,
+      return EmptyState(
+        icon: Icons.sports_tennis,
+        title: 'No bows added',
+        subtitle: 'Add a bow to get started',
+        actionLabel: 'Add Bow',
+        onAction: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const BowFormScreen(),
             ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'No bows configured',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Add a bow to get started',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const BowFormScreen(),
-                  ),
-                ).then((_) => equipmentProvider.loadEquipment());
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Add Bow'),
-            ),
-          ],
-        ),
+          ).then((_) => equipmentProvider.loadEquipment());
+        },
       );
     }
 
@@ -251,40 +232,19 @@ class _QuiversTab extends StatelessWidget {
     final quivers = equipmentProvider.quivers;
 
     if (quivers.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.filter_list,
-              size: 64,
-              color: AppColors.textMuted,
+      return EmptyState(
+        icon: Icons.inventory_2_outlined,
+        title: 'No quivers added',
+        subtitle: 'Add a quiver to track arrows',
+        actionLabel: 'Add Quiver',
+        onAction: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const QuiverFormScreen(),
             ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'No quivers configured',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Add a quiver to track arrows',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const QuiverFormScreen(),
-                  ),
-                ).then((_) => equipmentProvider.loadEquipment());
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Add Quiver'),
-            ),
-          ],
-        ),
+          ).then((_) => equipmentProvider.loadEquipment());
+        },
       );
     }
 
