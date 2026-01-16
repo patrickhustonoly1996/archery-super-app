@@ -389,6 +389,14 @@ class AppDatabase extends _$AppDatabase {
         ..orderBy([(t) => OrderingTerm.desc(t.startedAt)]))
       .get();
 
+  Future<List<Session>> getSessionsByDateRange(DateTime start, DateTime end) =>
+      (select(sessions)
+            ..where((t) =>
+                t.startedAt.isBiggerOrEqualValue(start) &
+                t.startedAt.isSmallerOrEqualValue(end))
+            ..orderBy([(t) => OrderingTerm.desc(t.startedAt)]))
+          .get();
+
   Future<Session?> getSession(String id) =>
       (select(sessions)..where((t) => t.id.equals(id))).getSingleOrNull();
 

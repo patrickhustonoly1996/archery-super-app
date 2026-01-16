@@ -203,6 +203,104 @@ void main() {
         expect(updated.shaftTaggingEnabled, isTrue);
       });
     });
+
+    test('getSession returns null for missing ID', () async {
+      await withTestDb((db) async {
+        final session = await db.getSession('nonexistent_id');
+        expect(session, matcher.isNull);
+      });
+    });
+
+    test('getAllSessions returns all sessions ordered by date descending', () async {
+      await withTestDb((db) async {
+        final now = DateTime.now();
+
+        // Insert sessions with different start times
+        await db.insertSession(createTestSessionWithDate(
+          id: 'session_1',
+          roundTypeId: 'wa_18_60',
+          startedAt: now.subtract(const Duration(days: 3)),
+        ));
+
+        await db.insertSession(createTestSessionWithDate(
+          id: 'session_2',
+          roundTypeId: 'wa_18_60',
+          startedAt: now.subtract(const Duration(days: 1)),
+        ));
+
+        await db.insertSession(createTestSessionWithDate(
+          id: 'session_3',
+          roundTypeId: 'wa_18_60',
+          startedAt: now.subtract(const Duration(days: 2)),
+        ));
+
+        final sessions = await db.getAllSessions();
+
+        expect(sessions.length, equals(3));
+        // Most recent first (descending order)
+        expect(sessions[0].id, equals('session_2'));
+        expect(sessions[1].id, equals('session_3'));
+        expect(sessions[2].id, equals('session_1'));
+      });
+    });
+
+    test('getSessionsByDateRange filters correctly', () async {
+      await withTestDb((db) async {
+        final baseDate = DateTime(2024, 1, 15);
+
+        // Insert sessions across multiple dates
+        await db.insertSession(createTestSessionWithDate(
+          id: 'session_1',
+          roundTypeId: 'wa_18_60',
+          startedAt: DateTime(2024, 1, 10),
+        ));
+
+        await db.insertSession(createTestSessionWithDate(
+          id: 'session_2',
+          roundTypeId: 'wa_18_60',
+          startedAt: DateTime(2024, 1, 15),
+        ));
+
+        await db.insertSession(createTestSessionWithDate(
+          id: 'session_3',
+          roundTypeId: 'wa_18_60',
+          startedAt: DateTime(2024, 1, 20),
+        ));
+
+        await db.insertSession(createTestSessionWithDate(
+          id: 'session_4',
+          roundTypeId: 'wa_18_60',
+          startedAt: DateTime(2024, 1, 25),
+        ));
+
+        // Query sessions between Jan 15 and Jan 20 (inclusive)
+        final rangeStart = DateTime(2024, 1, 15);
+        final rangeEnd = DateTime(2024, 1, 20, 23, 59, 59);
+        final sessions = await db.getSessionsByDateRange(rangeStart, rangeEnd);
+
+        expect(sessions.length, equals(2));
+        expect(sessions.any((s) => s.id == 'session_2'), isTrue);
+        expect(sessions.any((s) => s.id == 'session_3'), isTrue);
+        expect(sessions.any((s) => s.id == 'session_1'), isFalse);
+        expect(sessions.any((s) => s.id == 'session_4'), isFalse);
+      });
+    });
+
+    test('getSessionsByDateRange returns empty for no matches', () async {
+      await withTestDb((db) async {
+        await db.insertSession(createTestSessionWithDate(
+          id: 'session_1',
+          roundTypeId: 'wa_18_60',
+          startedAt: DateTime(2024, 1, 10),
+        ));
+
+        final rangeStart = DateTime(2024, 2, 1);
+        final rangeEnd = DateTime(2024, 2, 28);
+        final sessions = await db.getSessionsByDateRange(rangeStart, rangeEnd);
+
+        expect(sessions, isEmpty);
+      });
+    });
   });
 
   group('End Operations', () {
@@ -1185,6 +1283,31 @@ SessionsCompanion createTestSession({
   return SessionsCompanion.insert(
     id: id,
     roundTypeId: roundTypeId,
+    sessionType: Value(sessionType),
+    location: Value(location),
+    notes: Value(notes),
+    bowId: Value(bowId),
+    quiverId: Value(quiverId),
+    shaftTaggingEnabled: Value(shaftTaggingEnabled),
+  );
+}
+
+/// Creates a test SessionsCompanion with specific start date
+SessionsCompanion createTestSessionWithDate({
+  required String id,
+  required String roundTypeId,
+  required DateTime startedAt,
+  String sessionType = 'practice',
+  String? location,
+  String? notes,
+  String? bowId,
+  String? quiverId,
+  bool shaftTaggingEnabled = false,
+}) {
+  return SessionsCompanion.insert(
+    id: id,
+    roundTypeId: roundTypeId,
+    startedAt: Value(startedAt),
     sessionType: Value(sessionType),
     location: Value(location),
     notes: Value(notes),
