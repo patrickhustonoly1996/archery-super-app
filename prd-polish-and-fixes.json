@@ -121,7 +121,7 @@
       "title": "Empty State Widget",
       "priority": "P1",
       "session": 2,
-      "status": "pending",
+      "status": "complete",
       "problem": "Screens show nothing when data is empty. User doesn't know what to do.",
       "locations": [
         "lib/widgets/empty_state.dart (create new)",
