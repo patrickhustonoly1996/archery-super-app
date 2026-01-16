@@ -195,7 +195,7 @@
       "title": "Offline Indicator",
       "priority": "P3",
       "session": 3,
-      "status": "pending",
+      "status": "complete",
       "problem": "User doesn't know their connectivity status or if data is syncing.",
       "locations": [
         "App-wide (app bar)"
