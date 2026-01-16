@@ -244,7 +244,7 @@
       "title": "Extract Shared Widgets",
       "priority": "P4",
       "session": 3,
-      "status": "pending",
+      "status": "complete",
       "problem": "Score display, card layouts duplicated across screens.",
       "locations": [
         "lib/widgets/score_display.dart (create new)",
