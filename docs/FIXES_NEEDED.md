@@ -122,51 +122,18 @@ Uses `onScaleStart/Update/End` with `details.pointerCount` to distinguish.
 
 ## P1: Imperial 5-Zone Scoring
 
-**Status:** Not started
+**Status:** ✅ FIXED (January 2026)
 **Problem:** York, Bristol, Warwick, Albion etc use 5-zone scoring (9-7-5-3-1 by color) but app only supports 10-zone.
 
-**Current Code:**
-- `lib/db/round_types_seed.dart` - Rounds defined but no `scoringType` field
-- `lib/theme/app_theme.dart:295-313` - `scoreFromDistanceMm()` hardcoded to return ring number
-
-**Implementation Steps:**
-
-1. Add `scoringType` column to RoundTypes table
-   - File: `lib/db/database.dart`
-   - Values: `'10-zone'` (default), `'5-zone'`
-   - Requires database migration
-
-2. Update round_types_seed.dart
-   - Add `scoringType: '5-zone'` to all `agb_imperial` category rounds
-   - File: `lib/db/round_types_seed.dart:177-515`
-
-3. Modify scoring function
-   - File: `lib/theme/app_theme.dart:295`
-   - Add parameter: `String scoringType = '10-zone'`
-   - For 5-zone, map rings to scores:
-     ```dart
-     if (scoringType == '5-zone') {
-       // Gold (X/10/9) → 9
-       if (ring >= 9) return 9;
-       // Red (8/7) → 7
-       if (ring >= 7) return 7;
-       // Blue (6/5) → 5
-       if (ring >= 5) return 5;
-       // Black (4/3) → 3
-       if (ring >= 3) return 3;
-       // White (2/1) → 1
-       if (ring >= 1) return 1;
-       return 0;
-     }
-     ```
-
-4. Pass scoring type through plotting flow
-   - `PlottingScreen` → `InteractiveTargetFace` → scoring calculation
-   - Or: look up round's scoring type when calculating score
-
-5. Update tests
-   - Add 5-zone scoring tests to `test/utils/handicap_calculator_test.dart`
-   - Test boundary cases (ring 9 vs 8, ring 7 vs 6, etc.)
+**Implementation (completed):**
+- `lib/db/database.dart:26-27` - Added `scoringType` column with '10-zone' default
+- `lib/db/database.dart:346-355` - Migration updates existing imperial rounds
+- `lib/db/round_types_seed.dart` - All `agb_imperial` rounds have `scoringType: '5-zone'`
+- `lib/theme/app_theme.dart:303-333` - `scoreFromDistanceMm()` supports both scoring types
+- `lib/theme/app_theme.dart:337-350` - `ringTo5ZoneScore()` conversion function
+- `lib/providers/session_provider.dart:58,215-219` - Scoring type passed through plotting flow
+- `lib/utils/target_coordinate_system.dart:18,172-177` - Coordinate system supports scoring type
+- `test/utils/scoring_test.dart` - Comprehensive tests for all boundary cases
 
 **Visual stays the same** - still show all 10 rings on target face. Only the numbers change.
 
@@ -366,6 +333,173 @@ Uses `onScaleStart/Update/End` with `details.pointerCount` to distinguish.
 4. Nearest ring boundary highlighted with green glow
 5. "Line cutter?" prompt appears prominently
 6. Moving away from boundary snaps back to normal mode
+
+---
+
+## P2: Kit Details Auto-Prompt on Top 20% Score
+
+**Status:** Not started
+**Problem:** When an archer achieves a score in their top 20% historically, prompt them to save their current kit configuration - that setup is clearly working well.
+
+**Trigger Logic:**
+```dart
+// After session completes with score:
+final allScores = await db.getAllSessionScores();
+final threshold = calculatePercentile(allScores, 80); // top 20%
+if (currentScore >= threshold) {
+  showKitSavePrompt();
+}
+```
+
+**Implementation Steps:**
+
+1. **Add percentile calculation utility**
+   - File: `lib/utils/statistics.dart` (new)
+   - Function to calculate nth percentile from score list
+   - Handle edge cases: <5 sessions = skip prompt
+
+2. **Expand Kit Details model** (also needed for tuning)
+   - Current `Bows.settings` is JSON - needs structure
+   - Add fields to track:
+     - Sight settings (marks by distance)
+     - Stabilizer setup (lengths, weights)
+     - String details (material, strand count)
+     - Limb bolts/poundage
+     - Clicker position
+     - Arrow rest position
+
+3. **Create Kit Snapshot table**
+   - `KitSnapshots`: id, bowId, quiverId, snapshotDate, sessionId, score, settings JSON
+   - Links high score to exact configuration that produced it
+
+4. **Add prompt after session completion**
+   - File: `lib/screens/session_complete_screen.dart` (or wherever scores finalize)
+   - Check if score in top 20%
+   - Show bottom sheet: "Great score! Save your current kit setup?"
+   - Pre-fill from current default bow/quiver settings
+
+**Files:**
+- `lib/db/database.dart` - New table, migration
+- `lib/providers/equipment_provider.dart` - Kit snapshot methods
+- `lib/screens/session_complete_screen.dart` - Prompt logic
+- `lib/utils/statistics.dart` - Percentile calculation
+
+---
+
+## P2: Kit Tuning Framework
+
+**Status:** Not started
+**Problem:** Need structured way to log and track bow tuning - different process for compound vs recurve.
+
+**Bow Type Split:**
+- **Recurve:** Paper tune, bare shaft, walk-back, nock point, tiller, brace height, centershot, plunger
+- **Compound:** Paper tune, bare shaft, French tune, cam timing, yoke tuning, rest position, peep height
+
+**Implementation Steps:**
+
+1. **Create TuningSession table**
+   - `TuningSessions`: id, bowId, date, bowType, tuningType, results JSON, notes
+   - `tuningType`: 'paper', 'bare_shaft', 'walk_back', 'french', etc.
+
+2. **Add Tuning Checklist screen**
+   - File: `lib/screens/tuning_checklist_screen.dart` (new)
+   - Detect bow type from selected bow
+   - Show appropriate checklist:
+     ```
+     RECURVE TUNING CHECKLIST
+     [ ] Brace height: _____ inches
+     [ ] Nock point: _____ above square
+     [ ] Tiller: _____ (positive/even/negative)
+     [ ] Centershot: _____ mm from riser
+     [ ] Plunger tension: _____ (soft/medium/stiff)
+     [ ] Paper tune result: _____ (tear direction)
+     [ ] Bare shaft result: _____ (stiff/weak/good)
+     ```
+
+3. **Paper Tune Logger**
+   - Capture tear direction (up/down/left/right/clean)
+   - Capture tear size (small/medium/large)
+   - Suggest fixes based on tear pattern
+   - Store history of attempts
+
+4. **Tuning History view**
+   - Show timeline of tuning sessions
+   - Display what was adjusted and results
+   - Highlight when group patterns improved after tuning
+
+5. **Link tuning to group analysis**
+   - File: `lib/utils/group_analysis.dart`
+   - Detect consistent bias (e.g., "groups always 15mm left")
+   - Suggest: "Consider centershot adjustment"
+
+**Files:**
+- `lib/db/database.dart` - New table
+- `lib/screens/tuning_checklist_screen.dart` - Main UI
+- `lib/screens/tuning_history_screen.dart` - History view
+- `lib/models/tuning_session.dart` - Data model
+- `lib/utils/tuning_suggestions.dart` - Auto-suggestions from tears/groups
+
+---
+
+## P2: Arrow Shaft Tracking & Analysis
+
+**Status:** Not started
+**Problem:** Need to track individual arrow performance. Two parts:
+1. **Specs** (in kit details): spine, length, point weight, fletching - lives with quiver/shaft
+2. **Shot tracking** (in scoring): which numbered arrow made each shot - analyze grouping by arrow
+
+**Implementation Steps:**
+
+### Part A: Arrow Specifications (Kit Details)
+
+1. **Expand Shafts table**
+   - Current fields: id, quiverId, number, notes, retiredAt
+   - Add: spine, lengthInches, pointWeight, fletchingType, fletchingColor, nockColor
+   - File: `lib/db/database.dart` - migration
+
+2. **Arrow Spec Entry UI**
+   - File: `lib/screens/shaft_detail_screen.dart` (new or expand existing)
+   - Form fields for all specs
+   - Batch entry option (all arrows same spec, just different numbers)
+
+### Part B: Shot Tracking (Scoring Data)
+
+3. **Add shaftId to Arrows table**
+   - Current Arrows table has coordinates but no shaft reference
+   - Add nullable `shaftId` column
+   - File: `lib/db/database.dart` - migration
+
+4. **Shaft selector in plotting UI**
+   - File: `lib/widgets/target_face.dart` or `lib/screens/plotting_screen.dart`
+   - Quick picker showing arrow numbers (1-12 chips)
+   - Auto-advance to next number after plotting
+   - Or: tap plotted arrow to assign number retroactively
+
+5. **Per-Shaft Analysis**
+   - File: `lib/utils/shaft_analysis.dart` (new)
+   - Calculate per arrow:
+     - Average position (is arrow #3 always left?)
+     - Group spread (is arrow #7 inconsistent?)
+     - Score distribution
+   - Detect outliers: "Arrow #5 groups 40% wider than others"
+
+6. **Shaft Analysis UI**
+   - File: `lib/screens/shaft_analysis_screen.dart` (new)
+   - Show each arrow's performance stats
+   - Heatmap overlay option (color by arrow number)
+   - Recommendations: "Consider retiring arrow #5 - inconsistent grouping"
+
+7. **Overlap likelihood calculation**
+   - Based on group spread and arrow count
+   - Calculate probability of robin-hoods/overlaps
+   - Show warning when group is tight: "High overlap risk at this group size"
+
+**Files:**
+- `lib/db/database.dart` - Schema changes
+- `lib/screens/shaft_detail_screen.dart` - Spec entry
+- `lib/screens/plotting_screen.dart` - Shaft picker
+- `lib/utils/shaft_analysis.dart` - Analysis logic
+- `lib/screens/shaft_analysis_screen.dart` - Results UI
 
 ---
 

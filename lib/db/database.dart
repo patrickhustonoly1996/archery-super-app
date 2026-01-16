@@ -170,6 +170,19 @@ class VolumeEntries extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Milestones for handicap graph timeline markers
+class Milestones extends Table {
+  TextColumn get id => text()();
+  DateTimeColumn get date => dateTime()(); // Date of milestone
+  TextColumn get title => text()(); // Short title (e.g., "First Competition")
+  TextColumn get description => text().nullable()(); // Optional longer description
+  TextColumn get color => text().withDefault(const Constant('#FFD700'))(); // Hex color for the line
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // OLY BOW TRAINING SYSTEM
 // ============================================================================
@@ -296,6 +309,8 @@ class UserTrainingProgress extends Table {
   OlySessionExercises,
   OlyTrainingLogs,
   UserTrainingProgress,
+  // Milestones for handicap graph
+  Milestones,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -304,7 +319,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -352,6 +367,10 @@ class AppDatabase extends _$AppDatabase {
             SET scoring_type = '5-zone'
             WHERE category = 'agb_imperial'
           ''');
+        }
+        if (from <= 6) {
+          // Add milestones table for handicap graph
+          await m.createTable(milestones);
         }
       },
     );
@@ -879,6 +898,34 @@ class AppDatabase extends _$AppDatabase {
       }
     }
   }
+
+  // ===========================================================================
+  // MILESTONES
+  // ===========================================================================
+
+  Future<List<Milestone>> getAllMilestones() => (select(milestones)
+        ..orderBy([(t) => OrderingTerm.asc(t.date)]))
+      .get();
+
+  Future<List<Milestone>> getMilestonesInRange(DateTime start, DateTime end) =>
+      (select(milestones)
+            ..where((t) =>
+                t.date.isBiggerOrEqualValue(start) &
+                t.date.isSmallerOrEqualValue(end))
+            ..orderBy([(t) => OrderingTerm.asc(t.date)]))
+          .get();
+
+  Future<Milestone?> getMilestone(String id) =>
+      (select(milestones)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<int> insertMilestone(MilestonesCompanion milestone) =>
+      into(milestones).insert(milestone);
+
+  Future<bool> updateMilestone(MilestonesCompanion milestone) =>
+      update(milestones).replace(milestone);
+
+  Future<int> deleteMilestone(String id) =>
+      (delete(milestones)..where((t) => t.id.equals(id))).go();
 }
 
 QueryExecutor _openConnection() {

@@ -69,3 +69,76 @@ usiness logic)\n\nThe service includes:\n- `parseScoresCsv()` - Parses score dat
 invalid values\n✅ Test parseScoresCsv() - handles missing optional columns - Test verifies all optional fields return null when not present\n✅ Test parseScoresCsv() - rejects missing required columns - Tests show default position handling for missing date/score/round columns\n✅ Test parseScoresCsv() - handles UTF-8 BOM - Test with \\uFEFF prefix in header\n✅ Test parseScoresCsv() - handles Windows line endings - Test with \\r\\n in string values\n✅ flutter test passes - All 820 tests passing\n\n
 
 ---
+## ✓ Iteration 8 - US-008: Phase B4: Test volume import
+*2026-01-16T09:40:22.415Z (164s)*
+
+**Status:** Completed
+
+**Notes:**
+ty CSV, header-only, empty rows\n- Handles rows shorter/longer than expected\n- Handles exception during parsing\n- Mixed valid/invalid rows\n\n**Special characters & encoding (5 tests)**\n- UTF-8 BOM handling\n- Special characters in title/notes (Café, &)\n- Whitespace trimming\n- Empty string → null conversion\n\n**Test Results:**\n- All 858 tests passing\n- 38 new volume import tests added\n- Coverage matches score import test patterns\n\nChanges committed to main branch (commit 65761e6).\n\n
+
+---
+## ✓ Iteration 9 - US-009: Phase B5: Test import error handling
+*2026-01-16T09:45:36.161Z (313s)*
+
+**Status:** Completed
+
+**Notes:**
+correctly\n- Common export errors handled gracefully\n\n**Test Results:**\n- All 97 import service tests passing ✅\n- Changes committed to main branch (commit 2a939ab)\n- Pushed to GitHub\n\n**Addresses P0 Issue:**\nThis test suite validates the fix for \"Silent CSV parsing failures\" from the Code Review document. The `parseScoresCsv` method already provides excellent error reporting (skipped count + reasons), and these tests ensure it continues to work correctly under all error conditions.\n\n
+
+---
+## ✓ Iteration 10 - US-010: Phase C1-C2: Test breath training session lifecycle
+*2026-01-16T09:49:10.158Z (213s)*
+
+**Status:** Completed
+
+**Notes:**
+rovider.state, equals(BreathSessionState.pacedBreathing)); // Preserved\nprovider.resumeSession();\nexpect(provider.isActive, isTrue);\n\n// State persistence\nfinal exported = provider.exportState();\nfinal newProvider = BreathTrainingProvider();\nnewProvider.restoreState(exported!);\nexpect(newProvider.sessionType, equals(provider.sessionType));\n```\n\n### Changes Committed\n\n- Commit: `9f71b2f` \"Add Phase C1-C2: Breath training session lifecycle tests\"\n- Pushed to GitHub: main branch\n\n
+
+---
+## ✓ Iteration 11 - US-011: Phase C3: Test breath hold logic
+*2026-01-16T09:53:19.772Z (249s)*
+
+**Status:** Completed
+
+**Notes:**
+;\\nnewProvider.restoreState(exported!);\\nexpect(newProvider.sessionType, equals(provider.sessionType));\\n```\\n\\n### Changes Committed\\n\\n- Commit: `9f71b2f` \\\"Add Phase C1-C2: Breath training session lifecycle tests\\\"\\n- Pushed to GitHub: main branch\\n\\n\n\n---\n","numLines":99,"startLine":1,"totalLines":99}}}
+{"type":"assistant","message":{"model":"claude-sonnet-4-5-20250929","id":"msg_016FuywoWQvuNa7fNj1GzMe4","type":"message","role":"assistant","content":[{"type":"text","text":"
+
+---
+## ✓ Iteration 12 - US-012: Phase C4: Test paced breathing logic
+*2026-01-16T09:57:02.782Z (222s)*
+
+**Status:** Completed
+
+**Notes:**
+- Minute-based duration settings\n3. Cycle Counting (5 tests) - Breath cycle calculations\n4. Audio Cues (4 tests) - Haptic feedback timing\n5. State Management (6 tests) - Active/idle/pause behavior\n6. Pause/Resume (5 tests) - Session persistence\n7. Edge Cases (5 tests) - Boundary conditions\n8. Integration (4 tests) - Full session lifecycle\n\n### Test Results\n- All 997 tests passing ✓\n- Committed: `7150e9c` \"Add Phase C4: Paced breathing logic tests\"\n- Pushed to GitHub: main branch\n\n
+
+---
+## ✓ Iteration 13 - US-013: Phase D1: Test volume chart calculations
+*2026-01-16T10:02:57.462Z (354s)*
+
+**Status:** Completed
+
+**Notes:**
+\n- Large datasets (100 sessions, shows 90 with 3M filter)\n- Zero scores\n- All score types\n\n**Visual Elements (2 tests)**\n- Legend shows \"Plotted\" and \"Imported\"\n- Card wrapper present\n\n### Test Results\n- **27 new tests added**\n- **All 1,024 tests passing** ✅\n- Committed: `c3950dc`\n- Pushed to GitHub\n\nNote: Score labels (min/max values) are painted on the canvas via `TextPainter`, not rendered as Text widgets, so tests verify chart rendering rather than specific label text.\n\n
+
+---
+## ✓ Iteration 14 - US-014: Phase D2: Test handicap chart calculations
+*2026-01-16T10:33:58.580Z (1860s)*
+
+**Status:** Completed
+
+**Notes:**
+tegration with mixed data\n\n### Bug Fix\n\n**Critical Issue Discovered:** Single data point caused `NaN` crash\n- **Root cause:** Division by zero when `handicaps.length - 1 == 0`\n- **Fix:** Added ternary check: `handicaps.length > 1 ? (i / (handicaps.length - 1)) * size.width : size.width / 2`\n- **Pattern:** Matches `VolumeChart` implementation (lib/widgets/volume_chart.dart:507)\n\n### Test Results\n- **All 1,054 tests passing** ✅\n- Committed: `5281c4d`\n- Pushed to GitHub: main branch\n\n
+
+---
+## ✓ Iteration 15 - US-015: Phase D3: Test group centre widget
+*2026-01-16T10:38:22.869Z (263s)*
+
+**Status:** Completed
+
+**Notes:**
+**actual current implementation**:\n- Centre position calculation (avgX, avgY)\n- SmartZoom factor calculation\n- Visual rendering (target face + cross)\n- Label display with arrow count\n\nThe `GroupAnalysis` model in `lib/models/group_analysis.dart` *does* have sight click calculation methods (`calculateSightClicks()`, `sightAdjustmentDescription()`), but these are not used in the widget yet. If you'd like to add sight adjustment display to the widget, that would be a separate enhancement.\n\n
+
+---
