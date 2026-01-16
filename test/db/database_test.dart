@@ -1099,6 +1099,159 @@ void main() {
         expect(shafts[0].retiredAt, matcher.isNull);
       });
     });
+
+    test('gets all bows', () async {
+      await withTestDb((db) async {
+        await db.insertBow(createTestBow(id: 'bow_1', name: 'Bow 1'));
+        await db.insertBow(createTestBow(id: 'bow_2', name: 'Bow 2'));
+        await db.insertBow(createTestBow(id: 'bow_3', name: 'Bow 3'));
+
+        final bows = await db.getAllBows();
+        expect(bows.length, equals(3));
+        // Verify all bows are returned
+        final names = bows.map((b) => b.name).toList();
+        expect(names, containsAll(['Bow 1', 'Bow 2', 'Bow 3']));
+      });
+    });
+
+    test('updates bow successfully', () async {
+      await withTestDb((db) async {
+        final bowId = 'bow_1';
+        await db.insertBow(createTestBow(
+          id: bowId,
+          name: 'Original Name',
+          bowType: 'recurve',
+        ));
+
+        // Update the bow
+        final bow = await db.getBow(bowId);
+        final updated = bow!.toCompanion(false).copyWith(
+          name: const Value('Updated Name'),
+          settings: const Value('{"tiller": "1/8"}'),
+        );
+        await db.updateBow(updated);
+
+        final updatedBow = await db.getBow(bowId);
+        expect(updatedBow!.name, equals('Updated Name'));
+        expect(updatedBow.settings, equals('{"tiller": "1/8"}'));
+        expect(updatedBow.bowType, equals('recurve')); // Unchanged
+      });
+    });
+
+    test('gets all quivers', () async {
+      await withTestDb((db) async {
+        final bowId = 'bow_1';
+        await db.insertBow(createTestBow(id: bowId, name: 'Test Bow'));
+
+        await db.insertQuiver(createTestQuiver(
+          id: 'quiver_1',
+          name: 'Quiver 1',
+          bowId: bowId,
+        ));
+        await db.insertQuiver(createTestQuiver(
+          id: 'quiver_2',
+          name: 'Quiver 2',
+          bowId: bowId,
+        ));
+
+        final quivers = await db.getAllQuivers();
+        expect(quivers.length, equals(2));
+        // Verify all quivers are returned
+        final names = quivers.map((q) => q.name).toList();
+        expect(names, containsAll(['Quiver 1', 'Quiver 2']));
+      });
+    });
+
+    test('updates quiver successfully', () async {
+      await withTestDb((db) async {
+        final bowId = 'bow_1';
+        await db.insertBow(createTestBow(id: bowId, name: 'Test Bow'));
+
+        final quiverId = 'quiver_1';
+        await db.insertQuiver(createTestQuiver(
+          id: quiverId,
+          name: 'Original Quiver',
+          bowId: bowId,
+          shaftCount: 12,
+        ));
+
+        // Update the quiver
+        final quiver = await db.getQuiver(quiverId);
+        final updated = quiver!.toCompanion(false).copyWith(
+          name: const Value('Updated Quiver'),
+          shaftCount: const Value(6),
+        );
+        await db.updateQuiver(updated);
+
+        final updatedQuiver = await db.getQuiver(quiverId);
+        expect(updatedQuiver!.name, equals('Updated Quiver'));
+        expect(updatedQuiver.shaftCount, equals(6));
+      });
+    });
+
+    test('gets single shaft by id', () async {
+      await withTestDb((db) async {
+        final bowId = 'bow_1';
+        await db.insertBow(createTestBow(id: bowId, name: 'Test Bow'));
+
+        final quiverId = 'quiver_1';
+        await db.insertQuiver(createTestQuiver(
+          id: quiverId,
+          name: 'Test Quiver',
+          bowId: bowId,
+        ));
+
+        final shaftId = 'shaft_1';
+        await db.insertShaft(createTestShaft(
+          id: shaftId,
+          quiverId: quiverId,
+          number: 1,
+          diameter: '1816',
+          notes: 'Test shaft',
+        ));
+
+        final shaft = await db.getShaft(shaftId);
+        expect(shaft, matcher.isNotNull);
+        expect(shaft!.number, equals(1));
+        expect(shaft.diameter, equals('1816'));
+        expect(shaft.notes, equals('Test shaft'));
+      });
+    });
+
+    test('updates shaft successfully', () async {
+      await withTestDb((db) async {
+        final bowId = 'bow_1';
+        await db.insertBow(createTestBow(id: bowId, name: 'Test Bow'));
+
+        final quiverId = 'quiver_1';
+        await db.insertQuiver(createTestQuiver(
+          id: quiverId,
+          name: 'Test Quiver',
+          bowId: bowId,
+        ));
+
+        final shaftId = 'shaft_1';
+        await db.insertShaft(createTestShaft(
+          id: shaftId,
+          quiverId: quiverId,
+          number: 1,
+          diameter: '1816',
+        ));
+
+        // Update the shaft
+        final shaft = await db.getShaft(shaftId);
+        final updated = shaft!.toCompanion(false).copyWith(
+          diameter: const Value('2314'),
+          notes: const Value('Replaced nock'),
+        );
+        await db.updateShaft(updated);
+
+        final updatedShaft = await db.getShaft(shaftId);
+        expect(updatedShaft!.diameter, equals('2314'));
+        expect(updatedShaft.notes, equals('Replaced nock'));
+        expect(updatedShaft.number, equals(1)); // Unchanged
+      });
+    });
   });
 
   group('Volume Entry Operations', () {
