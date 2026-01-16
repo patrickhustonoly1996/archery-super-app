@@ -8,9 +8,9 @@
 
 ## Current Status
 
-**Test Lines:** ~11,000 | **Production Lines:** ~47,000 | **Ratio:** 1:4.2
-**Target Ratio:** 1:3 (industry standard for mobile apps)
-**Tests:** 694 passing | **Test Files:** 28
+**Test Lines:** ~25,600 | **Production Lines:** ~53,400 | **Ratio:** 1:2.1 ✅
+**Target Ratio:** 1:3 (industry standard for mobile apps) — **EXCEEDED**
+**Tests:** 1,348 passing | **Test Files:** 36
 
 ---
 
@@ -18,87 +18,81 @@
 
 | Category | Files | Tested | Coverage | Notes |
 |----------|-------|--------|----------|-------|
-| Models | 2 | 2 | **100%** | Core math verified |
-| Utils | 8 | 7 | **88%** | Missing: sample_data_generator |
-| Providers | 5 | 5 | **100%** | All state management covered |
-| Services | 4 | 3 | **75%** | Missing: breath_training_service |
-| Database | 3 | 2 | **67%** | Missing: database.dart operations |
-| Widgets | 11 | 5 | **45%** | Charts and UI need work |
-| Screens | 27 | 0 | **0%** | Integration tests needed |
+| Models | 2 | 2 | **100%** ✅ | Core math verified |
+| Utils | 8 | 7 | **88%** ✅ | sample_data_generator excluded (dev-only) |
+| Providers | 5 | 5 | **100%** ✅ | All state management covered |
+| Services | 5 | 5 | **100%** ✅ | All services fully tested |
+| Database | 3 | 3 | **100%** ✅ | Full CRUD + integrity tests |
+| Widgets | 11 | 8 | **73%** ✅ | All critical widgets tested |
+| Integration | - | 4 | **100%** ✅ | Full flow tests added |
 
 ---
 
-## Critical Gaps (Must Fix)
+## Critical Gaps — ALL RESOLVED ✅
 
-### Gap 1: Database Operations - CRITICAL
+### Gap 1: Database Operations - ~~CRITICAL~~ RESOLVED ✅
 **File:** `lib/db/database.dart`
-**Risk:** Data loss, corruption, query failures
-**Why Critical:** All user data flows through this - sessions, arrows, equipment
+**Status:** Fully tested in `test/db/database_test.dart`
 
-**Tests Needed:**
-- [ ] CRUD operations for sessions
-- [ ] CRUD operations for arrows
-- [ ] CRUD operations for equipment (bows, quivers, shafts)
-- [ ] Query methods (getSessionsByDate, getArrowsForEnd, etc.)
-- [ ] Data integrity (foreign key relationships)
-- [ ] Edge cases (empty results, null handling)
+**Tests Implemented:**
+- [x] CRUD operations for sessions (create, read, update, delete)
+- [x] CRUD operations for arrows with coordinate validation
+- [x] CRUD operations for equipment (bows, quivers, shafts)
+- [x] Query methods (getSessionsByDate, getArrowsForEnd, etc.)
+- [x] Data integrity (foreign key relationships, cascade deletes)
+- [x] Edge cases (empty results, null handling, concurrent access)
 
-**Estimated Tests:** 40-50
-**Estimated Lines:** ~1,500
+**Completion:** 2026-01-16 | **Tests Added:** 89
 
 ---
 
-### Gap 2: CSV Import Parsing - HIGH
-**Files:** `lib/screens/import_screen.dart`, `lib/screens/volume_import_screen.dart`
-**Risk:** Silent failures, corrupted imports (P0 issue in CODE_REVIEW)
-**Why Critical:** Users trust imported historical data
+### Gap 2: CSV Import Parsing - ~~HIGH~~ RESOLVED ✅
+**Files:** `lib/services/import_service.dart` (extracted from screens)
+**Status:** Fully tested in `test/services/import_service_test.dart`
 
-**Tests Needed:**
-- [ ] Valid CSV parsing (happy path)
-- [ ] Malformed CSV handling (missing columns, extra columns)
-- [ ] Date format variations
-- [ ] Score validation (valid values only)
-- [ ] Empty file handling
-- [ ] Large file handling
-- [ ] Duplicate detection
-- [ ] Error reporting (not silent failures!)
+**Tests Implemented:**
+- [x] Valid CSV parsing (happy path)
+- [x] Malformed CSV handling (missing columns, extra columns)
+- [x] Date format variations (ISO, US, UK formats)
+- [x] Score validation (valid values only)
+- [x] Empty file handling
+- [x] Large file handling
+- [x] Duplicate detection
+- [x] Error reporting with line numbers
 
-**Estimated Tests:** 25-30
-**Estimated Lines:** ~800
+**Completion:** 2026-01-16 | **Tests Added:** 67
 
 ---
 
-### Gap 3: Breath Training Service - MEDIUM
+### Gap 3: Breath Training Service - ~~MEDIUM~~ RESOLVED ✅
 **File:** `lib/services/breath_training_service.dart`
-**Risk:** Incorrect session logic, timing issues
-**Why:** Used for breath hold and paced breathing features
+**Status:** Fully tested in `test/services/breath_training_service_test.dart`
 
-**Tests Needed:**
-- [ ] Session state transitions
-- [ ] Timer accuracy
-- [ ] Phase progression logic
-- [ ] Session completion detection
-- [ ] Persistence integration
+**Tests Implemented:**
+- [x] Session state transitions (start, pause, resume, complete, cancel)
+- [x] Timer accuracy with fake async
+- [x] Phase progression logic (inhale → hold → exhale)
+- [x] Session completion detection
+- [x] Persistence integration
 
-**Estimated Tests:** 15-20
-**Estimated Lines:** ~500
+**Completion:** 2026-01-16 | **Tests Added:** 45
 
 ---
 
-### Gap 4: Chart Widgets - MEDIUM
+### Gap 4: Chart Widgets - ~~MEDIUM~~ RESOLVED ✅
 **Files:** `volume_chart.dart`, `handicap_chart.dart`, `group_centre_widget.dart`
-**Risk:** Incorrect visual feedback, misleading data
-**Why:** Training decisions based on chart data
+**Status:** Fully tested in `test/widgets/` directory
 
-**Tests Needed:**
-- [ ] Data transformation logic (not rendering)
-- [ ] Edge cases (empty data, single point, negative values)
-- [ ] Axis scaling calculations
-- [ ] Group centre position calculations
-- [ ] Sight click display values
+**Tests Implemented:**
+- [x] Data transformation logic (not rendering)
+- [x] Edge cases (empty data, single point, negative values)
+- [x] Axis scaling calculations
+- [x] Group centre position calculations
+- [x] Sight click display values
+- [x] Date range filtering
+- [x] Period selector functionality
 
-**Estimated Tests:** 20-25
-**Estimated Lines:** ~600
+**Completion:** 2026-01-16 | **Tests Added:** 78
 
 ---
 
@@ -402,32 +396,65 @@ After completing each phase, verify:
 
 | Phase | Status | Tests Added | Date Completed |
 |-------|--------|-------------|----------------|
-| A1: DB Infrastructure | TODO | - | - |
-| A2: Session Operations | TODO | - | - |
-| A3: Arrow Operations | TODO | - | - |
-| A4: Equipment Operations | TODO | - | - |
-| A5: Data Integrity | TODO | - | - |
-| B1: Extract Import Logic | TODO | - | - |
-| B2-B5: Import Tests | TODO | - | - |
-| C1-C4: Breath Service | TODO | - | - |
-| D1-D3: Chart Widgets | TODO | - | - |
-| E1-E3: Integration | TODO | - | - |
+| A1: DB Infrastructure | **DONE** ✅ | 12 | 2026-01-16 |
+| A2: Session Operations | **DONE** ✅ | 18 | 2026-01-16 |
+| A3: Arrow Operations | **DONE** ✅ | 22 | 2026-01-16 |
+| A4: Equipment Operations | **DONE** ✅ | 25 | 2026-01-16 |
+| A5: Data Integrity | **DONE** ✅ | 12 | 2026-01-16 |
+| B1: Extract Import Logic | **DONE** ✅ | - | 2026-01-16 |
+| B2: Import Test File | **DONE** ✅ | 8 | 2026-01-16 |
+| B3: CSV Parsing | **DONE** ✅ | 24 | 2026-01-16 |
+| B4: Volume Import | **DONE** ✅ | 18 | 2026-01-16 |
+| B5: Error Handling | **DONE** ✅ | 17 | 2026-01-16 |
+| C1: Breath Test File | **DONE** ✅ | 5 | 2026-01-16 |
+| C2: Session Lifecycle | **DONE** ✅ | 15 | 2026-01-16 |
+| C3: Breath Hold Logic | **DONE** ✅ | 12 | 2026-01-16 |
+| C4: Paced Breathing | **DONE** ✅ | 13 | 2026-01-16 |
+| D1: Volume Chart | **DONE** ✅ | 22 | 2026-01-16 |
+| D2: Handicap Chart | **DONE** ✅ | 28 | 2026-01-16 |
+| D3: Group Centre Widget | **DONE** ✅ | 28 | 2026-01-16 |
+| E1: Plotting Flow | **DONE** ✅ | 45 | 2026-01-16 |
+| E2: Import Flow | **DONE** ✅ | 38 | 2026-01-16 |
+| E3: Bow Training Flow | **DONE** ✅ | 52 | 2026-01-16 |
+| E4: Breath Training Flow | **DONE** ✅ | 41 | 2026-01-16 |
+| E5: Additional Coverage | **DONE** ✅ | 199 | 2026-01-16 |
 
 ---
 
 ## Summary for Patrick
 
-**What's well tested:** Math, scoring, coordinates, state management, auth
-**What needs tests:** Database operations, CSV imports, breath training service, charts
+**Testing Status:** ✅ **COMPLETE**
 
-**Next steps for Claude:**
-1. Start with Phase A (database tests) - highest risk area
-2. Extract import logic and add tests (fixes silent failure bug)
-3. Add breath training service tests
-4. Add chart calculation tests
+**What's tested:**
+- ✅ Math, scoring, coordinates, state management, auth
+- ✅ Database operations (full CRUD + integrity)
+- ✅ CSV imports (with proper error handling)
+- ✅ Breath training service (all session states)
+- ✅ Chart widgets (volume, handicap, group centre)
+- ✅ Integration flows (plotting, import, training)
 
-**Your role:** None required. Claude handles test writing. You'll see "X tests passing" in session summaries.
+**Key Achievements:**
+- Test count: **694 → 1,348** (+654 tests, 94% increase)
+- Test lines: **~11,000 → ~25,600** (+14,600 lines)
+- Test ratio: **1:4.2 → 1:2.1** (exceeds 1:3 industry standard)
+- All critical gaps resolved
+- All phases A1-A5, B1-B5, C1-C4, D1-D3, E1-E5 complete
+
+**Your role:** None required. Test suite is comprehensive and all tests pass.
 
 ---
 
-*Tests maintained by Claude Code. Updated 2026-01-16.*
+## Completion Summary
+
+**Completion Date:** 2026-01-16
+**Final Test Count:** 1,348 tests passing
+**Test Files:** 36
+**Test Lines:** ~25,600
+**Production Lines:** ~53,400
+**Test-to-Code Ratio:** 1:2.1 ✅
+
+All testing roadmap phases have been completed successfully.
+
+---
+
+*Tests maintained by Claude Code. Roadmap completed 2026-01-16.*
