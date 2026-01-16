@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
 import '../db/database.dart';
+import '../mixins/form_validation_mixin.dart';
 
 class QuiverFormScreen extends StatefulWidget {
   final Quiver? quiver;
@@ -13,7 +14,7 @@ class QuiverFormScreen extends StatefulWidget {
   State<QuiverFormScreen> createState() => _QuiverFormScreenState();
 }
 
-class _QuiverFormScreenState extends State<QuiverFormScreen> {
+class _QuiverFormScreenState extends State<QuiverFormScreen> with FormValidationMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   String? _selectedBowId;
@@ -126,12 +127,8 @@ class _QuiverFormScreenState extends State<QuiverFormScreen> {
                 hintText: 'e.g., Indoor XX75',
               ),
               textCapitalization: TextCapitalization.words,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Please enter a quiver name';
-                }
-                return null;
-              },
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              validator: (value) => validateRequired(value, fieldName: 'Name'),
             ),
             const SizedBox(height: AppSpacing.lg),
             if (bows.isNotEmpty)
