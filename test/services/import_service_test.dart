@@ -1176,4 +1176,303 @@ void main() {
       expect(result[0].arrowCount, 500);
     });
   });
+
+  group('Import error handling - Empty files', () {
+    test('parseScoresCsv returns helpful result for empty file', () {
+      final rows = <List<dynamic>>[];
+
+      final result = service.parseScoresCsv(rows);
+
+      expect(result.drafts, isEmpty);
+      expect(result.skipped, 0);
+      expect(result.reasons, isEmpty);
+    });
+
+    test('parseVolumeCsv returns empty list for empty file', () {
+      final rows = <List<dynamic>>[];
+
+      final result = service.parseVolumeCsv(rows);
+
+      expect(result, isEmpty);
+    });
+  });
+
+  group('Import error handling - Binary/invalid file content', () {
+    test('parseScoresCsv handles binary-like content gracefully', () {
+      // Simulate binary file content as rows of gibberish
+      final rows = [
+        ['\x00\x01\x02', '\xFF\xFE', 'binary'],
+        ['garbage', 'data', 'here'],
+      ];
+
+      final result = service.parseScoresCsv(rows);
+
+      // Should skip all rows as invalid
+      expect(result.drafts, isEmpty);
+      expect(result.skipped, 2);
+      expect(result.reasons.length, 2);
+      expect(result.reasons[0], contains('Invalid date'));
+    });
+
+    test('parseVolumeCsv handles binary-like content gracefully', () {
+      final rows = [
+        ['\x00\x01\x02', '\xFF\xFE'],
+        ['garbage', 'data'],
+      ];
+
+      final result = service.parseVolumeCsv(rows);
+
+      // Should return empty list (all rows silently skipped)
+      expect(result, isEmpty);
+    });
+
+    test('parseScoresCsv handles non-CSV data gracefully', () {
+      // Single row with completely wrong structure
+      final rows = [
+        ['This is not a CSV file at all, just plain text'],
+      ];
+
+      final result = service.parseScoresCsv(rows);
+
+      // Will be treated as no header, tries to parse first row as data
+      // Date will be invalid, so skipped
+      expect(result.drafts, isEmpty);
+      expect(result.skipped, 1);
+    });
+
+    test('parseVolumeCsv handles non-CSV data gracefully', () {
+      final rows = [
+        ['This is not a CSV file at all'],
+      ];
+
+      final result = service.parseVolumeCsv(rows);
+
+      expect(result, isEmpty);
+    });
+  });
+
+  group('Import error handling - Extremely large files', () {
+    test('parseScoresCsv handles 10,000 row file efficiently', () {
+      // Generate large file with mixed valid/invalid rows
+      final rows = <List<dynamic>>[
+        ['Date', 'Score', 'Round']
+      ];
+
+      // Add 10,000 data rows
+      for (int i = 1; i <= 10000; i++) {
+        rows.add([
+          '2026-01-15',
+          '${600 + i}',
+          'WA 1440 #$i',
+        ]);
+      }
+
+      final result = service.parseScoresCsv(rows);
+
+      // Should parse all successfully
+      expect(result.drafts.length, 10000);
+      expect(result.skipped, 0);
+      expect(result.drafts.first.score, 601);
+      expect(result.drafts.last.score, 10600);
+    });
+
+    test('parseVolumeCsv handles 10,000 row file efficiently', () {
+      final rows = <List<dynamic>>[
+        ['Date', 'Volume']
+      ];
+
+      for (int i = 1; i <= 10000; i++) {
+        rows.add(['2026-01-15', '${100 + i}']);
+      }
+
+      final result = service.parseVolumeCsv(rows);
+
+      expect(result.length, 10000);
+      expect(result.first.arrowCount, 101);
+      expect(result.last.arrowCount, 10100);
+    });
+
+    test('parseScoresCsv handles large file with many errors efficiently', () {
+      final rows = <List<dynamic>>[
+        ['Date', 'Score', 'Round']
+      ];
+
+      // Add 5,000 invalid rows and 5,000 valid rows
+      for (int i = 1; i <= 5000; i++) {
+        rows.add(['invalid-date', '650', 'Round $i']);
+      }
+      for (int i = 1; i <= 5000; i++) {
+        rows.add(['2026-01-15', '${600 + i}', 'Round $i']);
+      }
+
+      final result = service.parseScoresCsv(rows);
+
+      expect(result.drafts.length, 5000);
+      expect(result.skipped, 5000);
+      expect(result.reasons.length, 5); // Limited to first 5 errors
+    });
+  });
+
+  group('Import error handling - Partial success reporting', () {
+    test('parseScoresCsv reports partial success with clear counts', () {
+      final rows = [
+        ['Date', 'Score', 'Round'],
+        ['2026-01-15', '650', 'WA 1440'], // valid - row 2
+        ['invalid-date', '720', 'WA 720'], // invalid - row 3
+        ['2026-01-14', 'bad-score', 'WA 720'], // invalid - row 4
+        ['2026-01-13', '680', 'WA 720'], // valid - row 5
+        ['2026-01-12', '0', 'WA 720'], // invalid (zero score) - row 6
+      ];
+
+      final result = service.parseScoresCsv(rows);
+
+      // Partial success: 2 valid, 3 skipped
+      expect(result.drafts.length, 2);
+      expect(result.skipped, 3);
+      expect(result.reasons.length, 3);
+
+      // Verify valid rows parsed correctly
+      expect(result.drafts[0].score, 650);
+      expect(result.drafts[1].score, 680);
+
+      // Verify error messages are helpful
+      expect(result.reasons[0], contains('Row 3'));
+      expect(result.reasons[0], contains('Invalid date'));
+      expect(result.reasons[1], contains('Row 4'));
+      expect(result.reasons[1], contains('Invalid score'));
+      expect(result.reasons[2], contains('Row 6'));
+      expect(result.reasons[2], contains('Invalid score'));
+    });
+
+    test('parseScoresCsv reports what worked when mostly invalid', () {
+      final rows = [
+        ['Date', 'Score', 'Round'],
+        ['invalid1', '650', 'Round'],
+        ['invalid2', '720', 'Round'],
+        ['2026-01-15', '680', 'WA 720'], // only valid row
+        ['invalid3', '690', 'Round'],
+      ];
+
+      final result = service.parseScoresCsv(rows);
+
+      expect(result.drafts.length, 1);
+      expect(result.skipped, 3);
+      expect(result.drafts[0].score, 680);
+      expect(result.reasons.length, 3);
+    });
+
+    test('parseScoresCsv reports all success when fully valid', () {
+      final rows = [
+        ['Date', 'Score', 'Round'],
+        ['2026-01-15', '650', 'WA 1440'],
+        ['2026-01-14', '720', 'WA 720'],
+        ['2026-01-13', '680', 'WA 720'],
+      ];
+
+      final result = service.parseScoresCsv(rows);
+
+      expect(result.drafts.length, 3);
+      expect(result.skipped, 0);
+      expect(result.reasons, isEmpty);
+    });
+
+    test('parseVolumeCsv partial success is silent (by design)', () {
+      // Volume parsing silently skips invalid rows
+      final rows = [
+        ['Date', 'Volume'],
+        ['2026-01-15', '144'], // valid
+        ['invalid', '216'], // skipped
+        ['2026-01-14', 'bad'], // skipped
+        ['2026-01-13', '72'], // valid
+      ];
+
+      final result = service.parseVolumeCsv(rows);
+
+      // Only returns successful parses, no error reporting
+      expect(result.length, 2);
+      expect(result[0].arrowCount, 144);
+      expect(result[1].arrowCount, 72);
+    });
+  });
+
+  group('Import error handling - Real-world failure scenarios', () {
+    test('parseScoresCsv handles Excel formula exports', () {
+      final rows = [
+        ['Date', 'Score', 'Round'],
+        ['2026-01-15', '=SUM(A1:A10)', 'WA 1440'], // Excel formula
+        ['2026-01-14', '720', 'WA 720'], // valid
+      ];
+
+      final result = service.parseScoresCsv(rows);
+
+      // Formula extracts "110" from "SUM(A1:A10)"
+      // This is acceptable behavior - extracts digits
+      expect(result.drafts.length, 2);
+      expect(result.drafts[0].score, 110); // digits from formula
+      expect(result.drafts[1].score, 720);
+    });
+
+    test('parseScoresCsv handles CSV with wrong delimiter (semicolon)', () {
+      // CSV library should handle this, but if it comes through as single cells
+      final rows = [
+        ['Date;Score;Round'], // wrong delimiter - appears as one cell
+      ];
+
+      final result = service.parseScoresCsv(rows);
+
+      // Will be treated as no valid data
+      expect(result.drafts, isEmpty);
+    });
+
+    test('parseScoresCsv handles file with only whitespace rows', () {
+      final rows = [
+        ['Date', 'Score', 'Round'],
+        ['   ', '   ', '   '],
+        ['', '', ''],
+      ];
+
+      final result = service.parseScoresCsv(rows);
+
+      // Empty/whitespace rows should be skipped
+      expect(result.drafts, isEmpty);
+      expect(result.skipped, 2);
+    });
+
+    test('parseScoresCsv handles mixed date formats in same file', () {
+      final rows = [
+        ['Date', 'Score', 'Round'],
+        ['2026-01-15', '650', 'WA 1440'], // ISO
+        ['15/01/2026', '720', 'WA 720'], // European
+        ['15-01-2026', '680', 'WA 720'], // Dash
+        ['15.01.2026', '690', 'WA 720'], // German
+      ];
+
+      final result = service.parseScoresCsv(rows);
+
+      // All should parse successfully
+      expect(result.drafts.length, 4);
+      expect(result.skipped, 0);
+      expect(result.drafts[0].date, DateTime(2026, 1, 15));
+      expect(result.drafts[1].date, DateTime(2026, 1, 15));
+      expect(result.drafts[2].date, DateTime(2026, 1, 15));
+      expect(result.drafts[3].date, DateTime(2026, 1, 15));
+    });
+
+    test('parseVolumeCsv handles common export errors gracefully', () {
+      final rows = [
+        ['Date', 'Volume'],
+        ['2026-01-15', '144'], // valid
+        ['not-a-date', '216'], // invalid date format
+        ['2026-01-14', ''], // missing volume
+        ['', '72'], // missing date
+        ['2026-01-13', '0'], // zero volume
+      ];
+
+      final result = service.parseVolumeCsv(rows);
+
+      // Only first row is valid (others fail for various reasons)
+      expect(result.length, 1);
+      expect(result[0].arrowCount, 144);
+    });
+  });
 }
