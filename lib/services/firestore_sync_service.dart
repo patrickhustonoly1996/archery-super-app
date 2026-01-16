@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import '../db/database.dart';
 
 /// Service to sync local database data to Firestore for cloud backup
@@ -63,7 +64,7 @@ class FirestoreSyncService {
       final snapshot = await _userDoc.collection('imported_scores').get();
       return snapshot.docs.map((d) => d.data()).toList();
     } catch (e) {
-      print('Error restoring imported scores: $e');
+      debugPrint('Error restoring imported scores: $e');
       return [];
     }
   }
@@ -124,7 +125,7 @@ class FirestoreSyncService {
       final snapshot = await _userDoc.collection('sessions').get();
       return snapshot.docs.map((d) => d.data()).toList();
     } catch (e) {
-      print('Error restoring sessions: $e');
+      debugPrint('Error restoring sessions: $e');
       return [];
     }
   }
@@ -181,7 +182,7 @@ class FirestoreSyncService {
       final doc = await _userDoc.collection('data').doc('equipment').get();
       return doc.data();
     } catch (e) {
-      print('Error restoring equipment: $e');
+      debugPrint('Error restoring equipment: $e');
       return null;
     }
   }
@@ -218,7 +219,7 @@ class FirestoreSyncService {
       final data = doc.data();
       return (data?['entries'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
     } catch (e) {
-      print('Error restoring volume entries: $e');
+      debugPrint('Error restoring volume entries: $e');
       return [];
     }
   }
@@ -267,7 +268,7 @@ class FirestoreSyncService {
       final data = doc.data();
       return (data?['logs'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
     } catch (e) {
-      print('Error restoring OLY training logs: $e');
+      debugPrint('Error restoring OLY training logs: $e');
       return [];
     }
   }
@@ -279,18 +280,18 @@ class FirestoreSyncService {
   /// Backup all user data to Firestore
   Future<void> backupAllData(AppDatabase db) async {
     if (_userId == null) {
-      print('Cannot backup: user not authenticated');
+      debugPrint('Cannot backup: user not authenticated');
       return;
     }
 
     try {
-      print('Starting full backup for user: $_userId');
+      debugPrint('Starting full backup for user: $_userId');
 
       // Backup imported scores
       final importedScores = await db.getAllImportedScores();
       if (importedScores.isNotEmpty) {
         await backupImportedScores(importedScores);
-        print('Backed up ${importedScores.length} imported scores');
+        debugPrint('Backed up ${importedScores.length} imported scores');
       }
 
       // Backup completed sessions with their ends and arrows
@@ -304,7 +305,7 @@ class FirestoreSyncService {
         }
         await backupSession(session, ends, arrows);
       }
-      print('Backed up ${sessions.length} sessions');
+      debugPrint('Backed up ${sessions.length} sessions');
 
       // Backup equipment
       final bows = await db.getAllBows();
@@ -316,20 +317,20 @@ class FirestoreSyncService {
         allShafts.addAll(shafts);
       }
       await backupEquipment(bows: bows, quivers: quivers, shafts: allShafts);
-      print('Backed up equipment: ${bows.length} bows, ${quivers.length} quivers, ${allShafts.length} shafts');
+      debugPrint('Backed up equipment: ${bows.length} bows, ${quivers.length} quivers, ${allShafts.length} shafts');
 
       // Backup volume entries
       final volumeEntries = await db.getAllVolumeEntries();
       if (volumeEntries.isNotEmpty) {
         await backupVolumeEntries(volumeEntries);
-        print('Backed up ${volumeEntries.length} volume entries');
+        debugPrint('Backed up ${volumeEntries.length} volume entries');
       }
 
       // Backup OLY training logs
       final olyLogs = await db.getAllOlyTrainingLogs();
       if (olyLogs.isNotEmpty) {
         await backupOlyTrainingLogs(olyLogs);
-        print('Backed up ${olyLogs.length} OLY training logs');
+        debugPrint('Backed up ${olyLogs.length} OLY training logs');
       }
 
       // Update last backup timestamp
@@ -340,9 +341,9 @@ class FirestoreSyncService {
         'bowsCount': bows.length,
       });
 
-      print('Full backup completed successfully');
+      debugPrint('Full backup completed successfully');
     } catch (e) {
-      print('Error during full backup: $e');
+      debugPrint('Error during full backup: $e');
       rethrow;
     }
   }
@@ -357,7 +358,7 @@ class FirestoreSyncService {
       final timestamp = doc.data()?['lastBackup'] as Timestamp?;
       return timestamp?.toDate();
     } catch (e) {
-      print('Error checking backup time: $e');
+      debugPrint('Error checking backup time: $e');
       return null;
     }
   }
@@ -378,12 +379,12 @@ class FirestoreSyncService {
   /// Only restores if local database is empty to avoid duplicates
   Future<RestoreResult> restoreAllData(AppDatabase db) async {
     if (_userId == null) {
-      print('Cannot restore: user not authenticated');
+      debugPrint('Cannot restore: user not authenticated');
       return RestoreResult(success: false, message: 'Not authenticated');
     }
 
     try {
-      print('Starting restore for user: $_userId');
+      debugPrint('Starting restore for user: $_userId');
       int importedScoresRestored = 0;
       int sessionsRestored = 0;
       int volumeEntriesRestored = 0;
@@ -411,10 +412,10 @@ class FirestoreSyncService {
             ));
             importedScoresRestored++;
           } catch (e) {
-            print('Error restoring score ${scoreData['id']}: $e');
+            debugPrint('Error restoring score ${scoreData['id']}: $e');
           }
         }
-        print('Restored $importedScoresRestored imported scores');
+        debugPrint('Restored $importedScoresRestored imported scores');
       }
 
       // Restore sessions if local is empty
@@ -476,10 +477,10 @@ class FirestoreSyncService {
 
             sessionsRestored++;
           } catch (e) {
-            print('Error restoring session ${sessionData['id']}: $e');
+            debugPrint('Error restoring session ${sessionData['id']}: $e');
           }
         }
-        print('Restored $sessionsRestored sessions');
+        debugPrint('Restored $sessionsRestored sessions');
       }
 
       // Restore volume entries
@@ -496,10 +497,10 @@ class FirestoreSyncService {
             ));
             volumeEntriesRestored++;
           } catch (e) {
-            print('Error restoring volume entry: $e');
+            debugPrint('Error restoring volume entry: $e');
           }
         }
-        print('Restored $volumeEntriesRestored volume entries');
+        debugPrint('Restored $volumeEntriesRestored volume entries');
       }
 
       // Restore OLY training logs
@@ -530,14 +531,14 @@ class FirestoreSyncService {
             ));
             olyLogsRestored++;
           } catch (e) {
-            print('Error restoring OLY log: $e');
+            debugPrint('Error restoring OLY log: $e');
           }
         }
-        print('Restored $olyLogsRestored OLY training logs');
+        debugPrint('Restored $olyLogsRestored OLY training logs');
       }
 
       final totalRestored = importedScoresRestored + sessionsRestored + volumeEntriesRestored + olyLogsRestored;
-      print('Restore completed: $totalRestored total items');
+      debugPrint('Restore completed: $totalRestored total items');
 
       return RestoreResult(
         success: true,
@@ -548,7 +549,7 @@ class FirestoreSyncService {
         olyLogsRestored: olyLogsRestored,
       );
     } catch (e) {
-      print('Error during restore: $e');
+      debugPrint('Error during restore: $e');
       return RestoreResult(success: false, message: 'Restore failed: $e');
     }
   }
