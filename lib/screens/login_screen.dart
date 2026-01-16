@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
-import '../widgets/pixel_bow_icon.dart';
+import '../widgets/asa_logo.dart';
+import '../widgets/loading_button.dart';
 import '../mixins/form_validation_mixin.dart';
 import 'home_screen.dart';
 
@@ -131,45 +132,11 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo with glow
-                  Center(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.gold.withValues(alpha: 0.5),
-                            blurRadius: 24,
-                            spreadRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: const PixelBowIcon(size: 72),
-                    ),
+                  // ASA Logo - matches official design
+                  const Center(
+                    child: ASALogo(scale: 0.9),
                   ),
-                  const SizedBox(height: AppSpacing.md),
-
-                  // Title - ARCHERY SUPER APP
-                  Text(
-                    'ARCHERY',
-                    style: TextStyle(
-                      fontFamily: AppFonts.pixel,
-                      fontSize: 20,
-                      color: AppColors.gold,
-                      letterSpacing: 3,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  Text(
-                    'SUPER APP',
-                    style: TextStyle(
-                      fontFamily: AppFonts.pixel,
-                      fontSize: 10,
-                      color: AppColors.textMuted,
-                      letterSpacing: 2,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Sign In / Sign Up toggle buttons
                   Container(
@@ -286,24 +253,13 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
                   const SizedBox(height: AppSpacing.lg),
 
                   // Submit button
-                  ElevatedButton(
-                    onPressed: _isLoading ? null : _submit,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: LoadingButton(
+                      label: _isSignUp ? 'Create Account' : 'Sign In',
+                      isLoading: _isLoading,
+                      onPressed: _submit,
                     ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppColors.backgroundDark,
-                            ),
-                          )
-                        : Text(
-                            _isSignUp ? 'Create Account' : 'Sign In',
-                            style: const TextStyle(fontSize: 16),
-                          ),
                   ),
 
                   // Forgot password (only show for sign in)

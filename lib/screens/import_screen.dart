@@ -11,6 +11,7 @@ import '../services/firestore_sync_service.dart';
 import '../services/import_service.dart';
 import '../utils/error_handler.dart';
 import '../utils/unique_id.dart';
+import '../widgets/loading_button.dart';
 import 'scores_graph_screen.dart';
 
 class ImportScreen extends StatefulWidget {
@@ -321,6 +322,7 @@ class _ImportScreenState extends State<ImportScreen> {
                       onCancel: () => setState(() => _drafts = []),
                       skippedRows: _skippedRows,
                       skippedReasons: _skippedReasons,
+                      isImporting: _isImporting,
                     ),
     );
   }
@@ -572,6 +574,7 @@ class _DraftReview extends StatefulWidget {
   final VoidCallback onCancel;
   final int skippedRows;
   final List<String> skippedReasons;
+  final bool isImporting;
 
   const _DraftReview({
     required this.drafts,
@@ -579,6 +582,7 @@ class _DraftReview extends StatefulWidget {
     required this.onCancel,
     this.skippedRows = 0,
     this.skippedReasons = const [],
+    this.isImporting = false,
   });
 
   @override
@@ -808,9 +812,10 @@ class _DraftReviewState extends State<_DraftReview> {
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 flex: 2,
-                child: ElevatedButton(
+                child: LoadingButton(
+                  label: 'Import ${widget.drafts.length} Scores',
+                  isLoading: widget.isImporting,
                   onPressed: widget.onImport,
-                  child: Text('Import ${widget.drafts.length} Scores'),
                 ),
               ),
             ],

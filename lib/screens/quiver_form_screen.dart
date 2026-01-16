@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
 import '../db/database.dart';
 import '../mixins/form_validation_mixin.dart';
+import '../widgets/loading_button.dart';
 
 class QuiverFormScreen extends StatefulWidget {
   final Quiver? quiver;
@@ -109,9 +110,11 @@ class _QuiverFormScreenState extends State<QuiverFormScreen> with FormValidation
               ),
             )
           else
-            TextButton(
+            LoadingButton(
+              label: 'Save',
+              isLoading: _isLoading,
               onPressed: _save,
-              child: const Text('Save'),
+              style: LoadingButtonStyle.text,
             ),
         ],
       ),
