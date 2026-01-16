@@ -22,27 +22,29 @@ class _PixelArrowPainter extends CustomPainter {
     final pixelSize = size.width / 16;
     final paint = Paint()..color = AppColors.gold;
 
-    // Pixelated target in top-right corner (concentric rings)
-    final targetCenter = Offset(size.width * 0.82, size.height * 0.18);
+    // Clean target in top-right corner - outer ring + center square
+    final targetCenterX = 12;
+    final targetCenterY = 3;
 
-    // Outer ring - very faint
-    final outerPaint = Paint()..color = AppColors.gold.withValues(alpha: 0.15);
-    _drawPixelCircle(canvas, targetCenter, pixelSize * 3.5, pixelSize, outerPaint);
+    // Outer ring - simple 8 pixels forming a ring
+    final ringPaint = Paint()..color = AppColors.gold.withValues(alpha: 0.4);
+    _drawPixel(canvas, targetCenterX - 1, targetCenterY - 2, pixelSize, ringPaint); // top
+    _drawPixel(canvas, targetCenterX, targetCenterY - 2, pixelSize, ringPaint);
+    _drawPixel(canvas, targetCenterX + 1, targetCenterY - 1, pixelSize, ringPaint); // right top
+    _drawPixel(canvas, targetCenterX + 2, targetCenterY, pixelSize, ringPaint); // right
+    _drawPixel(canvas, targetCenterX + 1, targetCenterY + 1, pixelSize, ringPaint); // right bottom
+    _drawPixel(canvas, targetCenterX, targetCenterY + 2, pixelSize, ringPaint); // bottom
+    _drawPixel(canvas, targetCenterX - 1, targetCenterY + 2, pixelSize, ringPaint);
+    _drawPixel(canvas, targetCenterX - 2, targetCenterY + 1, pixelSize, ringPaint); // left bottom
+    _drawPixel(canvas, targetCenterX - 2, targetCenterY, pixelSize, ringPaint); // left
+    _drawPixel(canvas, targetCenterX - 2, targetCenterY - 1, pixelSize, ringPaint); // left top
 
-    // Middle ring - faint
-    final midPaint = Paint()..color = AppColors.gold.withValues(alpha: 0.25);
-    _drawPixelCircle(canvas, targetCenter, pixelSize * 2.5, pixelSize, midPaint);
-
-    // Inner ring - pale yellow
-    final innerPaint = Paint()..color = AppColors.gold.withValues(alpha: 0.4);
-    _drawPixelCircle(canvas, targetCenter, pixelSize * 1.5, pixelSize, innerPaint);
-
-    // Center dot
-    final centerPaint = Paint()..color = AppColors.gold.withValues(alpha: 0.6);
-    canvas.drawRect(
-      Rect.fromCenter(center: targetCenter, width: pixelSize, height: pixelSize),
-      centerPaint,
-    );
+    // Center square (2x2)
+    final centerPaint = Paint()..color = AppColors.gold.withValues(alpha: 0.7);
+    _drawPixel(canvas, targetCenterX - 1, targetCenterY, pixelSize, centerPaint);
+    _drawPixel(canvas, targetCenterX, targetCenterY, pixelSize, centerPaint);
+    _drawPixel(canvas, targetCenterX - 1, targetCenterY + 1, pixelSize, centerPaint);
+    _drawPixel(canvas, targetCenterX, targetCenterY + 1, pixelSize, centerPaint);
 
     // Draw a stylized pixel arrow pointing right
     // Arrow shaft
@@ -76,50 +78,6 @@ class _PixelArrowPainter extends CustomPainter {
       Rect.fromLTWH(x * pixelSize, y * pixelSize, pixelSize, pixelSize),
       paint,
     );
-  }
-
-  // Draw a pixelated circle (ring) using discrete pixels
-  void _drawPixelCircle(Canvas canvas, Offset center, double radius, double pixelSize, Paint paint) {
-    // Draw pixels in a circle pattern
-    final int steps = 16;
-    for (int i = 0; i < steps; i++) {
-      final angle = (i / steps) * 2 * 3.14159;
-      final x = center.dx + radius * cos(angle);
-      final y = center.dy + radius * sin(angle);
-      // Snap to pixel grid
-      final px = (x / pixelSize).round() * pixelSize;
-      final py = (y / pixelSize).round() * pixelSize;
-      canvas.drawRect(
-        Rect.fromLTWH(px - pixelSize / 2, py - pixelSize / 2, pixelSize, pixelSize),
-        paint,
-      );
-    }
-  }
-
-  double cos(double x) => _cos(x);
-  double sin(double x) => _sin(x);
-
-  // Simple trig without importing dart:math
-  double _cos(double x) {
-    x = x % (2 * 3.14159);
-    double result = 1.0;
-    double term = 1.0;
-    for (int i = 1; i <= 10; i++) {
-      term *= -x * x / ((2 * i - 1) * (2 * i));
-      result += term;
-    }
-    return result;
-  }
-
-  double _sin(double x) {
-    x = x % (2 * 3.14159);
-    double result = x;
-    double term = x;
-    for (int i = 1; i <= 10; i++) {
-      term *= -x * x / ((2 * i) * (2 * i + 1));
-      result += term;
-    }
-    return result;
   }
 
   @override

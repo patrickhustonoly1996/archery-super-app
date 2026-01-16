@@ -130,45 +130,45 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo with glow
-                  Container(
-                    decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.gold.withValues(alpha: 0.5),
-                          blurRadius: 20,
-                          spreadRadius: 2,
-                        ),
-                      ],
+                  // Logo with glow - small and centered
+                  Center(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.gold.withValues(alpha: 0.4),
+                            blurRadius: 12,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: const PixelBowIcon(size: 32),
                     ),
-                    child: const PixelBowIcon(size: 64),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.md),
 
-                  // Title - ARCHERY
+                  // Title - ARCHERY SUPER APP
                   Text(
                     'ARCHERY',
                     style: TextStyle(
                       fontFamily: AppFonts.pixel,
-                      fontSize: 32,
+                      fontSize: 20,
                       color: AppColors.gold,
-                      letterSpacing: 4,
+                      letterSpacing: 3,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 4),
-                  // Subtitle - SUPER APP
                   Text(
                     'SUPER APP',
                     style: TextStyle(
                       fontFamily: AppFonts.pixel,
-                      fontSize: 14,
+                      fontSize: 10,
                       color: AppColors.textMuted,
                       letterSpacing: 2,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: AppSpacing.xl),
+                  const SizedBox(height: AppSpacing.lg),
 
                   // Sign In / Sign Up toggle buttons
                   Container(

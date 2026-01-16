@@ -329,8 +329,8 @@ class _HomeScreenState extends State<HomeScreen>
                             pinned: true,
                             delegate: _CollapsingLogoHeader(
                               pulseController: _pulseController,
-                              expandedHeight: 80,
-                              collapsedHeight: 40,
+                              expandedHeight: 56,
+                              collapsedHeight: 36,
                             ),
                           ),
 
@@ -568,13 +568,13 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
     final progress = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
     final expandedProgress = 1.0 - progress;
 
-    // Interpolated values
-    final iconSize = 64 * (0.5 + (expandedProgress * 0.5)); // 32-64
-    final titleSize = 28 * (0.65 + (expandedProgress * 0.35)); // 18-28
+    // Interpolated values - smaller logo
+    final iconSize = 36 * (0.6 + (expandedProgress * 0.4)); // 22-36
+    final titleSize = 20 * (0.7 + (expandedProgress * 0.3)); // 14-20
     final subtitleOpacity = expandedProgress; // Fades out completely
     final decorationOpacity = expandedProgress * 0.4; // Fades faster
-    final verticalPadding = 12 * expandedProgress + 4; // 4-16
-    final spacing = 8 * expandedProgress + 2; // 2-10
+    final verticalPadding = 8 * expandedProgress + 4; // 4-12
+    final spacing = 6 * expandedProgress + 2; // 2-8
 
     return AnimatedBuilder(
       animation: pulseController,
@@ -713,44 +713,28 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
             boxShadow: [
               BoxShadow(
                 color: AppColors.gold.withValues(alpha: glow * 0.5),
-                blurRadius: 12,
+                blurRadius: 8,
                 spreadRadius: 1,
               ),
             ],
           ),
-          child: const PixelBowIcon(size: 28),
+          child: const PixelBowIcon(size: 20),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         // Inline title
         Text(
           'ARCHERY',
           style: TextStyle(
             fontFamily: AppFonts.pixel,
-            fontSize: 16,
+            fontSize: 12,
             color: AppColors.gold,
             letterSpacing: 2,
             shadows: [
               Shadow(
                 color: AppColors.gold.withValues(alpha: 0.3),
-                blurRadius: 6,
+                blurRadius: 4,
               ),
             ],
-          ),
-        ),
-        const SizedBox(width: 6),
-        Container(
-          width: 4,
-          height: 4,
-          color: AppColors.gold.withValues(alpha: 0.5),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          'SUPER APP',
-          style: TextStyle(
-            fontFamily: AppFonts.pixel,
-            fontSize: 6,
-            color: AppColors.textMuted,
-            letterSpacing: 1,
           ),
         ),
       ],
