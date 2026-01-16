@@ -311,7 +311,7 @@
       "title": "Semantic Labels",
       "priority": "P5",
       "session": 3,
-      "status": "pending",
+      "status": "complete",
       "problem": "Screen readers can't describe UI elements.",
       "locations": [
         "lib/screens/home_screen.dart",
@@ -334,7 +334,7 @@
       "title": "Touch Target Sizes",
       "priority": "P5",
       "session": 3,
-      "status": "pending",
+      "status": "complete",
       "problem": "Some buttons/icons are smaller than 48px minimum.",
       "locations": [
         "lib/screens/home_screen.dart",

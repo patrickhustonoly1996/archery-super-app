@@ -496,22 +496,32 @@ class _TopBar extends StatelessWidget {
               ),
             ),
           ),
-          // Settings
-          GestureDetector(
-            onTap: onSettings,
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: AppColors.gold.withValues(alpha: 0.3),
-                  width: 1,
+          // Settings - 48x48 touch target for accessibility
+          Semantics(
+            button: true,
+            label: 'Settings',
+            child: GestureDetector(
+              onTap: onSettings,
+              child: Container(
+                width: 48,
+                height: 48,
+                alignment: Alignment.center,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: AppColors.gold.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.tune,
+                    color: AppColors.textMuted,
+                    size: 18,
+                    semanticLabel: 'Settings',
+                  ),
                 ),
-              ),
-              child: const Icon(
-                Icons.tune,
-                color: AppColors.textMuted,
-                size: 18,
               ),
             ),
           ),
@@ -1308,10 +1318,13 @@ class _MenuItemWidget extends StatelessWidget {
             ? 0.2 + (pulseController.value * 0.15)
             : (isSelected ? 0.1 : 0.0);
 
-        return GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        return Semantics(
+          button: true,
+          label: '${item.label}, ${item.sublabel}',
+          child: GestureDetector(
+            onTap: onTap,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: AppColors.surfaceDark,
               border: Border.all(
@@ -1408,6 +1421,7 @@ class _MenuItemWidget extends StatelessWidget {
               ],
             ),
           ),
+        ),
         );
       },
     );
