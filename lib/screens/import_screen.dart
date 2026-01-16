@@ -37,11 +37,15 @@ class _ImportScreenState extends State<ImportScreen> {
       try {
         final syncService = FirestoreSyncService();
         if (syncService.isAuthenticated) {
-          await syncService.backupAllData(db);
-          debugPrint('Cloud backup completed after import');
+          await ErrorHandler.runBackground(
+            () => syncService.backupAllData(db),
+            errorMessage: 'Cloud backup failed',
+            onRetry: () => _triggerCloudBackup(db),
+          );
         }
       } catch (e) {
-        debugPrint('Cloud backup error (non-fatal): $e');
+        // Firebase not initialized (tests) or other initialization error
+        debugPrint('Cloud backup skipped: $e');
       }
     });
   }

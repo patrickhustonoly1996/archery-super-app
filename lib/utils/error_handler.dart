@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../main.dart' show scaffoldMessengerKey;
 
 /// Result of an error-handled operation
 class ErrorHandlerResult<T> {
@@ -109,6 +110,48 @@ class ErrorHandler {
     } catch (e) {
       debugPrint('ErrorHandler: ${errorMessage ?? 'Operation failed'}: $e');
       rethrow;
+    }
+  }
+
+  /// Execute a background operation and show error if it fails.
+  /// Use for non-blocking operations like cloud backup.
+  ///
+  /// Parameters:
+  /// - [action]: The async operation to execute
+  /// - [errorMessage]: Error message to show to user
+  /// - [onRetry]: Optional retry callback
+  ///
+  /// Logs to console and shows snackbar on error, but doesn't block user flow.
+  static Future<void> runBackground(
+    Future<void> Function() action, {
+    required String errorMessage,
+    VoidCallback? onRetry,
+  }) async {
+    try {
+      await action();
+    } catch (e) {
+      debugPrint('ErrorHandler (background): $errorMessage: $e');
+
+      // Show non-blocking error notification
+      scaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text(
+            '$errorMessage: $e',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          backgroundColor: Colors.red.shade900,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
+          action: onRetry != null
+              ? SnackBarAction(
+                  label: 'Retry',
+                  textColor: AppColors.gold,
+                  onPressed: onRetry,
+                )
+              : null,
+        ),
+      );
     }
   }
 

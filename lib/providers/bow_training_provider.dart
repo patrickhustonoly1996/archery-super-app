@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import '../db/database.dart';
 import '../services/firestore_sync_service.dart';
 import '../utils/unique_id.dart';
+import '../utils/error_handler.dart';
 
 /// Timer phases for bow training
 enum TimerPhase {
@@ -445,11 +446,15 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
       try {
         final syncService = FirestoreSyncService();
         if (syncService.isAuthenticated) {
-          await syncService.backupAllData(_db);
-          debugPrint('Cloud backup completed after bow training session');
+          await ErrorHandler.runBackground(
+            () => syncService.backupAllData(_db),
+            errorMessage: 'Cloud backup failed',
+            onRetry: _triggerCloudBackup,
+          );
         }
       } catch (e) {
-        debugPrint('Cloud backup error (non-fatal): $e');
+        // Firebase not initialized (tests) or other initialization error
+        debugPrint('Cloud backup skipped: $e');
       }
     });
   }

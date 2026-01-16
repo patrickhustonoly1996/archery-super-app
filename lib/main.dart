@@ -13,6 +13,11 @@ import 'providers/active_sessions_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/firestore_sync_service.dart';
+import 'utils/error_handler.dart';
+
+/// Global scaffold messenger key for showing snackbars from anywhere in the app
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -167,6 +172,7 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
           title: 'Archery Super App',
           theme: AppTheme.darkTheme,
           debugShowCheckedModeBanner: false,
+          scaffoldMessengerKey: scaffoldMessengerKey,
           home: const AuthGate(),
         ),
       ),
@@ -224,16 +230,33 @@ class _AuthGateState extends State<AuthGate> {
 
         // First try to restore from cloud if local is empty
         // This handles the case where user clears browser data or logs in on new device
-        final result = await syncService.restoreAllData(db);
-        if (result.totalRestored > 0) {
-          debugPrint('Cloud restore completed: ${result.message}');
+        try {
+          final result = await syncService.restoreAllData(db);
+          if (result.totalRestored > 0) {
+            debugPrint('Cloud restore completed: ${result.message}');
+          }
+        } catch (e) {
+          debugPrint('Cloud restore error: $e');
+          // Show error for restore failures (user may have lost data)
+          scaffoldMessengerKey.currentState?.showSnackBar(
+            SnackBar(
+              content: Text('Cloud restore failed: $e'),
+              backgroundColor: Colors.red.shade900,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 5),
+            ),
+          );
         }
 
         // Then backup any local data to cloud
-        await syncService.backupAllData(db);
-        debugPrint('Background sync completed');
+        await ErrorHandler.runBackground(
+          () => syncService.backupAllData(db),
+          errorMessage: 'Cloud backup failed',
+          onRetry: _triggerBackgroundSync,
+        );
       } catch (e) {
-        debugPrint('Background sync error (non-fatal): $e');
+        // Firebase not initialized (tests) or other initialization error
+        debugPrint('Background sync skipped: $e');
       }
     });
   }

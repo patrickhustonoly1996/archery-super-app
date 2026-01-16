@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../models/arrow_coordinate.dart';
 import '../services/firestore_sync_service.dart';
 import '../utils/unique_id.dart';
+import '../utils/error_handler.dart';
 
 /// Manages the active scoring session state
 class SessionProvider extends ChangeNotifier {
@@ -323,11 +324,15 @@ class SessionProvider extends ChangeNotifier {
       try {
         final syncService = FirestoreSyncService();
         if (syncService.isAuthenticated) {
-          await syncService.backupAllData(_db);
-          debugPrint('Cloud backup completed after session');
+          await ErrorHandler.runBackground(
+            () => syncService.backupAllData(_db),
+            errorMessage: 'Cloud backup failed',
+            onRetry: _triggerCloudBackup,
+          );
         }
       } catch (e) {
-        debugPrint('Cloud backup error (non-fatal): $e');
+        // Firebase not initialized (tests) or other initialization error
+        debugPrint('Cloud backup skipped: $e');
       }
     });
   }
