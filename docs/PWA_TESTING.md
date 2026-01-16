@@ -1,7 +1,7 @@
 # PWA Testing Strategy
 
 **For:** Patrick Huston
-**Purpose:** Ensure the app works correctly as an installed PWA on iOS/Android
+**Purpose:** Ensure the app works correctly as an installed PWA on all platforms
 **Created:** 2026-01-16
 
 ---
@@ -9,43 +9,53 @@
 ## Why PWA Testing is Different
 
 Flutter unit tests run in a Dart VM, not a real browser. PWA-specific issues only appear when:
-- App is installed to home screen
+- App is installed to home screen/desktop
 - Running in standalone/fullscreen mode
 - Using service workers for offline
-- Handling iOS Safari quirks
+- Handling platform-specific browser quirks
 
 These cannot be caught by `flutter test`.
 
 ---
 
-## iOS PWA Known Issues
+## Platform-Specific Known Issues
 
-### 1. Splash Screen Blocking (FIXED)
-**Problem:** `flutter-first-frame` event may not fire in iOS standalone mode
-**Symptom:** App loads but is completely unresponsive
-**Fix:** Added 5-second fallback timeout in `web/index.html`
+### iOS Safari (iPhone/iPad)
 
-### 2. Safe Area Insets
-**Problem:** Notch/home indicator areas need special handling
-**Test:** Check content isn't hidden behind notch or home bar
-**Status:** Using `viewport-fit=cover` + Flutter's SafeArea widget
+| Issue | Problem | Fix/Status |
+|-------|---------|------------|
+| Splash blocking | `flutter-first-frame` may not fire | 5s fallback timeout added |
+| Safe area insets | Notch/home bar coverage | `viewport-fit=cover` + SafeArea |
+| Touch events | CSS can block interaction | Avoid `pointer-events: none` on body |
+| Back navigation | No browser back button | In-app navigation required |
+| Storage limits | 50MB quota in standalone | Monitor usage |
+| Audio autoplay | Blocked until user interaction | Require tap to start audio |
 
-### 3. Touch Event Handling
-**Problem:** CSS `pointer-events`, `touch-action` can block interaction
-**Test:** All buttons/inputs respond to taps in standalone mode
+### Android Chrome
 
-### 4. Back Navigation
-**Problem:** No browser back button in standalone mode
-**Test:** In-app navigation works, can return from all screens
+| Issue | Problem | Fix/Status |
+|-------|---------|------------|
+| Install prompt | `beforeinstallprompt` timing | Captured and deferred |
+| Splash screen | May flash white | Dark background set in manifest |
+| Back button | Hardware back exits app | Handle via Navigator |
+| Storage | More generous than iOS | Usually not an issue |
+| Notifications | Requires permission | Not yet implemented |
 
-### 5. Service Worker Caching
-**Problem:** Old version served after deploy
-**Test:** Force refresh gets new version
-**Workaround:** Update banner shows when new version available
+### Desktop (Chrome/Edge/Firefox)
 
-### 6. IndexedDB/Storage
-**Problem:** Different storage limits in standalone vs browser
-**Test:** Data persists after closing/reopening app
+| Issue | Problem | Fix/Status |
+|-------|---------|------------|
+| Window size | Opens at default size | Set preferred in manifest |
+| Keyboard nav | Tab order important | Focus management needed |
+| Right-click | Context menu expectations | Default browser behavior |
+| Multi-window | Can open multiple instances | `client_mode: navigate-existing` |
+
+### Firefox (All platforms)
+
+| Issue | Problem | Fix/Status |
+|-------|---------|------------|
+| PWA support | Limited/no install prompt | Works as regular web app |
+| Service worker | Different caching behavior | Test offline separately |
 
 ---
 

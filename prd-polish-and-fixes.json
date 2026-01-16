@@ -97,7 +97,7 @@
       "title": "Form Validation Mixin",
       "priority": "P1",
       "session": 2,
-      "status": "pending",
+      "status": "complete",
       "problem": "Forms accept any input without validation. Login, equipment forms have no validation.",
       "locations": [
         "lib/mixins/form_validation_mixin.dart (create new)",
