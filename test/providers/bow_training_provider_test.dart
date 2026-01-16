@@ -2076,6 +2076,415 @@ void main() {
     });
   });
 
+  group('Phase E1: Phase Durations From Exercise Config', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('hold phase uses workSeconds from exercise config', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(
+          reps: 2,
+          workSeconds: 15, // Custom hold duration
+          restSeconds: 5,
+        ),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      // Skip prep to hold
+      provider.skipPhase();
+      expect(provider.phase, equals(TimerPhase.hold));
+      expect(provider.secondsRemaining, equals(15)); // Should use workSeconds from config
+    });
+
+    test('rest phase uses restSeconds from exercise config', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(
+          reps: 2,
+          workSeconds: 10,
+          restSeconds: 8, // Custom rest duration
+        ),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      // Skip prep to hold
+      provider.skipPhase();
+      // Skip hold to rest
+      provider.skipPhase();
+
+      expect(provider.phase, equals(TimerPhase.rest));
+      expect(provider.secondsRemaining, equals(8)); // Should use restSeconds from config
+    });
+
+    test('custom session uses ratio holdSeconds for hold duration', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio25_35, // 25 second hold
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      // Skip prep to hold
+      provider.skipPhase();
+
+      expect(provider.phase, equals(TimerPhase.hold));
+      expect(provider.secondsRemaining, equals(25)); // Should use ratio holdSeconds
+    });
+
+    test('custom session uses ratio restSeconds for rest duration', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio25_35, // 35 second rest
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      // Skip prep to hold
+      provider.skipPhase();
+      // Skip hold to rest
+      provider.skipPhase();
+
+      expect(provider.phase, equals(TimerPhase.rest));
+      expect(provider.secondsRemaining, equals(35)); // Should use ratio restSeconds
+    });
+
+    test('different exercises use their own workSeconds', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(
+          id: 'ex1',
+          exerciseOrder: 1,
+          reps: 1,
+          workSeconds: 5, // First exercise: 5 seconds
+          restSeconds: 0,
+        ),
+        MockOlySessionExercise(
+          id: 'ex2',
+          exerciseOrder: 2,
+          reps: 1,
+          workSeconds: 12, // Second exercise: 12 seconds
+          restSeconds: 0,
+        ),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      // Skip prep to hold
+      provider.skipPhase();
+      expect(provider.secondsRemaining, equals(5)); // First exercise workSeconds
+
+      // Skip hold -> exerciseBreak (since only 1 rep)
+      provider.skipPhase();
+      expect(provider.phase, equals(TimerPhase.exerciseBreak));
+
+      // Skip exerciseBreak -> next exercise hold
+      provider.skipPhase();
+      expect(provider.phase, equals(TimerPhase.hold));
+      expect(provider.secondsRemaining, equals(12)); // Second exercise workSeconds
+    });
+
+    test('skipping rest when restSeconds is 0', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(
+          reps: 3,
+          workSeconds: 5,
+          restSeconds: 0, // No rest between reps
+        ),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      // Skip prep to hold (rep 1)
+      provider.skipPhase();
+      expect(provider.phase, equals(TimerPhase.hold));
+      expect(provider.currentRep, equals(1));
+
+      // Skip hold - should go directly to next hold (no rest)
+      provider.skipPhase();
+      expect(provider.phase, equals(TimerPhase.hold)); // Should stay in hold, not rest
+      expect(provider.currentRep, equals(2));
+
+      // Skip again
+      provider.skipPhase();
+      expect(provider.phase, equals(TimerPhase.hold));
+      expect(provider.currentRep, equals(3));
+    });
+  });
+
+  group('Phase E1: Feedback Mode Timing Capture During Hold', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('movement cue is generated during hold with stimulus lots', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.lots, // Always show cue
+      );
+
+      provider.startCustomSession(config);
+
+      // Skip prep to hold
+      provider.skipPhase();
+
+      expect(provider.phase, equals(TimerPhase.hold));
+      expect(provider.movementCue, isNotNull); // Should have a cue
+    });
+
+    test('movement cue is null with stimulus none', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none, // No cues
+      );
+
+      provider.startCustomSession(config);
+
+      // Skip prep to hold
+      provider.skipPhase();
+
+      expect(provider.phase, equals(TimerPhase.hold));
+      expect(provider.movementCue, isNull); // Should not have a cue
+    });
+
+    test('movement cue is cleared during rest', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.lots,
+        );
+
+        provider.startCustomSession(config);
+
+        // Skip prep to hold
+        provider.skipPhase();
+        expect(provider.movementCue, isNotNull);
+
+        // Skip hold to rest
+        provider.skipPhase();
+
+        expect(provider.phase, equals(TimerPhase.rest));
+        expect(provider.movementCue, isNull); // Cue cleared during rest
+      });
+    });
+
+    test('movement cue is regenerated when entering next hold', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.lots,
+      );
+
+      provider.startCustomSession(config);
+
+      // Skip prep to hold
+      provider.skipPhase();
+      final firstCue = provider.movementCue;
+      expect(firstCue, isNotNull);
+
+      // Skip hold to rest
+      provider.skipPhase();
+      expect(provider.movementCue, isNull);
+
+      // Skip rest to next hold
+      provider.skipPhase();
+      expect(provider.phase, equals(TimerPhase.hold));
+      expect(provider.movementCue, isNotNull); // Cue regenerated
+    });
+
+    test('totalHoldSecondsActual tracks actual hold time', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+        expect(provider.totalHoldSecondsActual, equals(0));
+
+        // Skip prep to hold
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+        expect(provider.phase, equals(TimerPhase.hold));
+
+        // Hold for 15 seconds
+        async.elapse(const Duration(seconds: 15));
+
+        // Should have tracked around 15 seconds (may be +/- 1 due to timing)
+        expect(provider.totalHoldSecondsActual, greaterThanOrEqualTo(15));
+      });
+    });
+
+    test('totalHoldSecondsActual does not increment during rest', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Skip prep to hold
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+
+        // Complete full hold (30 seconds)
+        async.elapse(const Duration(seconds: 30));
+        expect(provider.phase, equals(TimerPhase.rest));
+
+        final holdSecondsAfterFirstHold = provider.totalHoldSecondsActual;
+
+        // Rest for 15 seconds
+        async.elapse(const Duration(seconds: 15));
+
+        // Hold seconds should not have increased during rest
+        expect(provider.totalHoldSecondsActual, equals(holdSecondsAfterFirstHold));
+      });
+    });
+
+    test('OLY session does not use movement cues', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(reps: 2, workSeconds: 5, restSeconds: 3),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      // Skip prep to hold
+      provider.skipPhase();
+
+      expect(provider.phase, equals(TimerPhase.hold));
+      expect(provider.movementCue, isNull); // OLY sessions don't have movement cues
+    });
+  });
+
+  group('Phase E1: Warm-up Phase Handling', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('custom session without warm-up starts directly at prep', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      // Should start at prep, not a separate warm-up phase
+      expect(provider.phase, equals(TimerPhase.prep));
+      expect(provider.secondsRemaining, equals(kPrepCountdownSeconds));
+    });
+
+    test('OLY session starts directly at prep', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(reps: 2, workSeconds: 5, restSeconds: 3),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      // Should start at prep, not a separate warm-up phase
+      expect(provider.phase, equals(TimerPhase.prep));
+      expect(provider.secondsRemaining, equals(kPrepCountdownSeconds));
+    });
+
+    test('default warm-up config has correct values', () {
+      // Verify the default warm-up configuration
+      expect(CustomSessionConfig.defaultWarmUp.durationMinutes, equals(5));
+      expect(CustomSessionConfig.defaultWarmUp.ratio.holdSeconds, equals(30));
+      expect(CustomSessionConfig.defaultWarmUp.ratio.restSeconds, equals(30));
+      expect(
+        CustomSessionConfig.defaultWarmUp.movementStimulus,
+        equals(MovementStimulus.none),
+      );
+    });
+
+    test('warm-up session behaves like regular custom session', () {
+      provider.startCustomSession(CustomSessionConfig.defaultWarmUp);
+
+      // Should start at prep, same as any other session
+      expect(provider.phase, equals(TimerPhase.prep));
+      expect(provider.isCustomSession, isTrue);
+
+      // Skip prep to hold
+      provider.skipPhase();
+      expect(provider.phase, equals(TimerPhase.hold));
+      expect(provider.secondsRemaining, equals(30)); // 30 second hold from 30:30 ratio
+
+      // Skip hold to rest
+      provider.skipPhase();
+      expect(provider.phase, equals(TimerPhase.rest));
+      expect(provider.secondsRemaining, equals(30)); // 30 second rest from 30:30 ratio
+    });
+
+    test('prep phase is always included at session start', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 1,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      // Prep is the first phase for all sessions (not skippable by config)
+      expect(provider.phase, equals(TimerPhase.prep));
+      expect(provider.secondsRemaining, equals(kPrepCountdownSeconds));
+    });
+  });
+
   group('Phase E1: Pause/Resume Integration', () {
     late MockAppDatabase mockDb;
     late BowTrainingProvider provider;
