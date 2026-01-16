@@ -2,342 +2,432 @@
 
 **For:** Patrick Huston
 **Purpose:** Ensure the app works correctly every time you use it
-**Last Updated:** 2026-01-14
+**Last Updated:** 2026-01-16
 
 ---
 
-## The Point
+## Current Status
 
-Your app handles archery data - arrow positions, scores, training logs. If the math is wrong, your analysis is wrong. If data gets corrupted, training history is lost.
-
-**Tests verify the app does what it should.** Every time code changes, tests re-check everything still works.
-
-Think of it like this: You wouldn't trust a sight setting without verifying it. Tests are verification for code.
+**Test Lines:** ~11,000 | **Production Lines:** ~47,000 | **Ratio:** 1:4.2
+**Target Ratio:** 1:3 (industry standard for mobile apps)
+**Tests:** 694 passing | **Test Files:** 28
 
 ---
 
-## What's Protected by Tests
+## Coverage Summary
 
-### Currently Verified
-
-| What | Why It Matters | Status |
-|------|----------------|--------|
-| Arrow position math | Plotting accuracy, group analysis | Verified |
-| Score calculations | Ring boundaries, X-ring detection | Verified |
-| Group spread analysis | Training feedback, sight adjustments | Verified |
-| Target face rendering | Arrows appear where they should | Verified |
-| Coordinate conversions | Different face sizes work correctly | Verified |
-| Rolling average display | Quick feedback during sessions | Verified |
-| Volume EMA calculations | Training load analysis | Verified |
-| Handicap calculations | Progress tracking accuracy | Verified |
-| Performance profile | Radar chart data | Verified |
-| Smart zoom | Auto-zoom logic | Verified |
-| Session state management | Session flow logic | Verified |
-| Timer accuracy | Bow training timing | Verified |
-| Breath training logic | Breath hold progression | Verified |
-| Equipment management | Bow/arrow selection | Verified |
-
-### Not Yet Verified
-
-| What | Risk Without Tests | Priority |
-|------|-------------------|----------|
-| Database save/load | Training logs could be lost | High |
-| Score imports | Historical data could fail | Medium |
-| Cloud sync | Backup/restore reliability | Medium |
-| Charts rendering | Visual data could display wrong | Low |
+| Category | Files | Tested | Coverage | Notes |
+|----------|-------|--------|----------|-------|
+| Models | 2 | 2 | **100%** | Core math verified |
+| Utils | 8 | 7 | **88%** | Missing: sample_data_generator |
+| Providers | 5 | 5 | **100%** | All state management covered |
+| Services | 4 | 3 | **75%** | Missing: breath_training_service |
+| Database | 3 | 2 | **67%** | Missing: database.dart operations |
+| Widgets | 11 | 5 | **45%** | Charts and UI need work |
+| Screens | 27 | 0 | **0%** | Integration tests needed |
 
 ---
 
-## How Claude Uses This
+## Critical Gaps (Must Fix)
 
-When Claude makes changes:
+### Gap 1: Database Operations - CRITICAL
+**File:** `lib/db/database.dart`
+**Risk:** Data loss, corruption, query failures
+**Why Critical:** All user data flows through this - sessions, arrows, equipment
 
-1. **Before changes:** Runs existing tests to confirm baseline
-2. **After changes:** Runs tests again to catch any breaks
-3. **New features:** Adds tests for new functionality
+**Tests Needed:**
+- [ ] CRUD operations for sessions
+- [ ] CRUD operations for arrows
+- [ ] CRUD operations for equipment (bows, quivers, shafts)
+- [ ] Query methods (getSessionsByDate, getArrowsForEnd, etc.)
+- [ ] Data integrity (foreign key relationships)
+- [ ] Edge cases (empty results, null handling)
 
-Claude reports: "All tests passing" or "X tests failed - here's what broke"
-
----
-
-## When Tests Fail
-
-If Claude reports test failures, it means:
-
-- **Something broke** that was working before, OR
-- **A test assumption changed** (intentional change needs test update)
-
-Either way, don't deploy until resolved. Failed tests = potential problems for users.
+**Estimated Tests:** 40-50
+**Estimated Lines:** ~1,500
 
 ---
 
-## The Math Tests
+### Gap 2: CSV Import Parsing - HIGH
+**Files:** `lib/screens/import_screen.dart`, `lib/screens/volume_import_screen.dart`
+**Risk:** Silent failures, corrupted imports (P0 issue in CODE_REVIEW)
+**Why Critical:** Users trust imported historical data
 
-Arrow positioning is critical. Here's what's verified:
+**Tests Needed:**
+- [ ] Valid CSV parsing (happy path)
+- [ ] Malformed CSV handling (missing columns, extra columns)
+- [ ] Date format variations
+- [ ] Score validation (valid values only)
+- [ ] Empty file handling
+- [ ] Large file handling
+- [ ] Duplicate detection
+- [ ] Error reporting (not silent failures!)
 
-### Coordinate System
-- 40cm, 60cm, 80cm, 122cm face sizes all calculate correctly
-- Millimeter positions convert to screen pixels accurately
-- Legacy data (old format) still displays correctly
-
-### Scoring
-- Ring boundaries use 0.001mm tolerance (like a line-cutter decision)
-- X-ring detection works at all face sizes
-- Miss detection beyond face edge
-
-### Group Analysis
-- Center calculation from multiple arrows
-- Mean spread and max spread
-- Sight click recommendations (horizontal and vertical)
-- Standard deviation for consistency tracking
+**Estimated Tests:** 25-30
+**Estimated Lines:** ~800
 
 ---
 
-## Quality Levels
+### Gap 3: Breath Training Service - MEDIUM
+**File:** `lib/services/breath_training_service.dart`
+**Risk:** Incorrect session logic, timing issues
+**Why:** Used for breath hold and paced breathing features
 
-| Level | What It Means | Current State |
-|-------|---------------|---------------|
-| Green | All tests pass, safe to use | Target |
-| Yellow | Some tests skipped, use with caution | Acceptable short-term |
-| Red | Tests failing, do not deploy | Block deployment |
+**Tests Needed:**
+- [ ] Session state transitions
+- [ ] Timer accuracy
+- [ ] Phase progression logic
+- [ ] Session completion detection
+- [ ] Persistence integration
+
+**Estimated Tests:** 15-20
+**Estimated Lines:** ~500
 
 ---
 
-## For Future Claude Sessions
+### Gap 4: Chart Widgets - MEDIUM
+**Files:** `volume_chart.dart`, `handicap_chart.dart`, `group_centre_widget.dart`
+**Risk:** Incorrect visual feedback, misleading data
+**Why:** Training decisions based on chart data
 
-**When adding features:**
+**Tests Needed:**
+- [ ] Data transformation logic (not rendering)
+- [ ] Edge cases (empty data, single point, negative values)
+- [ ] Axis scaling calculations
+- [ ] Group centre position calculations
+- [ ] Sight click display values
+
+**Estimated Tests:** 20-25
+**Estimated Lines:** ~600
+
+---
+
+## Step-by-Step Action Plan
+
+### Phase A: Database Tests (Week 1-2)
+**Priority:** CRITICAL | **Owner:** Claude
+
+#### Step A1: Create database test infrastructure
 ```
-Add tests that verify:
-1. The feature works with typical inputs
-2. Edge cases don't crash (empty, zero, maximum values)
-3. The feature still works after changes elsewhere
+File: test/db/database_test.dart
+- Set up in-memory test database
+- Create test fixtures for sessions, arrows, equipment
+- Helper methods for common test patterns
 ```
 
-**When fixing bugs:**
+#### Step A2: Test session operations
 ```
-1. Write a test that reproduces the bug (should fail)
-2. Fix the bug
-3. Test now passes (and stays passing forever)
+Tests to write:
+1. createSession() - creates with valid data
+2. createSession() - generates unique ID
+3. getSession() - retrieves by ID
+4. getSession() - returns null for missing ID
+5. updateSession() - updates existing
+6. deleteSession() - removes and cascades to arrows
+7. getAllSessions() - returns all, ordered by date
+8. getSessionsByDateRange() - filters correctly
 ```
+
+#### Step A3: Test arrow operations
+```
+Tests to write:
+1. createArrow() - creates with valid coordinates
+2. createArrow() - validates score range (0-10)
+3. getArrowsForSession() - returns correct arrows
+4. getArrowsForEnd() - filters by end number
+5. updateArrow() - updates position and score
+6. deleteArrow() - removes single arrow
+7. deleteArrowsForSession() - bulk delete
+```
+
+#### Step A4: Test equipment operations
+```
+Tests to write:
+1. CRUD for bows (create, read, update, delete)
+2. CRUD for quivers
+3. CRUD for shafts
+4. Equipment relationships (quiver -> shafts)
+5. Active equipment selection
+```
+
+#### Step A5: Test data integrity
+```
+Tests to write:
+1. Foreign key constraints work
+2. Cascade deletes work
+3. No orphaned records
+4. Concurrent access handling
+```
+
+---
+
+### Phase B: Import Tests (Week 2-3)
+**Priority:** HIGH | **Owner:** Claude
+
+#### Step B1: Extract parsing logic
+```
+Current state: Parsing embedded in screen widgets
+Action: Extract to testable service class
+File: lib/services/import_service.dart
+```
+
+#### Step B2: Create import test file
+```
+File: test/services/import_service_test.dart
+```
+
+#### Step B3: Test CSV parsing
+```
+Tests to write:
+1. parseScoresCsv() - valid file parses correctly
+2. parseScoresCsv() - handles different date formats
+3. parseScoresCsv() - validates score values
+4. parseScoresCsv() - reports row-level errors
+5. parseScoresCsv() - handles missing optional columns
+6. parseScoresCsv() - rejects missing required columns
+7. parseScoresCsv() - handles UTF-8 BOM
+8. parseScoresCsv() - handles Windows line endings
+```
+
+#### Step B4: Test volume import
+```
+Tests to write:
+1. parseVolumeCsv() - valid file parses correctly
+2. parseVolumeCsv() - validates arrow counts
+3. parseVolumeCsv() - handles date variations
+4. parseVolumeCsv() - reports errors with line numbers
+```
+
+#### Step B5: Test error handling
+```
+Tests to write:
+1. Empty file returns helpful error
+2. Binary file rejected gracefully
+3. Extremely large file handled (or rejected with message)
+4. Partial success reports what worked and what failed
+```
+
+---
+
+### Phase C: Breath Training Service (Week 3)
+**Priority:** MEDIUM | **Owner:** Claude
+
+#### Step C1: Create test file
+```
+File: test/services/breath_training_service_test.dart
+```
+
+#### Step C2: Test session lifecycle
+```
+Tests to write:
+1. startSession() - initializes state correctly
+2. pauseSession() - pauses timer
+3. resumeSession() - resumes from paused state
+4. completeSession() - calculates final stats
+5. cancelSession() - cleans up state
+```
+
+#### Step C3: Test breath hold logic
+```
+Tests to write:
+1. Hold timer increments correctly
+2. Personal best detection
+3. Recovery phase timing
+4. Session statistics calculation
+```
+
+#### Step C4: Test paced breathing logic
+```
+Tests to write:
+1. Phase transitions (inhale -> hold -> exhale)
+2. Configurable phase durations
+3. Cycle counting
+4. Audio cue timing
+```
+
+---
+
+### Phase D: Chart Widget Tests (Week 4)
+**Priority:** MEDIUM | **Owner:** Claude
+
+#### Step D1: Test volume chart calculations
+```
+File: test/widgets/volume_chart_test.dart
+Tests to write:
+1. EMA line calculations match volume_calculator
+2. Empty data renders without crash
+3. Single data point handled
+4. Date range filtering works
+5. Y-axis scaling appropriate for data range
+```
+
+#### Step D2: Test handicap chart calculations
+```
+File: test/widgets/handicap_chart_test.dart
+Tests to write:
+1. Handicap points plotted correctly
+2. Trend line calculation
+3. Empty data handled
+4. Date filtering works
+```
+
+#### Step D3: Test group centre widget
+```
+File: test/widgets/group_centre_widget_test.dart
+Tests to write:
+1. Centre position calculated correctly
+2. Sight click values display correctly
+3. Direction indicators (L/R, U/D) correct
+4. Zero adjustment case handled
+5. Large adjustment warning
+```
+
+---
+
+### Phase E: Screen Integration Tests (Week 5+)
+**Priority:** LOW | **Owner:** Claude (when time permits)
+
+#### Step E1: Plotting flow test
+```
+File: test/integration/plotting_flow_test.dart
+Tests:
+1. Start session -> Plot arrows -> View scores -> Complete
+2. Resume incomplete session
+3. Delete arrow during session
+```
+
+#### Step E2: Import flow test
+```
+File: test/integration/import_flow_test.dart
+Tests:
+1. Select file -> Preview -> Confirm -> View imported
+2. Cancel mid-import
+3. Handle import errors
+```
+
+#### Step E3: Training flow tests
+```
+Files: bow_training_flow_test.dart, breath_training_flow_test.dart
+Tests:
+1. Select exercise -> Run -> Complete -> View log
+2. Pause and resume
+3. Cancel mid-session
+```
+
+---
+
+## Test Writing Guidelines for Claude
+
+### Before Writing Tests
+1. Run `flutter test` to verify baseline
+2. Read the source file thoroughly
+3. Identify: inputs, outputs, side effects, edge cases
+
+### Test Structure
+```dart
+group('FeatureName', () {
+  // Setup
+  late MyClass sut; // System Under Test
+
+  setUp(() {
+    sut = MyClass();
+  });
+
+  test('does X when Y', () {
+    // Arrange
+    final input = ...;
+
+    // Act
+    final result = sut.method(input);
+
+    // Assert
+    expect(result, expectedValue);
+  });
+
+  test('handles edge case Z', () {
+    // Test empty, null, zero, max values
+  });
+});
+```
+
+### Naming Convention
+- Test files: `{source_file}_test.dart`
+- Test groups: Match class/function names
+- Test names: `'does X when Y'` or `'returns X for Y input'`
+
+### What Makes a Good Test
+- **Fast:** <100ms per test
+- **Isolated:** No dependency on other tests
+- **Deterministic:** Same result every time
+- **Clear:** Failure message explains what broke
 
 ---
 
 ## Test Commands
 
-These run automatically, but if you want to check manually:
-
 ```bash
-# Run all tests (takes about 30 seconds)
+# Run all tests
 flutter test
 
-# Run just the math tests
-flutter test test/models/
+# Run specific test file
+flutter test test/db/database_test.dart
 
-# See each test result
+# Run with coverage report
+flutter test --coverage
+
+# Run tests matching pattern
+flutter test --name "database"
+
+# Verbose output
 flutter test --reporter=expanded
 ```
 
 ---
 
-## Complete Testing Roadmap
+## Verification Checklist
 
-### Phase 1: Core Math (COMPLETE)
+After completing each phase, verify:
 
-| Component | File | Tests | Status |
-|-----------|------|-------|--------|
-| Arrow coordinates | `models/arrow_coordinate.dart` | ~30 | Done |
-| Group analysis | `models/group_analysis.dart` | ~20 | Done |
-| Coordinate system | `utils/target_coordinate_system.dart` | ~35 | Done |
-| Ring scoring | (in coordinate system) | ~15 | Done |
-
-### Phase 2: Calculation Utilities (COMPLETE)
-
-| Component | File | Why Critical | Status |
-|-----------|------|--------------|--------|
-| Volume calculator | `utils/volume_calculator.dart` | Training load EMAs (7/28/90 day) | Done |
-| Handicap calculator | `utils/handicap_calculator.dart` | Progress tracking accuracy | Done |
-| Performance profile | `utils/performance_profile.dart` | Radar chart data | Done |
-| Smart zoom | `utils/smart_zoom.dart` | Auto-zoom logic | Done |
-
-### Phase 3: Widget Tests (MEDIUM PRIORITY)
-
-| Component | File | Status |
-|-----------|------|--------|
-| Target face | `widgets/target_face.dart` | Done |
-| Rolling average | `widgets/rolling_average_widget.dart` | Done |
-| Scorecard | `widgets/scorecard_widget.dart` | TODO |
-| Volume chart | `widgets/volume_chart.dart` | TODO |
-| Handicap chart | `widgets/handicap_chart.dart` | TODO |
-| Radar chart | `widgets/radar_chart.dart` | TODO |
-| Group centre | `widgets/group_centre_widget.dart` | TODO |
-| Breathing visualizer | `widgets/breathing_visualizer.dart` | TODO |
-| Shaft selector | `widgets/shaft_selector_bottom_sheet.dart` | TODO |
-
-### Phase 4: Database & Services (PARTIAL)
-
-| Component | File | Why Critical | Status |
-|-----------|------|--------------|--------|
-| Database operations | `db/database.dart` | Data persistence | TODO |
-| Round types seed | `db/round_types_seed.dart` | Scoring rules | Done |
-| OLY training seed | `db/oly_training_seed.dart` | Training presets | Done |
-| Auth service | `services/auth_service.dart` | Login/logout | TODO |
-| Firestore sync | `services/firestore_sync_service.dart` | Cloud backup | TODO |
-| Breath training service | `services/breath_training_service.dart` | Session logic | TODO |
-| Beep service | `services/beep_service.dart` | Audio timing | TODO |
-
-### Phase 5: State Management (COMPLETE)
-
-| Component | File | What It Manages | Status |
-|-----------|------|-----------------|--------|
-| Session provider | `providers/session_provider.dart` | Current session state | Done |
-| Bow training provider | `providers/bow_training_provider.dart` | Timer & preset state | Done |
-| Breath training provider | `providers/breath_training_provider.dart` | Breath session state | Done |
-| Equipment provider | `providers/equipment_provider.dart` | Bow/arrow selection | Done |
-| Active sessions provider | `providers/active_sessions_provider.dart` | Session tracking | TODO |
-
-### Phase 6: Screen Tests (LOW PRIORITY)
-
-| Screen | File | Status |
-|--------|------|--------|
-| Plotting | `screens/plotting_screen.dart` | TODO |
-| Bow training home | `screens/bow_training_home_screen.dart` | TODO |
-| Bow training | `screens/bow_training_screen.dart` | TODO |
-| Bow training library | `screens/bow_training_library_screen.dart` | TODO |
-| Breath training home | `screens/breath_training/breath_training_home_screen.dart` | TODO |
-| Paced breathing | `screens/breath_training/paced_breathing_screen.dart` | TODO |
-| Breath hold | `screens/breath_training/breath_hold_screen.dart` | TODO |
-| Patrick breath | `screens/breath_training/patrick_breath_screen.dart` | TODO |
-| History | `screens/history_screen.dart` | TODO |
-| Session detail | `screens/session_detail_screen.dart` | TODO |
-| Session complete | `screens/session_complete_screen.dart` | TODO |
-| Session start | `screens/session_start_screen.dart` | TODO |
-| Equipment | `screens/equipment_screen.dart` | TODO |
-| Bow form | `screens/bow_form_screen.dart` | TODO |
-| Quiver form | `screens/quiver_form_screen.dart` | TODO |
-| Shaft management | `screens/shaft_management_screen.dart` | TODO |
-| Import | `screens/import_screen.dart` | TODO |
-| Volume import | `screens/volume_import_screen.dart` | TODO |
-| Statistics | `screens/statistics_screen.dart` | TODO |
-| Scores graph | `screens/scores_graph_screen.dart` | TODO |
-| Performance profile | `screens/performance_profile_screen.dart` | TODO |
-| Delayed camera | `screens/delayed_camera_screen.dart` | TODO |
-| Login | `screens/login_screen.dart` | TODO |
-| Home | `screens/home_screen.dart` | TODO |
-
-### Phase 7: Integration Tests (FUTURE)
-
-| Flow | What It Tests | Status |
-|------|---------------|--------|
-| Full plotting session | Touch → Plot → Save → Display | TODO |
-| Score import | File → Parse → Validate → Store | TODO |
-| Bow training cycle | Start → Timer → Complete → Log | TODO |
-| Breath training cycle | Select → Run → Complete → Log | TODO |
-| Session lifecycle | Start → Record → End → Review | TODO |
-| Equipment setup | Add bow → Add arrows → Select | TODO |
-
-### Phase 8: PWA Testing (CRITICAL)
-
-**Why:** The app behaves differently when installed as a PWA vs running in browser. Touch handling, safe areas, and service worker caching can all cause issues that only appear in standalone mode.
-
-**Manual PWA Test Checklist (run after each web deploy):**
-
-| Test | iOS PWA | Android PWA | Browser |
-|------|---------|-------------|---------|
-| Home screen menu taps work | ☐ | ☐ | ☐ |
-| Navigation to all screens | ☐ | ☐ | ☐ |
-| Touch targets respond correctly | ☐ | ☐ | ☐ |
-| Safe areas don't cut off content | ☐ | ☐ | ☐ |
-| Service worker updates apply | ☐ | ☐ | ☐ |
-| Offline mode works | ☐ | ☐ | ☐ |
-| Camera permission prompt | ☐ | ☐ | ☐ |
-
-**Known PWA Gotchas:**
-1. **CSS body padding breaks touch** - Never add padding to body for safe areas; let Flutter handle it
-2. **Service worker caches old code** - May need to uninstall/reinstall PWA to see updates
-3. **iOS standalone has different viewport** - Test specifically on iPhone with notch
-4. **Touch offset bug** - If taps don't work, check for CSS transforms or padding on html/body
-
-**After deploying web changes:**
-1. Test in browser first (easy to debug)
-2. Test in existing installed PWA
-3. If PWA broken: uninstall, clear cache, reinstall
-4. Test fresh install on iOS and Android
-
-### Phase 9: Golden Tests (FUTURE)
-
-Visual regression tests for:
-- Target face appearance at different sizes
-- Chart rendering consistency
-- Theme/color accuracy
+- [ ] All new tests pass
+- [ ] No existing tests broken
+- [ ] Test file follows naming convention
+- [ ] Edge cases covered (empty, null, boundary values)
+- [ ] Error cases covered (invalid input, failures)
+- [ ] Tests run in <100ms each
+- [ ] No flaky tests (run 3x to verify)
 
 ---
 
-## Priority Summary
+## Progress Tracking
 
-**Completed (calculations users rely on):**
-1. ~~Volume calculator (EMA math)~~ Done
-2. ~~Handicap calculator (progress tracking)~~ Done
-3. ~~Performance profile (radar chart data)~~ Done
-4. ~~Smart zoom (auto-zoom logic)~~ Done
-
-**Completed (core features):**
-5. ~~Session provider (session flow)~~ Done
-6. ~~Bow training provider (timer accuracy)~~ Done
-7. ~~Breath training provider (session state)~~ Done
-8. ~~Equipment provider (bow/arrow selection)~~ Done
-
-**Next priority (data safety):**
-9. Database operations (data persistence)
-10. Auth service (login/logout)
-11. Firestore sync (cloud backup)
-
-**Test later (visual/UI):**
-12. Charts and visualizations
-13. Screen layouts
-14. Golden tests
+| Phase | Status | Tests Added | Date Completed |
+|-------|--------|-------------|----------------|
+| A1: DB Infrastructure | TODO | - | - |
+| A2: Session Operations | TODO | - | - |
+| A3: Arrow Operations | TODO | - | - |
+| A4: Equipment Operations | TODO | - | - |
+| A5: Data Integrity | TODO | - | - |
+| B1: Extract Import Logic | TODO | - | - |
+| B2-B5: Import Tests | TODO | - | - |
+| C1-C4: Breath Service | TODO | - | - |
+| D1-D3: Chart Widgets | TODO | - | - |
+| E1-E3: Integration | TODO | - | - |
 
 ---
 
-## Current Coverage
+## Summary for Patrick
 
-| Category | Total Files | Tested | Coverage |
-|----------|-------------|--------|----------|
-| Models | 2 | 2 | 100% |
-| Utils | 7 | 5 | 71% |
-| Widgets | 10 | 2 | 20% |
-| Providers | 5 | 4 | 80% |
-| Services | 4 | 0 | 0% |
-| Database | 3 | 2 | 67% |
-| Screens | 20+ | 0 | 0% |
+**What's well tested:** Math, scoring, coordinates, state management, auth
+**What needs tests:** Database operations, CSV imports, breath training service, charts
 
-**Overall:** Core math, calculation utilities, and state management are well-tested. Services and screens need attention.
+**Next steps for Claude:**
+1. Start with Phase A (database tests) - highest risk area
+2. Extract import logic and add tests (fixes silent failure bug)
+3. Add breath training service tests
+4. Add chart calculation tests
 
----
-
-## What Good Looks Like
-
-A healthy test suite:
-- **Runs fast** (<60 seconds for full suite)
-- **Catches real problems** (not just theoretical edge cases)
-- **Doesn't break randomly** (stable, predictable)
-- **Grows with features** (new code = new tests)
-
-Current status: ~100 tests across 6 test files, covering core math and widgets.
+**Your role:** None required. Claude handles test writing. You'll see "X tests passing" in session summaries.
 
 ---
 
-## Summary
-
-| Question | Answer |
-|----------|--------|
-| Do I need to write tests? | No - Claude handles this |
-| Do I need to run tests? | No - Claude runs them automatically |
-| What do I do if tests fail? | Ask Claude to investigate and fix |
-| How do I know the app is reliable? | Claude reports test status after changes |
-| What if I want to check myself? | Run `flutter test` in terminal |
-
-Tests exist so you can trust the numbers in your app. The math for arrow positions, group spreads, and scores has been verified thousands of times by automated tests.
-
----
-
-*Tests maintained by Claude Code. Core math verified by automated checks.*
+*Tests maintained by Claude Code. Updated 2026-01-16.*
