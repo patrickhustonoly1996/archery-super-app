@@ -174,21 +174,30 @@ Uses `onScaleStart/Update/End` with `details.pointerCount` to distinguish.
 
 ## P2: Volume Graph Visibility
 
-**Status:** Not started
-**Issues:**
+**Status:** ✅ FIXED (January 2026)
+**Issues fixed:**
 - Hard to see with red light glasses (night mode)
-- Needs time period selector (week/month/year/all)
-- Needs date/title visibility on graph
+- Needed time period selector
+- Needed date/title visibility
 
-**Files likely involved:**
-- `lib/widgets/volume_chart.dart`
-- `lib/screens/` - wherever volume graph is displayed
+**Files changed:**
+- `lib/widgets/volume_chart.dart` - Complete rewrite with new features
 
-**Implementation:**
-- Increase contrast/line thickness
-- Add gold accent color for better visibility on dark
-- Add dropdown/segmented control for time period
-- Add axis labels and title
+**What was implemented:**
+1. **High contrast for red light glasses:**
+   - Gold line at 70% opacity, 2.5px thickness
+   - Larger data points (5-6px)
+   - Brighter labels
+   - Taller chart (160px)
+
+2. **Time period selector:**
+   - Chip row: 1W, 1M, 3M, 6M, 1Y, All, Indoor, Outdoor, Custom
+   - Indoor = Oct-Mar, Outdoor = Apr-Sep
+   - Custom opens bottom sheet with quick picks and date range picker
+
+3. **Date range display:**
+   - Shows actual date range below chart
+   - Session count in header
 
 ---
 
@@ -316,47 +325,47 @@ Uses `onScaleStart/Update/End` with `details.pointerCount` to distinguish.
 
 ## P2: Timer Pause When App Backgrounds
 
-**Status:** Not started (from code review doc)
+**Status:** ✅ FIXED (January 2026)
 **Problem:** Bow training timer keeps running when app goes to background, ruining training sessions.
 
-**Files:**
-- `lib/providers/bow_training_provider.dart`
+**Files changed:**
+- `lib/providers/bow_training_provider.dart` - Added `WidgetsBindingObserver` mixin, auto-pauses on background
+- `lib/screens/bow_training_screen.dart` - Shows subtle "Paused (app backgrounded)" message, removed old dialog
 
-**Fix:**
-- Listen to `AppLifecycleState` changes
-- Pause timer on `paused`/`inactive`
-- Resume on `resumed`
+**Behavior:**
+- Timer auto-pauses when app goes to background
+- Stays paused when user returns (no auto-resume)
+- Shows subtle message explaining why it's paused
+- User taps play to resume manually
 
 ---
 
 ## P2: Linecutter Auto-Zoom
 
-**Status:** Not started
-**Problem:** When plotting an arrow near a ring boundary (linecutter), the user needs precision to decide which ring it's in. Currently no automatic zoom assistance.
+**Status:** ✅ FIXED (January 2026)
 
-**Desired Behavior:**
-- Detect when arrow preview is near a ring boundary (within ~1-2% of ring width)
-- Auto-zoom to that area for precision placement
-- Visual indicator showing which ring boundary is nearby
-- Possibly: snap-to-boundary option with manual override
+**What was implemented:**
+- **Snap zoom:** Instant activation when arrow preview gets within 4% of a ring boundary (removed 300ms delay)
+- **Enlarged zoom window:** Grows from 120px to 160px in linecutter mode
+- **Glowing boundary highlight:** Nearest ring boundary glows green with blur effect
+- **"Line cutter?" prompt:** Larger text (14px) with shadow, positioned below zoom window
+- **Thicker border:** 5px green border with glow shadow in linecutter mode
+- **Haptic feedback:** Medium impact when entering linecutter mode
 
-**Files likely involved:**
-- `lib/widgets/target_face.dart` - zoom window rendering
-- `lib/utils/target_coordinate_system.dart` - has `nearestBoundary()` detection already
-- `lib/utils/smart_zoom.dart` - zoom calculations
+**Files modified:**
+- `lib/widgets/target_face.dart` - All changes in this file:
+  - Added `_linecutterWindowSize = 160.0` constant
+  - Removed timer-based activation, now instant
+  - Added `_BoundaryHighlightPainter` class for glowing ring
+  - Updated `_ZoomWindow` with larger border, glow shadow, bigger label
 
-**Existing code to build on:**
-```dart
-// In target_coordinate_system.dart:178-210
-nearestBoundary(coord, thresholdPercent: 1.5)
-// Returns {ring, distanceMm} if near a boundary
-```
-
-**Implementation idea:**
-1. During drag, check if preview position is near boundary
-2. If yes, increase zoom level and center on that boundary region
-3. Show visual cue (highlight the boundary line)
-4. On release, use precise position for scoring
+**How it works:**
+1. User drags arrow near ring boundary (within 4% of radius)
+2. Linecutter mode activates instantly with haptic feedback
+3. Zoom window enlarges and border glows green
+4. Nearest ring boundary highlighted with green glow
+5. "Line cutter?" prompt appears prominently
+6. Moving away from boundary snaps back to normal mode
 
 ---
 

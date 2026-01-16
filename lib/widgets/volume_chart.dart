@@ -2,8 +2,25 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../db/database.dart';
 
-/// Simple volume chart showing session scores over time
-class VolumeChart extends StatelessWidget {
+/// Time period options for filtering the chart
+enum TimePeriod {
+  week('1W', 7),
+  month('1M', 30),
+  threeMonths('3M', 90),
+  sixMonths('6M', 180),
+  year('1Y', 365),
+  all('All', 0),
+  indoorSeason('Indoor', 0), // Oct-Mar
+  outdoorSeason('Outdoor', 0), // Apr-Sep
+  custom('Custom', 0);
+
+  final String label;
+  final int days;
+  const TimePeriod(this.label, this.days);
+}
+
+/// Volume chart showing session scores over time with time period selector
+class VolumeChart extends StatefulWidget {
   final List<Session> sessions;
   final List<ImportedScore> importedScores;
   final Map<String, RoundType> roundTypes;
@@ -16,13 +33,21 @@ class VolumeChart extends StatelessWidget {
   });
 
   @override
+  State<VolumeChart> createState() => _VolumeChartState();
+}
+
+class _VolumeChartState extends State<VolumeChart> {
+  TimePeriod _selectedPeriod = TimePeriod.threeMonths;
+  DateTimeRange? _customRange;
+
+  @override
   Widget build(BuildContext context) {
     // Combine and sort all scores by date
     final allScores = <_ScorePoint>[];
 
     // Add plotted sessions
-    for (final session in sessions) {
-      final roundType = roundTypes[session.roundTypeId];
+    for (final session in widget.sessions) {
+      final roundType = widget.roundTypes[session.roundTypeId];
       final percentage = roundType != null
           ? (session.totalScore / roundType.maxScore * 100)
           : null;
@@ -36,11 +61,11 @@ class VolumeChart extends StatelessWidget {
     }
 
     // Add imported scores
-    for (final score in importedScores) {
+    for (final score in widget.importedScores) {
       allScores.add(_ScorePoint(
         date: score.date,
         score: score.score,
-        percentage: null, // Don't have max score for imported
+        percentage: null,
         isPlotted: false,
       ));
     }
@@ -52,10 +77,33 @@ class VolumeChart extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    // Take last 30 sessions for the chart
-    final recentScores = allScores.length > 30
-        ? allScores.sublist(allScores.length - 30)
-        : allScores;
+    // Filter by selected time period
+    final filteredScores = _filterByPeriod(allScores);
+
+    if (filteredScores.isEmpty) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(context, 0),
+              const SizedBox(height: AppSpacing.sm),
+              _buildPeriodSelector(),
+              const SizedBox(height: AppSpacing.lg),
+              Center(
+                child: Text(
+                  'No data for this period',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Card(
       child: Padding(
@@ -63,31 +111,20 @@ class VolumeChart extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Score Trend',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: AppColors.gold,
-                      ),
-                ),
-                Text(
-                  'Last ${recentScores.length} sessions',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textMuted,
-                      ),
-                ),
-              ],
-            ),
+            _buildHeader(context, filteredScores.length),
+            const SizedBox(height: AppSpacing.sm),
+            _buildPeriodSelector(),
             const SizedBox(height: AppSpacing.md),
             SizedBox(
-              height: 120,
+              height: 160,
               child: CustomPaint(
-                painter: _VolumeChartPainter(scores: recentScores),
+                painter: _VolumeChartPainter(scores: filteredScores),
                 child: Container(),
               ),
             ),
+            const SizedBox(height: AppSpacing.sm),
+            // Date range label
+            _buildDateRangeLabel(filteredScores),
             const SizedBox(height: AppSpacing.sm),
             // Legend
             Row(
@@ -109,6 +146,290 @@ class VolumeChart extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildHeader(BuildContext context, int count) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'Score Trend',
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: AppColors.gold,
+              ),
+        ),
+        Text(
+          '$count sessions',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.textMuted,
+              ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPeriodSelector() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: TimePeriod.values.map((period) {
+          final isSelected = _selectedPeriod == period;
+          return Padding(
+            padding: const EdgeInsets.only(right: 6),
+            child: ChoiceChip(
+              label: Text(period.label),
+              selected: isSelected,
+              onSelected: (selected) {
+                if (selected) {
+                  if (period == TimePeriod.custom) {
+                    _showCustomDatePicker();
+                  } else {
+                    setState(() => _selectedPeriod = period);
+                  }
+                }
+              },
+              selectedColor: AppColors.gold,
+              backgroundColor: AppColors.surfaceLight,
+              labelStyle: TextStyle(
+                color: isSelected ? AppColors.backgroundDark : AppColors.textSecondary,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 12,
+              ),
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildDateRangeLabel(List<_ScorePoint> scores) {
+    if (scores.isEmpty) return const SizedBox.shrink();
+
+    final first = scores.first.date;
+    final last = scores.last.date;
+
+    String formatDate(DateTime d) => '${d.day}/${d.month}/${d.year % 100}';
+
+    return Center(
+      child: Text(
+        '${formatDate(first)} - ${formatDate(last)}',
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.textMuted,
+            ),
+      ),
+    );
+  }
+
+  Future<void> _showCustomDatePicker() async {
+    // Show bottom sheet with season suggestions and custom picker
+    final result = await showModalBottomSheet<DateTimeRange?>(
+      context: context,
+      backgroundColor: AppColors.surfaceDark,
+      builder: (context) => _CustomDatePickerSheet(
+        initialRange: _customRange,
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _customRange = result;
+        _selectedPeriod = TimePeriod.custom;
+      });
+    }
+  }
+
+  List<_ScorePoint> _filterByPeriod(List<_ScorePoint> scores) {
+    final now = DateTime.now();
+
+    switch (_selectedPeriod) {
+      case TimePeriod.week:
+      case TimePeriod.month:
+      case TimePeriod.threeMonths:
+      case TimePeriod.sixMonths:
+      case TimePeriod.year:
+        final cutoff = now.subtract(Duration(days: _selectedPeriod.days));
+        return scores.where((s) => s.date.isAfter(cutoff)).toList();
+
+      case TimePeriod.all:
+        return scores;
+
+      case TimePeriod.indoorSeason:
+        // Indoor: October - March
+        return scores.where((s) {
+          final month = s.date.month;
+          return month >= 10 || month <= 3;
+        }).toList();
+
+      case TimePeriod.outdoorSeason:
+        // Outdoor: April - September
+        return scores.where((s) {
+          final month = s.date.month;
+          return month >= 4 && month <= 9;
+        }).toList();
+
+      case TimePeriod.custom:
+        if (_customRange == null) return scores;
+        return scores.where((s) {
+          return s.date.isAfter(_customRange!.start.subtract(const Duration(days: 1))) &&
+                 s.date.isBefore(_customRange!.end.add(const Duration(days: 1)));
+        }).toList();
+    }
+  }
+}
+
+/// Bottom sheet for custom date selection with season suggestions
+class _CustomDatePickerSheet extends StatelessWidget {
+  final DateTimeRange? initialRange;
+
+  const _CustomDatePickerSheet({this.initialRange});
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final currentYear = now.year;
+
+    // Calculate current season date ranges
+    final lastIndoorStart = now.month >= 10
+        ? DateTime(currentYear, 10, 1)
+        : DateTime(currentYear - 1, 10, 1);
+    final lastIndoorEnd = now.month >= 10
+        ? DateTime(currentYear + 1, 3, 31)
+        : DateTime(currentYear, 3, 31);
+    final lastOutdoorStart = DateTime(currentYear, 4, 1);
+    final lastOutdoorEnd = DateTime(currentYear, 9, 30);
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Select Date Range',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: AppColors.gold,
+                  ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
+            // Quick season picks
+            Text(
+              'Quick Picks',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: [
+                _QuickPickChip(
+                  label: 'Indoor ${lastIndoorStart.year}/${lastIndoorEnd.year % 100}',
+                  onTap: () => Navigator.pop(
+                    context,
+                    DateTimeRange(start: lastIndoorStart, end: lastIndoorEnd),
+                  ),
+                ),
+                _QuickPickChip(
+                  label: 'Outdoor $currentYear',
+                  onTap: () => Navigator.pop(
+                    context,
+                    DateTimeRange(start: lastOutdoorStart, end: lastOutdoorEnd),
+                  ),
+                ),
+                _QuickPickChip(
+                  label: 'Last 90 days',
+                  onTap: () => Navigator.pop(
+                    context,
+                    DateTimeRange(
+                      start: now.subtract(const Duration(days: 90)),
+                      end: now,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: AppSpacing.lg),
+            const Divider(color: AppColors.surfaceLight),
+            const SizedBox(height: AppSpacing.md),
+
+            // Custom date picker button
+            OutlinedButton.icon(
+              onPressed: () async {
+                final range = await showDateRangePicker(
+                  context: context,
+                  firstDate: DateTime(2020),
+                  lastDate: now,
+                  initialDateRange: initialRange ??
+                      DateTimeRange(
+                        start: now.subtract(const Duration(days: 90)),
+                        end: now,
+                      ),
+                  builder: (context, child) {
+                    return Theme(
+                      data: Theme.of(context).copyWith(
+                        colorScheme: ColorScheme.dark(
+                          primary: AppColors.gold,
+                          onPrimary: AppColors.backgroundDark,
+                          surface: AppColors.surfaceDark,
+                          onSurface: AppColors.textPrimary,
+                        ),
+                      ),
+                      child: child!,
+                    );
+                  },
+                );
+                if (range != null && context.mounted) {
+                  Navigator.pop(context, range);
+                }
+              },
+              icon: const Icon(Icons.calendar_today, size: 18),
+              label: const Text('Pick Custom Dates'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.textSecondary,
+                side: BorderSide(color: AppColors.surfaceLight),
+              ),
+            ),
+
+            const SizedBox(height: AppSpacing.md),
+
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: AppColors.textMuted),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickPickChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _QuickPickChip({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return ActionChip(
+      label: Text(label),
+      onPressed: onTap,
+      backgroundColor: AppColors.surfaceLight,
+      labelStyle: TextStyle(
+        color: AppColors.textSecondary,
+        fontSize: 13,
+      ),
+    );
+  }
 }
 
 class _LegendItem extends StatelessWidget {
@@ -125,17 +446,19 @@ class _LegendItem extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 8,
-          height: 8,
+          width: 10,
+          height: 10,
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,
           ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: 6),
         Text(
           label,
-          style: Theme.of(context).textTheme.bodySmall,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary,
+              ),
         ),
       ],
     );
@@ -181,7 +504,7 @@ class _VolumeChartPainter extends CustomPainter {
     final importedPoints = <Offset>[];
 
     for (int i = 0; i < scores.length; i++) {
-      final x = (i / (scores.length - 1)) * size.width;
+      final x = scores.length > 1 ? (i / (scores.length - 1)) * size.width : size.width / 2;
       final normalizedScore = paddedRange > 0
           ? (scores[i].score - paddedMin) / paddedRange
           : 0.5;
@@ -197,12 +520,14 @@ class _VolumeChartPainter extends CustomPainter {
       }
     }
 
-    // Draw connecting lines
+    // Draw connecting lines - higher contrast for red light glasses
     if (points.length > 1) {
       final linePaint = Paint()
-        ..color = AppColors.textMuted.withOpacity(0.3)
-        ..strokeWidth = 1
-        ..style = PaintingStyle.stroke;
+        ..color = AppColors.gold.withAlpha(180)
+        ..strokeWidth = 2.5
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
 
       final path = Path()..moveTo(points[0].dx, points[0].dy);
       for (int i = 1; i < points.length; i++) {
@@ -225,7 +550,7 @@ class _VolumeChartPainter extends CustomPainter {
       areaPath.close();
 
       final areaPaint = Paint()
-        ..color = AppColors.gold.withOpacity(0.05)
+        ..color = AppColors.gold.withAlpha(25)
         ..style = PaintingStyle.fill;
 
       canvas.drawPath(areaPath, areaPaint);
@@ -237,7 +562,7 @@ class _VolumeChartPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     for (final point in importedPoints) {
-      canvas.drawCircle(point, 3, importedPaint);
+      canvas.drawCircle(point, 5, importedPaint);
     }
 
     // Draw plotted session points (on top)
@@ -246,13 +571,14 @@ class _VolumeChartPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     for (final point in plottedPoints) {
-      canvas.drawCircle(point, 4, plottedPaint);
+      canvas.drawCircle(point, 6, plottedPaint);
     }
 
     // Draw score labels at top and bottom
     final textStyle = TextStyle(
-      color: AppColors.textMuted,
-      fontSize: 10,
+      color: AppColors.textSecondary,
+      fontSize: 11,
+      fontWeight: FontWeight.w500,
     );
 
     // Max score label

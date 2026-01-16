@@ -14,8 +14,7 @@ class BowTrainingScreen extends StatefulWidget {
   State<BowTrainingScreen> createState() => _BowTrainingScreenState();
 }
 
-class _BowTrainingScreenState extends State<BowTrainingScreen>
-    with WidgetsBindingObserver {
+class _BowTrainingScreenState extends State<BowTrainingScreen> {
   final TextEditingController _notesController = TextEditingController();
 
   // Feedback slider values
@@ -23,13 +22,9 @@ class _BowTrainingScreenState extends State<BowTrainingScreen>
   int _feedbackStructure = 5;
   int _feedbackRest = 5;
 
-  // Track if we auto-paused due to app backgrounding
-  bool _autoPausedOnBackground = false;
-
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<BowTrainingProvider>();
       provider.loadData();
@@ -43,67 +38,8 @@ class _BowTrainingScreenState extends State<BowTrainingScreen>
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _notesController.dispose();
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    final provider = context.read<BowTrainingProvider>();
-
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive) {
-      // App going to background - pause timer if running
-      if (provider.timerState == TimerState.running) {
-        provider.pauseTimer();
-        _autoPausedOnBackground = true;
-      }
-    } else if (state == AppLifecycleState.resumed) {
-      // App coming back - show dialog if we auto-paused
-      if (_autoPausedOnBackground && provider.timerState == TimerState.paused) {
-        _autoPausedOnBackground = false;
-        // Show resume dialog
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _showResumeDialog(provider);
-        });
-      }
-    }
-  }
-
-  void _showResumeDialog(BowTrainingProvider provider) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceDark,
-        title: const Text('Session Paused'),
-        content: const Text(
-          'Your training was paused while the app was in the background. '
-          'Ready to continue?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              provider.cancelSession();
-            },
-            child: Text('End Session', style: TextStyle(color: AppColors.error)),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              provider.resumeTimer();
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.gold,
-              foregroundColor: Colors.black,
-            ),
-            child: const Text('Resume'),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<bool> _onWillPop(BowTrainingProvider provider) async {
@@ -1124,35 +1060,52 @@ class _TimerControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPaused = provider.timerState == TimerState.paused;
+    final wasPausedByBackground = provider.wasPausedByBackground;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(
-          onPressed: provider.skipPhase,
-          icon: const Icon(Icons.skip_next),
-          iconSize: 32,
-          color: AppColors.textMuted,
-        ),
-        const SizedBox(width: AppSpacing.lg),
-        Container(
-          width: 72,
-          height: 72,
-          decoration: BoxDecoration(
-            color: AppColors.gold,
-            shape: BoxShape.circle,
-          ),
-          child: IconButton(
-            onPressed: isPaused ? provider.resumeTimer : provider.pauseTimer,
-            icon: Icon(
-              isPaused ? Icons.play_arrow : Icons.pause,
-              color: AppColors.backgroundDark,
+        // Subtle message when paused by backgrounding
+        if (isPaused && wasPausedByBackground)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+            child: Text(
+              'Paused (app backgrounded)',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textMuted,
+                  ),
             ),
-            iconSize: 40,
           ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              onPressed: provider.skipPhase,
+              icon: const Icon(Icons.skip_next),
+              iconSize: 32,
+              color: AppColors.textMuted,
+            ),
+            const SizedBox(width: AppSpacing.lg),
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.gold,
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                onPressed: isPaused ? provider.resumeTimer : provider.pauseTimer,
+                icon: Icon(
+                  isPaused ? Icons.play_arrow : Icons.pause,
+                  color: AppColors.backgroundDark,
+                ),
+                iconSize: 40,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.lg),
+            const SizedBox(width: 48),
+          ],
         ),
-        const SizedBox(width: AppSpacing.lg),
-        const SizedBox(width: 48),
       ],
     );
   }

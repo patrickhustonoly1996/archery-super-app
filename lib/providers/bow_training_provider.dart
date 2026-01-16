@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:drift/drift.dart';
 import '../db/database.dart';
 import '../services/firestore_sync_service.dart';
@@ -82,10 +82,15 @@ class CustomSessionConfig {
   String get displayName => '${durationMinutes}min @ ${ratio.label}';
 }
 
-class BowTrainingProvider extends ChangeNotifier {
+class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
   final AppDatabase _db;
 
-  BowTrainingProvider(this._db);
+  BowTrainingProvider(this._db) {
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  /// Tracks if timer was running before app went to background
+  bool _wasRunningBeforeBackground = false;
 
   // ===========================================================================
   // CACHED DATA
@@ -180,6 +185,9 @@ class BowTrainingProvider extends ChangeNotifier {
   String? get movementCue => _currentMovementCue;
   int get customRep => _customCurrentRep;
   int get customTotalReps => _customTotalReps;
+
+  /// True if timer was auto-paused because app went to background
+  bool get wasPausedByBackground => _wasRunningBeforeBackground;
 
   // ===========================================================================
   // DATA LOADING
@@ -327,6 +335,7 @@ class BowTrainingProvider extends ChangeNotifier {
   void resumeTimer() {
     if (_timerState != TimerState.paused) return;
     _timerState = TimerState.running;
+    _wasRunningBeforeBackground = false; // Clear background pause indicator
     _startTimer();
     notifyListeners();
   }
@@ -873,8 +882,26 @@ class BowTrainingProvider extends ChangeNotifier {
     return currentExerciseType?.intensity ?? 1.0;
   }
 
+  // ===========================================================================
+  // APP LIFECYCLE
+  // ===========================================================================
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      // App going to background - pause timer if running
+      if (_timerState == TimerState.running) {
+        _wasRunningBeforeBackground = true;
+        pauseTimer();
+      }
+    }
+    // Note: We do NOT auto-resume - user must manually resume
+    // This prevents confusion when returning to the app
+  }
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     super.dispose();
   }
