@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:csv/csv.dart';
@@ -84,6 +85,17 @@ class _ImportScreenState extends State<ImportScreen> {
       // Parse CSV
       final parseResult = _importService.parseScoresCsv(rows);
 
+      // Check if all rows failed
+      if (parseResult.drafts.isEmpty && parseResult.skipped > 0) {
+        setState(() {
+          _error = 'Could not parse any valid rows. ${parseResult.skipped} row${parseResult.skipped == 1 ? '' : 's'} failed.';
+          _skippedRows = parseResult.skipped;
+          _skippedReasons = parseResult.reasons;
+          _isLoading = false;
+        });
+        return;
+      }
+
       setState(() {
         _drafts = parseResult.drafts;
         _skippedRows = parseResult.skipped;
@@ -117,6 +129,17 @@ class _ImportScreenState extends State<ImportScreen> {
 
       // Parse CSV
       final result = _importService.parseScoresCsv(rows);
+
+      // Check if all rows failed
+      if (result.drafts.isEmpty && result.skipped > 0) {
+        setState(() {
+          _error = 'Could not parse any valid rows. ${result.skipped} row${result.skipped == 1 ? '' : 's'} failed.';
+          _skippedRows = result.skipped;
+          _skippedReasons = result.reasons;
+          _isLoading = false;
+        });
+        return;
+      }
 
       setState(() {
         _drafts = result.drafts;
@@ -516,7 +539,7 @@ class _ImportOptionCard extends StatelessWidget {
   }
 }
 
-class _DraftReview extends StatelessWidget {
+class _DraftReview extends StatefulWidget {
   final List<ScoreDraft> drafts;
   final VoidCallback onImport;
   final VoidCallback onCancel;
@@ -532,10 +555,28 @@ class _DraftReview extends StatelessWidget {
   });
 
   @override
+  State<_DraftReview> createState() => _DraftReviewState();
+}
+
+class _DraftReviewState extends State<_DraftReview> {
+  bool _showSkippedDetails = false;
+
+  void _copySkippedToClipboard() {
+    final text = widget.skippedReasons.join('\n');
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Skipped rows copied to clipboard'),
+        backgroundColor: AppColors.surfaceDark,
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Group by round type for summary
     final roundCounts = <String, int>{};
-    for (final draft in drafts) {
+    for (final draft in widget.drafts) {
       roundCounts[draft.roundName] = (roundCounts[draft.roundName] ?? 0) + 1;
     }
 
@@ -549,7 +590,7 @@ class _DraftReview extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${drafts.length} scores ready to import',
+                '${widget.drafts.length} scores ready to import',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: AppColors.gold,
                     ),
@@ -559,15 +600,15 @@ class _DraftReview extends StatelessWidget {
                 '${roundCounts.length} round types found',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
-              if (drafts.isNotEmpty) ...[
+              if (widget.drafts.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  'Date range: ${_formatDate(drafts.last.date)} - ${_formatDate(drafts.first.date)}',
+                  'Date range: ${_formatDate(widget.drafts.last.date)} - ${_formatDate(widget.drafts.first.date)}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
               // Show skipped rows warning
-              if (skippedRows > 0) ...[
+              if (widget.skippedRows > 0) ...[
                 const SizedBox(height: AppSpacing.sm),
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.sm),
@@ -578,23 +619,33 @@ class _DraftReview extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Icon(Icons.warning_amber, color: Colors.orange, size: 16),
-                          const SizedBox(width: AppSpacing.xs),
-                          Text(
-                            '$skippedRows row${skippedRows == 1 ? '' : 's'} skipped',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Colors.orange,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                        ],
+                      InkWell(
+                        onTap: () => setState(() => _showSkippedDetails = !_showSkippedDetails),
+                        child: Row(
+                          children: [
+                            Icon(Icons.warning_amber, color: Colors.orange, size: 16),
+                            const SizedBox(width: AppSpacing.xs),
+                            Expanded(
+                              child: Text(
+                                '${widget.skippedRows} row${widget.skippedRows == 1 ? '' : 's'} skipped',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Colors.orange,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ),
+                            Icon(
+                              _showSkippedDetails ? Icons.expand_less : Icons.expand_more,
+                              color: Colors.orange,
+                              size: 20,
+                            ),
+                          ],
+                        ),
                       ),
-                      if (skippedReasons.isNotEmpty) ...[
+                      if (_showSkippedDetails && widget.skippedReasons.isNotEmpty) ...[
                         const SizedBox(height: AppSpacing.xs),
-                        ...skippedReasons.take(3).map((reason) => Padding(
-                              padding: const EdgeInsets.only(left: 20),
+                        ...widget.skippedReasons.map((reason) => Padding(
+                              padding: const EdgeInsets.only(left: 20, top: 2),
                               child: Text(
                                 reason,
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -603,11 +654,11 @@ class _DraftReview extends StatelessWidget {
                                     ),
                               ),
                             )),
-                        if (skippedReasons.length > 3)
+                        if (widget.skippedReasons.length < widget.skippedRows)
                           Padding(
-                            padding: const EdgeInsets.only(left: 20),
+                            padding: const EdgeInsets.only(left: 20, top: 2),
                             child: Text(
-                              '... and ${skippedReasons.length - 3} more',
+                              '... and ${widget.skippedRows - widget.skippedReasons.length} more',
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: AppColors.textMuted,
                                     fontSize: 11,
@@ -615,6 +666,20 @@ class _DraftReview extends StatelessWidget {
                                   ),
                             ),
                           ),
+                        const SizedBox(height: AppSpacing.sm),
+                        TextButton.icon(
+                          onPressed: _copySkippedToClipboard,
+                          icon: Icon(Icons.copy, size: 14, color: Colors.orange),
+                          label: Text(
+                            'Copy skipped rows',
+                            style: TextStyle(color: Colors.orange, fontSize: 12),
+                          ),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
                       ],
                     ],
                   ),
@@ -628,9 +693,9 @@ class _DraftReview extends StatelessWidget {
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.all(AppSpacing.md),
-            itemCount: drafts.length,
+            itemCount: widget.drafts.length,
             itemBuilder: (context, index) {
-              final draft = drafts[index];
+              final draft = widget.drafts[index];
               return Card(
                 margin: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: Padding(
@@ -709,7 +774,7 @@ class _DraftReview extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: onCancel,
+                  onPressed: widget.onCancel,
                   child: const Text('Cancel'),
                 ),
               ),
@@ -717,8 +782,8 @@ class _DraftReview extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: ElevatedButton(
-                  onPressed: onImport,
-                  child: Text('Import ${drafts.length} Scores'),
+                  onPressed: widget.onImport,
+                  child: Text('Import ${widget.drafts.length} Scores'),
                 ),
               ),
             ],

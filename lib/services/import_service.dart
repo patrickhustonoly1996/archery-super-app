@@ -212,9 +212,13 @@ class ImportService {
 
   /// Parse volume CSV data
   ///
-  /// Returns a list of parsed volume drafts
-  List<VolumeDraft> parseVolumeCsv(List<List<dynamic>> rows) {
-    if (rows.isEmpty) return [];
+  /// Returns a record with:
+  /// - drafts: List of parsed volume drafts
+  /// - skipped: Number of rows skipped due to parsing errors
+  /// - reasons: List of skip reasons (limited to first 5)
+  ({List<VolumeDraft> drafts, int skipped, List<String> reasons}) parseVolumeCsv(
+      List<List<dynamic>> rows) {
+    if (rows.isEmpty) return (drafts: [], skipped: 0, reasons: []);
 
     // Try to detect header row
     final firstRow =
@@ -302,9 +306,15 @@ class ImportService {
     if (notesCol < 0 && firstRow.length > 3) notesCol = 3;
 
     final drafts = <VolumeDraft>[];
+    int skippedCount = 0;
+    final skippedReasons = <String>[];
 
+    int rowNumber = hasHeader ? 2 : 1; // Start counting from 1, skip header
     for (final row in dataRows) {
-      if (row.isEmpty) continue;
+      if (row.isEmpty) {
+        rowNumber++;
+        continue;
+      }
 
       try {
         final dateStr = dateCol < row.length ? row[dateCol].toString() : '';
@@ -319,12 +329,26 @@ class ImportService {
 
         // Parse date
         final date = _parseDate(dateStr);
-        if (date == null) continue;
+        if (date == null) {
+          skippedCount++;
+          if (skippedReasons.length < 5) {
+            skippedReasons.add('Row $rowNumber: Invalid date "$dateStr"');
+          }
+          rowNumber++;
+          continue;
+        }
 
         // Parse volume - handle commas (e.g., "1,200" -> 1200)
         final volume =
             int.tryParse(volumeStr.replaceAll(RegExp(r'[^0-9]'), ''));
-        if (volume == null || volume <= 0) continue;
+        if (volume == null || volume <= 0) {
+          skippedCount++;
+          if (skippedReasons.length < 5) {
+            skippedReasons.add('Row $rowNumber: Invalid arrow count "$volumeStr"');
+          }
+          rowNumber++;
+          continue;
+        }
 
         drafts.add(VolumeDraft(
           date: date,
@@ -332,12 +356,16 @@ class ImportService {
           title: title?.isEmpty == true ? null : title,
           notes: notes?.isEmpty == true ? null : notes,
         ));
-      } catch (_) {
-        // Skip invalid rows
+      } catch (e) {
+        skippedCount++;
+        if (skippedReasons.length < 5) {
+          skippedReasons.add('Row $rowNumber: Parse error - $e');
+        }
       }
+      rowNumber++;
     }
 
-    return drafts;
+    return (drafts: drafts, skipped: skippedCount, reasons: skippedReasons);
   }
 
   /// Parse date string in various common formats

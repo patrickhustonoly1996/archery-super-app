@@ -664,15 +664,15 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 2);
+      expect(result.drafts.length, 2);
 
-      expect(result[0].date, DateTime(2026, 1, 15));
-      expect(result[0].arrowCount, 144);
-      expect(result[0].title, isNull);
-      expect(result[0].notes, isNull);
+      expect(result.drafts[0].date, DateTime(2026, 1, 15));
+      expect(result.drafts[0].arrowCount, 144);
+      expect(result.drafts[0].title, isNull);
+      expect(result.drafts[0].notes, isNull);
 
-      expect(result[1].date, DateTime(2026, 1, 14));
-      expect(result[1].arrowCount, 216);
+      expect(result.drafts[1].date, DateTime(2026, 1, 14));
+      expect(result.drafts[1].arrowCount, 216);
     });
 
     test('parses valid volume CSV without header', () {
@@ -683,9 +683,9 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 2);
-      expect(result[0].arrowCount, 144);
-      expect(result[1].arrowCount, 216);
+      expect(result.drafts.length, 2);
+      expect(result.drafts[0].arrowCount, 144);
+      expect(result.drafts[1].arrowCount, 216);
     });
 
     test('parses volume CSV with all optional columns', () {
@@ -696,11 +696,11 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].date, DateTime(2026, 1, 15));
-      expect(result[0].arrowCount, 144);
-      expect(result[0].title, 'Morning Practice');
-      expect(result[0].notes, 'Good form today');
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].date, DateTime(2026, 1, 15));
+      expect(result.drafts[0].arrowCount, 144);
+      expect(result.drafts[0].title, 'Morning Practice');
+      expect(result.drafts[0].notes, 'Good form today');
     });
 
     test('detects volume columns using alternative naming conventions', () {
@@ -711,9 +711,9 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].date, DateTime(2026, 1, 15));
-      expect(result[0].arrowCount, 144);
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].date, DateTime(2026, 1, 15));
+      expect(result.drafts[0].arrowCount, 144);
     });
 
     test('detects columns using "contains" matching for longer aliases', () {
@@ -724,11 +724,11 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].date, DateTime(2026, 1, 15));
-      expect(result[0].arrowCount, 144);
-      expect(result[0].title, 'AM Session');
-      expect(result[0].notes, 'Windy conditions');
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].date, DateTime(2026, 1, 15));
+      expect(result.drafts[0].arrowCount, 144);
+      expect(result.drafts[0].title, 'AM Session');
+      expect(result.drafts[0].notes, 'Windy conditions');
     });
 
     test('handles mixed naming conventions', () {
@@ -739,10 +739,10 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].arrowCount, 144);
-      expect(result[0].title, 'Practice');
-      expect(result[0].notes, 'Testing new arrows');
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].arrowCount, 144);
+      expect(result.drafts[0].title, 'Practice');
+      expect(result.drafts[0].notes, 'Testing new arrows');
     });
   });
 
@@ -755,8 +755,8 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].arrowCount, 144);
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].arrowCount, 144);
     });
 
     test('handles arrow counts with commas (e.g., 1,200)', () {
@@ -767,8 +767,8 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].arrowCount, 1200);
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].arrowCount, 1200);
     });
 
     test('rejects zero arrow counts', () {
@@ -779,7 +779,7 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 0);
+      expect(result.drafts.length, 0);
     });
 
     test('rejects negative arrow counts', () {
@@ -792,8 +792,8 @@ void main() {
 
       // The regex strips minus sign, leaving "100" which is valid
       // This matches the scores behavior
-      expect(result.length, 1);
-      expect(result[0].arrowCount, 100);
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].arrowCount, 100);
     });
 
     test('rejects non-numeric arrow counts', () {
@@ -804,7 +804,7 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 0);
+      expect(result.drafts.length, 0);
     });
 
     test('rejects empty arrow counts', () {
@@ -815,7 +815,7 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 0);
+      expect(result.drafts.length, 0);
     });
 
     test('accepts typical archery arrow counts', () {
@@ -829,11 +829,11 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 4);
-      expect(result[0].arrowCount, 36);
-      expect(result[1].arrowCount, 72);
-      expect(result[2].arrowCount, 144);
-      expect(result[3].arrowCount, 216);
+      expect(result.drafts.length, 4);
+      expect(result.drafts[0].arrowCount, 36);
+      expect(result.drafts[1].arrowCount, 72);
+      expect(result.drafts[2].arrowCount, 144);
+      expect(result.drafts[3].arrowCount, 216);
     });
   });
 
@@ -846,8 +846,8 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].date, DateTime(2026, 1, 15));
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].date, DateTime(2026, 1, 15));
     });
 
     test('parses European date format (DD/MM/YYYY)', () {
@@ -858,8 +858,8 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].date, DateTime(2026, 1, 15));
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].date, DateTime(2026, 1, 15));
     });
 
     test('parses dash-separated date format (DD-MM-YYYY)', () {
@@ -870,8 +870,8 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].date, DateTime(2026, 1, 15));
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].date, DateTime(2026, 1, 15));
     });
 
     test('parses German date format (DD.MM.YYYY)', () {
@@ -882,8 +882,8 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].date, DateTime(2026, 1, 15));
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].date, DateTime(2026, 1, 15));
     });
 
     test('handles dates with single-digit day/month (D/M/YYYY)', () {
@@ -894,8 +894,8 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].date, DateTime(2026, 1, 5));
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].date, DateTime(2026, 1, 5));
     });
 
     test('handles dates with single-digit day/month in ISO format (YYYY-M-D)',
@@ -907,8 +907,8 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].date, DateTime(2026, 1, 5));
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].date, DateTime(2026, 1, 5));
     });
 
     test('skips rows with invalid dates silently', () {
@@ -920,9 +920,9 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].date, DateTime(2026, 1, 15));
-      expect(result[0].arrowCount, 216);
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].date, DateTime(2026, 1, 15));
+      expect(result.drafts[0].arrowCount, 216);
     });
   });
 
@@ -937,8 +937,8 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].arrowCount, 216);
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].arrowCount, 216);
     });
 
     test('continues parsing after errors', () {
@@ -952,9 +952,9 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 2);
-      expect(result[0].arrowCount, 144);
-      expect(result[1].arrowCount, 216);
+      expect(result.drafts.length, 2);
+      expect(result.drafts[0].arrowCount, 144);
+      expect(result.drafts[1].arrowCount, 216);
     });
 
     test('handles rows shorter than expected columns', () {
@@ -965,7 +965,7 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 0);
+      expect(result.drafts.length, 0);
     });
 
     test('handles exception during row parsing', () {
@@ -979,9 +979,9 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 2);
-      expect(result[0].arrowCount, 144);
-      expect(result[1].arrowCount, 216);
+      expect(result.drafts.length, 2);
+      expect(result.drafts[0].arrowCount, 144);
+      expect(result.drafts[1].arrowCount, 216);
     });
   });
 
@@ -991,7 +991,7 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result, isEmpty);
+      expect(result.drafts, isEmpty);
     });
 
     test('handles CSV with only header row', () {
@@ -1001,7 +1001,7 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result, isEmpty);
+      expect(result.drafts, isEmpty);
     });
 
     test('skips empty rows', () {
@@ -1015,9 +1015,9 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 2);
-      expect(result[0].arrowCount, 144);
-      expect(result[1].arrowCount, 216);
+      expect(result.drafts.length, 2);
+      expect(result.drafts[0].arrowCount, 144);
+      expect(result.drafts[1].arrowCount, 216);
     });
 
     test('handles rows with extra columns beyond expected', () {
@@ -1028,8 +1028,8 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].arrowCount, 144);
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].arrowCount, 144);
     });
 
     test('handles mixed valid and invalid rows', () {
@@ -1043,9 +1043,9 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 2);
-      expect(result[0].arrowCount, 144);
-      expect(result[1].arrowCount, 72);
+      expect(result.drafts.length, 2);
+      expect(result.drafts[0].arrowCount, 144);
+      expect(result.drafts[1].arrowCount, 72);
     });
   });
 
@@ -1058,8 +1058,8 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].arrowCount, 144);
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].arrowCount, 144);
     });
 
     test('handles special characters in title and notes', () {
@@ -1070,9 +1070,9 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].title, 'Café Practice');
-      expect(result[0].notes, 'Wind & rain');
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].title, 'Café Practice');
+      expect(result.drafts[0].notes, 'Wind & rain');
     });
 
     test('trims whitespace from string fields', () {
@@ -1083,9 +1083,9 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].title, 'Morning');
-      expect(result[0].notes, 'Good session');
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].title, 'Morning');
+      expect(result.drafts[0].notes, 'Good session');
     });
 
     test('handles empty string values in optional fields', () {
@@ -1096,9 +1096,9 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].title, isNull); // empty string -> null
-      expect(result[0].notes, isNull);
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].title, isNull); // empty string -> null
+      expect(result.drafts[0].notes, isNull);
     });
   });
 
@@ -1110,11 +1110,11 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].date, DateTime(2026, 1, 15));
-      expect(result[0].arrowCount, 144);
-      expect(result[0].title, 'Practice');
-      expect(result[0].notes, 'Notes here');
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].date, DateTime(2026, 1, 15));
+      expect(result.drafts[0].arrowCount, 144);
+      expect(result.drafts[0].title, 'Practice');
+      expect(result.drafts[0].notes, 'Notes here');
     });
 
     test('handles missing optional columns with default positions', () {
@@ -1125,9 +1125,9 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].title, isNull);
-      expect(result[0].notes, isNull);
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].title, isNull);
+      expect(result.drafts[0].notes, isNull);
     });
   });
 
@@ -1142,11 +1142,11 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 3);
-      expect(result[0].arrowCount, 144);
-      expect(result[0].title, 'Morning Practice');
-      expect(result[1].arrowCount, 72);
-      expect(result[2].arrowCount, 216);
+      expect(result.drafts.length, 3);
+      expect(result.drafts[0].arrowCount, 144);
+      expect(result.drafts[0].title, 'Morning Practice');
+      expect(result.drafts[1].arrowCount, 72);
+      expect(result.drafts[2].arrowCount, 216);
     });
 
     test('parses minimal CSV with just date and volume', () {
@@ -1158,10 +1158,10 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 3);
-      expect(result[0].arrowCount, 144);
-      expect(result[1].arrowCount, 72);
-      expect(result[2].arrowCount, 216);
+      expect(result.drafts.length, 3);
+      expect(result.drafts[0].arrowCount, 144);
+      expect(result.drafts[1].arrowCount, 72);
+      expect(result.drafts[2].arrowCount, 216);
     });
 
     test('handles large arrow counts for heavy training days', () {
@@ -1172,8 +1172,8 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 1);
-      expect(result[0].arrowCount, 500);
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].arrowCount, 500);
     });
   });
 
@@ -1193,7 +1193,7 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result, isEmpty);
+      expect(result.drafts, isEmpty);
     });
   });
 
@@ -1223,7 +1223,7 @@ void main() {
       final result = service.parseVolumeCsv(rows);
 
       // Should return empty list (all rows silently skipped)
-      expect(result, isEmpty);
+      expect(result.drafts, isEmpty);
     });
 
     test('parseScoresCsv handles non-CSV data gracefully', () {
@@ -1247,7 +1247,7 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result, isEmpty);
+      expect(result.drafts, isEmpty);
     });
   });
 
@@ -1287,9 +1287,9 @@ void main() {
 
       final result = service.parseVolumeCsv(rows);
 
-      expect(result.length, 10000);
-      expect(result.first.arrowCount, 101);
-      expect(result.last.arrowCount, 10100);
+      expect(result.drafts.length, 10000);
+      expect(result.drafts.first.arrowCount, 101);
+      expect(result.drafts.last.arrowCount, 10100);
     });
 
     test('parseScoresCsv handles large file with many errors efficiently', () {
@@ -1389,9 +1389,9 @@ void main() {
       final result = service.parseVolumeCsv(rows);
 
       // Only returns successful parses, no error reporting
-      expect(result.length, 2);
-      expect(result[0].arrowCount, 144);
-      expect(result[1].arrowCount, 72);
+      expect(result.drafts.length, 2);
+      expect(result.drafts[0].arrowCount, 144);
+      expect(result.drafts[1].arrowCount, 72);
     });
   });
 
@@ -1471,8 +1471,8 @@ void main() {
       final result = service.parseVolumeCsv(rows);
 
       // Only first row is valid (others fail for various reasons)
-      expect(result.length, 1);
-      expect(result[0].arrowCount, 144);
+      expect(result.drafts.length, 1);
+      expect(result.drafts[0].arrowCount, 144);
     });
   });
 }

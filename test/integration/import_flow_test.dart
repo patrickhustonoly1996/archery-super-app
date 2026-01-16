@@ -586,11 +586,12 @@ void main() {
 
         final result = service.parseVolumeCsv(rows);
 
-        expect(result.length, equals(2));
-        expect(result[0].arrowCount, equals(120));
-        expect(result[0].title, equals('Morning Practice'));
-        expect(result[0].notes, equals('Good session'));
-        expect(result[1].arrowCount, equals(150));
+        expect(result.drafts.length, equals(2));
+        expect(result.drafts[0].arrowCount, equals(120));
+        expect(result.drafts[0].title, equals('Morning Practice'));
+        expect(result.drafts[0].notes, equals('Good session'));
+        expect(result.drafts[1].arrowCount, equals(150));
+        expect(result.skipped, equals(0));
       });
 
       test('parseVolumeCsv handles different column names', () {
@@ -602,8 +603,8 @@ void main() {
 
         final result = service.parseVolumeCsv(rows);
 
-        expect(result.length, equals(1));
-        expect(result[0].arrowCount, equals(100));
+        expect(result.drafts.length, equals(1));
+        expect(result.drafts[0].arrowCount, equals(100));
       });
 
       test('parseVolumeCsv skips invalid rows', () {
@@ -619,8 +620,10 @@ void main() {
         final result = service.parseVolumeCsv(rows);
 
         // Only the valid row should be parsed
-        expect(result.length, equals(1));
-        expect(result[0].arrowCount, equals(120));
+        expect(result.drafts.length, equals(1));
+        expect(result.drafts[0].arrowCount, equals(120));
+        expect(result.skipped, equals(3));
+        expect(result.reasons.length, greaterThan(0));
       });
 
       test('parseVolumeCsv handles scores with commas', () {
@@ -632,15 +635,16 @@ void main() {
 
         final result = service.parseVolumeCsv(rows);
 
-        expect(result.length, equals(1));
-        expect(result[0].arrowCount, equals(1200));
+        expect(result.drafts.length, equals(1));
+        expect(result.drafts[0].arrowCount, equals(1200));
       });
 
       test('parseVolumeCsv returns empty for empty input', () {
         final service = ImportService();
         final result = service.parseVolumeCsv([]);
 
-        expect(result, isEmpty);
+        expect(result.drafts, isEmpty);
+        expect(result.skipped, equals(0));
       });
     });
   });

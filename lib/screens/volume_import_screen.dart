@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:csv/csv.dart';
@@ -23,6 +24,8 @@ class _VolumeImportScreenState extends State<VolumeImportScreen> {
   int _importProgress = 0;
   int _importTotal = 0;
   String? _error;
+  int _skippedRows = 0;
+  List<String> _skippedReasons = [];
 
   Future<void> _pickAndParseCSV() async {
     setState(() {
@@ -61,10 +64,23 @@ class _VolumeImportScreenState extends State<VolumeImportScreen> {
         return;
       }
 
-      final drafts = _importService.parseVolumeCsv(rows);
+      final parseResult = _importService.parseVolumeCsv(rows);
+
+      // Check if all rows failed
+      if (parseResult.drafts.isEmpty && parseResult.skipped > 0) {
+        setState(() {
+          _error = 'Could not parse any valid rows. ${parseResult.skipped} row${parseResult.skipped == 1 ? '' : 's'} failed.';
+          _skippedRows = parseResult.skipped;
+          _skippedReasons = parseResult.reasons;
+          _isLoading = false;
+        });
+        return;
+      }
 
       setState(() {
-        _drafts = drafts;
+        _drafts = parseResult.drafts;
+        _skippedRows = parseResult.skipped;
+        _skippedReasons = parseResult.reasons;
         _isLoading = false;
       });
     } catch (e) {
@@ -92,10 +108,23 @@ class _VolumeImportScreenState extends State<VolumeImportScreen> {
         return;
       }
 
-      final drafts = _importService.parseVolumeCsv(rows);
+      final parseResult = _importService.parseVolumeCsv(rows);
+
+      // Check if all rows failed
+      if (parseResult.drafts.isEmpty && parseResult.skipped > 0) {
+        setState(() {
+          _error = 'Could not parse any valid rows. ${parseResult.skipped} row${parseResult.skipped == 1 ? '' : 's'} failed.';
+          _skippedRows = parseResult.skipped;
+          _skippedReasons = parseResult.reasons;
+          _isLoading = false;
+        });
+        return;
+      }
 
       setState(() {
-        _drafts = drafts;
+        _drafts = parseResult.drafts;
+        _skippedRows = parseResult.skipped;
+        _skippedReasons = parseResult.reasons;
         _isLoading = false;
       });
     } catch (e) {
@@ -206,6 +235,8 @@ class _VolumeImportScreenState extends State<VolumeImportScreen> {
                       drafts: _drafts,
                       onImport: _importAll,
                       onCancel: () => setState(() => _drafts = []),
+                      skippedRows: _skippedRows,
+                      skippedReasons: _skippedReasons,
                     ),
     );
   }
@@ -504,27 +535,145 @@ class _ImportOptionCard extends StatelessWidget {
   }
 }
 
-class _DraftReview extends StatelessWidget {
+class _DraftReview extends StatefulWidget {
   final List<VolumeDraft> drafts;
   final VoidCallback onImport;
   final VoidCallback onCancel;
+  final int skippedRows;
+  final List<String> skippedReasons;
 
   const _DraftReview({
     required this.drafts,
     required this.onImport,
     required this.onCancel,
+    this.skippedRows = 0,
+    this.skippedReasons = const [],
   });
+
+  @override
+  State<_DraftReview> createState() => _DraftReviewState();
+}
+
+class _DraftReviewState extends State<_DraftReview> {
+  bool _showSkippedDetails = false;
+
+  void _copySkippedToClipboard() {
+    final text = widget.skippedReasons.join('\n');
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Skipped rows copied to clipboard'),
+        backgroundColor: AppColors.surfaceDark,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // Summary header with skipped rows warning
+        if (widget.skippedRows > 0)
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            color: AppColors.surfaceDark,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      '${widget.drafts.length} entries ready to import',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: AppColors.gold,
+                          ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(AppSpacing.xs),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      InkWell(
+                        onTap: () => setState(() => _showSkippedDetails = !_showSkippedDetails),
+                        child: Row(
+                          children: [
+                            Icon(Icons.warning_amber, color: Colors.orange, size: 16),
+                            const SizedBox(width: AppSpacing.xs),
+                            Expanded(
+                              child: Text(
+                                '${widget.skippedRows} row${widget.skippedRows == 1 ? '' : 's'} skipped',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Colors.orange,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ),
+                            Icon(
+                              _showSkippedDetails ? Icons.expand_less : Icons.expand_more,
+                              color: Colors.orange,
+                              size: 20,
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (_showSkippedDetails && widget.skippedReasons.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.sm),
+                        ...widget.skippedReasons.map((reason) => Padding(
+                              padding: const EdgeInsets.only(left: 20, top: 2),
+                              child: Text(
+                                reason,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppColors.textMuted,
+                                      fontSize: 11,
+                                    ),
+                              ),
+                            )),
+                        if (widget.skippedReasons.length < widget.skippedRows)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 20, top: 2),
+                            child: Text(
+                              '... and ${widget.skippedRows - widget.skippedReasons.length} more',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.textMuted,
+                                    fontSize: 11,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                            ),
+                          ),
+                        const SizedBox(height: AppSpacing.sm),
+                        TextButton.icon(
+                          onPressed: _copySkippedToClipboard,
+                          icon: Icon(Icons.copy, size: 14, color: Colors.orange),
+                          label: Text(
+                            'Copy skipped rows',
+                            style: TextStyle(color: Colors.orange, fontSize: 12),
+                          ),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.all(AppSpacing.md),
-            itemCount: drafts.length,
+            itemCount: widget.drafts.length,
             itemBuilder: (context, index) {
-              final draft = drafts[index];
+              final draft = widget.drafts[index];
               final dateStr =
                   '${draft.date.day}/${draft.date.month}/${draft.date.year}';
               return Card(
@@ -598,7 +747,7 @@ class _DraftReview extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: onCancel,
+                  onPressed: widget.onCancel,
                   child: const Text('Cancel'),
                 ),
               ),
@@ -606,8 +755,8 @@ class _DraftReview extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: ElevatedButton(
-                  onPressed: onImport,
-                  child: Text('Import ${drafts.length} Entries'),
+                  onPressed: widget.onImport,
+                  child: Text('Import ${widget.drafts.length} Entries'),
                 ),
               ),
             ],
