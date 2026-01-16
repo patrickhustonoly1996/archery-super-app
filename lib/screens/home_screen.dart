@@ -329,8 +329,8 @@ class _HomeScreenState extends State<HomeScreen>
                             pinned: true,
                             delegate: _CollapsingLogoHeader(
                               pulseController: _pulseController,
-                              expandedHeight: 56,
-                              collapsedHeight: 36,
+                              expandedHeight: 120,
+                              collapsedHeight: 44,
                             ),
                           ),
 
