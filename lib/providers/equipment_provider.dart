@@ -107,6 +107,8 @@ class EquipmentProvider extends ChangeNotifier {
       name: Value(name ?? bow.name),
       bowType: Value(bowType ?? bow.bowType),
       settings: Value(settings ?? bow.settings),
+      isDefault: Value(bow.isDefault),
+      createdAt: Value(bow.createdAt),
       updatedAt: Value(DateTime.now()),
     ));
 
@@ -118,6 +120,7 @@ class EquipmentProvider extends ChangeNotifier {
     required String id,
     String? name,
     String? bowId,
+    String? settings,
   }) async {
     final quiver = await _db.getQuiver(id);
     if (quiver == null) return;
@@ -125,7 +128,11 @@ class EquipmentProvider extends ChangeNotifier {
     await _db.updateQuiver(QuiversCompanion(
       id: Value(id),
       name: Value(name ?? quiver.name),
-      bowId: Value(bowId),
+      bowId: Value(bowId ?? quiver.bowId),
+      shaftCount: Value(quiver.shaftCount),
+      settings: Value(settings ?? quiver.settings),
+      isDefault: Value(quiver.isDefault),
+      createdAt: Value(quiver.createdAt),
       updatedAt: Value(DateTime.now()),
     ));
 

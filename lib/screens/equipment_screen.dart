@@ -3,8 +3,13 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
 import '../db/database.dart';
+import '../widgets/bow_icon.dart';
+import '../models/bow_specifications.dart';
+import '../models/arrow_specifications.dart';
 import 'bow_form_screen.dart';
+import 'bow_detail_screen.dart';
 import 'quiver_form_screen.dart';
+import 'quiver_detail_screen.dart';
 import 'shaft_management_screen.dart';
 
 class EquipmentScreen extends StatefulWidget {
@@ -70,8 +75,7 @@ class _BowsTab extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.adjust,
+            BowIcon(
               size: 64,
               color: AppColors.textMuted,
             ),
@@ -145,6 +149,8 @@ class _BowTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final specs = BowSpecifications.fromJson(bow.settings);
+
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
       child: InkWell(
@@ -152,7 +158,7 @@ class _BowTile extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => BowFormScreen(bow: bow),
+              builder: (_) => BowDetailScreen(bow: bow),
             ),
           ).then((_) => context.read<EquipmentProvider>().loadEquipment());
         },
@@ -168,10 +174,9 @@ class _BowTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.adjust,
-                color: bow.isDefault ? AppColors.gold : AppColors.textSecondary,
+              BowIcon(
                 size: 32,
+                color: bow.isDefault ? AppColors.gold : AppColors.textSecondary,
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
@@ -212,6 +217,16 @@ class _BowTile extends StatelessWidget {
                       bow.bowType.toUpperCase(),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
+                    if (specs.hasAnySpecs) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        specs.summaryText,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textMuted,
+                              fontSize: 11,
+                            ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -315,6 +330,8 @@ class _QuiverTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final specs = ArrowSpecifications.fromJson(quiver.settings);
+
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
       child: InkWell(
@@ -322,9 +339,9 @@ class _QuiverTile extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => ShaftManagementScreen(quiver: quiver),
+              builder: (_) => QuiverDetailScreen(quiver: quiver),
             ),
-          );
+          ).then((_) => context.read<EquipmentProvider>().loadEquipment());
         },
         borderRadius: BorderRadius.circular(AppSpacing.sm),
         child: Container(
@@ -339,7 +356,7 @@ class _QuiverTile extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                Icons.filter_list,
+                Icons.inventory_2_outlined,
                 color: quiver.isDefault ? AppColors.gold : AppColors.textSecondary,
                 size: 32,
               ),
@@ -382,6 +399,16 @@ class _QuiverTile extends StatelessWidget {
                       '${quiver.shaftCount} arrows',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
+                    if (specs.hasAnySpecs) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        specs.summaryText,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textMuted,
+                              fontSize: 11,
+                            ),
+                      ),
+                    ],
                   ],
                 ),
               ),
