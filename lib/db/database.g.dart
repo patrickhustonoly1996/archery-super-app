@@ -1165,6 +1165,17 @@ class $QuiversTable extends Quivers with TableInfo<$QuiversTable, Quiver> {
     requiredDuringInsert: false,
     defaultValue: const Constant(12),
   );
+  static const VerificationMeta _settingsMeta = const VerificationMeta(
+    'settings',
+  );
+  @override
+  late final GeneratedColumn<String> settings = GeneratedColumn<String>(
+    'settings',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isDefaultMeta = const VerificationMeta(
     'isDefault',
   );
@@ -1210,6 +1221,7 @@ class $QuiversTable extends Quivers with TableInfo<$QuiversTable, Quiver> {
     bowId,
     name,
     shaftCount,
+    settings,
     isDefault,
     createdAt,
     updatedAt,
@@ -1249,6 +1261,12 @@ class $QuiversTable extends Quivers with TableInfo<$QuiversTable, Quiver> {
       context.handle(
         _shaftCountMeta,
         shaftCount.isAcceptableOrUnknown(data['shaft_count']!, _shaftCountMeta),
+      );
+    }
+    if (data.containsKey('settings')) {
+      context.handle(
+        _settingsMeta,
+        settings.isAcceptableOrUnknown(data['settings']!, _settingsMeta),
       );
     }
     if (data.containsKey('is_default')) {
@@ -1294,6 +1312,10 @@ class $QuiversTable extends Quivers with TableInfo<$QuiversTable, Quiver> {
         DriftSqlType.int,
         data['${effectivePrefix}shaft_count'],
       )!,
+      settings: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}settings'],
+      ),
       isDefault: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_default'],
@@ -1320,6 +1342,7 @@ class Quiver extends DataClass implements Insertable<Quiver> {
   final String? bowId;
   final String name;
   final int shaftCount;
+  final String? settings;
   final bool isDefault;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -1328,6 +1351,7 @@ class Quiver extends DataClass implements Insertable<Quiver> {
     this.bowId,
     required this.name,
     required this.shaftCount,
+    this.settings,
     required this.isDefault,
     required this.createdAt,
     required this.updatedAt,
@@ -1341,6 +1365,9 @@ class Quiver extends DataClass implements Insertable<Quiver> {
     }
     map['name'] = Variable<String>(name);
     map['shaft_count'] = Variable<int>(shaftCount);
+    if (!nullToAbsent || settings != null) {
+      map['settings'] = Variable<String>(settings);
+    }
     map['is_default'] = Variable<bool>(isDefault);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -1355,6 +1382,9 @@ class Quiver extends DataClass implements Insertable<Quiver> {
           : Value(bowId),
       name: Value(name),
       shaftCount: Value(shaftCount),
+      settings: settings == null && nullToAbsent
+          ? const Value.absent()
+          : Value(settings),
       isDefault: Value(isDefault),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -1371,6 +1401,7 @@ class Quiver extends DataClass implements Insertable<Quiver> {
       bowId: serializer.fromJson<String?>(json['bowId']),
       name: serializer.fromJson<String>(json['name']),
       shaftCount: serializer.fromJson<int>(json['shaftCount']),
+      settings: serializer.fromJson<String?>(json['settings']),
       isDefault: serializer.fromJson<bool>(json['isDefault']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -1384,6 +1415,7 @@ class Quiver extends DataClass implements Insertable<Quiver> {
       'bowId': serializer.toJson<String?>(bowId),
       'name': serializer.toJson<String>(name),
       'shaftCount': serializer.toJson<int>(shaftCount),
+      'settings': serializer.toJson<String?>(settings),
       'isDefault': serializer.toJson<bool>(isDefault),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -1395,6 +1427,7 @@ class Quiver extends DataClass implements Insertable<Quiver> {
     Value<String?> bowId = const Value.absent(),
     String? name,
     int? shaftCount,
+    Value<String?> settings = const Value.absent(),
     bool? isDefault,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -1403,6 +1436,7 @@ class Quiver extends DataClass implements Insertable<Quiver> {
     bowId: bowId.present ? bowId.value : this.bowId,
     name: name ?? this.name,
     shaftCount: shaftCount ?? this.shaftCount,
+    settings: settings.present ? settings.value : this.settings,
     isDefault: isDefault ?? this.isDefault,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -1415,6 +1449,7 @@ class Quiver extends DataClass implements Insertable<Quiver> {
       shaftCount: data.shaftCount.present
           ? data.shaftCount.value
           : this.shaftCount,
+      settings: data.settings.present ? data.settings.value : this.settings,
       isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -1428,6 +1463,7 @@ class Quiver extends DataClass implements Insertable<Quiver> {
           ..write('bowId: $bowId, ')
           ..write('name: $name, ')
           ..write('shaftCount: $shaftCount, ')
+          ..write('settings: $settings, ')
           ..write('isDefault: $isDefault, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -1436,8 +1472,16 @@ class Quiver extends DataClass implements Insertable<Quiver> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, bowId, name, shaftCount, isDefault, createdAt, updatedAt);
+  int get hashCode => Object.hash(
+    id,
+    bowId,
+    name,
+    shaftCount,
+    settings,
+    isDefault,
+    createdAt,
+    updatedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1446,6 +1490,7 @@ class Quiver extends DataClass implements Insertable<Quiver> {
           other.bowId == this.bowId &&
           other.name == this.name &&
           other.shaftCount == this.shaftCount &&
+          other.settings == this.settings &&
           other.isDefault == this.isDefault &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -1456,6 +1501,7 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
   final Value<String?> bowId;
   final Value<String> name;
   final Value<int> shaftCount;
+  final Value<String?> settings;
   final Value<bool> isDefault;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -1465,6 +1511,7 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
     this.bowId = const Value.absent(),
     this.name = const Value.absent(),
     this.shaftCount = const Value.absent(),
+    this.settings = const Value.absent(),
     this.isDefault = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -1475,6 +1522,7 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
     this.bowId = const Value.absent(),
     required String name,
     this.shaftCount = const Value.absent(),
+    this.settings = const Value.absent(),
     this.isDefault = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -1486,6 +1534,7 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
     Expression<String>? bowId,
     Expression<String>? name,
     Expression<int>? shaftCount,
+    Expression<String>? settings,
     Expression<bool>? isDefault,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -1496,6 +1545,7 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
       if (bowId != null) 'bow_id': bowId,
       if (name != null) 'name': name,
       if (shaftCount != null) 'shaft_count': shaftCount,
+      if (settings != null) 'settings': settings,
       if (isDefault != null) 'is_default': isDefault,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -1508,6 +1558,7 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
     Value<String?>? bowId,
     Value<String>? name,
     Value<int>? shaftCount,
+    Value<String?>? settings,
     Value<bool>? isDefault,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -1518,6 +1569,7 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
       bowId: bowId ?? this.bowId,
       name: name ?? this.name,
       shaftCount: shaftCount ?? this.shaftCount,
+      settings: settings ?? this.settings,
       isDefault: isDefault ?? this.isDefault,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -1539,6 +1591,9 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
     }
     if (shaftCount.present) {
       map['shaft_count'] = Variable<int>(shaftCount.value);
+    }
+    if (settings.present) {
+      map['settings'] = Variable<String>(settings.value);
     }
     if (isDefault.present) {
       map['is_default'] = Variable<bool>(isDefault.value);
@@ -1562,6 +1617,7 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
           ..write('bowId: $bowId, ')
           ..write('name: $name, ')
           ..write('shaftCount: $shaftCount, ')
+          ..write('settings: $settings, ')
           ..write('isDefault: $isDefault, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -10722,6 +10778,7 @@ typedef $$QuiversTableCreateCompanionBuilder =
       Value<String?> bowId,
       required String name,
       Value<int> shaftCount,
+      Value<String?> settings,
       Value<bool> isDefault,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -10733,6 +10790,7 @@ typedef $$QuiversTableUpdateCompanionBuilder =
       Value<String?> bowId,
       Value<String> name,
       Value<int> shaftCount,
+      Value<String?> settings,
       Value<bool> isDefault,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -10820,6 +10878,11 @@ class $$QuiversTableFilterComposer
 
   ColumnFilters<int> get shaftCount => $composableBuilder(
     column: $table.shaftCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get settings => $composableBuilder(
+    column: $table.settings,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10936,6 +10999,11 @@ class $$QuiversTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get settings => $composableBuilder(
+    column: $table.settings,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isDefault => $composableBuilder(
     column: $table.isDefault,
     builder: (column) => ColumnOrderings(column),
@@ -10994,6 +11062,9 @@ class $$QuiversTableAnnotationComposer
     column: $table.shaftCount,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get settings =>
+      $composableBuilder(column: $table.settings, builder: (column) => column);
 
   GeneratedColumn<bool> get isDefault =>
       $composableBuilder(column: $table.isDefault, builder: (column) => column);
@@ -11114,6 +11185,7 @@ class $$QuiversTableTableManager
                 Value<String?> bowId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<int> shaftCount = const Value.absent(),
+                Value<String?> settings = const Value.absent(),
                 Value<bool> isDefault = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -11123,6 +11195,7 @@ class $$QuiversTableTableManager
                 bowId: bowId,
                 name: name,
                 shaftCount: shaftCount,
+                settings: settings,
                 isDefault: isDefault,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -11134,6 +11207,7 @@ class $$QuiversTableTableManager
                 Value<String?> bowId = const Value.absent(),
                 required String name,
                 Value<int> shaftCount = const Value.absent(),
+                Value<String?> settings = const Value.absent(),
                 Value<bool> isDefault = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -11143,6 +11217,7 @@ class $$QuiversTableTableManager
                 bowId: bowId,
                 name: name,
                 shaftCount: shaftCount,
+                settings: settings,
                 isDefault: isDefault,
                 createdAt: createdAt,
                 updatedAt: updatedAt,

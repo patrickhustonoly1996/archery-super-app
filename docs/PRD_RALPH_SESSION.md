@@ -4,6 +4,172 @@ Comprehensive requirements gathered from Patrick. All clarifications complete - 
 
 ---
 
+## CRITICAL: Codebase Issues Found During Review
+
+These issues MUST be fixed as part of the relevant features, or they will cause UI failures.
+
+### Issue 1: Beeps/Vibrations Default to OFF (Should be ON)
+**Location:** `lib/services/breath_training_service.dart` line ~99
+**Problem:** `getBeepsEnabled()` returns `false` by default
+**Fix:** Change default to `true`
+```dart
+// WRONG (current):
+return prefs.getBool(_beepsEnabledKey) ?? false;
+// CORRECT:
+return prefs.getBool(_beepsEnabledKey) ?? true;
+```
+
+### Issue 2: No Vibration Support Exists
+**Location:** All breath training screens
+**Problem:** `BeepService` only does audio beeps. No `HapticFeedback` calls at phase transitions.
+**Fix:** Add vibration calls alongside beeps:
+```dart
+if (vibrationsEnabled) {
+  HapticFeedback.mediumImpact();
+}
+```
+
+### Issue 3: Timer Doesn't Pause on App Background (Paced Screens)
+**Location:** `lib/screens/breath_training/paced_breathing_screen.dart`, `patrick_breath_screen.dart`
+**Problem:** `BreathHoldScreen` has `WidgetsBindingObserver` but the other two screens DON'T
+**Fix:** Add `WidgetsBindingObserver` mixin to both screens:
+```dart
+class _PacedBreathingScreenState extends State<PacedBreathingScreen>
+    with WidgetsBindingObserver {
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _pauseTimer();
+    }
+  }
+}
+```
+
+### Issue 4: Volume Import May Fail Silently
+**Location:** `lib/screens/volume_import_screen.dart`
+**Problem:** No verification that database write succeeded. User thinks import worked.
+**Fix:** Add explicit success check and error state:
+```dart
+try {
+  final rowsInserted = await db.insertVolumeData(data);
+  if (rowsInserted == 0) {
+    throw Exception('No data was saved');
+  }
+  // Show success
+} catch (e) {
+  setState(() => _error = 'Import failed: $e');
+  // Show error UI, don't pretend it worked
+}
+```
+
+### Issue 5: Settings Loaded Async Causes UI Flicker
+**Location:** All breath training screens `initState`
+**Problem:** Settings load async, UI renders with wrong defaults first
+**Fix:** Initialize state with sensible defaults, settings update is secondary:
+```dart
+// Initialize with correct defaults immediately
+bool _vibrationsEnabled = true; // Not false!
+int _holdDuration = 4;
+
+@override
+void initState() {
+  super.initState();
+  _loadSettings(); // Updates later, but defaults are correct
+}
+```
+
+### Issue 6: Bow Settings Stored as Pipe-Delimited Text
+**Location:** `lib/screens/bow_form_screen.dart` lines 50-68
+**Problem:** Settings like `"braceHeight:7.5|tiller:even"` are fragile, no schema
+**Impact:** Equipment expansion (PRD 4B) will be painful
+**Fix:** When implementing 4B, migrate to proper typed columns OR structured JSON:
+```dart
+// Option A: Add real columns to Bows table
+RealColumn get poundage => real().nullable();
+TextColumn get limbModel => text().nullable();
+
+// Option B: Use JSON with schema validation
+TextColumn get settingsJson => text().nullable();
+// Parse as: Map<String, dynamic> settings = jsonDecode(bow.settingsJson);
+```
+
+### Issue 7: Shaft Tracking Preference Not Remembered
+**Location:** `lib/screens/session_start_screen.dart` (lines 200-215)
+**Problem:** Toggle exists but resets to OFF each new session. Users have to re-enable every time.
+**Fix:** Store preference in SharedPreferences, load as default:
+```dart
+// On session start screen init:
+final prefs = await SharedPreferences.getInstance();
+_shaftTaggingEnabled = prefs.getBool('shaft_tagging_default') ?? false;
+
+// When user changes toggle:
+await prefs.setBool('shaft_tagging_default', value);
+setState(() => _shaftTaggingEnabled = value);
+```
+
+### Issue 8: Missing nockRotation Column in Arrows Table
+**Location:** `lib/db/database.dart` - Arrows table
+**Problem:** PRD 4C requires nock rotation tracking but column doesn't exist
+**Fix:** Add in migration:
+```dart
+// In Arrows table definition
+TextColumn get nockRotation => text().nullable(); // '12', '4', '8'
+```
+
+### Issue 9: Form Error Handling Inconsistent
+**Location:** `BowFormScreen`, `QuiverFormScreen`
+**Problem:** Only show loading spinner, no error states displayed
+**Fix:** Follow `SessionDetailScreen` pattern - add error state with retry:
+```dart
+String? _error;
+
+// In build:
+if (_error != null) {
+  return Center(
+    child: Column(
+      children: [
+        Icon(Icons.error, color: AppColors.gold),
+        Text(_error!),
+        ElevatedButton(onPressed: _retry, child: Text('Retry')),
+      ],
+    ),
+  );
+}
+```
+
+### Issue 10: Smart Zoom Can Return < 2x Before Clamping
+**Location:** `lib/utils/smart_zoom.dart`
+**Problem:** Calculation can produce values < 2.0 that need clamping
+**Verify:** Ensure `minZoom = 2.0` is enforced at calculation time, not just display time
+
+---
+
+## Reference Implementations (Follow These Patterns)
+
+| Pattern | Reference File | Use For |
+|---------|----------------|---------|
+| Loading/Error/Empty states | `SessionDetailScreen` | All new screens |
+| Bottom sheet popups | `ShaftSelectorBottomSheet` in `plotting_screen.dart` | Shaft picker, settings |
+| Form with validation | `BowFormScreen` | Equipment forms |
+| Timer with app lifecycle | `BreathHoldScreen` | All timed features |
+| Provider state management | `SessionProvider` | New providers |
+| Database migrations | `database.dart` migration switch | Schema changes |
+
+---
+
 ## RALPH PROMPT (Copy this block)
 
 ```
@@ -285,57 +451,82 @@ ALTER TABLE bows ADD COLUMN shot_count INTEGER DEFAULT 0;
 ---
 
 ### 4C. Arrow Shaft Tracking in Plotting
-**Status:** Not started
-**Problem:** Can't track which numbered arrow made each shot
+**Status:** PARTIALLY IMPLEMENTED - needs enhancement
 
-**Requirements:**
+**What Already Exists:**
+- `shaftTaggingEnabled` column in Sessions table
+- Toggle in `session_start_screen.dart` (lines 200-215)
+- `ShaftSelectorBottomSheet` widget shows arrow numbers 1-12
+- `plotting_screen.dart` shows bottom sheet when enabled (line 108-121)
+- Shaft number stored via `shaftNumber` in Arrows table
 
-1. **Toggle Feature On/Off**
-   - Setting to enable/disable shaft tracking
-   - Remember preference until changed
-   - When OFF: plotting works as current (no popup)
-   - When ON: popup appears after each arrow
+**What's Missing:**
 
-2. **After Arrow Dropped - Popup:**
+1. **Remember preference setting**
+   - Currently toggle resets each session
+   - Need: Store user preference in SharedPreferences
+   - Auto-enable for users who previously used it
+
+2. **Nock Rotation Selection (LOW PRIORITY - truly optional)**
+   - Add small icon to bottom of `ShaftSelectorBottomSheet`
+   - Visual: rear view of arrow (circle with 3 triangular fletches)
+   - Tap a fletch to select that rotation, or tap "?" to skip
+   - Most users will ignore this - it's for tuning nerds only
+
    ```
-   +------------------------+
-   |  ARROW DETAILS         |
-   |                        |
-   |  Shaft: [1][2][3][4]...|
-   |         [5][6][7][8]...|
-   |                        |
-   |  Nock:  [12][4][8]     |
-   |         (o'clock)      |
-   |                        |
-   |  [SKIP]      [SAVE]    |
-   +------------------------+
+        ▲          <- 12 o'clock fletch (tap to select)
+       /?\
+      /   \
+     ◄  ●  ►      <- 4 and 8 o'clock fletches
+      \   /        ● = nock/shaft center
+       \ /         ? = tap center to skip
    ```
 
-3. **Shaft Number Selection:**
-   - Chip/button grid showing arrow numbers (1-12 typical)
-   - Tap to select
-   - Show which numbers already used this end
+   - Appears as small tappable graphic, not prominent buttons
+   - If skipped, nock_rotation stays NULL (most common case)
 
-4. **Nock Rotation (Secondary):**
-   - Three positions: 12 o'clock, 4 o'clock, 8 o'clock
-   - Optional - can skip
-   - For tracking if specific rotation affects grouping
+3. **Database Column for Nock Rotation (only if implementing #2)**
+   - Add `nock_rotation` column to Arrows table (nullable TEXT: '12', '4', '8')
+   - Migration required
+   - NULL = not tracked (default, most arrows)
 
-5. **Data Storage:**
-   - Add `shaft_id` column to Arrows table
-   - Add `nock_rotation` column (nullable, values: '12', '4', '8')
+4. **Highlight Used Arrows This End**
+   - In `ShaftSelectorBottomSheet`, dim/mark arrows already used this end
+   - Prevents confusion about which arrows still to plot
 
-**Analysis Features (separate screen):**
+**Enhanced Bottom Sheet UI:**
+```
++---------------------------+
+|  SELECT ARROW             |
+|                           |
+|  [1] [2] [3] [4]          |   <- Already plotted = dimmed
+|  [5] [6] [7] [8]          |
+|  [9][10][11][12]          |
+|                           |
+|  [SKIP]                   |
+|                           |
+|  - - - - - - - - - - - -  |   <- Subtle divider
+|                           |
+|  Nock?    ▲               |   <- LOW PRIORITY
+|          ◄●►              |   <- Small tappable arrow rear view
+|           ?               |   <- Tap ? or center to skip
++---------------------------+
+```
+Note: Nock rotation graphic is small and unobtrusive. Most users ignore it.
+
+**Analysis Features (NEW SCREEN):**
 - Per-shaft statistics: average position, spread
 - Detect outliers: "Arrow #5 groups 40% wider"
 - Nock rotation analysis if enough data
 
-**Files:**
-- `lib/db/database.dart` - Add columns to Arrows table
-- `lib/widgets/target_face.dart` or `lib/screens/plotting_screen.dart` - Popup
-- New: `lib/widgets/shaft_picker_popup.dart`
-- New: `lib/screens/shaft_analysis_screen.dart`
-- New: `lib/utils/shaft_analysis.dart`
+**Files to Modify:**
+- `lib/widgets/shaft_selector_bottom_sheet.dart` - Add nock rotation, highlight used
+- `lib/db/database.dart` - Add nockRotation column + migration
+- `lib/screens/plotting_screen.dart` - Pass used arrow numbers to bottom sheet
+
+**New Files:**
+- `lib/screens/shaft_analysis_screen.dart` - Analysis UI
+- `lib/utils/shaft_analysis.dart` - Statistics calculations
 
 ---
 
@@ -694,6 +885,59 @@ Text('${groupSizeRings.toStringAsFixed(1)} group');
    - Clicks-per-ring wizard
    - 252 scheme tracker
    - Group visualization
+
+---
+
+## Quick Reference: Existing vs New
+
+| Feature | Already Exists | Needs Building |
+|---------|----------------|----------------|
+| **Splash logo** | Splash screen exists | Wrong image, add "built by HUSTON ARCHERY" |
+| **2x zoom default** | Pinch zoom, smart zoom, minZoom=2 | Set initial zoom to 2x |
+| **Volume save** | Import screen, DB tables | Fix save verification |
+| **Vibrations** | BeepService (audio only) | Add HapticFeedback calls |
+| **Breathing cues** | All 3 breath screens work | Reposition for web visibility |
+| **Front camera** | Camera screens exist | Swap default lens |
+| **Exhale test** | PatrickBreathScreen (basic) | Complete redesign with record panel |
+| **Equipment log** | Bows, Quivers, Shafts tables | Expand all schemas, add Stabilizers |
+| **Shaft tracking** | Toggle, bottom sheet, shaft number storage | Nock rotation, remember pref, analysis |
+| **Inter-device sync** | FirestoreSyncService skeleton | Full merge logic, conflict resolution |
+| **Kit tuning** | bowType field exists | New TuningSessions table, screens |
+| **Clicks-per-ring** | Nothing | Entire wizard from scratch |
+| **252 scheme** | 5-zone scoring works | New table, tracking screen |
+| **Group viz** | GroupCentreWidget | Ellipse, color by end, ring notation |
+
+## Database Migrations Required
+
+When adding columns/tables, increment schema version and add migration:
+
+```dart
+// In database.dart
+static const int schemaVersion = X; // Increment from current
+
+// In migration switch:
+case X-1:
+  // Add new columns/tables here
+  await m.addColumn(arrows, arrows.nockRotation);
+  // etc.
+```
+
+**New Tables Needed:**
+- `stabilizers` (for 4B)
+- `tuning_sessions` (for 5B)
+- `scheme_252` (for 5D)
+- `kit_snapshots` (for kit auto-prompt)
+- `sight_calibrations` (for 5C)
+
+**Column Additions:**
+- `arrows.nock_rotation` TEXT nullable
+- `bows.poundage` REAL nullable
+- `bows.limb_model` TEXT nullable
+- `bows.purchase_date` TEXT nullable
+- `shafts.spine` INTEGER nullable
+- `shafts.length_inches` REAL nullable
+- `shafts.point_weight_grains` INTEGER nullable
+- (see full list in 4B)
 
 ---
 

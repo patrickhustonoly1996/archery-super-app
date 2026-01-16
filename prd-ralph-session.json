@@ -1,0 +1,461 @@
+{
+  "name": "Ralph Session - Full PRD Implementation",
+  "description": "Complete all tasks from docs/PRD_RALPH_SESSION.md including quick fixes, bug fixes, UI improvements, feature additions, and major features",
+  "branchName": "ralph/prd-session",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "1A: Splash Screen Logo",
+      "description": "As a user, I want to see the app icon and 'built by HUSTON ARCHERY' on the splash screen",
+      "acceptanceCriteria": [
+        "Display the app launcher icon on splash screen",
+        "Below icon: text 'built by HUSTON ARCHERY'",
+        "Use AppFonts.pixel (VT323) for the text",
+        "Gold (#FFD700) text on dark background",
+        "Update Android launch_background.xml",
+        "Update iOS LaunchImage.imageset",
+        "Update web index.html splash section",
+        "flutter test passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": "Files: lib/main.dart, android/app/src/main/res/drawable/launch_background.xml, ios/Runner/Assets.xcassets/LaunchImage.imageset/, web/index.html",
+      "dependsOn": []
+    },
+    {
+      "id": "US-002",
+      "title": "1B: Default 2x Zoom for Plotting",
+      "description": "As a user, I want the target to open at 2x zoom when plotting",
+      "acceptanceCriteria": [
+        "Target face loads at 2x zoom when plotting screen opens",
+        "Change _currentZoom initial value from 1.0 to 2.0",
+        "Smart auto-zoom still works and adjusts based on group spread",
+        "Auto-zoom never goes below 2x (floor at minZoom = 2.0)",
+        "Pinch-to-zoom remains functional",
+        "flutter test passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": "Files: lib/widgets/target_face.dart, lib/utils/smart_zoom.dart. Verify minZoom = 2.0 is enforced at calculation time.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-003",
+      "title": "2A: Volume Manual Entry Not Saving",
+      "description": "As a user, I want my manually entered arrow volume data to persist",
+      "acceptanceCriteria": [
+        "Investigate lib/screens/volume_import_screen.dart save logic",
+        "Add explicit success check after database write",
+        "Add error state if save fails (don't pretend it worked)",
+        "Test: Enter data, close screen, reopen - data should persist",
+        "flutter test passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "Issue 4 from PRD: Volume import may fail silently. Follow SessionDetailScreen pattern for error states.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-004",
+      "title": "2B: Vibrations Not Triggering",
+      "description": "As a user, I want haptic feedback during breath training phase transitions",
+      "acceptanceCriteria": [
+        "Fix Issue 1: Change getBeepsEnabled() default from false to true in breath_training_service.dart",
+        "Fix Issue 2: Add HapticFeedback.mediumImpact() calls at phase transitions",
+        "Add vibrations toggle in breath training settings (label as 'Vibrations' not 'Haptics')",
+        "Store vibration preference in SharedPreferences",
+        "Vibrations ON by default",
+        "flutter test passes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": "Files: lib/services/beep_service.dart, lib/services/breath_training_service.dart, lib/providers/breath_training_provider.dart, lib/screens/breath_training/*.dart",
+      "dependsOn": []
+    },
+    {
+      "id": "US-005",
+      "title": "Fix Issue 3: Timer Pause on App Background (Paced Screens)",
+      "description": "As a user, I want breath training timers to pause when I switch apps",
+      "acceptanceCriteria": [
+        "Add WidgetsBindingObserver mixin to paced_breathing_screen.dart",
+        "Add WidgetsBindingObserver mixin to patrick_breath_screen.dart",
+        "Timer pauses when AppLifecycleState.paused",
+        "Timer stays paused when user returns (no auto-resume)",
+        "flutter test passes"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": "BreathHoldScreen already has this pattern - copy it to the other two screens.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-006",
+      "title": "Fix Issue 5: Settings Loaded Async Causes UI Flicker",
+      "description": "As a user, I want breath training screens to not flicker on load",
+      "acceptanceCriteria": [
+        "Initialize state with correct defaults immediately (vibrationsEnabled = true)",
+        "Settings load is secondary update, not primary source",
+        "No visible UI flicker when screens load",
+        "flutter test passes"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": "All breath training screens initState. Initialize with sensible defaults before async settings load.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-007",
+      "title": "3A: Breathing Cues Visibility (Web)",
+      "description": "As a user on web, I want breathing cues to be prominent and centered",
+      "acceptanceCriteria": [
+        "Move breathing indicator to center of screen (not bottom)",
+        "Increase size significantly for web",
+        "Add subtle pulsing/floating animation to draw attention",
+        "Use MediaQuery to detect web and adjust layout",
+        "Test specifically in web browser",
+        "flutter test passes"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": "Files: lib/screens/breath_training/paced_breathing_screen.dart, breath_hold_screen.dart, patrick_breath_screen.dart",
+      "dependsOn": ["US-004", "US-005", "US-006"]
+    },
+    {
+      "id": "US-008",
+      "title": "5F: Front Camera Default",
+      "description": "As a user, I want the camera to default to front (selfie) with option to switch",
+      "acceptanceCriteria": [
+        "Front camera is DEFAULT on open",
+        "Add camera switch button in UI",
+        "Option to switch to rear camera if desired",
+        "Works on both native and web",
+        "flutter test passes"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": "Files: lib/screens/delayed_camera_native.dart, lib/screens/delayed_camera_web.dart",
+      "dependsOn": []
+    },
+    {
+      "id": "US-009",
+      "title": "4A: Exhale Test Redesign",
+      "description": "As a user, I want a proper exhale test with paced breaths, timed exhale, and running record",
+      "acceptanceCriteria": [
+        "New flow: 2 paced breaths -> exhale test (timed) -> recovery breaths -> repeat",
+        "User taps when exhale finished to record duration",
+        "Side panel shows running record of exhale times this session",
+        "Show personal best exhale time (all time)",
+        "Show current session best",
+        "Store exhale records in database",
+        "flutter test passes"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": "Files: lib/screens/breath_training/breath_hold_screen.dart (major rewrite), lib/providers/breath_training_provider.dart, lib/db/database.dart. See PRD for detailed UI layout.",
+      "dependsOn": ["US-007"]
+    },
+    {
+      "id": "US-010",
+      "title": "4B: Equipment Log Expansion - Database Schema",
+      "description": "As a developer, I want expanded equipment schema for detailed tracking",
+      "acceptanceCriteria": [
+        "Add to Bows: poundage, limb_model, purchase_date, riser_model, shot_count",
+        "Create Stabilizers table: bow_id, long_rod_length, long_rod_weight, side_rod_length, side_rod_weight, vbar_mount, vbar_angle_h, vbar_angle_v, damper_model, damper_positions",
+        "Add to Shafts: spine, length_inches, total_weight_grains, point_weight_grains, nock_type, fletch_type, fletch_offset_degrees, fletch_color, purchase_date",
+        "Add database migration for all new columns/tables",
+        "Fix Issue 6: Migrate bow settings from pipe-delimited to proper columns or JSON",
+        "flutter test passes"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": "Increment schemaVersion. See PRD for full SQL migrations.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-011",
+      "title": "4B: Equipment Log Expansion - UI Forms",
+      "description": "As a user, I want to enter detailed equipment specifications",
+      "acceptanceCriteria": [
+        "Update bow_form_screen.dart with new fields (poundage, limb model, riser, purchase date)",
+        "Create stabilizer_form_screen.dart for stabilizer setup",
+        "Create or expand shaft_detail_screen.dart for arrow specs",
+        "Add batch entry option for arrows (same specs, different numbers)",
+        "Update equipment_screen.dart to display all new fields",
+        "Follow SessionDetailScreen pattern for loading/error states",
+        "flutter test passes"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": "Fix Issue 9: Add error states with retry to form screens.",
+      "dependsOn": ["US-010"]
+    },
+    {
+      "id": "US-012",
+      "title": "4C: Shaft Tracking - Remember Preference",
+      "description": "As a user, I want my shaft tagging preference remembered between sessions",
+      "acceptanceCriteria": [
+        "Fix Issue 7: Store shaft_tagging_default in SharedPreferences",
+        "Load preference on session_start_screen init",
+        "Save preference when user changes toggle",
+        "flutter test passes"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": "File: lib/screens/session_start_screen.dart lines 200-215",
+      "dependsOn": []
+    },
+    {
+      "id": "US-013",
+      "title": "4C: Shaft Tracking - Highlight Used Arrows",
+      "description": "As a user, I want to see which arrows I've already plotted this end",
+      "acceptanceCriteria": [
+        "In ShaftSelectorBottomSheet, dim/mark arrows already used this end",
+        "Pass used arrow numbers from plotting_screen to bottom sheet",
+        "flutter test passes"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": "File: lib/widgets/shaft_selector_bottom_sheet.dart, lib/screens/plotting_screen.dart",
+      "dependsOn": ["US-012"]
+    },
+    {
+      "id": "US-014",
+      "title": "4C: Shaft Tracking - Nock Rotation (Optional)",
+      "description": "As a tuning-focused user, I want to optionally track nock rotation",
+      "acceptanceCriteria": [
+        "Fix Issue 8: Add nock_rotation column to Arrows table (nullable TEXT: '12', '4', '8')",
+        "Add migration for new column",
+        "Add small nock rotation selector to ShaftSelectorBottomSheet (rear view of arrow graphic)",
+        "Tap fletch to select rotation, tap center/? to skip",
+        "Most users will skip - make it unobtrusive",
+        "flutter test passes"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": "LOW PRIORITY within shaft tracking. See PRD for ASCII diagram of nock selector.",
+      "dependsOn": ["US-013"]
+    },
+    {
+      "id": "US-015",
+      "title": "4C: Shaft Tracking - Per-Shaft Analysis",
+      "description": "As a user, I want to see performance stats for each individual arrow",
+      "acceptanceCriteria": [
+        "Create lib/utils/shaft_analysis.dart with statistics calculations",
+        "Calculate per-arrow: average position, group spread, score distribution",
+        "Detect outliers (e.g., 'Arrow #5 groups 40% wider than others')",
+        "Create lib/screens/shaft_analysis_screen.dart",
+        "Show each arrow's performance stats",
+        "Add heatmap overlay option (color arrows by number)",
+        "Show recommendations for retiring inconsistent arrows",
+        "flutter test passes"
+      ],
+      "priority": 15,
+      "passes": false,
+      "notes": "Include overlap/robin-hood probability calculation based on group size.",
+      "dependsOn": ["US-014"]
+    },
+    {
+      "id": "US-016",
+      "title": "5A: Inter-Device Data Sync",
+      "description": "As a user, I want my data to sync between phone, tablet, and web",
+      "acceptanceCriteria": [
+        "Implement push local data to Firestore",
+        "Implement pull remote data to local",
+        "Merge strategy: keep all data from both devices (no deletions based on remote)",
+        "If IDs conflict but content differs, keep both (generate new ID for one)",
+        "Add manual sync button in settings",
+        "Show sync status indicator",
+        "Log all sync operations for debugging",
+        "flutter test passes"
+      ],
+      "priority": 16,
+      "passes": false,
+      "notes": "File: lib/services/firestore_sync_service.dart. Follow offline-first architecture - local is authority, cloud is backup.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-017",
+      "title": "5B: Kit Tuning Framework - Database",
+      "description": "As a developer, I want a tuning_sessions table to store tuning data",
+      "acceptanceCriteria": [
+        "Create TuningSessions table with all fields from PRD",
+        "Support both recurve and compound tuning types",
+        "Add database migration",
+        "Create lib/models/tuning_session.dart data model",
+        "flutter test passes"
+      ],
+      "priority": 17,
+      "passes": false,
+      "notes": "See PRD for full SQL schema. Fields include: bow_id, date, bow_type, brace_height, nock_point, tiller, centershot, plunger, paper_tear_direction, paper_tear_size, bare_shaft_result, cam_timing, rest_position, peep_height, french_tune_result, notes",
+      "dependsOn": []
+    },
+    {
+      "id": "US-018",
+      "title": "5B: Kit Tuning Framework - Checklist UI",
+      "description": "As a user, I want a tuning checklist appropriate for my bow type",
+      "acceptanceCriteria": [
+        "Create lib/screens/tuning_checklist_screen.dart",
+        "Detect bow type from selected bow",
+        "Show recurve checklist for recurve bows (brace height, nock point, tiller, centershot, plunger, paper tune, bare shaft)",
+        "Show compound checklist for compound bows (cam timing, rest position, peep height, d-loop, paper tune, French tune)",
+        "Save results to TuningSessions table",
+        "Add navigation from equipment screen",
+        "flutter test passes"
+      ],
+      "priority": 18,
+      "passes": false,
+      "notes": "See PRD for detailed checklist fields. Follow app aesthetic (dark + gold, monospace fonts).",
+      "dependsOn": ["US-017"]
+    },
+    {
+      "id": "US-019",
+      "title": "5B: Kit Tuning Framework - Paper Tune Logger",
+      "description": "As a user, I want to log paper tune results and get fix suggestions",
+      "acceptanceCriteria": [
+        "Add paper tune section to tuning screen",
+        "Select tear direction: Up, Down, Left, Right, Clean",
+        "Select tear size: None, Small, Medium, Large",
+        "Create lib/utils/tuning_suggestions.dart with auto-suggestions based on tear pattern",
+        "Display suggestions after logging tear",
+        "Store history of paper tune attempts",
+        "NO photo capture - description only",
+        "flutter test passes"
+      ],
+      "priority": 19,
+      "passes": false,
+      "notes": "Standard paper tuning fixes based on tear direction and bow type.",
+      "dependsOn": ["US-018"]
+    },
+    {
+      "id": "US-020",
+      "title": "5B: Kit Tuning Framework - History View",
+      "description": "As a user, I want to see my tuning history timeline",
+      "acceptanceCriteria": [
+        "Create lib/screens/tuning_history_screen.dart",
+        "Show timeline of tuning sessions for selected bow",
+        "Display what was adjusted and results for each session",
+        "Link to scoring sessions to show if groups improved after tuning",
+        "Add navigation from equipment/tuning screens",
+        "flutter test passes"
+      ],
+      "priority": 20,
+      "passes": false,
+      "notes": "Consider showing correlation between tuning changes and group pattern improvements.",
+      "dependsOn": ["US-018", "US-019"]
+    },
+    {
+      "id": "US-021",
+      "title": "5C: Clicks-Per-Ring Wizard",
+      "description": "As a user, I want a guided wizard to calculate my sight clicks per ring",
+      "acceptanceCriteria": [
+        "Create lib/screens/clicks_per_ring_wizard.dart",
+        "Step 1: Select distance",
+        "Step 2: Shoot and plot baseline group",
+        "Check if group centered (threshold based on handicap)",
+        "Step 3: Move sight known amount (clicks/turns)",
+        "Step 4: Shoot and plot adjusted group",
+        "Step 5: Calculate and display clicks per ring",
+        "Save calibration to profile",
+        "Create lib/models/sight_calibration.dart",
+        "Store calibration data per distance in database",
+        "Check entitlement for premium feature gate",
+        "flutter test passes"
+      ],
+      "priority": 21,
+      "passes": false,
+      "notes": "See PRD for centering threshold by handicap. POSSIBLY PREMIUM FEATURE.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-022",
+      "title": "5D: 252 Scheme Tracker",
+      "description": "As a user, I want to track my progress through the 252 club scheme",
+      "acceptanceCriteria": [
+        "Create scheme_252 table (distance_yards, achieved, best_score, achieved_date, session_id, notes)",
+        "Add database migration",
+        "Create lib/screens/scheme_252_screen.dart",
+        "Show all distances: 20, 30, 40, 50, 60, 80, 100 yards",
+        "Display achieved status, best score, date for each",
+        "Manual entry option to mark achieved or enter historical scores",
+        "Auto-detect: when 36-arrow imperial 5-zone session scores 252+, prompt to mark distance achieved",
+        "Show progress: X/7 distances",
+        "flutter test passes"
+      ],
+      "priority": 22,
+      "passes": false,
+      "notes": "Both auto-detect from sessions AND manual entry. See PRD for UI mockup.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-023",
+      "title": "5E: Group Visualization - Spread Ellipse",
+      "description": "As a user, I want to see an ellipse showing my group shape",
+      "acceptanceCriteria": [
+        "Calculate covariance matrix from arrow positions",
+        "Draw statistical ellipse using eigenvalues/eigenvectors",
+        "Semi-transparent gold fill",
+        "Shows if group is round vs elongated and orientation",
+        "Add toggle to show/hide ellipse",
+        "flutter test passes"
+      ],
+      "priority": 23,
+      "passes": false,
+      "notes": "Files: lib/widgets/group_centre_widget.dart, lib/utils/group_analysis.dart",
+      "dependsOn": []
+    },
+    {
+      "id": "US-024",
+      "title": "5E: Group Visualization - Color by End",
+      "description": "As a user, I want arrows colored by which end they were shot",
+      "acceptanceCriteria": [
+        "Different color for arrows in each end",
+        "End 1: Gold, End 2: Cyan, End 3: Magenta, etc.",
+        "Add legend showing which color = which end",
+        "Add toggle to enable/disable coloring",
+        "Remember preference",
+        "flutter test passes"
+      ],
+      "priority": 24,
+      "passes": false,
+      "notes": "File: lib/widgets/target_face.dart",
+      "dependsOn": []
+    },
+    {
+      "id": "US-025",
+      "title": "5E: Group Visualization - Ring Notation",
+      "description": "As a user, I want to see group size in ring notation (e.g., '9.2 group')",
+      "acceptanceCriteria": [
+        "Calculate average distance from group center in ring units",
+        "Display as 'X.X group' format with decimal precision to 0.1",
+        "Show on screen near group display",
+        "flutter test passes"
+      ],
+      "priority": 25,
+      "passes": false,
+      "notes": "Formula: groupSizeRings = groupSpreadMm / ringWidthMm. File: lib/utils/group_analysis.dart",
+      "dependsOn": []
+    },
+    {
+      "id": "US-026",
+      "title": "Final Verification and Commit",
+      "description": "As a developer, I want all changes committed with passing tests",
+      "acceptanceCriteria": [
+        "Run flutter test - ALL tests must pass",
+        "Run flutter analyze - no errors (warnings OK)",
+        "Commit all changes with descriptive message",
+        "Push to branch",
+        "Report summary of completed features"
+      ],
+      "priority": 26,
+      "passes": false,
+      "notes": "Final verification. Do not proceed if any tests fail.",
+      "dependsOn": ["US-001", "US-002", "US-003", "US-004", "US-005", "US-006", "US-007", "US-008", "US-009", "US-011", "US-015", "US-016", "US-020", "US-021", "US-022", "US-025"]
+    }
+  ],
+  "metadata": {
+    "createdAt": "2026-01-16T14:30:00.000Z",
+    "estimatedIterations": 26,
+    "purpose": "Complete all tasks from docs/PRD_RALPH_SESSION.md - quick fixes, bug fixes, UI improvements, features, and major features",
+    "sourceDocument": "docs/PRD_RALPH_SESSION.md"
+  }
+}

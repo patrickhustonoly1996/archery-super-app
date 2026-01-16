@@ -56,6 +56,7 @@ dev_dependencies:
 
   # Testing mocks
   mockito: ^5.4.4
+  mocktail: ^1.0.4
 
   # Drift code generation
   drift_dev: ^2.30.0
