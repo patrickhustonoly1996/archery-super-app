@@ -27,6 +27,10 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
+  <!-- Preload fonts for splash screen -->
+  <link rel="preload" href="assets/fonts/VT323-Regular.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="assets/fonts/ShareTechMono-Regular.ttf" as="font" type="font/ttf" crossorigin>
+
   <title>Archery Super App</title>
   <link rel="manifest" href="manifest.json">
 
@@ -34,6 +38,18 @@
   <meta name="app-version" content="__APP_VERSION__">
 
   <style>
+    /* Fonts for splash screen */
+    @font-face {
+      font-family: 'VT323';
+      src: url('assets/fonts/VT323-Regular.ttf') format('truetype');
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Share Tech Mono';
+      src: url('assets/fonts/ShareTechMono-Regular.ttf') format('truetype');
+      font-display: swap;
+    }
+
     /* Prevent flash of white during load */
     html, body {
       background-color: #1a1a1a;
@@ -41,6 +57,55 @@
       padding: 0;
       height: 100%;
       overflow: hidden;
+    }
+
+    /* Loading splash screen */
+    #loading-splash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #1a1a1a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 999999;
+    }
+    #loading-splash.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease-out;
+    }
+    .loading-logo {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 24px;
+    }
+    .loading-title {
+      font-family: 'VT323', monospace;
+      font-size: 28px;
+      color: #FFD700;
+      margin-bottom: 32px;
+      letter-spacing: 2px;
+    }
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #333;
+      border-top-color: #FFD700;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .loading-text {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 14px;
+      color: #666;
+      margin-top: 16px;
     }
     /* iOS safe area - handled by Flutter's SafeArea widget, not CSS */
     /* DO NOT add padding here - it breaks touch detection in PWA standalone mode */
@@ -125,6 +190,14 @@
   </style>
 </head>
 <body>
+  <!-- Loading splash screen - shows immediately while Flutter loads -->
+  <div id="loading-splash">
+    <img src="icons/Icon-192.png" alt="Logo" class="loading-logo">
+    <div class="loading-title">ARCHERY SUPER APP</div>
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading...</div>
+  </div>
+
   <!-- Update notification banner -->
   <div id="update-banner" onclick="location.reload(true)">
     New version available! Tap to update.
@@ -250,5 +323,15 @@
   </script>
 
   <script src="flutter_bootstrap.js" async></script>
+  <script>
+    // Hide splash screen when Flutter app is ready
+    window.addEventListener('flutter-first-frame', function() {
+      const splash = document.getElementById('loading-splash');
+      if (splash) {
+        splash.classList.add('hidden');
+        setTimeout(() => splash.remove(), 300);
+      }
+    });
+  </script>
 </body>
 </html>
