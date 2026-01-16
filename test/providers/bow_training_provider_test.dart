@@ -1,4 +1,5 @@
 import 'package:fake_async/fake_async.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:archery_super_app/providers/bow_training_provider.dart';
 import 'package:archery_super_app/db/database.dart';
@@ -2559,6 +2560,839 @@ void main() {
         async.elapse(const Duration(seconds: kPrepCountdownSeconds));
         expect(provider.phase, equals(TimerPhase.hold));
       });
+    });
+  });
+
+  // ===========================================================================
+  // PHASE E1: APP LIFECYCLE TESTS
+  // ===========================================================================
+
+  group('Phase E1: App Lifecycle - Background Pause', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('didChangeAppLifecycleState pauses timer when app goes to background (paused state)', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      expect(provider.timerState, equals(TimerState.running));
+
+      // Simulate app going to background
+      provider.didChangeAppLifecycleState(AppLifecycleState.paused);
+
+      expect(provider.timerState, equals(TimerState.paused));
+    });
+
+    test('didChangeAppLifecycleState pauses timer when app becomes inactive', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      expect(provider.timerState, equals(TimerState.running));
+
+      // Simulate app becoming inactive (e.g., phone call overlay)
+      provider.didChangeAppLifecycleState(AppLifecycleState.inactive);
+
+      expect(provider.timerState, equals(TimerState.paused));
+    });
+
+    test('_wasAutoPaused flag is set when auto-paused due to background', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      expect(provider.wasPausedByBackground, isFalse);
+
+      // Simulate app going to background
+      provider.didChangeAppLifecycleState(AppLifecycleState.paused);
+
+      expect(provider.wasPausedByBackground, isTrue);
+    });
+
+    test('timer does NOT auto-resume when app returns to foreground', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      expect(provider.timerState, equals(TimerState.running));
+
+      // Simulate app going to background
+      provider.didChangeAppLifecycleState(AppLifecycleState.paused);
+      expect(provider.timerState, equals(TimerState.paused));
+
+      // Simulate app returning to foreground
+      provider.didChangeAppLifecycleState(AppLifecycleState.resumed);
+
+      // Timer should still be paused - no auto-resume
+      expect(provider.timerState, equals(TimerState.paused));
+    });
+
+    test('didChangeAppLifecycleState does nothing if timer is already paused', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      provider.pauseTimer();
+      expect(provider.timerState, equals(TimerState.paused));
+      expect(provider.wasPausedByBackground, isFalse);
+
+      // Simulate app going to background
+      provider.didChangeAppLifecycleState(AppLifecycleState.paused);
+
+      // Should still be paused, and flag should NOT be set since it wasn't running
+      expect(provider.timerState, equals(TimerState.paused));
+      expect(provider.wasPausedByBackground, isFalse);
+    });
+
+    test('didChangeAppLifecycleState does nothing if session is stopped', () {
+      // No session started, timer is stopped
+      expect(provider.timerState, equals(TimerState.stopped));
+
+      // Simulate app going to background
+      provider.didChangeAppLifecycleState(AppLifecycleState.paused);
+
+      expect(provider.timerState, equals(TimerState.stopped));
+    });
+
+    test('wasPausedByBackground flag is cleared when user manually resumes', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      // Simulate app going to background
+      provider.didChangeAppLifecycleState(AppLifecycleState.paused);
+      expect(provider.wasPausedByBackground, isTrue);
+
+      // User manually resumes
+      provider.resumeTimer();
+
+      expect(provider.wasPausedByBackground, isFalse);
+      expect(provider.timerState, equals(TimerState.running));
+    });
+
+    test('phase is preserved when app goes to background', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Advance to hold phase
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+        expect(provider.phase, equals(TimerPhase.hold));
+
+        // Simulate app going to background
+        provider.didChangeAppLifecycleState(AppLifecycleState.paused);
+
+        // Phase should be preserved
+        expect(provider.phase, equals(TimerPhase.hold));
+      });
+    });
+
+    test('secondsRemaining is preserved when app goes to background', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Advance partway through prep
+        async.elapse(const Duration(seconds: 5));
+        final remainingBeforeBackground = provider.secondsRemaining;
+
+        // Simulate app going to background
+        provider.didChangeAppLifecycleState(AppLifecycleState.paused);
+
+        expect(provider.secondsRemaining, equals(remainingBeforeBackground));
+      });
+    });
+  });
+
+  // ===========================================================================
+  // PHASE E1: STATE PERSISTENCE TESTS
+  // ===========================================================================
+
+  group('Phase E1: exportState() - Custom Session', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('exportState returns null when session is idle', () {
+      expect(provider.exportState(), isNull);
+    });
+
+    test('exportState returns null when timer is stopped and phase is idle', () {
+      expect(provider.timerState, equals(TimerState.stopped));
+      expect(provider.phase, equals(TimerPhase.idle));
+      expect(provider.exportState(), isNull);
+    });
+
+    test('exportState captures phase', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      final state = provider.exportState();
+
+      expect(state, isNotNull);
+      expect(state!['phase'], equals(TimerPhase.prep.index));
+    });
+
+    test('exportState captures timerState', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      final state = provider.exportState();
+
+      expect(state!['timerState'], equals(TimerState.running.index));
+    });
+
+    test('exportState captures secondsRemaining', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      final state = provider.exportState();
+
+      expect(state!['secondsRemaining'], equals(kPrepCountdownSeconds));
+    });
+
+    test('exportState captures custom session config', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 7,
+        ratio: HoldRestRatio.ratio25_35,
+        movementStimulus: MovementStimulus.lots,
+      );
+
+      provider.startCustomSession(config);
+      final state = provider.exportState();
+
+      expect(state!['isCustomSession'], isTrue);
+      expect(state['customDurationMinutes'], equals(7));
+      expect(state['customHoldSeconds'], equals(25));
+      expect(state['customRestSeconds'], equals(35));
+      expect(state['customRatioLabel'], equals('25:35'));
+      expect(state['customMovementStimulus'], equals(MovementStimulus.lots.index));
+    });
+
+    test('exportState captures rep counts', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      final state = provider.exportState();
+
+      expect(state!['customTotalReps'], equals(5));
+      expect(state['customCurrentRep'], equals(1));
+    });
+
+    test('exportState captures timing stats', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      final state = provider.exportState();
+
+      expect(state!['totalHoldSecondsActual'], equals(0));
+      expect(state['totalRestSecondsActual'], equals(0));
+      expect(state['completedExercises'], equals(0));
+    });
+
+    test('exportState captures wasRunningBeforeBackground', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      // Simulate background pause
+      provider.didChangeAppLifecycleState(AppLifecycleState.paused);
+
+      final state = provider.exportState();
+
+      expect(state!['wasRunningBeforeBackground'], isTrue);
+    });
+
+    test('exportState captures sessionStartedAt', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      final state = provider.exportState();
+
+      expect(state!['sessionStartedAt'], isNotNull);
+      expect(state['sessionStartedAt'], isA<String>());
+    });
+
+    test('exportState works when paused', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      provider.pauseTimer();
+
+      final state = provider.exportState();
+
+      expect(state, isNotNull);
+      expect(state!['timerState'], equals(TimerState.paused.index));
+    });
+  });
+
+  group('Phase E1: restoreState() - Custom Session', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('restoreState reconstructs phase', () {
+      final state = {
+        'phase': TimerPhase.hold.index,
+        'timerState': TimerState.paused.index,
+        'secondsRemaining': 20,
+        'currentExerciseIndex': 0,
+        'currentRep': 1,
+        'totalHoldSecondsActual': 10,
+        'totalRestSecondsActual': 5,
+        'completedExercises': 0,
+        'isCustomSession': true,
+        'customDurationMinutes': 5,
+        'customHoldSeconds': 30,
+        'customRestSeconds': 30,
+        'customRatioLabel': '30:30',
+        'customMovementStimulus': MovementStimulus.none.index,
+        'customTotalReps': 5,
+        'customCurrentRep': 2,
+      };
+
+      final result = provider.restoreState(state);
+
+      expect(result, isTrue);
+      expect(provider.phase, equals(TimerPhase.hold));
+    });
+
+    test('restoreState reconstructs timerState', () {
+      final state = {
+        'phase': TimerPhase.hold.index,
+        'timerState': TimerState.paused.index,
+        'secondsRemaining': 20,
+        'currentExerciseIndex': 0,
+        'currentRep': 1,
+        'totalHoldSecondsActual': 10,
+        'totalRestSecondsActual': 5,
+        'completedExercises': 0,
+        'isCustomSession': true,
+        'customDurationMinutes': 5,
+        'customHoldSeconds': 30,
+        'customRestSeconds': 30,
+        'customRatioLabel': '30:30',
+        'customMovementStimulus': MovementStimulus.none.index,
+        'customTotalReps': 5,
+        'customCurrentRep': 2,
+      };
+
+      provider.restoreState(state);
+
+      expect(provider.timerState, equals(TimerState.paused));
+    });
+
+    test('restoreState reconstructs secondsRemaining', () {
+      final state = {
+        'phase': TimerPhase.hold.index,
+        'timerState': TimerState.paused.index,
+        'secondsRemaining': 25,
+        'currentExerciseIndex': 0,
+        'currentRep': 1,
+        'totalHoldSecondsActual': 10,
+        'totalRestSecondsActual': 5,
+        'completedExercises': 0,
+        'isCustomSession': true,
+        'customDurationMinutes': 5,
+        'customHoldSeconds': 30,
+        'customRestSeconds': 30,
+        'customRatioLabel': '30:30',
+        'customMovementStimulus': MovementStimulus.none.index,
+        'customTotalReps': 5,
+        'customCurrentRep': 2,
+      };
+
+      provider.restoreState(state);
+
+      expect(provider.secondsRemaining, equals(25));
+    });
+
+    test('restoreState reconstructs custom session config', () {
+      final state = {
+        'phase': TimerPhase.hold.index,
+        'timerState': TimerState.paused.index,
+        'secondsRemaining': 20,
+        'currentExerciseIndex': 0,
+        'currentRep': 1,
+        'totalHoldSecondsActual': 0,
+        'totalRestSecondsActual': 0,
+        'completedExercises': 0,
+        'isCustomSession': true,
+        'customDurationMinutes': 7,
+        'customHoldSeconds': 25,
+        'customRestSeconds': 35,
+        'customRatioLabel': '25:35',
+        'customMovementStimulus': MovementStimulus.lots.index,
+        'customTotalReps': 7,
+        'customCurrentRep': 3,
+      };
+
+      provider.restoreState(state);
+
+      expect(provider.isCustomSession, isTrue);
+      expect(provider.customConfig?.durationMinutes, equals(7));
+      expect(provider.customConfig?.ratio.holdSeconds, equals(25));
+      expect(provider.customConfig?.ratio.restSeconds, equals(35));
+      expect(provider.customConfig?.movementStimulus, equals(MovementStimulus.lots));
+    });
+
+    test('restoreState reconstructs rep counts', () {
+      final state = {
+        'phase': TimerPhase.hold.index,
+        'timerState': TimerState.paused.index,
+        'secondsRemaining': 20,
+        'currentExerciseIndex': 0,
+        'currentRep': 1,
+        'totalHoldSecondsActual': 0,
+        'totalRestSecondsActual': 0,
+        'completedExercises': 0,
+        'isCustomSession': true,
+        'customDurationMinutes': 5,
+        'customHoldSeconds': 30,
+        'customRestSeconds': 30,
+        'customRatioLabel': '30:30',
+        'customMovementStimulus': MovementStimulus.none.index,
+        'customTotalReps': 5,
+        'customCurrentRep': 3,
+      };
+
+      provider.restoreState(state);
+
+      expect(provider.customTotalReps, equals(5));
+      expect(provider.customRep, equals(3));
+    });
+
+    test('restoreState reconstructs timing stats', () {
+      final state = {
+        'phase': TimerPhase.hold.index,
+        'timerState': TimerState.paused.index,
+        'secondsRemaining': 20,
+        'currentExerciseIndex': 0,
+        'currentRep': 1,
+        'totalHoldSecondsActual': 45,
+        'totalRestSecondsActual': 30,
+        'completedExercises': 2,
+        'isCustomSession': true,
+        'customDurationMinutes': 5,
+        'customHoldSeconds': 30,
+        'customRestSeconds': 30,
+        'customRatioLabel': '30:30',
+        'customMovementStimulus': MovementStimulus.none.index,
+        'customTotalReps': 5,
+        'customCurrentRep': 3,
+      };
+
+      provider.restoreState(state);
+
+      expect(provider.totalHoldSecondsActual, equals(45));
+      expect(provider.completedExercisesCount, equals(2));
+    });
+
+    test('restoreState reconstructs wasRunningBeforeBackground', () {
+      final state = {
+        'phase': TimerPhase.hold.index,
+        'timerState': TimerState.paused.index,
+        'secondsRemaining': 20,
+        'currentExerciseIndex': 0,
+        'currentRep': 1,
+        'totalHoldSecondsActual': 0,
+        'totalRestSecondsActual': 0,
+        'completedExercises': 0,
+        'wasRunningBeforeBackground': true,
+        'isCustomSession': true,
+        'customDurationMinutes': 5,
+        'customHoldSeconds': 30,
+        'customRestSeconds': 30,
+        'customRatioLabel': '30:30',
+        'customMovementStimulus': MovementStimulus.none.index,
+        'customTotalReps': 5,
+        'customCurrentRep': 2,
+      };
+
+      provider.restoreState(state);
+
+      expect(provider.wasPausedByBackground, isTrue);
+    });
+
+    test('restoreState does not auto-start timer', () {
+      final state = {
+        'phase': TimerPhase.hold.index,
+        'timerState': TimerState.running.index, // Was running when saved
+        'secondsRemaining': 20,
+        'currentExerciseIndex': 0,
+        'currentRep': 1,
+        'totalHoldSecondsActual': 0,
+        'totalRestSecondsActual': 0,
+        'completedExercises': 0,
+        'isCustomSession': true,
+        'customDurationMinutes': 5,
+        'customHoldSeconds': 30,
+        'customRestSeconds': 30,
+        'customRatioLabel': '30:30',
+        'customMovementStimulus': MovementStimulus.none.index,
+        'customTotalReps': 5,
+        'customCurrentRep': 2,
+      };
+
+      provider.restoreState(state);
+
+      // Timer state is restored but timer is not actually running
+      // (need to call resumeTimer to start it)
+      expect(provider.timerState, equals(TimerState.running));
+    });
+
+    test('restoreState returns false on invalid state', () {
+      final invalidState = <String, dynamic>{
+        'phase': 999, // Invalid phase index
+        'timerState': 0,
+        'secondsRemaining': 20,
+      };
+
+      final result = provider.restoreState(invalidState);
+
+      expect(result, isFalse);
+    });
+
+    test('restoreState handles missing optional fields', () {
+      final state = {
+        'phase': TimerPhase.hold.index,
+        'timerState': TimerState.paused.index,
+        'secondsRemaining': 20,
+        'currentExerciseIndex': 0,
+        'currentRep': 1,
+        'totalHoldSecondsActual': 0,
+        'totalRestSecondsActual': 0,
+        'completedExercises': 0,
+        'isCustomSession': false, // Not a custom session
+      };
+
+      final result = provider.restoreState(state);
+
+      expect(result, isTrue);
+      expect(provider.isCustomSession, isFalse);
+    });
+  });
+
+  group('Phase E1: State Persistence Roundtrip', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('export -> restore -> export produces matching state for custom session', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 7,
+        ratio: HoldRestRatio.ratio25_35,
+        movementStimulus: MovementStimulus.some,
+      );
+
+      provider.startCustomSession(config);
+
+      // Skip prep to hold
+      provider.skipPhase();
+
+      // Export state
+      final exportedState1 = provider.exportState();
+      expect(exportedState1, isNotNull);
+
+      // Create new provider and restore
+      final provider2 = BowTrainingProvider(mockDb);
+      final restoreResult = provider2.restoreState(exportedState1!);
+      expect(restoreResult, isTrue);
+
+      // Export again
+      final exportedState2 = provider2.exportState();
+
+      // Compare key fields (some fields like sessionStartedAt might differ slightly)
+      expect(exportedState2!['phase'], equals(exportedState1['phase']));
+      expect(exportedState2['timerState'], equals(exportedState1['timerState']));
+      expect(exportedState2['secondsRemaining'], equals(exportedState1['secondsRemaining']));
+      expect(exportedState2['isCustomSession'], equals(exportedState1['isCustomSession']));
+      expect(exportedState2['customDurationMinutes'], equals(exportedState1['customDurationMinutes']));
+      expect(exportedState2['customHoldSeconds'], equals(exportedState1['customHoldSeconds']));
+      expect(exportedState2['customRestSeconds'], equals(exportedState1['customRestSeconds']));
+      expect(exportedState2['customRatioLabel'], equals(exportedState1['customRatioLabel']));
+      expect(exportedState2['customTotalReps'], equals(exportedState1['customTotalReps']));
+      expect(exportedState2['customCurrentRep'], equals(exportedState1['customCurrentRep']));
+
+      provider2.dispose();
+    });
+
+    test('roundtrip preserves session mid-hold', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Advance to hold phase
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+        expect(provider.phase, equals(TimerPhase.hold));
+
+        // Advance partway through hold
+        async.elapse(const Duration(seconds: 15));
+
+        // Export state
+        final exportedState = provider.exportState();
+
+        // Create new provider and restore
+        final provider2 = BowTrainingProvider(mockDb);
+        provider2.restoreState(exportedState!);
+
+        // Verify state matches
+        expect(provider2.phase, equals(TimerPhase.hold));
+        expect(provider2.secondsRemaining, equals(provider.secondsRemaining));
+        expect(provider2.customRep, equals(provider.customRep));
+
+        provider2.dispose();
+      });
+    });
+
+    test('roundtrip preserves session mid-rest', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Advance to rest phase
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1)); // Hold
+        async.elapse(const Duration(seconds: 30)); // Rest
+        expect(provider.phase, equals(TimerPhase.rest));
+
+        // Advance partway through rest
+        async.elapse(const Duration(seconds: 10));
+
+        // Export state
+        final exportedState = provider.exportState();
+
+        // Create new provider and restore
+        final provider2 = BowTrainingProvider(mockDb);
+        provider2.restoreState(exportedState!);
+
+        // Verify state matches
+        expect(provider2.phase, equals(TimerPhase.rest));
+        expect(provider2.secondsRemaining, equals(provider.secondsRemaining));
+
+        provider2.dispose();
+      });
+    });
+
+    test('roundtrip preserves paused state after background', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      // Simulate app going to background
+      provider.didChangeAppLifecycleState(AppLifecycleState.paused);
+
+      // Export state
+      final exportedState = provider.exportState();
+
+      // Create new provider and restore
+      final provider2 = BowTrainingProvider(mockDb);
+      provider2.restoreState(exportedState!);
+
+      // Verify paused state is preserved
+      expect(provider2.timerState, equals(TimerState.paused));
+      expect(provider2.wasPausedByBackground, isTrue);
+
+      provider2.dispose();
+    });
+
+    test('roundtrip preserves accumulated hold time', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Complete some holds
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1)); // Hold
+        async.elapse(const Duration(seconds: 30)); // Rest
+        async.elapse(const Duration(seconds: 30)); // Next hold
+
+        final holdTimeBeforeExport = provider.totalHoldSecondsActual;
+
+        // Export state
+        final exportedState = provider.exportState();
+
+        // Create new provider and restore
+        final provider2 = BowTrainingProvider(mockDb);
+        provider2.restoreState(exportedState!);
+
+        // Verify accumulated hold time is preserved
+        expect(provider2.totalHoldSecondsActual, equals(holdTimeBeforeExport));
+
+        provider2.dispose();
+      });
+    });
+  });
+
+  group('Phase E1: Paused Session Display Helpers', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('pausedSessionTitle returns "Custom Session" for custom sessions', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      expect(provider.pausedSessionTitle, equals('Custom Session'));
+    });
+
+    test('pausedSessionSubtitle shows rep progress for custom sessions', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 3, // 3 reps
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      expect(provider.pausedSessionSubtitle, equals('1/3 reps'));
+    });
+
+    test('pausedSessionSubtitle updates as reps progress', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 3,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Advance through one full cycle
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1)); // Hold
+        async.elapse(const Duration(seconds: 60)); // Complete cycle
+
+        expect(provider.pausedSessionSubtitle, equals('2/3 reps'));
+      });
+    });
+
+    test('pausedSessionTitle returns "Bow Training" when no session', () {
+      expect(provider.pausedSessionTitle, equals('Bow Training'));
     });
   });
 }

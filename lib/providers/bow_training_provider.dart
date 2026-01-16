@@ -883,6 +883,112 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // ===========================================================================
+  // STATE PERSISTENCE
+  // ===========================================================================
+
+  /// Export current session state for persistence
+  Map<String, dynamic>? exportState() {
+    if (_timerState == TimerState.stopped && _phase == TimerPhase.idle) {
+      return null;
+    }
+
+    return {
+      'phase': _phase.index,
+      'timerState': _timerState.index,
+      'secondsRemaining': _secondsRemaining,
+      'currentExerciseIndex': _currentExerciseIndex,
+      'currentRep': _currentRep,
+      'totalHoldSecondsActual': _totalHoldSecondsActual,
+      'totalRestSecondsActual': _totalRestSecondsActual,
+      'completedExercises': _completedExercises,
+      'wasRunningBeforeBackground': _wasRunningBeforeBackground,
+      // Custom session specific
+      'isCustomSession': _customConfig != null,
+      'customDurationMinutes': _customConfig?.durationMinutes,
+      'customHoldSeconds': _customConfig?.ratio.holdSeconds,
+      'customRestSeconds': _customConfig?.ratio.restSeconds,
+      'customRatioLabel': _customConfig?.ratio.label,
+      'customMovementStimulus': _customConfig?.movementStimulus.index,
+      'customTotalReps': _customTotalReps,
+      'customCurrentRep': _customCurrentRep,
+      'currentMovementCue': _currentMovementCue,
+      // OLY session specific
+      'activeSessionId': _activeSession?.id,
+      'sessionStartedAt': _sessionStartedAt?.toIso8601String(),
+    };
+  }
+
+  /// Restore session state from a saved state map
+  bool restoreState(Map<String, dynamic> state) {
+    try {
+      _phase = TimerPhase.values[state['phase'] as int];
+      _timerState = TimerState.values[state['timerState'] as int];
+      _secondsRemaining = state['secondsRemaining'] as int;
+      _currentExerciseIndex = state['currentExerciseIndex'] as int;
+      _currentRep = state['currentRep'] as int;
+      _totalHoldSecondsActual = state['totalHoldSecondsActual'] as int;
+      _totalRestSecondsActual = state['totalRestSecondsActual'] as int;
+      _completedExercises = state['completedExercises'] as int;
+      _wasRunningBeforeBackground = state['wasRunningBeforeBackground'] as bool? ?? false;
+
+      // Custom session specific
+      final isCustomSession = state['isCustomSession'] as bool? ?? false;
+      if (isCustomSession) {
+        final durationMinutes = state['customDurationMinutes'] as int?;
+        final holdSeconds = state['customHoldSeconds'] as int?;
+        final restSeconds = state['customRestSeconds'] as int?;
+        final ratioLabel = state['customRatioLabel'] as String?;
+        final stimulusIndex = state['customMovementStimulus'] as int?;
+
+        if (durationMinutes != null && holdSeconds != null && restSeconds != null && ratioLabel != null) {
+          _customConfig = CustomSessionConfig(
+            durationMinutes: durationMinutes,
+            ratio: HoldRestRatio(holdSeconds, restSeconds, ratioLabel),
+            movementStimulus: stimulusIndex != null
+                ? MovementStimulus.values[stimulusIndex]
+                : MovementStimulus.none,
+          );
+        }
+        _customTotalReps = state['customTotalReps'] as int? ?? 0;
+        _customCurrentRep = state['customCurrentRep'] as int? ?? 0;
+        _currentMovementCue = state['currentMovementCue'] as String?;
+      }
+
+      // Session started at
+      final startedAtStr = state['sessionStartedAt'] as String?;
+      if (startedAtStr != null) {
+        _sessionStartedAt = DateTime.parse(startedAtStr);
+      }
+
+      // Note: _activeSession and _exercises need to be reloaded from database
+      // by calling loadData() and then restoring the activeSessionId
+
+      // Don't auto-start timer - user taps to resume
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('Error restoring bow training state: $e');
+      return false;
+    }
+  }
+
+  /// Get title for paused session display
+  String get pausedSessionTitle {
+    if (_customConfig != null) {
+      return 'Custom Session';
+    }
+    return _activeSession?.name ?? 'Bow Training';
+  }
+
+  /// Get subtitle for paused session display
+  String get pausedSessionSubtitle {
+    if (_customConfig != null) {
+      return '${_customCurrentRep}/${_customTotalReps} reps';
+    }
+    return 'Exercise ${_currentExerciseIndex + 1}/${_exercises.length}';
+  }
+
+  // ===========================================================================
   // APP LIFECYCLE
   // ===========================================================================
 
