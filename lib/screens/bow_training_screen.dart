@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/bow_training_provider.dart';
 import '../db/database.dart';
+import '../utils/error_handler.dart';
 
 /// Main OLY bow training screen
 class BowTrainingScreen extends StatefulWidget {
@@ -1270,17 +1271,24 @@ class _CompletionView extends StatelessWidget {
                 // Log session button
                 ElevatedButton(
                   onPressed: () async {
-                    await provider.completeSession(
-                      feedbackShaking: feedbackShaking,
-                      feedbackStructure: feedbackStructure,
-                      feedbackRest: feedbackRest,
-                      notes: notesController.text.isEmpty
-                          ? null
-                          : notesController.text,
+                    final result = await ErrorHandler.run(
+                      context,
+                      () => provider.completeSession(
+                        feedbackShaking: feedbackShaking,
+                        feedbackStructure: feedbackStructure,
+                        feedbackRest: feedbackRest,
+                        notes: notesController.text.isEmpty
+                            ? null
+                            : notesController.text,
+                      ),
+                      successMessage: 'Session logged',
+                      errorMessage: 'Failed to save session',
                     );
-                    onComplete();
-                    if (context.mounted) {
-                      Navigator.pop(context);
+                    if (result.success) {
+                      onComplete();
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                      }
                     }
                   },
                   child: const Text('Log Session'),
@@ -1289,10 +1297,17 @@ class _CompletionView extends StatelessWidget {
                 // Save and done button for custom sessions
                 ElevatedButton(
                   onPressed: () async {
-                    await provider.completeCustomSession();
-                    onComplete();
-                    if (context.mounted) {
-                      Navigator.pop(context);
+                    final result = await ErrorHandler.run(
+                      context,
+                      () => provider.completeCustomSession(),
+                      successMessage: 'Session saved',
+                      errorMessage: 'Failed to save session',
+                    );
+                    if (result.success) {
+                      onComplete();
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                      }
                     }
                   },
                   child: const Text('Save Session'),

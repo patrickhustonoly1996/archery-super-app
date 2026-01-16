@@ -9,6 +9,7 @@ import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../services/firestore_sync_service.dart';
 import '../services/import_service.dart';
+import '../utils/error_handler.dart';
 import '../utils/unique_id.dart';
 import 'scores_graph_screen.dart';
 
@@ -170,100 +171,121 @@ class _ImportScreenState extends State<ImportScreen> {
     int skipped = 0;
     int processed = 0;
 
-    // Process in batches for large imports
-    const batchSize = 50;
-    for (int i = 0; i < _drafts.length; i += batchSize) {
-      final batch = _drafts.skip(i).take(batchSize);
+    try {
+      // Process in batches for large imports
+      const batchSize = 50;
+      for (int i = 0; i < _drafts.length; i += batchSize) {
+        final batch = _drafts.skip(i).take(batchSize);
 
-      for (final draft in batch) {
-        processed++;
+        for (final draft in batch) {
+          processed++;
 
-        // Check for duplicates - match on date, score, AND round name for accuracy
-        final isDuplicate = await db.isDuplicateScoreWithRound(
-          draft.date,
-          draft.score,
-          draft.roundName,
-        );
-        if (isDuplicate) {
-          skipped++;
-          continue;
-        }
-
-        // Build comprehensive notes
-        final notesParts = <String>[];
-        if (draft.handicap != null && draft.handicap! > 0) {
-          notesParts.add('HC: ${draft.handicap}');
-        }
-        if (draft.hits != null && draft.hits! > 0) {
-          notesParts.add('Hits: ${draft.hits}');
-        }
-        if (draft.golds != null && draft.golds! > 0) {
-          notesParts.add('Golds: ${draft.golds}');
-        }
-        if (draft.classification != null && draft.classification!.isNotEmpty) {
-          notesParts.add(draft.classification!);
-        }
-
-        // Insert - use UUID to avoid collisions
-        final uniqueId = UniqueId.generate();
-
-        // Determine session type from event type
-        String sessionType = 'competition';
-        if (draft.eventType != null) {
-          final eventLower = draft.eventType!.toLowerCase();
-          if (eventLower.contains('practice')) {
-            sessionType = 'practice';
-          } else if (eventLower.contains('non record') || eventLower.contains('non-record')) {
-            sessionType = 'competition';
+          // Check for duplicates - match on date, score, AND round name for accuracy
+          final isDuplicate = await db.isDuplicateScoreWithRound(
+            draft.date,
+            draft.score,
+            draft.roundName,
+          );
+          if (isDuplicate) {
+            skipped++;
+            continue;
           }
+
+          // Build comprehensive notes
+          final notesParts = <String>[];
+          if (draft.handicap != null && draft.handicap! > 0) {
+            notesParts.add('HC: ${draft.handicap}');
+          }
+          if (draft.hits != null && draft.hits! > 0) {
+            notesParts.add('Hits: ${draft.hits}');
+          }
+          if (draft.golds != null && draft.golds! > 0) {
+            notesParts.add('Golds: ${draft.golds}');
+          }
+          if (draft.classification != null && draft.classification!.isNotEmpty) {
+            notesParts.add(draft.classification!);
+          }
+
+          // Insert - use UUID to avoid collisions
+          final uniqueId = UniqueId.generate();
+
+          // Determine session type from event type
+          String sessionType = 'competition';
+          if (draft.eventType != null) {
+            final eventLower = draft.eventType!.toLowerCase();
+            if (eventLower.contains('practice')) {
+              sessionType = 'practice';
+            } else if (eventLower.contains('non record') || eventLower.contains('non-record')) {
+              sessionType = 'competition';
+            }
+          }
+
+          await db.insertImportedScore(ImportedScoresCompanion.insert(
+            id: uniqueId,
+            date: draft.date,
+            roundName: draft.roundName,
+            score: draft.score,
+            xCount: Value(draft.xs),
+            location: Value(draft.location),
+            notes: Value(notesParts.isEmpty ? null : notesParts.join(', ')),
+            sessionType: Value(sessionType),
+            source: const Value('csv'),
+          ));
+          imported++;
         }
 
-        await db.insertImportedScore(ImportedScoresCompanion.insert(
-          id: uniqueId,
-          date: draft.date,
-          roundName: draft.roundName,
-          score: draft.score,
-          xCount: Value(draft.xs),
-          location: Value(draft.location),
-          notes: Value(notesParts.isEmpty ? null : notesParts.join(', ')),
-          sessionType: Value(sessionType),
-          source: const Value('csv'),
-        ));
-        imported++;
+        // Update progress and yield to UI every batch
+        setState(() => _importProgress = processed);
+        await Future.delayed(Duration.zero);
       }
 
-      // Update progress and yield to UI every batch
-      setState(() => _importProgress = processed);
-      await Future.delayed(Duration.zero);
-    }
+      setState(() {
+        _drafts = [];
+        _isImporting = false;
+      });
 
-    setState(() {
-      _drafts = [];
-      _isImporting = false;
-    });
+      if (mounted && imported > 0) {
+        // Trigger cloud backup in background
+        _triggerCloudBackup(db);
 
-    if (mounted && imported > 0) {
-      // Trigger cloud backup in background
-      _triggerCloudBackup(db);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Imported $imported scores${skipped > 0 ? ', skipped $skipped duplicates' : ''}'),
+            backgroundColor: AppColors.surfaceDark,
+          ),
+        );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Imported $imported scores${skipped > 0 ? ', skipped $skipped duplicates' : ''}'),
-          backgroundColor: AppColors.surfaceDark,
-        ),
-      );
-
-      // Navigate to scores graph to show the imported data
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const ScoresGraphScreen()),
-      );
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No new scores imported (skipped $skipped duplicates)'),
-          backgroundColor: AppColors.surfaceDark,
-        ),
-      );
+        // Navigate to scores graph to show the imported data
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const ScoresGraphScreen()),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No new scores imported (skipped $skipped duplicates)'),
+            backgroundColor: AppColors.surfaceDark,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('ErrorHandler: Import failed: $e');
+      setState(() {
+        _isImporting = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Import failed: $e'),
+            backgroundColor: Colors.red.shade900,
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: AppColors.gold,
+              onPressed: _importAll,
+            ),
+          ),
+        );
+      }
     }
   }
 
