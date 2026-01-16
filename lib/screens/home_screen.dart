@@ -337,7 +337,7 @@ class _HomeScreenState extends State<HomeScreen>
                           // Menu items
                           if (_introComplete)
                             SliverPadding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                              padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 8),
                               sliver: SliverList(
                                 delegate: SliverChildBuilderDelegate(
                                   (context, index) {
@@ -581,39 +581,42 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
       builder: (context, _) {
         final glow = 0.3 + (pulseController.value * 0.3);
 
-        return Container(
-          color: AppColors.backgroundDark,
-          child: Stack(
-            children: [
-              // Subtle bottom border when collapsed
-              if (progress > 0.5)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    height: 1,
-                    color: AppColors.gold.withValues(alpha: (progress - 0.5) * 0.4),
+        return ClipRect(
+          child: Container(
+            color: AppColors.backgroundDark,
+            child: Stack(
+              children: [
+                // Subtle bottom border when collapsed
+                if (progress > 0.5)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      height: 1,
+                      color: AppColors.gold.withValues(alpha: (progress - 0.5) * 0.4),
+                    ),
+                  ),
+
+                // Main content - use Align to position from top
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: verticalPadding),
+                    child: progress < 0.85
+                        ? _buildExpandedLayout(
+                            iconSize: iconSize,
+                            titleSize: titleSize,
+                            spacing: spacing,
+                            subtitleOpacity: subtitleOpacity,
+                            decorationOpacity: decorationOpacity,
+                            glow: glow,
+                          )
+                        : _buildCollapsedLayout(glow: glow),
                   ),
                 ),
-
-              // Main content
-              Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: verticalPadding),
-                  child: progress < 0.85
-                      ? _buildExpandedLayout(
-                          iconSize: iconSize,
-                          titleSize: titleSize,
-                          spacing: spacing,
-                          subtitleOpacity: subtitleOpacity,
-                          decorationOpacity: decorationOpacity,
-                          glow: glow,
-                        )
-                      : _buildCollapsedLayout(glow: glow),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
