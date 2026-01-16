@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:drift/drift.dart';
 import '../db/database.dart';
 import '../services/firestore_sync_service.dart';
+import '../utils/unique_id.dart';
 
 /// Timer phases for bow training
 enum TimerPhase {
@@ -359,7 +360,7 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
 
     final config = _customConfig!;
     final log = OlyTrainingLogsCompanion.insert(
-      id: 'log_${DateTime.now().millisecondsSinceEpoch}',
+      id: UniqueId.withPrefix('log'),
       sessionTemplateId: const Value.absent(), // No template for custom
       sessionVersion: 'custom',
       sessionName: config.displayName,
@@ -403,7 +404,7 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
     );
 
     final log = OlyTrainingLogsCompanion.insert(
-      id: 'log_${DateTime.now().millisecondsSinceEpoch}',
+      id: UniqueId.withPrefix('log'),
       sessionTemplateId: Value(_activeSession!.id),
       sessionVersion: _activeSession!.version,
       sessionName: _activeSession!.name,

@@ -1,307 +1,242 @@
 {
-  "name": "Archery Super App Testing Roadmap",
-  "description": "Implement comprehensive test coverage following the Testing Roadmap phases A-E",
-  "branchName": "ralph/testing-roadmap",
+  "name": "Polish & Fixes Completion",
+  "branchName": "polish-and-fixes",
   "userStories": [
     {
       "id": "US-001",
-      "title": "Phase A1: Create database test infrastructure",
-      "description": "As a developer, I want database test infrastructure so I can test all database operations",
+      "title": "Silent CSV Import Failures",
+      "description": "Fix silent CSV import failures. When importing scores or volume data, invalid rows are silently skipped. User thinks import succeeded but data is missing.",
       "acceptanceCriteria": [
-        "Create test/db/database_test.dart",
-        "Set up in-memory test database",
-        "Create test fixtures for sessions, arrows, equipment",
-        "Helper methods for common test patterns",
-        "flutter test passes"
+        "Track skipped rows with reason (invalid date, bad score, etc.)",
+        "After import, show summary dialog: Imported X scores, skipped Y rows",
+        "If rows skipped, show expandable list of skipped rows with line numbers and reasons",
+        "Allow user to copy skipped rows to clipboard for manual fixing",
+        "If ALL rows fail, show error state (not success with 0 imported)",
+        "Import 10 valid rows + 2 invalid rows shows 'Imported 10, skipped 2'",
+        "Click 'View skipped' shows line numbers and reasons",
+        "Import file with all invalid rows shows error, not success"
       ],
       "priority": 1,
-      "passes": true,
-      "notes": "Reference lib/db/database.dart for the database schema",
-      "dependsOn": [],
-      "completionNotes": "Completed by agent"
+      "passes": false,
+      "dependsOn": []
     },
     {
       "id": "US-002",
-      "title": "Phase A2: Test session operations",
-      "description": "As a developer, I want tests for session CRUD operations so data integrity is verified",
+      "title": "ID Collision Risk",
+      "description": "Fix ID collision risk. IDs generated using DateTime.now().millisecondsSinceEpoch can collide if two items created in same millisecond.",
       "acceptanceCriteria": [
-        "Test createSession() creates with valid data",
-        "Test createSession() generates unique ID",
-        "Test getSession() retrieves by ID",
-        "Test getSession() returns null for missing ID",
-        "Test updateSession() updates existing",
-        "Test deleteSession() removes and cascades to arrows",
-        "Test getAllSessions() returns all ordered by date",
-        "Test getSessionsByDateRange() filters correctly",
-        "flutter test passes"
+        "Add uuid package to pubspec.yaml",
+        "Replace all DateTime.now().millisecondsSinceEpoch.toString() with const Uuid().v4()",
+        "Audit codebase for any other millisecond-based ID generation",
+        "Create two bows rapidly - both have unique UUIDs",
+        "Import scores quickly - no ID collisions",
+        "All existing data continues to work (UUIDs are strings, same as before)"
       ],
-      "priority": 2,
-      "passes": true,
-      "notes": "",
-      "dependsOn": [
-        "US-001"
-      ],
-      "completionNotes": "Completed by agent"
+      "priority": 1,
+      "passes": false,
+      "dependsOn": []
     },
     {
       "id": "US-003",
-      "title": "Phase A3: Test arrow operations",
-      "description": "As a developer, I want tests for arrow CRUD operations so plotting data integrity is verified",
+      "title": "Error Handling Wrapper",
+      "description": "Create error handling infrastructure. Errors are silently swallowed throughout the app. User never knows when something fails.",
       "acceptanceCriteria": [
-        "Test createArrow() creates with valid coordinates",
-        "Test createArrow() validates score range (0-10)",
-        "Test getArrowsForSession() returns correct arrows",
-        "Test getArrowsForEnd() filters by end number",
-        "Test updateArrow() updates position and score",
-        "Test deleteArrow() removes single arrow",
-        "Test deleteArrowsForSession() bulk delete",
-        "flutter test passes"
+        "Create lib/utils/error_handler.dart with ErrorHandler.run() method",
+        "Wrapper executes async action and shows loading state (optional)",
+        "On success show success snackbar (optional)",
+        "On error show error snackbar with retry option",
+        "Log errors to debug console",
+        "Apply to critical operations: save session, import data, sync to cloud",
+        "Network fails during backup shows 'Backup failed' with retry button",
+        "Database write fails shows error message, not silent failure"
       ],
-      "priority": 3,
-      "passes": true,
-      "notes": "",
-      "dependsOn": [
-        "US-001"
-      ],
-      "completionNotes": "Completed by agent"
+      "priority": 2,
+      "passes": false,
+      "dependsOn": ["US-001"]
     },
     {
       "id": "US-004",
-      "title": "Phase A4: Test equipment operations",
-      "description": "As a developer, I want tests for equipment CRUD operations so equipment management is verified",
+      "title": "Form Validation Mixin",
+      "description": "Create form validation. Forms accept any input without validation. Login, equipment forms have no validation.",
       "acceptanceCriteria": [
-        "Test CRUD for bows (create, read, update, delete)",
-        "Test CRUD for quivers",
-        "Test CRUD for shafts",
-        "Test equipment relationships (quiver -> shafts)",
-        "Test active equipment selection",
-        "flutter test passes"
+        "Create lib/mixins/form_validation_mixin.dart",
+        "Include validators for: email (format check), required field (non-empty), number (with optional min/max), password (min length)",
+        "Apply to login screen",
+        "Apply to equipment creation forms (bow name required, etc.)",
+        "Login with invalid email shows 'Invalid email format' inline",
+        "Create bow with empty name shows 'Name required'",
+        "Validation shows as user types (not just on submit)"
       ],
-      "priority": 4,
-      "passes": true,
-      "notes": "",
-      "dependsOn": [
-        "US-001"
-      ],
-      "completionNotes": "Completed by agent"
+      "priority": 2,
+      "passes": false,
+      "dependsOn": []
     },
     {
       "id": "US-005",
-      "title": "Phase A5: Test data integrity",
-      "description": "As a developer, I want data integrity tests so database constraints are verified",
+      "title": "Empty State Widget",
+      "description": "Create empty state widget. Screens show nothing when data is empty. User doesn't know what to do.",
       "acceptanceCriteria": [
-        "Test foreign key constraints work",
-        "Test cascade deletes work",
-        "Test no orphaned records",
-        "Test concurrent access handling",
-        "flutter test passes"
+        "Create lib/widgets/empty_state.dart",
+        "Props: icon, title, subtitle (optional), action button (optional)",
+        "Apply to history screen (no sessions)",
+        "Apply to equipment screen (no bows/quivers)",
+        "Apply to statistics screen (no data for charts)",
+        "New user with no sessions sees 'No sessions yet' with 'Start Your First Session' button",
+        "No bows shows 'No bows added' with 'Add Bow' button",
+        "Empty states match app aesthetic (dark + gold)"
       ],
-      "priority": 5,
-      "passes": true,
-      "notes": "",
-      "dependsOn": [
-        "US-002",
-        "US-003",
-        "US-004"
-      ],
-      "completionNotes": "Completed by agent"
+      "priority": 2,
+      "passes": false,
+      "dependsOn": []
     },
     {
       "id": "US-006",
-      "title": "Phase B1: Extract CSV parsing logic to service",
-      "description": "As a developer, I want CSV parsing logic extracted to a testable service so I can write unit tests",
+      "title": "Loading Button Component",
+      "description": "Create loading button component. Buttons don't show loading state during async operations. Users tap multiple times.",
       "acceptanceCriteria": [
-        "Create lib/services/import_service.dart",
-        "Extract parseScoresCsv() from import_screen.dart",
-        "Extract parseVolumeCsv() from volume_import_screen.dart",
-        "Screens use the new service",
-        "App still works (manual verify or existing tests pass)",
-        "flutter test passes"
+        "Create lib/widgets/loading_button.dart",
+        "Props: label, onPressed, isLoading",
+        "When loading: show spinner, disable button",
+        "Apply to: login button, save buttons, import confirm",
+        "Tap login shows button spinner and can't tap again",
+        "Operation completes and button returns to normal"
       ],
-      "priority": 6,
-      "passes": true,
-      "notes": "This is a refactor - extract parsing logic from screens to a service class",
-      "dependsOn": [],
-      "completionNotes": "Completed by agent"
+      "priority": 3,
+      "passes": false,
+      "dependsOn": []
     },
     {
       "id": "US-007",
-      "title": "Phase B2-B3: Test CSV parsing",
-      "description": "As a developer, I want CSV parsing tests so import accuracy is verified",
+      "title": "Undo for Destructive Operations",
+      "description": "Add undo for destructive operations. Deleting sessions, equipment is permanent with no undo.",
       "acceptanceCriteria": [
-        "Create test/services/import_service_test.dart",
-        "Test parseScoresCsv() - valid file parses correctly",
-        "Test parseScoresCsv() - handles different date formats",
-        "Test parseScoresCsv() - validates score values",
-        "Test parseScoresCsv() - reports row-level errors",
-        "Test parseScoresCsv() - handles missing optional columns",
-        "Test parseScoresCsv() - rejects missing required columns",
-        "Test parseScoresCsv() - handles UTF-8 BOM",
-        "Test parseScoresCsv() - handles Windows line endings",
-        "flutter test passes"
+        "After delete, show snackbar with 'Undo' action for 5 seconds",
+        "If undo tapped, restore the item",
+        "Apply to: session delete, bow delete, quiver delete, shaft delete",
+        "Implementation: soft delete (mark as deleted, purge after undo window)",
+        "Delete session shows 'Session deleted' with Undo button",
+        "Tap Undo within 5s restores session",
+        "Wait 5s and session is permanently gone"
       ],
-      "priority": 7,
-      "passes": true,
-      "notes": "",
-      "dependsOn": [
-        "US-006"
-      ],
-      "completionNotes": "Completed by agent"
+      "priority": 3,
+      "passes": false,
+      "dependsOn": []
     },
     {
       "id": "US-008",
-      "title": "Phase B4: Test volume import",
-      "description": "As a developer, I want volume import tests so arrow volume tracking is verified",
+      "title": "Offline Indicator",
+      "description": "Add offline indicator. User doesn't know their connectivity status or if data is syncing.",
       "acceptanceCriteria": [
-        "Test parseVolumeCsv() - valid file parses correctly",
-        "Test parseVolumeCsv() - validates arrow counts",
-        "Test parseVolumeCsv() - handles date variations",
-        "Test parseVolumeCsv() - reports errors with line numbers",
-        "flutter test passes"
+        "Show subtle indicator in app bar when offline",
+        "Show sync status indicator when backup in progress",
+        "Use connectivity_plus package to detect network state",
+        "Offline shows small icon in app bar (cloud with X)",
+        "Syncing shows small spinning icon",
+        "Online and synced shows no indicator (clean state)",
+        "Turn off wifi and see offline indicator appear",
+        "Turn on wifi and indicator disappears"
       ],
-      "priority": 8,
-      "passes": true,
-      "notes": "",
-      "dependsOn": [
-        "US-006"
-      ],
-      "completionNotes": "Completed by agent"
+      "priority": 3,
+      "passes": false,
+      "dependsOn": []
     },
     {
       "id": "US-009",
-      "title": "Phase B5: Test import error handling",
-      "description": "As a developer, I want import error handling tests so users get helpful feedback",
+      "title": "Extract Constants",
+      "description": "Extract magic numbers to constants. Magic numbers scattered throughout codebase.",
       "acceptanceCriteria": [
-        "Test empty file returns helpful error",
-        "Test binary file rejected gracefully",
-        "Test extremely large file handled (or rejected with message)",
-        "Test partial success reports what worked and what failed",
-        "flutter test passes"
+        "Create lib/config/app_constants.dart",
+        "Move plotting offsets (60.0 finger offset)",
+        "Move linecutter threshold (0.04)",
+        "Move scorecard column widths",
+        "Move touch target sizes",
+        "Document each constant's purpose",
+        "All magic numbers have named constants",
+        "Each constant has comment explaining its purpose",
+        "No behaviour change (pure refactor)"
       ],
-      "priority": 9,
-      "passes": true,
-      "notes": "This addresses the P0 silent CSV parsing failure issue from CODE_REVIEW",
-      "dependsOn": [
-        "US-007",
-        "US-008"
-      ],
-      "completionNotes": "Completed by agent"
+      "priority": 4,
+      "passes": false,
+      "dependsOn": []
     },
     {
       "id": "US-010",
-      "title": "Phase C1-C2: Test breath training session lifecycle",
-      "description": "As a developer, I want breath training session lifecycle tests so session management is verified",
+      "title": "Extract Shared Widgets",
+      "description": "Extract shared widgets. Score display, card layouts duplicated across screens.",
       "acceptanceCriteria": [
-        "Create test/services/breath_training_service_test.dart",
-        "Test startSession() initializes state correctly",
-        "Test pauseSession() pauses timer",
-        "Test resumeSession() resumes from paused state",
-        "Test completeSession() calculates final stats",
-        "Test cancelSession() cleans up state",
-        "flutter test passes"
+        "Create lib/widgets/score_display.dart - reusable score with optional max/X count",
+        "Identify and extract other duplicated widgets",
+        "Update screens to use shared widgets",
+        "Score displays look identical across all screens (using same widget)",
+        "Reduced code duplication",
+        "No visual changes"
       ],
-      "priority": 10,
-      "passes": true,
-      "notes": "Reference lib/services/breath_training_service.dart",
-      "dependsOn": [],
-      "completionNotes": "Completed by agent"
+      "priority": 4,
+      "passes": false,
+      "dependsOn": []
     },
     {
       "id": "US-011",
-      "title": "Phase C3: Test breath hold logic",
-      "description": "As a developer, I want breath hold tests so timing accuracy is verified",
+      "title": "Replace Print with Logging",
+      "description": "Replace print() statements with proper logging. print() statements in production code, inconsistent logging.",
       "acceptanceCriteria": [
-        "Test hold timer increments correctly",
-        "Test personal best detection",
-        "Test recovery phase timing",
-        "Test session statistics calculation",
-        "flutter test passes"
+        "Replace all print() with debugPrint() (only runs in debug mode)",
+        "For important operations, use structured logging",
+        "Primary file: lib/services/firestore_sync_service.dart (20+ print calls)",
+        "No print() calls in lib/ (only debugPrint)",
+        "Production builds don't log to console",
+        "Debug builds still show useful logs"
       ],
-      "priority": 11,
-      "passes": true,
-      "notes": "",
-      "dependsOn": [
-        "US-010"
-      ],
-      "completionNotes": "Completed by agent"
+      "priority": 4,
+      "passes": false,
+      "dependsOn": []
     },
     {
       "id": "US-012",
-      "title": "Phase C4: Test paced breathing logic",
-      "description": "As a developer, I want paced breathing tests so phase transitions are verified",
+      "title": "Extract Round Matching Logic",
+      "description": "Extract round matching logic. Same fuzzy round matching duplicated in two files.",
       "acceptanceCriteria": [
-        "Test phase transitions (inhale -> hold -> exhale)",
-        "Test configurable phase durations",
-        "Test cycle counting",
-        "Test audio cue timing",
-        "flutter test passes"
+        "Create lib/utils/round_matcher.dart",
+        "Move matching logic from lib/screens/history_screen.dart:87-129",
+        "Move matching logic from lib/widgets/handicap_chart.dart:162-204",
+        "Update both files to use shared utility",
+        "Round matching works identically in both places",
+        "Single source of truth for matching logic"
       ],
-      "priority": 12,
-      "passes": true,
-      "notes": "",
-      "dependsOn": [
-        "US-010"
-      ],
-      "completionNotes": "Completed by agent"
+      "priority": 4,
+      "passes": false,
+      "dependsOn": []
     },
     {
       "id": "US-013",
-      "title": "Phase D1: Test volume chart calculations",
-      "description": "As a developer, I want volume chart tests so data visualization accuracy is verified",
+      "title": "Semantic Labels",
+      "description": "Add semantic labels for accessibility. Screen readers can't describe UI elements.",
       "acceptanceCriteria": [
-        "Create test/widgets/volume_chart_test.dart",
-        "Test EMA line calculations match volume_calculator",
-        "Test empty data renders without crash",
-        "Test single data point handled",
-        "Test date range filtering works",
-        "Test Y-axis scaling appropriate for data range",
-        "flutter test passes"
+        "Add semanticLabel to all Icon widgets",
+        "Wrap complex widgets in Semantics with descriptions",
+        "Priority screens: home, plotting, session detail",
+        "Enable TalkBack/VoiceOver and can navigate app",
+        "All buttons/icons have spoken labels",
+        "Score displays read as 'Score: 278 out of 300'"
       ],
-      "priority": 13,
-      "passes": true,
-      "notes": "Reference lib/widgets/volume_chart.dart",
-      "dependsOn": [],
-      "completionNotes": "Completed by agent"
+      "priority": 5,
+      "passes": false,
+      "dependsOn": []
     },
     {
       "id": "US-014",
-      "title": "Phase D2: Test handicap chart calculations",
-      "description": "As a developer, I want handicap chart tests so handicap visualization is verified",
+      "title": "Touch Target Sizes",
+      "description": "Fix touch target sizes. Some buttons/icons are smaller than 48px minimum.",
       "acceptanceCriteria": [
-        "Create test/widgets/handicap_chart_test.dart",
-        "Test handicap points plotted correctly",
-        "Test trend line calculation",
-        "Test empty data handled",
-        "Test date filtering works",
-        "flutter test passes"
+        "Audit all interactive elements for 48x48px minimum",
+        "Fix undersized targets (wrap in SizedBox or increase padding)",
+        "Priority: home screen menu items, settings buttons, small icons",
+        "All tappable elements are at least 48x48px",
+        "No accidental taps on wrong targets"
       ],
-      "priority": 14,
-      "passes": true,
-      "notes": "Reference lib/widgets/handicap_chart.dart",
-      "dependsOn": [],
-      "completionNotes": "Completed by agent"
-    },
-    {
-      "id": "US-015",
-      "title": "Phase D3: Test group centre widget",
-      "description": "As a developer, I want group centre widget tests so sight adjustment accuracy is verified",
-      "acceptanceCriteria": [
-        "Create test/widgets/group_centre_widget_test.dart",
-        "Test centre position calculated correctly",
-        "Test sight click values display correctly",
-        "Test direction indicators (L/R, U/D) correct",
-        "Test zero adjustment case handled",
-        "Test large adjustment warning",
-        "flutter test passes"
-      ],
-      "priority": 15,
-      "passes": true,
-      "notes": "Reference lib/widgets/group_centre_widget.dart",
-      "dependsOn": [],
-      "completionNotes": "Completed by agent"
+      "priority": 5,
+      "passes": false,
+      "dependsOn": []
     }
-  ],
-  "metadata": {
-    "updatedAt": "2026-01-16T10:38:22.837Z"
-  }
+  ]
 }

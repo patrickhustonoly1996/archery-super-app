@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import '../db/database.dart';
+import 'unique_id.dart';
 
 /// Generate sample score data for testing the handicap chart
 class SampleDataGenerator {
@@ -61,7 +62,7 @@ class SampleDataGenerator {
     );
 
     return ImportedScoresCompanion.insert(
-      id: '${date.millisecondsSinceEpoch}_$score',
+      id: UniqueId.generate(),
       date: date,
       roundName: roundName,
       score: score,

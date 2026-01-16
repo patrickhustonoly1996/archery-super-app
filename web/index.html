@@ -325,13 +325,24 @@
   <script src="flutter_bootstrap.js" async></script>
   <script>
     // Hide splash screen when Flutter app is ready
-    window.addEventListener('flutter-first-frame', function() {
+    function hideSplash() {
       const splash = document.getElementById('loading-splash');
       if (splash) {
         splash.classList.add('hidden');
         setTimeout(() => splash.remove(), 300);
       }
-    });
+    }
+
+    window.addEventListener('flutter-first-frame', hideSplash);
+
+    // Fallback: force remove splash after 5 seconds in case event doesn't fire (PWA issue)
+    setTimeout(function() {
+      const splash = document.getElementById('loading-splash');
+      if (splash && !splash.classList.contains('hidden')) {
+        console.warn('Flutter first-frame event not received after 5s, forcing splash removal');
+        hideSplash();
+      }
+    }, 5000);
   </script>
 </body>
 </html>

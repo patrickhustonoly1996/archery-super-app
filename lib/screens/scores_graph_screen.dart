@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../utils/handicap_calculator.dart';
+import '../utils/unique_id.dart';
 
 /// Full-screen scores graph showing handicap progression over time
 /// with customizable time ranges and milestone markers
@@ -395,7 +396,7 @@ class _ScoresGraphScreenState extends State<ScoresGraphScreen> {
     if (result == true && titleController.text.isNotEmpty) {
       final db = context.read<AppDatabase>();
       await db.insertMilestone(MilestonesCompanion.insert(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: UniqueId.generate(),
         date: selectedDate,
         title: titleController.text,
         description: descController.text.isEmpty

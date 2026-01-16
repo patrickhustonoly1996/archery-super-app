@@ -1,38 +1,24 @@
-import 'dart:math';
+import 'package:uuid/uuid.dart';
 
-/// Utility for generating unique IDs that won't collide even when
-/// created in quick succession (same millisecond).
+/// Utility for generating universally unique IDs (UUIDs).
 ///
-/// Format: {timestamp}_{counter}_{random4digits}
-/// Example: 1737014400000_001_4729
+/// Uses UUID v4 which generates random UUIDs that are statistically
+/// guaranteed to be unique across all devices and time.
 ///
-/// The counter guarantees uniqueness within the same process,
-/// while the random suffix adds entropy for cross-process safety.
+/// Format: Standard UUID v4 (e.g., "550e8400-e29b-41d4-a716-446655440000")
 class UniqueId {
-  static final _random = Random();
-  static int _counter = 0;
-  static int _lastTimestamp = 0;
+  static const _uuid = Uuid();
 
-  /// Generate a unique ID combining timestamp, counter, and random suffix.
-  /// This prevents ID collisions that can occur with pure timestamp-based IDs.
+  /// Generate a unique UUID v4.
+  /// This is globally unique and will never collide, even when
+  /// created simultaneously across multiple devices.
   static String generate() {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-
-    // Reset counter when timestamp changes, increment otherwise
-    if (timestamp != _lastTimestamp) {
-      _counter = 0;
-      _lastTimestamp = timestamp;
-    } else {
-      _counter++;
-    }
-
-    final counterStr = _counter.toString().padLeft(3, '0');
-    final randomSuffix = _random.nextInt(9999).toString().padLeft(4, '0');
-    return '${timestamp}_${counterStr}_$randomSuffix';
+    return _uuid.v4();
   }
 
   /// Generate a unique ID with a custom prefix.
   /// Useful for distinguishing different entity types in logs.
+  /// Format: {prefix}_{uuid}
   static String withPrefix(String prefix) {
     return '${prefix}_${generate()}';
   }

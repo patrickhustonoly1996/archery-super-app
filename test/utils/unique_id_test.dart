@@ -9,42 +9,16 @@ void main() {
         expect(id, isNotEmpty);
       });
 
-      test('contains underscore separator', () {
+      test('returns valid UUID v4 format', () {
         final id = UniqueId.generate();
-        expect(id, contains('_'));
-      });
-
-      test('starts with timestamp', () {
-        final before = DateTime.now().millisecondsSinceEpoch;
-        final id = UniqueId.generate();
-        final after = DateTime.now().millisecondsSinceEpoch;
-
-        final parts = id.split('_');
-        expect(parts.length, equals(3)); // timestamp_counter_random
-
-        final timestamp = int.tryParse(parts[0]);
-        expect(timestamp, isNotNull);
-        expect(timestamp, greaterThanOrEqualTo(before));
-        expect(timestamp, lessThanOrEqualTo(after));
-      });
-
-      test('has counter and random suffix', () {
-        final id = UniqueId.generate();
-        final parts = id.split('_');
-        expect(parts.length, equals(3)); // timestamp_counter_random
-
-        // Counter part
-        expect(parts[1].length, equals(3));
-        final counter = int.tryParse(parts[1]);
-        expect(counter, isNotNull);
-        expect(counter, greaterThanOrEqualTo(0));
-
-        // Random suffix part
-        expect(parts[2].length, equals(4));
-        final suffix = int.tryParse(parts[2]);
-        expect(suffix, isNotNull);
-        expect(suffix, greaterThanOrEqualTo(0));
-        expect(suffix, lessThan(10000));
+        // UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+        // where x is any hex digit and y is one of 8, 9, a, or b
+        final uuidRegex = RegExp(
+          r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+          caseSensitive: false,
+        );
+        expect(uuidRegex.hasMatch(id), isTrue,
+            reason: 'ID "$id" is not a valid UUID v4');
       });
 
       test('generates unique IDs in rapid succession', () {
@@ -69,6 +43,11 @@ void main() {
           ids.add(id);
         }
       });
+
+      test('ID length is 36 characters (standard UUID)', () {
+        final id = UniqueId.generate();
+        expect(id.length, equals(36));
+      });
     });
 
     group('withPrefix', () {
@@ -77,10 +56,19 @@ void main() {
         expect(id, startsWith('session_'));
       });
 
-      test('contains three underscores (prefix + timestamp + counter)', () {
+      test('contains valid UUID after prefix', () {
         final id = UniqueId.withPrefix('bow');
-        final underscoreCount = '_'.allMatches(id).length;
-        expect(underscoreCount, equals(3));
+        final parts = id.split('_');
+        expect(parts.length, equals(2));
+        expect(parts[0], equals('bow'));
+
+        // Check UUID format
+        final uuidRegex = RegExp(
+          r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+          caseSensitive: false,
+        );
+        expect(uuidRegex.hasMatch(parts[1]), isTrue,
+            reason: 'UUID part "${parts[1]}" is not valid');
       });
 
       test('generates unique prefixed IDs', () {
@@ -104,18 +92,21 @@ void main() {
     });
 
     group('ID Format', () {
-      test('format is timestamp_counter_random', () {
+      test('format is standard UUID v4', () {
         final id = UniqueId.generate();
-        final regex = RegExp(r'^\d{13}_\d{3}_\d{4}$');
+        // UUID v4: 8-4-4-4-12 hex chars with dashes
+        final regex = RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$');
         expect(regex.hasMatch(id), isTrue,
-            reason: 'ID "$id" does not match expected format');
+            reason: 'ID "$id" does not match UUID format');
       });
 
-      test('prefixed format is prefix_timestamp_counter_random', () {
+      test('prefixed format is prefix_uuid', () {
         final id = UniqueId.withPrefix('test');
-        final regex = RegExp(r'^test_\d{13}_\d{3}_\d{4}$');
-        expect(regex.hasMatch(id), isTrue,
-            reason: 'ID "$id" does not match expected format');
+        expect(id.startsWith('test_'), isTrue);
+        final uuidPart = id.substring(5);
+        final regex = RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$');
+        expect(regex.hasMatch(uuidPart), isTrue,
+            reason: 'UUID part "$uuidPart" does not match expected format');
       });
     });
   });

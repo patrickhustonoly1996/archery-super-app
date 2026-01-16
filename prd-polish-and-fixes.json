@@ -53,7 +53,7 @@
       "title": "ID Collision Risk",
       "priority": "P0",
       "session": 1,
-      "status": "pending",
+      "status": "complete",
       "problem": "IDs generated using DateTime.now().millisecondsSinceEpoch can collide if two items created in same millisecond.",
       "locations": [
         "lib/providers/equipment_provider.dart:43",

@@ -6,6 +6,7 @@ import 'package:csv/csv.dart';
 import 'package:drift/drift.dart' hide Column;
 import '../db/database.dart';
 import '../theme/app_theme.dart';
+import '../utils/unique_id.dart';
 
 class VolumeUploadScreen extends StatefulWidget {
   const VolumeUploadScreen({super.key});
@@ -581,7 +582,7 @@ class _VolumeUploadScreenState extends State<VolumeUploadScreen> {
       final db = context.read<AppDatabase>();
 
       // Save raw import data
-      final importId = DateTime.now().millisecondsSinceEpoch.toString();
+      final importId = UniqueId.generate();
       final columnMapping = jsonEncode({
         'date': _dateColumn,
         'arrows': _arrowsColumn,

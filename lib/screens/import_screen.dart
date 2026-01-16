@@ -9,6 +9,7 @@ import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../services/firestore_sync_service.dart';
 import '../services/import_service.dart';
+import '../utils/unique_id.dart';
 import 'scores_graph_screen.dart';
 
 class ImportScreen extends StatefulWidget {
@@ -203,8 +204,8 @@ class _ImportScreenState extends State<ImportScreen> {
           notesParts.add(draft.classification!);
         }
 
-        // Insert - use unique ID with timestamp and index to avoid collisions
-        final uniqueId = '${DateTime.now().millisecondsSinceEpoch}_${draft.date.millisecondsSinceEpoch}_${draft.score}_$imported';
+        // Insert - use UUID to avoid collisions
+        final uniqueId = UniqueId.generate();
 
         // Determine session type from event type
         String sessionType = 'competition';
@@ -341,7 +342,7 @@ class _ImportScreenState extends State<ImportScreen> {
           final db = context.read<AppDatabase>();
 
           await db.insertImportedScore(ImportedScoresCompanion.insert(
-            id: '${draft.date.millisecondsSinceEpoch}_${draft.score}',
+            id: UniqueId.generate(),
             date: draft.date,
             roundName: draft.roundName,
             score: draft.score,
