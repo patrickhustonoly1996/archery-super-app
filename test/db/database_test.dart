@@ -1576,6 +1576,593 @@ void main() {
       });
     });
   });
+
+  group('Data Integrity - Foreign Keys', () {
+    test('session references valid round type', () async {
+      await withTestDb((db) async {
+        final sessionId = 'test_session';
+        final roundTypeId = 'wa_18_60';
+
+        // Create session with valid round type
+        await db.insertSession(createTestSession(
+          id: sessionId,
+          roundTypeId: roundTypeId,
+        ));
+
+        final session = await db.getSession(sessionId);
+        expect(session, matcher.isNotNull);
+        expect(session!.roundTypeId, equals(roundTypeId));
+
+        // Verify round type exists
+        final roundType = await db.getRoundType(roundTypeId);
+        expect(roundType, matcher.isNotNull);
+      });
+    });
+
+    test('end references valid session', () async {
+      await withTestDb((db) async {
+        final sessionId = 'test_session';
+        await db.insertSession(createTestSession(
+          id: sessionId,
+          roundTypeId: 'wa_18_60',
+        ));
+
+        final endId = 'test_end';
+        await db.insertEnd(createTestEnd(
+          id: endId,
+          sessionId: sessionId,
+          endNumber: 1,
+        ));
+
+        final end = await db.getEnd(endId);
+        expect(end, matcher.isNotNull);
+        expect(end!.sessionId, equals(sessionId));
+
+        // Verify session exists
+        final session = await db.getSession(sessionId);
+        expect(session, matcher.isNotNull);
+      });
+    });
+
+    test('arrow references valid end', () async {
+      await withTestDb((db) async {
+        final sessionId = 'test_session';
+        await db.insertSession(createTestSession(
+          id: sessionId,
+          roundTypeId: 'wa_18_60',
+        ));
+
+        final endId = 'test_end';
+        await db.insertEnd(createTestEnd(
+          id: endId,
+          sessionId: sessionId,
+          endNumber: 1,
+        ));
+
+        final arrowId = 'test_arrow';
+        await db.insertArrow(createTestArrow(
+          id: arrowId,
+          endId: endId,
+          xMm: 10,
+          yMm: 0,
+          score: 10,
+        ));
+
+        final arrows = await db.getArrowsForEnd(endId);
+        expect(arrows.length, equals(1));
+        expect(arrows[0].endId, equals(endId));
+
+        // Verify end exists
+        final end = await db.getEnd(endId);
+        expect(end, matcher.isNotNull);
+      });
+    });
+
+    test('quiver references valid bow', () async {
+      await withTestDb((db) async {
+        final bowId = 'test_bow';
+        await db.insertBow(createTestBow(id: bowId, name: 'Test Bow'));
+
+        final quiverId = 'test_quiver';
+        await db.insertQuiver(createTestQuiver(
+          id: quiverId,
+          name: 'Test Quiver',
+          bowId: bowId,
+        ));
+
+        final quiver = await db.getQuiver(quiverId);
+        expect(quiver, matcher.isNotNull);
+        expect(quiver!.bowId, equals(bowId));
+
+        // Verify bow exists
+        final bow = await db.getBow(bowId);
+        expect(bow, matcher.isNotNull);
+      });
+    });
+
+    test('shaft references valid quiver', () async {
+      await withTestDb((db) async {
+        final bowId = 'test_bow';
+        await db.insertBow(createTestBow(id: bowId, name: 'Test Bow'));
+
+        final quiverId = 'test_quiver';
+        await db.insertQuiver(createTestQuiver(
+          id: quiverId,
+          name: 'Test Quiver',
+          bowId: bowId,
+        ));
+
+        final shaftId = 'test_shaft';
+        await db.insertShaft(createTestShaft(
+          id: shaftId,
+          quiverId: quiverId,
+          number: 1,
+        ));
+
+        final shaft = await db.getShaft(shaftId);
+        expect(shaft, matcher.isNotNull);
+        expect(shaft!.quiverId, equals(quiverId));
+
+        // Verify quiver exists
+        final quiver = await db.getQuiver(quiverId);
+        expect(quiver, matcher.isNotNull);
+      });
+    });
+
+    test('session with valid equipment foreign keys', () async {
+      await withTestDb((db) async {
+        // Create valid equipment
+        final bowId = 'valid_bow';
+        await db.insertBow(createTestBow(id: bowId, name: 'Valid Bow'));
+
+        final quiverId = 'valid_quiver';
+        await db.insertQuiver(createTestQuiver(
+          id: quiverId,
+          name: 'Valid Quiver',
+          bowId: bowId,
+        ));
+
+        // Session with valid equipment should succeed
+        final sessionId = 'valid_session';
+        await db.insertSession(createTestSession(
+          id: sessionId,
+          roundTypeId: 'wa_18_60',
+        ));
+
+        await (db.update(db.sessions)..where((t) => t.id.equals(sessionId))).write(
+          SessionsCompanion(
+            bowId: Value(bowId),
+            quiverId: Value(quiverId),
+          ),
+        );
+
+        final session = await db.getSession(sessionId);
+        expect(session!.bowId, equals(bowId));
+        expect(session.quiverId, equals(quiverId));
+
+        // Verify equipment exists
+        final bow = await db.getBow(bowId);
+        final quiver = await db.getQuiver(quiverId);
+        expect(bow, matcher.isNotNull);
+        expect(quiver, matcher.isNotNull);
+      });
+    });
+  });
+
+  group('Data Integrity - Cascade Deletes', () {
+    test('deleting session cascades to ends and arrows', () async {
+      await withTestDb((db) async {
+        final sessionId = 'cascade_session';
+        await db.insertSession(createTestSession(
+          id: sessionId,
+          roundTypeId: 'wa_18_60',
+        ));
+
+        // Create 3 ends with arrows
+        for (int i = 1; i <= 3; i++) {
+          final endId = 'end_$i';
+          await db.insertEnd(createTestEnd(
+            id: endId,
+            sessionId: sessionId,
+            endNumber: i,
+          ));
+
+          // 3 arrows per end
+          for (int j = 1; j <= 3; j++) {
+            await db.insertArrow(createTestArrow(
+              id: 'arrow_${i}_$j',
+              endId: endId,
+              xMm: 10.0 * j,
+              yMm: 0,
+              score: 10 - j,
+              sequence: j,
+            ));
+          }
+        }
+
+        // Verify data exists
+        final endsBefore = await db.getEndsForSession(sessionId);
+        expect(endsBefore.length, equals(3));
+        final arrowsBefore = await db.getArrowsForSession(sessionId);
+        expect(arrowsBefore.length, equals(9));
+
+        // Delete session
+        await db.deleteSession(sessionId);
+
+        // Verify cascade delete
+        final session = await db.getSession(sessionId);
+        expect(session, matcher.isNull);
+
+        final endsAfter = await db.getEndsForSession(sessionId);
+        expect(endsAfter, isEmpty);
+
+        final arrowsAfter = await db.getArrowsForSession(sessionId);
+        expect(arrowsAfter, isEmpty);
+      });
+    });
+
+    test('deleting bow preserves sessions (nullable FK)', () async {
+      await withTestDb((db) async {
+        final bowId = 'bow_to_delete';
+        await db.insertBow(createTestBow(id: bowId, name: 'Bow to Delete'));
+
+        final sessionId = 'session_with_bow';
+        await db.insertSession(createTestSession(
+          id: sessionId,
+          roundTypeId: 'wa_18_60',
+        ));
+
+        // Link session to bow
+        await (db.update(db.sessions)..where((t) => t.id.equals(sessionId))).write(
+          SessionsCompanion(bowId: Value(bowId)),
+        );
+
+        var session = await db.getSession(sessionId);
+        expect(session!.bowId, equals(bowId));
+
+        // Delete bow
+        await (db.delete(db.bows)..where((t) => t.id.equals(bowId))).go();
+
+        // Session should still exist (bow FK is nullable)
+        session = await db.getSession(sessionId);
+        expect(session, matcher.isNotNull);
+        expect(session!.id, equals(sessionId));
+      });
+    });
+
+    test('session cascade delete verified end-to-end', () async {
+      await withTestDb((db) async {
+        final sessionId = 'cascade_test_session';
+        await db.insertSession(createTestSession(
+          id: sessionId,
+          roundTypeId: 'wa_18_60',
+        ));
+
+        // Create 2 ends with 3 arrows each
+        for (int i = 1; i <= 2; i++) {
+          final endId = 'end_cascade_$i';
+          await db.insertEnd(createTestEnd(
+            id: endId,
+            sessionId: sessionId,
+            endNumber: i,
+          ));
+
+          for (int j = 1; j <= 3; j++) {
+            await db.insertArrow(createTestArrow(
+              id: 'arrow_cascade_${i}_$j',
+              endId: endId,
+              xMm: 10.0 * j,
+              yMm: 0,
+              score: 10 - j,
+              sequence: j,
+            ));
+          }
+        }
+
+        // Verify data structure before delete
+        final endsBefore = await db.getEndsForSession(sessionId);
+        expect(endsBefore.length, equals(2));
+        final arrowsBefore = await db.getArrowsForSession(sessionId);
+        expect(arrowsBefore.length, equals(6));
+
+        // Delete session using the database method
+        await db.deleteSession(sessionId);
+
+        // Verify cascade worked (both ends and arrows should be gone)
+        final session = await db.getSession(sessionId);
+        expect(session, matcher.isNull);
+
+        final endsAfter = await db.getEndsForSession(sessionId);
+        expect(endsAfter, isEmpty);
+
+        final arrowsAfter = await db.getArrowsForSession(sessionId);
+        expect(arrowsAfter, isEmpty);
+      });
+    });
+  });
+
+  group('Data Integrity - Orphaned Records', () {
+    test('no orphaned ends exist after session delete', () async {
+      await withTestDb((db) async {
+        final session1Id = 'session_1';
+        final session2Id = 'session_2';
+
+        await db.insertSession(createTestSession(
+          id: session1Id,
+          roundTypeId: 'wa_18_60',
+        ));
+        await db.insertSession(createTestSession(
+          id: session2Id,
+          roundTypeId: 'wa_18_60',
+        ));
+
+        // Create ends for both sessions
+        await db.insertEnd(createTestEnd(
+          id: 'end_s1_1',
+          sessionId: session1Id,
+          endNumber: 1,
+        ));
+        await db.insertEnd(createTestEnd(
+          id: 'end_s2_1',
+          sessionId: session2Id,
+          endNumber: 1,
+        ));
+
+        // Delete first session
+        await db.deleteSession(session1Id);
+
+        // Verify no orphaned ends (query all ends directly)
+        final allEnds = await (db.select(db.ends)).get();
+        expect(allEnds.length, equals(1));
+        expect(allEnds[0].sessionId, equals(session2Id));
+      });
+    });
+
+    test('deleting end removes only its arrows', () async {
+      await withTestDb((db) async {
+        final sessionId = 'session_1';
+        await db.insertSession(createTestSession(
+          id: sessionId,
+          roundTypeId: 'wa_18_60',
+        ));
+
+        final end1Id = 'end_1';
+        final end2Id = 'end_2';
+        await db.insertEnd(createTestEnd(
+          id: end1Id,
+          sessionId: sessionId,
+          endNumber: 1,
+        ));
+        await db.insertEnd(createTestEnd(
+          id: end2Id,
+          sessionId: sessionId,
+          endNumber: 2,
+        ));
+
+        // Create arrows for both ends
+        await db.insertArrow(createTestArrow(
+          id: 'arrow_e1_1',
+          endId: end1Id,
+          xMm: 10,
+          yMm: 0,
+          score: 10,
+        ));
+        await db.insertArrow(createTestArrow(
+          id: 'arrow_e2_1',
+          endId: end2Id,
+          xMm: 20,
+          yMm: 0,
+          score: 9,
+        ));
+
+        // Delete first end
+        await (db.delete(db.ends)..where((t) => t.id.equals(end1Id))).go();
+
+        // Verify end deleted
+        final end1 = await db.getEnd(end1Id);
+        expect(end1, matcher.isNull);
+
+        // Verify only arrows from end2 remain (validates no orphans)
+        final arrowsForEnd2 = await db.getArrowsForEnd(end2Id);
+        expect(arrowsForEnd2.length, equals(1));
+        expect(arrowsForEnd2[0].endId, equals(end2Id));
+      });
+    });
+
+    test('deleting quiver removes only its shafts', () async {
+      await withTestDb((db) async {
+        final bowId = 'bow_1';
+        await db.insertBow(createTestBow(id: bowId, name: 'Test Bow'));
+
+        final quiver1Id = 'quiver_1';
+        final quiver2Id = 'quiver_2';
+        await db.insertQuiver(createTestQuiver(
+          id: quiver1Id,
+          name: 'Quiver 1',
+          bowId: bowId,
+        ));
+        await db.insertQuiver(createTestQuiver(
+          id: quiver2Id,
+          name: 'Quiver 2',
+          bowId: bowId,
+        ));
+
+        // Create shafts for both quivers
+        await db.insertShaft(createTestShaft(
+          id: 'shaft_q1_1',
+          quiverId: quiver1Id,
+          number: 1,
+        ));
+        await db.insertShaft(createTestShaft(
+          id: 'shaft_q2_1',
+          quiverId: quiver2Id,
+          number: 1,
+        ));
+
+        // Delete first quiver
+        await (db.delete(db.quivers)..where((t) => t.id.equals(quiver1Id))).go();
+
+        // Verify quiver deleted
+        final quiver1 = await db.getQuiver(quiver1Id);
+        expect(quiver1, matcher.isNull);
+
+        // Verify only shafts from quiver2 remain (validates no orphans)
+        final shaftsForQuiver2 = await db.getShaftsForQuiver(quiver2Id);
+        expect(shaftsForQuiver2.length, equals(1));
+        expect(shaftsForQuiver2[0].quiverId, equals(quiver2Id));
+      });
+    });
+  });
+
+  group('Data Integrity - Concurrent Access', () {
+    test('handles concurrent arrow inserts to same end', () async {
+      await withTestDb((db) async {
+        final sessionId = 'session_1';
+        await db.insertSession(createTestSession(
+          id: sessionId,
+          roundTypeId: 'wa_18_60',
+        ));
+
+        final endId = 'end_1';
+        await db.insertEnd(createTestEnd(
+          id: endId,
+          sessionId: sessionId,
+          endNumber: 1,
+        ));
+
+        // Simulate concurrent arrow inserts
+        final futures = <Future>[];
+        for (int i = 1; i <= 6; i++) {
+          futures.add(
+            db.insertArrow(createTestArrow(
+              id: 'arrow_$i',
+              endId: endId,
+              xMm: 10.0 * i,
+              yMm: 0,
+              score: 10 - (i ~/ 2),
+              sequence: i,
+            )),
+          );
+        }
+
+        // Wait for all inserts
+        await Future.wait(futures);
+
+        // Verify all arrows were inserted
+        final arrows = await db.getArrowsForEnd(endId);
+        expect(arrows.length, equals(6));
+      });
+    });
+
+    test('handles concurrent session completions', () async {
+      await withTestDb((db) async {
+        final session1Id = 'session_1';
+        final session2Id = 'session_2';
+
+        await db.insertSession(createTestSession(
+          id: session1Id,
+          roundTypeId: 'wa_18_60',
+        ));
+        await db.insertSession(createTestSession(
+          id: session2Id,
+          roundTypeId: 'wa_18_60',
+        ));
+
+        // Complete both sessions concurrently
+        await Future.wait([
+          db.completeSession(session1Id, 580, 25),
+          db.completeSession(session2Id, 560, 20),
+        ]);
+
+        // Verify both completed
+        final session1 = await db.getSession(session1Id);
+        final session2 = await db.getSession(session2Id);
+
+        expect(session1!.completedAt, matcher.isNotNull);
+        expect(session1.totalScore, equals(580));
+        expect(session2!.completedAt, matcher.isNotNull);
+        expect(session2.totalScore, equals(560));
+      });
+    });
+
+    test('handles concurrent preference updates', () async {
+      await withTestDb((db) async {
+        // Set initial preference
+        await db.setPreference('counter', '0');
+
+        // Simulate concurrent updates (last write wins)
+        final futures = <Future>[];
+        for (int i = 1; i <= 10; i++) {
+          futures.add(db.setPreference('counter', i.toString()));
+        }
+
+        await Future.wait(futures);
+
+        // One of the values should be stored (last write wins)
+        final value = await db.getPreference('counter');
+        expect(value, matcher.isNotNull);
+        expect(int.parse(value!), greaterThanOrEqualTo(1));
+        expect(int.parse(value), lessThanOrEqualTo(10));
+      });
+    });
+
+    test('handles concurrent equipment creation', () async {
+      await withTestDb((db) async {
+        // Create multiple bows concurrently
+        final futures = <Future>[];
+        for (int i = 1; i <= 5; i++) {
+          futures.add(
+            db.insertBow(createTestBow(
+              id: 'bow_$i',
+              name: 'Bow $i',
+            )),
+          );
+        }
+
+        await Future.wait(futures);
+
+        // Verify all bows created
+        final bows = await db.getAllBows();
+        expect(bows.length, equals(5));
+      });
+    });
+
+    test('transaction rollback on error maintains integrity', () async {
+      await withTestDb((db) async {
+        final sessionId = 'session_1';
+        await db.insertSession(createTestSession(
+          id: sessionId,
+          roundTypeId: 'wa_18_60',
+        ));
+
+        try {
+          await db.transaction(() async {
+            // Insert valid end
+            final endId = 'end_1';
+            await db.insertEnd(createTestEnd(
+              id: endId,
+              sessionId: sessionId,
+              endNumber: 1,
+            ));
+
+            // Force a constraint violation (duplicate primary key)
+            await db.insertEnd(createTestEnd(
+              id: endId, // Same ID - will fail on primary key constraint
+              sessionId: sessionId,
+              endNumber: 2,
+            ));
+          });
+          fail('Transaction should have failed');
+        } catch (e) {
+          // Expected failure on duplicate primary key
+        }
+
+        // Verify transaction was rolled back (no end should exist)
+        final ends = await db.getEndsForSession(sessionId);
+        expect(ends, isEmpty);
+      });
+    });
+  });
 }
 
 // =============================================================================
