@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 
 /// Archery Super App design system
 /// Dark base + Gold primary, minimal animation, 8px grid
-/// Space Mono as main font (retro character, readable), VT323 for accents
+/// VT323 for logo & menus, Share Tech Mono for body text
 
 class AppFonts {
-  // Space Mono - main font for UI, headers, labels (retro-modern, readable)
-  static const String main = 'SpaceMono';
-  // VT323 - accents only: version numbers, tiny labels, special moments
+  // VT323 - pixel font for logo, titles, menu items
   static const String pixel = 'VT323';
-  // Aliases for compatibility
-  static const String mono = 'SpaceMono';
-  static const String display = 'SpaceMono';
-  static const String body = 'SpaceMono';
+  // Share Tech Mono - angular technical mono for body text & data
+  static const String body = 'ShareTechMono';
+  // Aliases for compatibility (use body font as default)
+  static const String main = 'ShareTechMono';
+  static const String mono = 'ShareTechMono';
+  static const String display = 'VT323';
 }
 
 class AppColors {
@@ -67,6 +67,8 @@ class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData(
       brightness: Brightness.dark,
+      // Default font for ALL text - no sans-serif fallback
+      fontFamily: AppFonts.body,
       scaffoldBackgroundColor: AppColors.backgroundDark,
       primaryColor: AppColors.gold,
       colorScheme: const ColorScheme.dark(
@@ -129,50 +131,47 @@ class AppTheme {
         thickness: 1,
       ),
       textTheme: TextTheme(
-        // Headlines - Space Mono, sized for impact
+        // Headlines - VT323 pixel font for impact
         headlineLarge: TextStyle(
-          fontFamily: AppFonts.main,
+          fontFamily: AppFonts.pixel,
           fontSize: 32,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w400,
           color: AppColors.textPrimary,
-          letterSpacing: -0.5,
         ),
         headlineMedium: TextStyle(
-          fontFamily: AppFonts.main,
+          fontFamily: AppFonts.pixel,
           fontSize: 26,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w400,
           color: AppColors.textPrimary,
-          letterSpacing: -0.3,
         ),
         headlineSmall: TextStyle(
-          fontFamily: AppFonts.main,
+          fontFamily: AppFonts.pixel,
           fontSize: 20,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w400,
           color: AppColors.textPrimary,
         ),
-        // Body text - Space Mono, slightly smaller for readability
+        // Body text - Share Tech Mono for readability
         bodyLarge: TextStyle(
-          fontFamily: AppFonts.main,
+          fontFamily: AppFonts.body,
           fontSize: 15,
           color: AppColors.textPrimary,
         ),
         bodyMedium: TextStyle(
-          fontFamily: AppFonts.main,
+          fontFamily: AppFonts.body,
           fontSize: 14,
           color: AppColors.textPrimary,
         ),
         bodySmall: TextStyle(
-          fontFamily: AppFonts.main,
+          fontFamily: AppFonts.body,
           fontSize: 12,
           color: AppColors.textSecondary,
         ),
         labelLarge: TextStyle(
-          fontFamily: AppFonts.main,
+          fontFamily: AppFonts.body,
           fontSize: 14,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w500,
           color: AppColors.textPrimary,
         ),
-        // VT323 (AppFonts.pixel) used via explicit styling for accents only
       ),
     );
   }

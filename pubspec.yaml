@@ -61,6 +61,9 @@ dev_dependencies:
   drift_dev: ^2.30.0
   build_runner: ^2.4.15
 
+  # Image generation for favicon
+  image: ^4.3.0
+
 flutter:
   uses-material-design: true
 
@@ -68,13 +71,11 @@ flutter:
     - assets/images/logo.png
 
   fonts:
-    # Space Mono - main retro-modern font, readable with character
-    - family: SpaceMono
-      fonts:
-        - asset: assets/fonts/SpaceMono-Regular.ttf
-        - asset: assets/fonts/SpaceMono-Bold.ttf
-          weight: 700
-    # VT323 - blocky terminal font for small accents only
+    # VT323 - pixel font for logo, titles, menu items
     - family: VT323
       fonts:
         - asset: assets/fonts/VT323-Regular.ttf
+    # Share Tech Mono - angular technical mono for body text & data
+    - family: ShareTechMono
+      fonts:
+        - asset: assets/fonts/ShareTechMono-Regular.ttf

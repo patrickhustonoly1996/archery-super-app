@@ -53,9 +53,23 @@ Hard to reverse → ask ONE question. Reversible → do it, state what you did.
 - Dark base + Gold (#FFD700) primary
 - 1-2 muted fluorescents (≤50% opacity) highlights
 - No neon, no gradients
-- 8px grid, system sans-serif
+- 8px grid
 - Minimal animation (state-change only)
 - Copy: calm, direct, no hype/emojis
+
+## Typography (STRICT)
+
+**No sans-serif fonts.** All text must be monospace.
+
+| Use | Font | AppFonts constant |
+|-----|------|-------------------|
+| Logo, titles, menu items | VT323 | `AppFonts.pixel` |
+| Body text, data, labels | Share Tech Mono | `AppFonts.body` |
+
+- VT323 = chunky pixel font (retro terminals)
+- Share Tech Mono = angular technical mono (sci-fi feel)
+- App-level default is Share Tech Mono, so any unstyled text uses it
+- Never use system fonts, Roboto, SF Pro, or any sans-serif
 
 ## Quality
 
