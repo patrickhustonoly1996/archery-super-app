@@ -221,7 +221,7 @@
       "title": "Extract Constants",
       "priority": "P4",
       "session": 3,
-      "status": "pending",
+      "status": "complete",
       "problem": "Magic numbers scattered throughout codebase.",
       "locations": [
         "lib/config/app_constants.dart (create new)",
