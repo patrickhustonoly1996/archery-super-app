@@ -379,7 +379,7 @@ class _HandicapChartPainter extends CustomPainter {
     final importedPoints = <Offset>[];
 
     for (int i = 0; i < handicaps.length; i++) {
-      final x = (i / (handicaps.length - 1)) * size.width;
+      final x = handicaps.length > 1 ? (i / (handicaps.length - 1)) * size.width : size.width / 2;
 
       // Invert Y-axis so improvement (lower handicap) goes up visually
       final normalizedHandicap = paddedRange > 0
