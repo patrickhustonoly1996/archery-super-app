@@ -183,6 +183,20 @@ class Milestones extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Imported volume data batches (preserves original raw data)
+class VolumeImports extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()(); // User-provided name or filename
+  TextColumn get rawData => text()(); // Original CSV/text data as-is
+  TextColumn get columnMapping => text().nullable()(); // JSON: {"date": 0, "arrows": 1, "notes": 2}
+  IntColumn get rowCount => integer()(); // Number of data rows
+  IntColumn get importedCount => integer().withDefault(const Constant(0))(); // Rows successfully imported
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // OLY BOW TRAINING SYSTEM
 // ============================================================================
@@ -311,6 +325,8 @@ class UserTrainingProgress extends Table {
   UserTrainingProgress,
   // Milestones for handicap graph
   Milestones,
+  // Volume imports for raw data preservation
+  VolumeImports,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -319,7 +335,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -371,6 +387,10 @@ class AppDatabase extends _$AppDatabase {
         if (from <= 6) {
           // Add milestones table for handicap graph
           await m.createTable(milestones);
+        }
+        if (from <= 7) {
+          // Add volume imports table for raw data preservation
+          await m.createTable(volumeImports);
         }
       },
     );
@@ -926,6 +946,31 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> deleteMilestone(String id) =>
       (delete(milestones)..where((t) => t.id.equals(id))).go();
+
+  // ===========================================================================
+  // VOLUME IMPORTS (raw data preservation)
+  // ===========================================================================
+
+  Future<List<VolumeImport>> getAllVolumeImports() => (select(volumeImports)
+        ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+      .get();
+
+  Future<VolumeImport?> getVolumeImport(String id) =>
+      (select(volumeImports)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<int> insertVolumeImport(VolumeImportsCompanion import_) =>
+      into(volumeImports).insert(import_);
+
+  Future<bool> updateVolumeImport(VolumeImportsCompanion import_) =>
+      update(volumeImports).replace(import_);
+
+  Future<int> deleteVolumeImport(String id) =>
+      (delete(volumeImports)..where((t) => t.id.equals(id))).go();
+
+  Future<int> updateVolumeImportCount(String id, int importedCount) =>
+      (update(volumeImports)..where((t) => t.id.equals(id))).write(
+        VolumeImportsCompanion(importedCount: Value(importedCount)),
+      );
 }
 
 QueryExecutor _openConnection() {

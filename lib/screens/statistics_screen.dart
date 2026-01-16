@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../utils/volume_calculator.dart';
-import 'volume_import_screen.dart';
+import 'volume_upload_screen.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -36,6 +36,18 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     });
   }
 
+  Future<void> _navigateToUpload() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const VolumeUploadScreen()),
+    );
+
+    // Refresh data if import was successful
+    if (result == true) {
+      _loadVolumeData();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,16 +56,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.file_upload_outlined),
-            tooltip: 'Import CSV',
-            onPressed: () async {
-              final result = await Navigator.push<bool>(
-                context,
-                MaterialPageRoute(builder: (_) => const VolumeImportScreen()),
-              );
-              if (result == true) {
-                _loadVolumeData();
-              }
-            },
+            tooltip: 'Bulk Upload',
+            onPressed: () => _navigateToUpload(),
           ),
           PopupMenuButton<int>(
             initialValue: _selectedDays,
@@ -84,220 +88,97 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 
-  /// Generate sample data for a month showing typical elite archer volume
-  List<DailyVolume> _generateSampleData() {
-    final now = DateTime.now();
-    final data = <DailyVolume>[];
-
-    // 30 days of sample data for a decent level athlete
-    // Pattern: ~100-150 arrows/day training, with rest days and competitions
-    final volumes = [
-      120, 0, 140, 130, 0, 150, 120, // Week 1 (Sun rest, Wed rest)
-      110, 135, 0, 140, 125, 200, 0, // Week 2 (competition Saturday)
-      130, 140, 120, 0, 145, 130, 110, // Week 3
-      0, 150, 140, 130, 0, 160, 120, // Week 4
-      115, 0, // Final days
-    ];
-
-    for (int i = 0; i < volumes.length; i++) {
-      if (volumes[i] > 0) {
-        data.add(DailyVolume(
-          date: now.subtract(Duration(days: volumes.length - i - 1)),
-          arrowCount: volumes[i],
-        ));
-      }
-    }
-
-    return data;
-  }
-
   Widget _buildEmptyState() {
-    // Show sample data with demo mode indicator
-    final sampleData = _generateSampleData();
-    final metrics = VolumeCalculator.calculateAllMetrics(sampleData);
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Demo mode banner
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppSpacing.md),
-            margin: const EdgeInsets.only(bottom: AppSpacing.md),
-            decoration: BoxDecoration(
-              color: AppColors.gold.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(AppSpacing.sm),
-              border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.bar_chart,
+              size: 64,
+              color: AppColors.textMuted,
             ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.lightbulb_outline, color: AppColors.gold, size: 20),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text(
-                      'Sample Data Preview',
-                      style: TextStyle(
-                        color: AppColors.gold,
-                        fontWeight: FontWeight.bold,
-                      ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'No volume data yet',
+              style: TextStyle(
+                fontSize: 18,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Track your daily arrow count to monitor training load',
+              style: TextStyle(
+                color: AppColors.textMuted,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.xl),
+
+            // Bulk upload option
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceDark,
+                borderRadius: BorderRadius.circular(AppSpacing.md),
+                border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.file_upload_outlined, color: AppColors.gold, size: 32),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    'Have existing training data?',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w500,
                     ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  'This shows what your training volume chart will look like. Add your own data to see your personal stats.',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
                   ),
-                ),
-              ],
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    'Bulk upload from spreadsheet',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  ElevatedButton.icon(
+                    onPressed: () => _navigateToUpload(),
+                    icon: const Icon(Icons.upload_file),
+                    label: const Text('Upload Volume Data'),
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          // Sample summary cards
-          _buildSampleSummaryCards(sampleData, metrics),
-          const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
 
-          // Sample chart
-          _buildSampleVolumeChart(sampleData, metrics),
-          const SizedBox(height: AppSpacing.lg),
-
-          // Call to action
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceDark,
-              borderRadius: BorderRadius.circular(AppSpacing.sm),
-            ),
-            child: Column(
+            Row(
               children: [
-                Text(
-                  'Start Tracking Your Volume',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.textPrimary,
-                      ),
+                Expanded(child: Divider(color: AppColors.surfaceLight)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  child: Text('or', style: TextStyle(color: AppColors.textMuted)),
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  'Track daily arrow counts to monitor training load and prevent overtraining.',
-                  style: TextStyle(color: AppColors.textMuted),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _showAddVolumeDialog(),
-                        icon: const Icon(Icons.add),
-                        label: const Text('Add Entry'),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          final result = await Navigator.push<bool>(
-                            context,
-                            MaterialPageRoute(builder: (_) => const VolumeImportScreen()),
-                          );
-                          if (result == true) {
-                            _loadVolumeData();
-                          }
-                        },
-                        icon: const Icon(Icons.file_upload_outlined),
-                        label: const Text('Import CSV'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.gold,
-                          side: BorderSide(color: AppColors.gold.withOpacity(0.5)),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                Expanded(child: Divider(color: AppColors.surfaceLight)),
               ],
             ),
-          ),
-        ],
+
+            const SizedBox(height: AppSpacing.lg),
+
+            OutlinedButton.icon(
+              onPressed: () => _showAddVolumeDialog(),
+              icon: const Icon(Icons.add),
+              label: const Text('Add Single Entry'),
+            ),
+          ],
+        ),
       ),
-    );
-  }
-
-  Widget _buildSampleSummaryCards(List<DailyVolume> data, VolumeMetrics metrics) {
-    final total7Days = VolumeCalculator.calculateRollingSum(data, 7);
-    final avg7Days = VolumeCalculator.calculateRollingAverage(data, 7);
-    final current7EMA = metrics.ema7.isNotEmpty ? metrics.ema7.last : 0.0;
-    final current28EMA = metrics.ema28.isNotEmpty ? metrics.ema28.last : 0.0;
-
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _buildStatCard(
-                'Last 7 Days',
-                '$total7Days',
-                'arrows',
-                AppColors.gold.withOpacity(0.6),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: _buildStatCard(
-                '7-Day Avg',
-                avg7Days.toStringAsFixed(0),
-                'per day',
-                AppColors.textSecondary.withOpacity(0.6),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: [
-            Expanded(
-              child: _buildStatCard(
-                '7-Day EMA',
-                current7EMA.toStringAsFixed(0),
-                'arrows',
-                Colors.blue.withOpacity(0.6),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: _buildStatCard(
-                '28-Day EMA',
-                current28EMA.toStringAsFixed(0),
-                'arrows',
-                Colors.green.withOpacity(0.6),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSampleVolumeChart(List<DailyVolume> data, VolumeMetrics metrics) {
-    // Convert to VolumeEntry format for chart
-    final entries = data.map((d) => VolumeEntry(
-      id: 'sample_${d.date.millisecondsSinceEpoch}',
-      date: d.date,
-      arrowCount: d.arrowCount,
-      title: null,
-      notes: null,
-      createdAt: d.date,
-      updatedAt: d.date,
-    )).toList();
-
-    return Opacity(
-      opacity: 0.7,
-      child: _buildVolumeChartWithEMA(entries, metrics),
     );
   }
 
@@ -369,7 +250,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             Expanded(
               child: _buildStatCard(
                 '7-Day Avg',
-                avg7Days.toStringAsFixed(0),
+                avg7Days.toStringAsFixed(1),
                 'per day',
                 AppColors.textSecondary,
               ),
@@ -382,27 +263,27 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             Expanded(
               child: _buildStatCard(
                 '7-Day EMA',
-                current7EMA.toStringAsFixed(0),
+                current7EMA.toStringAsFixed(1),
                 'arrows',
-                Colors.blue,
+                Colors.red,
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: _buildStatCard(
                 '28-Day EMA',
-                current28EMA.toStringAsFixed(0),
+                current28EMA.toStringAsFixed(1),
                 'arrows',
-                Colors.green,
+                Colors.black,
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: _buildStatCard(
                 '90-Day EMA',
-                current90EMA.toStringAsFixed(0),
+                current90EMA.toStringAsFixed(1),
                 'arrows',
-                Colors.orange,
+                Colors.green,
               ),
             ),
           ],
@@ -453,18 +334,23 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     // Calculate bar width based on number of entries
     final barWidth = entries.length > 60 ? 4.0 : entries.length > 30 ? 6.0 : 10.0;
 
+    // Round EMA values to whole numbers
+    final ema7Rounded = metrics.ema7.map((v) => v.roundToDouble()).toList();
+    final ema28Rounded = metrics.ema28.map((v) => v.roundToDouble()).toList();
+    final ema90Rounded = metrics.ema90.map((v) => v.roundToDouble()).toList();
+
     // Find max value for Y axis scaling
     double maxY = 0;
     for (final entry in entries) {
       if (entry.arrowCount > maxY) maxY = entry.arrowCount.toDouble();
     }
-    for (final val in metrics.ema7) {
+    for (final val in ema7Rounded) {
       if (val > maxY) maxY = val;
     }
-    for (final val in metrics.ema28) {
+    for (final val in ema28Rounded) {
       if (val > maxY) maxY = val;
     }
-    for (final val in metrics.ema90) {
+    for (final val in ema90Rounded) {
       if (val > maxY) maxY = val;
     }
     // Round up to nearest 50 for clean intervals
@@ -488,11 +374,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   ),
                 ),
                 const Spacer(),
-                _buildLegendItem('7d', Colors.blue),
+                _buildLegendItem('7d', Colors.red),
                 const SizedBox(width: AppSpacing.sm),
-                _buildLegendItem('28d', Colors.green),
+                _buildLegendItem('28d', Colors.black),
                 const SizedBox(width: AppSpacing.sm),
-                _buildLegendItem('90d', Colors.orange),
+                _buildLegendItem('90d', Colors.green, isArea: true),
               ],
             ),
             const SizedBox(height: AppSpacing.md),
@@ -500,7 +386,39 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               height: 280,
               child: Stack(
                 children: [
-                  // Bar chart layer (bottom)
+                  // Line/Area chart layer (bottom) - 90d area behind everything
+                  Padding(
+                    padding: const EdgeInsets.only(left: 40),
+                    child: LineChart(
+                      LineChartData(
+                        maxY: maxY,
+                        minY: 0,
+                        gridData: FlGridData(show: false),
+                        titlesData: FlTitlesData(show: false),
+                        borderData: FlBorderData(show: false),
+                        lineTouchData: LineTouchData(enabled: false),
+                        lineBarsData: [
+                          // 90-day EMA as area chart (green fill)
+                          if (ema90Rounded.isNotEmpty)
+                            LineChartBarData(
+                              spots: ema90Rounded.asMap().entries.map((entry) {
+                                return FlSpot(entry.key.toDouble(), entry.value);
+                              }).toList(),
+                              isCurved: true,
+                              color: Colors.green,
+                              barWidth: 2,
+                              isStrokeCapRound: true,
+                              dotData: FlDotData(show: false),
+                              belowBarData: BarAreaData(
+                                show: true,
+                                color: Colors.green.withOpacity(0.25),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Bar chart layer (middle)
                   BarChart(
                     BarChartData(
                       maxY: maxY,
@@ -510,7 +428,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                           barRods: [
                             BarChartRodData(
                               toY: entry.value.arrowCount.toDouble(),
-                              color: AppColors.gold.withValues(alpha: 0.6),
+                              color: AppColors.gold.withOpacity(0.7),
                               width: barWidth,
                               borderRadius: BorderRadius.only(
                                 topLeft: Radius.circular(2),
@@ -576,9 +494,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       ),
                     ),
                   ),
-                  // Line chart layer (top) - EMAs overlaid
+                  // Line chart layer (top) - 7d and 28d EMAs
                   Padding(
-                    padding: const EdgeInsets.only(left: 40), // Match left axis reserved size
+                    padding: const EdgeInsets.only(left: 40),
                     child: LineChart(
                       LineChartData(
                         maxY: maxY,
@@ -588,39 +506,27 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                         borderData: FlBorderData(show: false),
                         lineTouchData: LineTouchData(enabled: false),
                         lineBarsData: [
-                          // 7-day EMA
-                          if (metrics.ema7.isNotEmpty)
+                          // 28-day EMA (black line)
+                          if (ema28Rounded.isNotEmpty)
                             LineChartBarData(
-                              spots: metrics.ema7.asMap().entries.map((entry) {
+                              spots: ema28Rounded.asMap().entries.map((entry) {
                                 return FlSpot(entry.key.toDouble(), entry.value);
                               }).toList(),
                               isCurved: true,
-                              color: Colors.blue,
-                              barWidth: 2,
+                              color: Colors.black,
+                              barWidth: 2.5,
                               isStrokeCapRound: true,
                               dotData: FlDotData(show: false),
                             ),
-                          // 28-day EMA
-                          if (metrics.ema28.isNotEmpty)
+                          // 7-day EMA (red line)
+                          if (ema7Rounded.isNotEmpty)
                             LineChartBarData(
-                              spots: metrics.ema28.asMap().entries.map((entry) {
+                              spots: ema7Rounded.asMap().entries.map((entry) {
                                 return FlSpot(entry.key.toDouble(), entry.value);
                               }).toList(),
                               isCurved: true,
-                              color: Colors.green,
-                              barWidth: 2,
-                              isStrokeCapRound: true,
-                              dotData: FlDotData(show: false),
-                            ),
-                          // 90-day EMA
-                          if (metrics.ema90.isNotEmpty)
-                            LineChartBarData(
-                              spots: metrics.ema90.asMap().entries.map((entry) {
-                                return FlSpot(entry.key.toDouble(), entry.value);
-                              }).toList(),
-                              isCurved: true,
-                              color: Colors.orange,
-                              barWidth: 2,
+                              color: Colors.red,
+                              barWidth: 2.5,
                               isStrokeCapRound: true,
                               dotData: FlDotData(show: false),
                             ),
@@ -637,14 +543,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 
-  Widget _buildLegendItem(String label, Color color) {
+  Widget _buildLegendItem(String label, Color color, {bool isArea = false}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           width: 12,
-          height: 2,
-          color: color,
+          height: isArea ? 8 : 2,
+          decoration: BoxDecoration(
+            color: isArea ? color.withOpacity(0.4) : color,
+            border: isArea ? Border.all(color: color, width: 1) : null,
+          ),
         ),
         const SizedBox(width: 4),
         Text(
@@ -667,28 +576,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Text(
-                  'Recent Entries',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                TextButton.icon(
-                  onPressed: () => _showSpreadsheetView(),
-                  icon: const Icon(Icons.table_chart, size: 16),
-                  label: const Text('View All'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.gold,
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ],
+            Text(
+              'Recent Entries',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
             ...recentEntries.map((entry) => _buildEntryRow(entry)),
@@ -699,63 +593,35 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   Widget _buildEntryRow(VolumeEntry entry) {
-    final dateStr = '${entry.date.day}/${entry.date.month}';
-    final title = entry.title ?? '';
-
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
         children: [
-          SizedBox(
-            width: 48,
-            child: Text(
-              dateStr,
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 13,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              title.isNotEmpty ? title : '-',
-              style: TextStyle(
-                color: title.isNotEmpty ? AppColors.textPrimary : AppColors.textMuted,
-                fontSize: 13,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
           Text(
-            '${entry.arrowCount}',
+            '${entry.date.day}/${entry.date.month}/${entry.date.year}',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 14,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            '${entry.arrowCount} arrows',
             style: TextStyle(
               color: AppColors.gold,
               fontSize: 14,
               fontWeight: FontWeight.bold,
             ),
           ),
+          if (entry.notes != null && entry.notes!.isNotEmpty) ...[
+            const SizedBox(width: AppSpacing.sm),
+            Icon(
+              Icons.note,
+              size: 16,
+              color: AppColors.textMuted,
+            ),
+          ],
         ],
-      ),
-    );
-  }
-
-  void _showSpreadsheetView() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.backgroundDark,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => _VolumeSpreadsheet(
-          entries: _volumeEntries,
-          scrollController: scrollController,
-          onEntryUpdated: () {
-            _loadVolumeData();
-          },
-        ),
       ),
     );
   }
@@ -763,7 +629,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Future<void> _showAddVolumeDialog() async {
     final dateController = TextEditingController();
     final arrowCountController = TextEditingController();
-    final titleController = TextEditingController();
     final notesController = TextEditingController();
     DateTime selectedDate = DateTime.now();
 
@@ -775,59 +640,49 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Add Volume Entry'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: dateController,
-                decoration: const InputDecoration(
-                  labelText: 'Date',
-                  suffixIcon: Icon(Icons.calendar_today),
-                ),
-                readOnly: true,
-                onTap: () async {
-                  final date = await showDatePicker(
-                    context: context,
-                    initialDate: selectedDate,
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime.now(),
-                  );
-                  if (date != null) {
-                    selectedDate = date;
-                    dateController.text = '${date.day}/${date.month}/${date.year}';
-                  }
-                },
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: dateController,
+              decoration: const InputDecoration(
+                labelText: 'Date',
+                suffixIcon: Icon(Icons.calendar_today),
               ),
-              const SizedBox(height: AppSpacing.md),
-              TextField(
-                controller: arrowCountController,
-                decoration: const InputDecoration(
-                  labelText: 'Arrow Count',
-                  hintText: 'e.g., 120',
-                ),
-                keyboardType: TextInputType.number,
-                autofocus: true,
+              readOnly: true,
+              onTap: () async {
+                final date = await showDatePicker(
+                  context: context,
+                  initialDate: selectedDate,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime.now(),
+                );
+                if (date != null) {
+                  selectedDate = date;
+                  dateController.text = '${date.day}/${date.month}/${date.year}';
+                }
+              },
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              controller: arrowCountController,
+              decoration: const InputDecoration(
+                labelText: 'Arrow Count',
+                hintText: 'e.g., 120',
               ),
-              const SizedBox(height: AppSpacing.md),
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Title (optional)',
-                  hintText: 'e.g., World Cup, Practice',
-                ),
+              keyboardType: TextInputType.number,
+              autofocus: true,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              controller: notesController,
+              decoration: const InputDecoration(
+                labelText: 'Notes (optional)',
+                hintText: 'e.g., Competition day',
               ),
-              const SizedBox(height: AppSpacing.md),
-              TextField(
-                controller: notesController,
-                decoration: const InputDecoration(
-                  labelText: 'Notes (optional)',
-                  hintText: 'Any additional details',
-                ),
-                maxLines: 2,
-              ),
-            ],
-          ),
+              maxLines: 2,
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -848,7 +703,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               await db.setVolumeForDate(
                 selectedDate,
                 arrowCount,
-                title: titleController.text.isEmpty ? null : titleController.text,
                 notes: notesController.text.isEmpty ? null : notesController.text,
               );
 
@@ -862,298 +716,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             child: const Text('Add'),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Spreadsheet view for all volume entries
-class _VolumeSpreadsheet extends StatelessWidget {
-  final List<VolumeEntry> entries;
-  final ScrollController scrollController;
-  final VoidCallback onEntryUpdated;
-
-  const _VolumeSpreadsheet({
-    required this.entries,
-    required this.scrollController,
-    required this.onEntryUpdated,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final sortedEntries = List<VolumeEntry>.from(entries)
-      ..sort((a, b) => b.date.compareTo(a.date));
-
-    return Column(
-      children: [
-        // Header
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceDark,
-            border: Border(
-              bottom: BorderSide(color: AppColors.surfaceLight),
-            ),
-          ),
-          child: Row(
-            children: [
-              const SizedBox(width: 4),
-              Container(
-                width: 4,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.textMuted,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Volume Data',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '${sortedEntries.length} entries',
-                style: TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 12,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.pop(context),
-                iconSize: 20,
-              ),
-            ],
-          ),
-        ),
-
-        // Column headers
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
-          color: AppColors.surfaceDark.withOpacity(0.5),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 80,
-                child: Text(
-                  'Date',
-                  style: TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: 60,
-                child: Text(
-                  'Arrows',
-                  style: TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.right,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Text(
-                  'Title',
-                  style: TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  'Notes',
-                  style: TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Data rows
-        Expanded(
-          child: ListView.builder(
-            controller: scrollController,
-            itemCount: sortedEntries.length,
-            itemBuilder: (context, index) {
-              final entry = sortedEntries[index];
-              return _SpreadsheetRow(
-                entry: entry,
-                isEven: index.isEven,
-                onTap: () => _showEditDialog(context, entry),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showEditDialog(BuildContext context, VolumeEntry entry) {
-    final arrowController = TextEditingController(text: entry.arrowCount.toString());
-    final titleController = TextEditingController(text: entry.title ?? '');
-    final notesController = TextEditingController(text: entry.notes ?? '');
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surfaceDark,
-        title: Text('${entry.date.day}/${entry.date.month}/${entry.date.year}'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: arrowController,
-                decoration: const InputDecoration(labelText: 'Arrow Count'),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              TextField(
-                controller: notesController,
-                decoration: const InputDecoration(labelText: 'Notes'),
-                maxLines: 2,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              final db = Provider.of<AppDatabase>(ctx, listen: false);
-              await db.deleteVolumeEntry(entry.id);
-              Navigator.pop(ctx);
-              onEntryUpdated();
-              Navigator.pop(context); // Close spreadsheet to refresh
-            },
-            child: Text('Delete', style: TextStyle(color: AppColors.error)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final arrowCount = int.tryParse(arrowController.text);
-              if (arrowCount == null || arrowCount <= 0) return;
-
-              final db = Provider.of<AppDatabase>(ctx, listen: false);
-              await db.setVolumeForDate(
-                entry.date,
-                arrowCount,
-                title: titleController.text.isEmpty ? null : titleController.text,
-                notes: notesController.text.isEmpty ? null : notesController.text,
-              );
-              Navigator.pop(ctx);
-              onEntryUpdated();
-              Navigator.pop(context); // Close spreadsheet to refresh
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SpreadsheetRow extends StatelessWidget {
-  final VolumeEntry entry;
-  final bool isEven;
-  final VoidCallback onTap;
-
-  const _SpreadsheetRow({
-    required this.entry,
-    required this.isEven,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: isEven ? Colors.transparent : AppColors.surfaceDark.withOpacity(0.3),
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 80,
-                child: Text(
-                  '${entry.date.day}/${entry.date.month}/${entry.date.year}',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: 60,
-                child: Text(
-                  '${entry.arrowCount}',
-                  style: TextStyle(
-                    color: AppColors.gold,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.right,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Text(
-                  entry.title ?? '-',
-                  style: TextStyle(
-                    color: entry.title != null ? AppColors.textPrimary : AppColors.textMuted,
-                    fontSize: 12,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  entry.notes ?? '-',
-                  style: TextStyle(
-                    color: entry.notes != null ? AppColors.textSecondary : AppColors.textMuted,
-                    fontSize: 12,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
