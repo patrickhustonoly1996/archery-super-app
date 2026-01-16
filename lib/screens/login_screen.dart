@@ -130,19 +130,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo with glow - small and centered
+                  // Logo with glow
                   Center(
                     child: Container(
                       decoration: BoxDecoration(
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.gold.withValues(alpha: 0.4),
-                            blurRadius: 12,
-                            spreadRadius: 1,
+                            color: AppColors.gold.withValues(alpha: 0.5),
+                            blurRadius: 24,
+                            spreadRadius: 4,
                           ),
                         ],
                       ),
-                      child: const PixelBowIcon(size: 32),
+                      child: const PixelBowIcon(size: 72),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
