@@ -289,7 +289,7 @@
       "title": "Extract Round Matching Logic",
       "priority": "P4",
       "session": 3,
-      "status": "pending",
+      "status": "complete",
       "problem": "Same fuzzy round matching duplicated in two files.",
       "locations": [
         "lib/utils/round_matcher.dart (create new)",
