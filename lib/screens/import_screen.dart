@@ -7,6 +7,7 @@ import 'package:drift/drift.dart' hide Column;
 import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../services/firestore_sync_service.dart';
+import '../services/import_service.dart';
 import 'scores_graph_screen.dart';
 
 class ImportScreen extends StatefulWidget {
@@ -17,7 +18,8 @@ class ImportScreen extends StatefulWidget {
 }
 
 class _ImportScreenState extends State<ImportScreen> {
-  List<_ImportDraft> _drafts = [];
+  final _importService = ImportService();
+  List<ScoreDraft> _drafts = [];
   bool _isLoading = false;
   bool _isImporting = false;
   int _importProgress = 0;
@@ -80,7 +82,7 @@ class _ImportScreenState extends State<ImportScreen> {
       }
 
       // Parse CSV
-      final parseResult = _parseCSV(rows);
+      final parseResult = _importService.parseScoresCsv(rows);
 
       setState(() {
         _drafts = parseResult.drafts;
@@ -114,7 +116,7 @@ class _ImportScreenState extends State<ImportScreen> {
       }
 
       // Parse CSV
-      final result = _parseCSV(rows);
+      final result = _importService.parseScoresCsv(rows);
 
       setState(() {
         _drafts = result.drafts;
@@ -130,197 +132,6 @@ class _ImportScreenState extends State<ImportScreen> {
     }
   }
 
-  ({List<_ImportDraft> drafts, int skipped, List<String> reasons}) _parseCSV(List<List<dynamic>> rows) {
-    if (rows.isEmpty) return (drafts: [], skipped: 0, reasons: []);
-
-    // Try to detect header row
-    final firstRow = rows.first.map((e) => e.toString().toLowerCase().trim()).toList();
-    final hasHeader = firstRow.any((h) =>
-        h.contains('date') || h.contains('score') || h.contains('round'));
-
-    final dataRows = hasHeader ? rows.skip(1) : rows;
-
-    // Column aliases for flexible matching - supports Archr export format
-    const dateAliases = ['date', 'shot_date', 'event_date', 'competition_date', 'when', 'day'];
-    const scoreAliases = ['score', 'total', 'total_score', 'points', 'result', 'final_score'];
-    const roundAliases = ['round', 'round_name', 'round_type', 'format'];
-    const locationAliases = ['eventname', 'event_name', 'location', 'venue', 'club', 'competition', 'place', 'site'];
-    const handicapAliases = ['handicap', 'hc', 'handicap_score', 'handicapatscore'];
-    const hitsAliases = ['hits', 'arrows', 'arrows_shot'];
-    const goldsAliases = ['golds', '10s', 'tens'];
-    const xsAliases = ['xs', 'x_count', 'x'];
-    const bowstyleAliases = ['bowstyle', 'bow_style', 'bow', 'equipment'];
-    const eventTypeAliases = ['eventtype', 'event_type', 'type', 'session_type'];
-    const classificationAliases = ['classification', 'class', 'grade'];
-
-    // Find column index using aliases (exact match first, then contains)
-    int findColumn(List<String> aliases) {
-      // Exact match
-      for (final alias in aliases) {
-        final idx = firstRow.indexOf(alias);
-        if (idx >= 0) return idx;
-      }
-      // Contains match for longer aliases only
-      for (final alias in aliases) {
-        if (alias.length >= 4) {
-          for (int i = 0; i < firstRow.length; i++) {
-            if (firstRow[i].contains(alias)) return i;
-          }
-        }
-      }
-      return -1;
-    }
-
-    int dateCol = hasHeader ? findColumn(dateAliases) : -1;
-    int scoreCol = hasHeader ? findColumn(scoreAliases) : -1;
-    int roundCol = hasHeader ? findColumn(roundAliases) : -1;
-    int locationCol = hasHeader ? findColumn(locationAliases) : -1;
-    int handicapCol = hasHeader ? findColumn(handicapAliases) : -1;
-    int hitsCol = hasHeader ? findColumn(hitsAliases) : -1;
-    int goldsCol = hasHeader ? findColumn(goldsAliases) : -1;
-    int xsCol = hasHeader ? findColumn(xsAliases) : -1;
-    int bowstyleCol = hasHeader ? findColumn(bowstyleAliases) : -1;
-    int eventTypeCol = hasHeader ? findColumn(eventTypeAliases) : -1;
-    int classificationCol = hasHeader ? findColumn(classificationAliases) : -1;
-
-    // Default column positions if not found (common CSV format: date, score, round)
-    if (dateCol < 0) dateCol = 0;
-    if (scoreCol < 0) scoreCol = 1;
-    if (roundCol < 0) roundCol = 2;
-
-    final drafts = <_ImportDraft>[];
-    int skippedCount = 0;
-    final skippedReasons = <String>[];
-
-    int rowNumber = hasHeader ? 2 : 1; // Start counting from 1, skip header
-    for (final row in dataRows) {
-      if (row.isEmpty) {
-        rowNumber++;
-        continue;
-      }
-
-      try {
-        final dateStr = dateCol < row.length ? row[dateCol].toString() : '';
-        final scoreStr = scoreCol < row.length ? row[scoreCol].toString() : '';
-        final roundName =
-            roundCol < row.length ? row[roundCol].toString().trim() : 'Unknown';
-        final location =
-            locationCol >= 0 && locationCol < row.length
-                ? row[locationCol].toString().trim()
-                : null;
-
-        // Parse date
-        final date = _parseDate(dateStr);
-        if (date == null) {
-          skippedCount++;
-          if (skippedReasons.length < 5) {
-            skippedReasons.add('Row $rowNumber: Invalid date "$dateStr"');
-          }
-          rowNumber++;
-          continue;
-        }
-
-        // Parse score - handle commas (e.g., "1,296" -> 1296)
-        final score = int.tryParse(scoreStr.replaceAll(RegExp(r'[^0-9]'), ''));
-        if (score == null || score <= 0) {
-          skippedCount++;
-          if (skippedReasons.length < 5) {
-            skippedReasons.add('Row $rowNumber: Invalid score "$scoreStr"');
-          }
-          rowNumber++;
-          continue;
-        }
-
-        // Parse optional fields
-        final handicap = handicapCol >= 0 && handicapCol < row.length
-            ? int.tryParse(row[handicapCol].toString().replaceAll(RegExp(r'[^0-9]'), ''))
-            : null;
-        final hits = hitsCol >= 0 && hitsCol < row.length
-            ? int.tryParse(row[hitsCol].toString().replaceAll(RegExp(r'[^0-9]'), ''))
-            : null;
-        final golds = goldsCol >= 0 && goldsCol < row.length
-            ? int.tryParse(row[goldsCol].toString().replaceAll(RegExp(r'[^0-9]'), ''))
-            : null;
-        final xs = xsCol >= 0 && xsCol < row.length
-            ? int.tryParse(row[xsCol].toString().replaceAll(RegExp(r'[^0-9]'), ''))
-            : null;
-        final bowstyle = bowstyleCol >= 0 && bowstyleCol < row.length
-            ? row[bowstyleCol].toString().trim()
-            : null;
-        final eventType = eventTypeCol >= 0 && eventTypeCol < row.length
-            ? row[eventTypeCol].toString().trim()
-            : null;
-        final classification = classificationCol >= 0 && classificationCol < row.length
-            ? row[classificationCol].toString().trim()
-            : null;
-
-        // Build notes from extra fields for display
-        final notesParts = <String>[];
-        if (handicap != null && handicap > 0) notesParts.add('HC: $handicap');
-        if (hits != null && hits > 0) notesParts.add('Hits: $hits');
-        if (golds != null && golds > 0) notesParts.add('Golds: $golds');
-        if (xs != null && xs > 0) notesParts.add('Xs: $xs');
-        if (classification != null && classification.isNotEmpty) notesParts.add(classification);
-
-        drafts.add(_ImportDraft(
-          date: date,
-          score: score,
-          roundName: roundName,
-          location: location?.isEmpty == true ? null : location,
-          notes: notesParts.isEmpty ? null : notesParts.join(', '),
-          bowstyle: bowstyle?.isEmpty == true ? null : bowstyle,
-          eventType: eventType?.isEmpty == true ? null : eventType,
-          handicap: handicap,
-          hits: hits,
-          golds: golds,
-          xs: xs,
-          classification: classification?.isEmpty == true ? null : classification,
-        ));
-      } catch (e) {
-        // Track the error
-        skippedCount++;
-        if (skippedReasons.length < 5) {
-          skippedReasons.add('Row $rowNumber: Parse error - $e');
-        }
-      }
-      rowNumber++;
-    }
-
-    return (drafts: drafts, skipped: skippedCount, reasons: skippedReasons);
-  }
-
-  DateTime? _parseDate(String dateStr) {
-    // Try common formats
-    final formats = [
-      RegExp(r'(\d{4})-(\d{2})-(\d{2})'), // YYYY-MM-DD
-      RegExp(r'(\d{2})/(\d{2})/(\d{4})'), // DD/MM/YYYY
-      RegExp(r'(\d{2})-(\d{2})-(\d{4})'), // DD-MM-YYYY
-    ];
-
-    for (final format in formats) {
-      final match = format.firstMatch(dateStr);
-      if (match != null) {
-        try {
-          if (format.pattern.startsWith(r'(\d{4})')) {
-            // YYYY-MM-DD
-            return DateTime(
-              int.parse(match.group(1)!),
-              int.parse(match.group(2)!),
-              int.parse(match.group(3)!),
-            );
-          } else {
-            // DD/MM/YYYY or DD-MM-YYYY
-            return DateTime(
-              int.parse(match.group(3)!),
-              int.parse(match.group(2)!),
-              int.parse(match.group(1)!),
-            );
-          }
-        } catch (_) {}
-      }
-    }
-    return null;
-  }
 
   Future<void> _importAll() async {
     final db = context.read<AppDatabase>();
@@ -706,7 +517,7 @@ class _ImportOptionCard extends StatelessWidget {
 }
 
 class _DraftReview extends StatelessWidget {
-  final List<_ImportDraft> drafts;
+  final List<ScoreDraft> drafts;
   final VoidCallback onImport;
   final VoidCallback onCancel;
   final int skippedRows;
@@ -923,7 +734,7 @@ class _DraftReview extends StatelessWidget {
 }
 
 class _ManualEntryDialog extends StatefulWidget {
-  final Function(_ImportDraft) onSave;
+  final Function(ScoreDraft) onSave;
 
   const _ManualEntryDialog({required this.onSave});
 
@@ -992,7 +803,7 @@ class _ManualEntryDialogState extends State<_ManualEntryDialog> {
             final score = int.tryParse(_scoreController.text);
             if (score == null || _roundController.text.isEmpty) return;
 
-            widget.onSave(_ImportDraft(
+            widget.onSave(ScoreDraft(
               date: _date,
               score: score,
               roundName: _roundController.text,
@@ -1009,32 +820,3 @@ class _ManualEntryDialogState extends State<_ManualEntryDialog> {
   }
 }
 
-class _ImportDraft {
-  final DateTime date;
-  final int score;
-  final String roundName;
-  final String? location;
-  final String? notes;
-  final String? bowstyle;
-  final String? eventType;
-  final int? handicap;
-  final int? hits;
-  final int? golds;
-  final int? xs;
-  final String? classification;
-
-  _ImportDraft({
-    required this.date,
-    required this.score,
-    required this.roundName,
-    this.location,
-    this.notes,
-    this.bowstyle,
-    this.eventType,
-    this.handicap,
-    this.hits,
-    this.golds,
-    this.xs,
-    this.classification,
-  });
-}

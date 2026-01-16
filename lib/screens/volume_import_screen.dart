@@ -6,6 +6,7 @@ import 'package:csv/csv.dart';
 import 'package:drift/drift.dart' hide Column;
 import '../db/database.dart';
 import '../theme/app_theme.dart';
+import '../services/import_service.dart';
 
 class VolumeImportScreen extends StatefulWidget {
   const VolumeImportScreen({super.key});
@@ -15,7 +16,8 @@ class VolumeImportScreen extends StatefulWidget {
 }
 
 class _VolumeImportScreenState extends State<VolumeImportScreen> {
-  List<_VolumeDraft> _drafts = [];
+  final _importService = ImportService();
+  List<VolumeDraft> _drafts = [];
   bool _isLoading = false;
   bool _isImporting = false;
   int _importProgress = 0;
@@ -59,7 +61,7 @@ class _VolumeImportScreenState extends State<VolumeImportScreen> {
         return;
       }
 
-      final drafts = _parseCSV(rows);
+      final drafts = _importService.parseVolumeCsv(rows);
 
       setState(() {
         _drafts = drafts;
@@ -90,7 +92,7 @@ class _VolumeImportScreenState extends State<VolumeImportScreen> {
         return;
       }
 
-      final drafts = _parseCSV(rows);
+      final drafts = _importService.parseVolumeCsv(rows);
 
       setState(() {
         _drafts = drafts;
@@ -104,133 +106,6 @@ class _VolumeImportScreenState extends State<VolumeImportScreen> {
     }
   }
 
-  List<_VolumeDraft> _parseCSV(List<List<dynamic>> rows) {
-    if (rows.isEmpty) return [];
-
-    // Try to detect header row
-    final firstRow = rows.first.map((e) => e.toString().toLowerCase().trim()).toList();
-    final hasHeader = firstRow.any((h) =>
-        h.contains('date') || h.contains('volume') || h.contains('arrow') || h.contains('count'));
-
-    final dataRows = hasHeader ? rows.skip(1) : rows;
-
-    // Column aliases for flexible matching - supports various naming conventions
-    const dateAliases = [
-      'date', 'day', 'when', 'training_date', 'session_date', 'shot_date',
-    ];
-    const volumeAliases = [
-      'volume', 'arrows', 'arrow_count', 'arrowcount', 'count', 'total',
-      'arrow_volume', 'arrows_shot', 'num_arrows', 'quantity',
-    ];
-    const titleAliases = [
-      'title', 'name', 'event', 'competition', 'comp', 'session',
-      'event_name', 'competition_name', 'session_name', 'description',
-    ];
-    const notesAliases = [
-      'notes', 'note', 'comment', 'comments', 'remarks', 'details', 'info',
-    ];
-
-    // Find column index using aliases (exact match first, then contains)
-    int findColumn(List<String> aliases) {
-      // Exact match first
-      for (final alias in aliases) {
-        final idx = firstRow.indexOf(alias);
-        if (idx >= 0) return idx;
-      }
-      // Contains match for longer aliases only
-      for (final alias in aliases) {
-        if (alias.length >= 4) {
-          for (int i = 0; i < firstRow.length; i++) {
-            if (firstRow[i].contains(alias)) return i;
-          }
-        }
-      }
-      return -1;
-    }
-
-    int dateCol = hasHeader ? findColumn(dateAliases) : -1;
-    int volumeCol = hasHeader ? findColumn(volumeAliases) : -1;
-    int titleCol = hasHeader ? findColumn(titleAliases) : -1;
-    int notesCol = hasHeader ? findColumn(notesAliases) : -1;
-
-    // Default column positions if no header found
-    // Assumes: date, volume, title, notes order
-    if (dateCol < 0) dateCol = 0;
-    if (volumeCol < 0) volumeCol = 1;
-    // Title and notes are optional, try positions 2 and 3
-    if (titleCol < 0 && firstRow.length > 2) titleCol = 2;
-    if (notesCol < 0 && firstRow.length > 3) notesCol = 3;
-
-    final drafts = <_VolumeDraft>[];
-
-    for (final row in dataRows) {
-      if (row.isEmpty) continue;
-
-      try {
-        final dateStr = dateCol < row.length ? row[dateCol].toString() : '';
-        final volumeStr = volumeCol < row.length ? row[volumeCol].toString() : '';
-        final title = titleCol >= 0 && titleCol < row.length
-            ? row[titleCol].toString().trim()
-            : null;
-        final notes = notesCol >= 0 && notesCol < row.length
-            ? row[notesCol].toString().trim()
-            : null;
-
-        // Parse date
-        final date = _parseDate(dateStr);
-        if (date == null) continue;
-
-        // Parse volume - handle commas (e.g., "1,200" -> 1200)
-        final volume = int.tryParse(volumeStr.replaceAll(RegExp(r'[^0-9]'), ''));
-        if (volume == null || volume <= 0) continue;
-
-        drafts.add(_VolumeDraft(
-          date: date,
-          arrowCount: volume,
-          title: title?.isEmpty == true ? null : title,
-          notes: notes?.isEmpty == true ? null : notes,
-        ));
-      } catch (_) {
-        // Skip invalid rows
-      }
-    }
-
-    return drafts;
-  }
-
-  DateTime? _parseDate(String dateStr) {
-    // Try common formats
-    final formats = [
-      RegExp(r'(\d{4})-(\d{1,2})-(\d{1,2})'), // YYYY-MM-DD or YYYY-M-D
-      RegExp(r'(\d{1,2})/(\d{1,2})/(\d{4})'), // DD/MM/YYYY or D/M/YYYY
-      RegExp(r'(\d{1,2})-(\d{1,2})-(\d{4})'), // DD-MM-YYYY or D-M-YYYY
-      RegExp(r'(\d{1,2})\.(\d{1,2})\.(\d{4})'), // DD.MM.YYYY
-    ];
-
-    for (final format in formats) {
-      final match = format.firstMatch(dateStr);
-      if (match != null) {
-        try {
-          if (format.pattern.startsWith(r'(\d{4})')) {
-            // YYYY-MM-DD format
-            return DateTime(
-              int.parse(match.group(1)!),
-              int.parse(match.group(2)!),
-              int.parse(match.group(3)!),
-            );
-          } else {
-            // DD/MM/YYYY, DD-MM-YYYY, or DD.MM.YYYY format
-            return DateTime(
-              int.parse(match.group(3)!),
-              int.parse(match.group(2)!),
-              int.parse(match.group(1)!),
-            );
-          }
-        } catch (_) {}
-      }
-    }
-    return null;
-  }
 
   Future<void> _importAll() async {
     final db = context.read<AppDatabase>();
@@ -630,7 +505,7 @@ class _ImportOptionCard extends StatelessWidget {
 }
 
 class _DraftReview extends StatelessWidget {
-  final List<_VolumeDraft> drafts;
+  final List<VolumeDraft> drafts;
   final VoidCallback onImport;
   final VoidCallback onCancel;
 
@@ -744,7 +619,7 @@ class _DraftReview extends StatelessWidget {
 }
 
 class _ManualEntryDialog extends StatefulWidget {
-  final Function(_VolumeDraft) onSave;
+  final Function(VolumeDraft) onSave;
 
   const _ManualEntryDialog({required this.onSave});
 
@@ -826,7 +701,7 @@ class _ManualEntryDialogState extends State<_ManualEntryDialog> {
               return;
             }
 
-            widget.onSave(_VolumeDraft(
+            widget.onSave(VolumeDraft(
               date: _date,
               arrowCount: arrowCount,
               title: _titleController.text.isEmpty ? null : _titleController.text,
@@ -841,16 +716,3 @@ class _ManualEntryDialogState extends State<_ManualEntryDialog> {
   }
 }
 
-class _VolumeDraft {
-  final DateTime date;
-  final int arrowCount;
-  final String? title;
-  final String? notes;
-
-  _VolumeDraft({
-    required this.date,
-    required this.arrowCount,
-    this.title,
-    this.notes,
-  });
-}
