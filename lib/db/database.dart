@@ -503,6 +503,17 @@ class AppDatabase extends _$AppDatabase {
     return deleteArrow(lastArrow.id);
   }
 
+  Future<int> updateArrow(String arrowId, ArrowsCompanion updates) =>
+      (update(arrows)..where((t) => t.id.equals(arrowId)))
+          .write(updates);
+
+  Future<int> deleteArrowsForSession(String sessionId) async {
+    final sessionEnds = await getEndsForSession(sessionId);
+    final endIds = sessionEnds.map((e) => e.id).toList();
+    if (endIds.isEmpty) return 0;
+    return (delete(arrows)..where((t) => t.endId.isIn(endIds))).go();
+  }
+
   // ===========================================================================
   // IMPORTED SCORES
   // ===========================================================================

@@ -750,6 +750,177 @@ void main() {
         expect(arrows[2].faceIndex, equals(2));
       });
     });
+
+    test('validates score range 0-10', () async {
+      await withTestDb((db) async {
+        final sessionId = 'session_1';
+        await db.insertSession(createTestSession(
+          id: sessionId,
+          roundTypeId: 'wa_18_60',
+        ));
+
+        final endId = 'end_1';
+        await db.insertEnd(createTestEnd(
+          id: endId,
+          sessionId: sessionId,
+          endNumber: 1,
+        ));
+
+        // Test valid score range (0-10)
+        for (int score = 0; score <= 10; score++) {
+          await db.insertArrow(createTestArrow(
+            id: 'arrow_score_$score',
+            endId: endId,
+            xMm: 10.0,
+            yMm: 0.0,
+            score: score,
+            sequence: score + 1,
+          ));
+        }
+
+        final arrows = await db.getArrowsForEnd(endId);
+        expect(arrows.length, equals(11));
+
+        // Verify all scores are in valid range
+        for (final arrow in arrows) {
+          expect(arrow.score, greaterThanOrEqualTo(0));
+          expect(arrow.score, lessThanOrEqualTo(10));
+        }
+      });
+    });
+
+    test('updates arrow position and score', () async {
+      await withTestDb((db) async {
+        final sessionId = 'session_1';
+        await db.insertSession(createTestSession(
+          id: sessionId,
+          roundTypeId: 'wa_18_60',
+        ));
+
+        final endId = 'end_1';
+        await db.insertEnd(createTestEnd(
+          id: endId,
+          sessionId: sessionId,
+          endNumber: 1,
+        ));
+
+        final arrowId = 'arrow_to_update';
+        await db.insertArrow(createTestArrow(
+          id: arrowId,
+          endId: endId,
+          xMm: 10.0,
+          yMm: 5.0,
+          score: 9,
+        ));
+
+        // Update position and score
+        final radiusMm = 40 * 5.0;
+        final newXMm = 50.5;
+        final newYMm = -30.2;
+        await db.updateArrow(
+          arrowId,
+          ArrowsCompanion(
+            xMm: Value(newXMm),
+            yMm: Value(newYMm),
+            x: Value(newXMm / radiusMm),
+            y: Value(newYMm / radiusMm),
+            score: const Value(8),
+          ),
+        );
+
+        final arrows = await db.getArrowsForEnd(endId);
+        expect(arrows.length, equals(1));
+        expect(arrows[0].xMm, equals(50.5));
+        expect(arrows[0].yMm, equals(-30.2));
+        expect(arrows[0].score, equals(8));
+      });
+    });
+
+    test('deletes all arrows for session (bulk delete)', () async {
+      await withTestDb((db) async {
+        final sessionId = 'session_1';
+        await db.insertSession(createTestSession(
+          id: sessionId,
+          roundTypeId: 'wa_18_60',
+        ));
+
+        // Create multiple ends with arrows
+        final end1Id = 'end_1';
+        await db.insertEnd(createTestEnd(
+          id: end1Id,
+          sessionId: sessionId,
+          endNumber: 1,
+        ));
+        await db.insertArrow(createTestArrow(
+          id: 'arrow_1',
+          endId: end1Id,
+          xMm: 10,
+          yMm: 0,
+          score: 10,
+          sequence: 1,
+        ));
+        await db.insertArrow(createTestArrow(
+          id: 'arrow_2',
+          endId: end1Id,
+          xMm: 20,
+          yMm: 0,
+          score: 9,
+          sequence: 2,
+        ));
+
+        final end2Id = 'end_2';
+        await db.insertEnd(createTestEnd(
+          id: end2Id,
+          sessionId: sessionId,
+          endNumber: 2,
+        ));
+        await db.insertArrow(createTestArrow(
+          id: 'arrow_3',
+          endId: end2Id,
+          xMm: 30,
+          yMm: 0,
+          score: 9,
+          sequence: 1,
+        ));
+        await db.insertArrow(createTestArrow(
+          id: 'arrow_4',
+          endId: end2Id,
+          xMm: 40,
+          yMm: 0,
+          score: 8,
+          sequence: 2,
+        ));
+
+        // Verify arrows exist
+        final arrowsBeforeDelete = await db.getArrowsForSession(sessionId);
+        expect(arrowsBeforeDelete.length, equals(4));
+
+        // Delete all arrows for session
+        final deletedCount = await db.deleteArrowsForSession(sessionId);
+        expect(deletedCount, equals(4));
+
+        // Verify all arrows deleted
+        final arrowsAfterDelete = await db.getArrowsForSession(sessionId);
+        expect(arrowsAfterDelete, isEmpty);
+
+        // Verify ends still exist (not cascade deleted)
+        final ends = await db.getEndsForSession(sessionId);
+        expect(ends.length, equals(2));
+      });
+    });
+
+    test('deleteArrowsForSession returns 0 for session with no ends', () async {
+      await withTestDb((db) async {
+        final sessionId = 'empty_session';
+        await db.insertSession(createTestSession(
+          id: sessionId,
+          roundTypeId: 'wa_18_60',
+        ));
+
+        final deletedCount = await db.deleteArrowsForSession(sessionId);
+        expect(deletedCount, equals(0));
+      });
+    });
   });
 
   group('Equipment Operations', () {
