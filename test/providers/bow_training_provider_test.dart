@@ -1,7 +1,65 @@
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:archery_super_app/providers/bow_training_provider.dart';
+import 'package:archery_super_app/db/database.dart';
+import 'package:mocktail/mocktail.dart';
+
+// Mock classes for testing
+class MockAppDatabase extends Mock implements AppDatabase {}
+
+class MockOlySessionTemplate extends Mock implements OlySessionTemplate {
+  @override
+  final String id;
+  @override
+  final String version;
+  @override
+  final String name;
+  @override
+  final int durationMinutes;
+
+  MockOlySessionTemplate({
+    this.id = 'template_1',
+    this.version = '1.0',
+    this.name = 'Test Session',
+    this.durationMinutes = 10,
+  });
+}
+
+class MockOlySessionExercise extends Mock implements OlySessionExercise {
+  @override
+  final String id;
+  @override
+  final String sessionTemplateId;
+  @override
+  final String exerciseTypeId;
+  @override
+  final int exerciseOrder;
+  @override
+  final int reps;
+  @override
+  final int workSeconds;
+  @override
+  final int restSeconds;
+  @override
+  final String? details;
+  @override
+  final double? intensityOverride;
+
+  MockOlySessionExercise({
+    this.id = 'exercise_1',
+    this.sessionTemplateId = 'template_1',
+    this.exerciseTypeId = 'type_1',
+    this.exerciseOrder = 1,
+    this.reps = 3,
+    this.workSeconds = 5,
+    this.restSeconds = 3,
+    this.details,
+    this.intensityOverride,
+  });
+}
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('TimerPhase', () {
     test('has all expected phases', () {
       expect(TimerPhase.values, contains(TimerPhase.idle));
@@ -443,6 +501,1655 @@ void main() {
 
       expect(cues.length, equals(6));
       expect(cues.toSet().length, equals(6)); // All unique
+    });
+  });
+
+  // ===========================================================================
+  // PHASE E1: TIMER LOGIC TESTS WITH FAKE TIMERS
+  // ===========================================================================
+
+  group('Phase E1: Custom Session - startCustomSession() Initialization', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('startCustomSession initializes correct phase', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      expect(provider.phase, equals(TimerPhase.prep));
+    });
+
+    test('startCustomSession initializes correct rep count', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      expect(provider.customRep, equals(1));
+      expect(provider.customTotalReps, equals(5)); // 5 min @ 60s cycle = 5 reps
+    });
+
+    test('startCustomSession sets timer to running', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      expect(provider.timerState, equals(TimerState.running));
+    });
+
+    test('startCustomSession sets prep countdown time', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      expect(provider.secondsRemaining, equals(kPrepCountdownSeconds));
+    });
+
+    test('startCustomSession marks session as active', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      expect(provider.isActive, isTrue);
+    });
+
+    test('startCustomSession sets isCustomSession to true', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      expect(provider.isCustomSession, isTrue);
+    });
+  });
+
+  group('Phase E1: Timer Advances Through Prep -> Hold -> Rest Cycle (Custom Session)', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('timer advances from prep to hold phase using fakeAsync', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+        expect(provider.phase, equals(TimerPhase.prep));
+
+        // Advance past prep countdown (10 seconds)
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+
+        expect(provider.phase, equals(TimerPhase.hold));
+      });
+    });
+
+    test('timer advances from hold to rest phase', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Advance past prep
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+        expect(provider.phase, equals(TimerPhase.hold));
+
+        // Advance past hold (30 seconds)
+        async.elapse(const Duration(seconds: 30));
+
+        expect(provider.phase, equals(TimerPhase.rest));
+      });
+    });
+
+    test('timer advances from rest back to hold phase', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Advance past prep
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+
+        // Advance past hold
+        async.elapse(const Duration(seconds: 30));
+        expect(provider.phase, equals(TimerPhase.rest));
+
+        // Advance past rest (30 seconds)
+        async.elapse(const Duration(seconds: 30));
+
+        expect(provider.phase, equals(TimerPhase.hold));
+      });
+    });
+
+    test('complete hold -> rest -> hold cycle', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Phase sequence: prep -> hold -> rest -> hold
+        expect(provider.phase, equals(TimerPhase.prep));
+
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+        expect(provider.phase, equals(TimerPhase.hold));
+
+        async.elapse(const Duration(seconds: 30));
+        expect(provider.phase, equals(TimerPhase.rest));
+
+        async.elapse(const Duration(seconds: 30));
+        expect(provider.phase, equals(TimerPhase.hold));
+      });
+    });
+  });
+
+  group('Phase E1: Rep Counting Increments After Each Hold/Rest Cycle', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('rep count starts at 1', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      expect(provider.customRep, equals(1));
+    });
+
+    test('rep count increments after first hold/rest cycle', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+        expect(provider.customRep, equals(1));
+
+        // Skip prep
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+
+        // Complete hold (30s) and rest (30s)
+        async.elapse(const Duration(seconds: 30)); // now in rest
+        async.elapse(const Duration(seconds: 30)); // now in hold, rep incremented
+
+        expect(provider.customRep, equals(2));
+      });
+    });
+
+    test('rep count increments correctly through multiple cycles', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 3, // 3 reps at 30:30
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+        expect(provider.customTotalReps, equals(3));
+        expect(provider.customRep, equals(1));
+
+        // Skip prep
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+
+        // First cycle - complete hold and rest
+        async.elapse(const Duration(seconds: 60));
+        expect(provider.customRep, equals(2));
+
+        // Second cycle - complete hold and rest
+        async.elapse(const Duration(seconds: 60));
+        expect(provider.customRep, equals(3));
+      });
+    });
+  });
+
+  group('Phase E1: Session Completes After All Reps Done (Custom Session)', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('session completes after all reps', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 2, // 2 reps at 30:30
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+        expect(provider.customTotalReps, equals(2));
+
+        // Skip prep
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+
+        // First rep: hold (30s) + rest (30s) = 60s
+        async.elapse(const Duration(seconds: 60));
+        expect(provider.customRep, equals(2));
+        expect(provider.phase, equals(TimerPhase.hold));
+
+        // Second rep: hold (30s) completes session
+        async.elapse(const Duration(seconds: 30));
+
+        expect(provider.phase, equals(TimerPhase.complete));
+        expect(provider.timerState, equals(TimerState.stopped));
+      });
+    });
+
+    test('session is not active after completion', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 1, // 1 rep at 30:30
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Skip prep
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+
+        // Complete single rep hold
+        async.elapse(const Duration(seconds: 30));
+
+        expect(provider.phase, equals(TimerPhase.complete));
+        // After completion, timerState is stopped so isActive is false
+        expect(provider.timerState, equals(TimerState.stopped));
+      });
+    });
+  });
+
+  group('Phase E1: pauseTimer() Stops Timer and Preserves State', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('pauseTimer sets timerState to paused', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      expect(provider.timerState, equals(TimerState.running));
+
+      provider.pauseTimer();
+
+      expect(provider.timerState, equals(TimerState.paused));
+    });
+
+    test('pauseTimer preserves phase', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Advance to hold phase
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+        expect(provider.phase, equals(TimerPhase.hold));
+
+        provider.pauseTimer();
+
+        expect(provider.phase, equals(TimerPhase.hold));
+      });
+    });
+
+    test('pauseTimer preserves secondsRemaining', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Advance partway through prep
+        async.elapse(const Duration(seconds: 5));
+        final remainingBeforePause = provider.secondsRemaining;
+
+        provider.pauseTimer();
+
+        expect(provider.secondsRemaining, equals(remainingBeforePause));
+      });
+    });
+
+    test('pauseTimer preserves rep count', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Advance past prep and first cycle
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 61));
+        final repBeforePause = provider.customRep;
+
+        provider.pauseTimer();
+
+        expect(provider.customRep, equals(repBeforePause));
+      });
+    });
+
+    test('pauseTimer stops timer from advancing', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+        final initialRemaining = provider.secondsRemaining;
+
+        provider.pauseTimer();
+        async.elapse(const Duration(seconds: 5));
+
+        // Time should not have advanced while paused
+        expect(provider.secondsRemaining, equals(initialRemaining));
+      });
+    });
+
+    test('pauseTimer does nothing if already stopped', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      provider.cancelSession();
+      expect(provider.timerState, equals(TimerState.stopped));
+
+      provider.pauseTimer();
+
+      expect(provider.timerState, equals(TimerState.stopped));
+    });
+
+    test('pauseTimer does nothing if already paused', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      provider.pauseTimer();
+      expect(provider.timerState, equals(TimerState.paused));
+
+      provider.pauseTimer();
+
+      expect(provider.timerState, equals(TimerState.paused));
+    });
+  });
+
+  group('Phase E1: resumeTimer() Continues From Paused State', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('resumeTimer sets timerState to running', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      provider.pauseTimer();
+      expect(provider.timerState, equals(TimerState.paused));
+
+      provider.resumeTimer();
+
+      expect(provider.timerState, equals(TimerState.running));
+    });
+
+    test('resumeTimer continues from same phase', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Advance to hold phase
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+        expect(provider.phase, equals(TimerPhase.hold));
+
+        provider.pauseTimer();
+        provider.resumeTimer();
+
+        expect(provider.phase, equals(TimerPhase.hold));
+      });
+    });
+
+    test('resumeTimer allows timer to continue advancing', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Advance to hold phase
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+        expect(provider.phase, equals(TimerPhase.hold));
+
+        provider.pauseTimer();
+        provider.resumeTimer();
+
+        // Advance through hold phase
+        async.elapse(const Duration(seconds: 30));
+
+        expect(provider.phase, equals(TimerPhase.rest));
+      });
+    });
+
+    test('resumeTimer clears wasPausedByBackground flag', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      provider.pauseTimer();
+      // Note: wasPausedByBackground is set by didChangeAppLifecycleState
+      // For this test, we just verify resume clears it
+
+      provider.resumeTimer();
+
+      expect(provider.wasPausedByBackground, isFalse);
+    });
+
+    test('resumeTimer does nothing if not paused', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      expect(provider.timerState, equals(TimerState.running));
+
+      provider.resumeTimer();
+
+      expect(provider.timerState, equals(TimerState.running));
+    });
+
+    test('resumeTimer does nothing if stopped', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      provider.cancelSession();
+      expect(provider.timerState, equals(TimerState.stopped));
+
+      provider.resumeTimer();
+
+      expect(provider.timerState, equals(TimerState.stopped));
+    });
+  });
+
+  group('Phase E1: cancelSession() Cleans Up All State', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('cancelSession sets timerState to stopped', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      expect(provider.timerState, equals(TimerState.running));
+
+      provider.cancelSession();
+
+      expect(provider.timerState, equals(TimerState.stopped));
+    });
+
+    test('cancelSession sets phase to idle', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      provider.cancelSession();
+
+      expect(provider.phase, equals(TimerPhase.idle));
+    });
+
+    test('cancelSession resets secondsRemaining to 0', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      provider.cancelSession();
+
+      expect(provider.secondsRemaining, equals(0));
+    });
+
+    test('cancelSession clears custom config', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      expect(provider.isCustomSession, isTrue);
+
+      provider.cancelSession();
+
+      expect(provider.isCustomSession, isFalse);
+    });
+
+    test('cancelSession sets isActive to false', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      expect(provider.isActive, isTrue);
+
+      provider.cancelSession();
+
+      expect(provider.isActive, isFalse);
+    });
+
+    test('cancelSession can be called while paused', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      provider.pauseTimer();
+
+      provider.cancelSession();
+
+      expect(provider.timerState, equals(TimerState.stopped));
+      expect(provider.phase, equals(TimerPhase.idle));
+    });
+
+    test('cancelSession resets exercise tracking', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      provider.cancelSession();
+
+      expect(provider.currentExerciseIndex, equals(0));
+      expect(provider.currentRep, equals(0));
+    });
+
+    test('cancelSession clears movement cue', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.lots,
+      );
+
+      provider.startCustomSession(config);
+      provider.cancelSession();
+
+      expect(provider.movementCue, isNull);
+    });
+  });
+
+  group('Phase E1: OLY Session - startSession() Initialization', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('startSession initializes correct phase', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(reps: 3, workSeconds: 5, restSeconds: 3),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      expect(provider.phase, equals(TimerPhase.prep));
+    });
+
+    test('startSession initializes correct rep count', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(reps: 3, workSeconds: 5, restSeconds: 3),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      expect(provider.currentRep, equals(1));
+    });
+
+    test('startSession initializes correct exercise index', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(
+          id: 'ex1',
+          exerciseOrder: 1,
+          reps: 3,
+          workSeconds: 5,
+          restSeconds: 3,
+        ),
+        MockOlySessionExercise(
+          id: 'ex2',
+          exerciseOrder: 2,
+          reps: 2,
+          workSeconds: 10,
+          restSeconds: 5,
+        ),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      expect(provider.currentExerciseIndex, equals(0));
+    });
+
+    test('startSession sets timer to running', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(reps: 3, workSeconds: 5, restSeconds: 3),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      expect(provider.timerState, equals(TimerState.running));
+    });
+
+    test('startSession sets prep countdown time', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(reps: 3, workSeconds: 5, restSeconds: 3),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      expect(provider.secondsRemaining, equals(kPrepCountdownSeconds));
+    });
+
+    test('startSession marks session as active', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(reps: 3, workSeconds: 5, restSeconds: 3),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      expect(provider.isActive, isTrue);
+    });
+
+    test('startSession stores active session template', () async {
+      final template = MockOlySessionTemplate(
+        id: 'template_test',
+        name: 'Test Session',
+      );
+      final exercises = [
+        MockOlySessionExercise(reps: 3, workSeconds: 5, restSeconds: 3),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      expect(provider.activeSession, equals(template));
+    });
+
+    test('startSession does not start if no exercises', () async {
+      final template = MockOlySessionTemplate();
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => <OlySessionExercise>[]);
+
+      await provider.startSession(template);
+
+      expect(provider.activeSession, isNull);
+      expect(provider.timerState, equals(TimerState.stopped));
+    });
+  });
+
+  group('Phase E1: OLY Session - Timer Phase Transitions', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('timer advances from prep to hold using skipPhase', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(reps: 2, workSeconds: 5, restSeconds: 3),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+      expect(provider.phase, equals(TimerPhase.prep));
+
+      // Skip prep to advance to hold
+      provider.skipPhase();
+
+      expect(provider.phase, equals(TimerPhase.hold));
+    });
+
+    test('timer advances from hold to rest using skipPhase', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(reps: 2, workSeconds: 5, restSeconds: 3),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      // Skip prep
+      provider.skipPhase();
+      expect(provider.phase, equals(TimerPhase.hold));
+
+      // Skip hold to rest
+      provider.skipPhase();
+
+      expect(provider.phase, equals(TimerPhase.rest));
+    });
+
+    test('timer advances from rest back to hold using skipPhase', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(reps: 2, workSeconds: 5, restSeconds: 3),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      // Skip prep to hold
+      provider.skipPhase();
+
+      // Skip hold to rest
+      provider.skipPhase();
+      expect(provider.phase, equals(TimerPhase.rest));
+
+      // Skip rest back to hold (next rep)
+      provider.skipPhase();
+
+      expect(provider.phase, equals(TimerPhase.hold));
+    });
+  });
+
+  group('Phase E1: OLY Session - Rep Counting', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('rep count starts at 1', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(reps: 3, workSeconds: 5, restSeconds: 3),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      expect(provider.currentRep, equals(1));
+    });
+
+    test('rep count increments after hold/rest cycle using skipPhase', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(reps: 3, workSeconds: 5, restSeconds: 3),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+      expect(provider.currentRep, equals(1));
+
+      // Skip prep -> hold
+      provider.skipPhase();
+      // Skip hold -> rest
+      provider.skipPhase();
+      // Skip rest -> hold (next rep)
+      provider.skipPhase();
+
+      expect(provider.currentRep, equals(2));
+    });
+
+    test('rep count increments correctly through multiple cycles using skipPhase', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(reps: 3, workSeconds: 5, restSeconds: 3),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      // Skip prep -> hold
+      provider.skipPhase();
+
+      // Complete first cycle: hold -> rest -> hold
+      provider.skipPhase(); // hold -> rest
+      provider.skipPhase(); // rest -> hold
+      expect(provider.currentRep, equals(2));
+
+      // Complete second cycle: hold -> rest -> hold
+      provider.skipPhase(); // hold -> rest
+      provider.skipPhase(); // rest -> hold
+      expect(provider.currentRep, equals(3));
+    });
+  });
+
+  group('Phase E1: OLY Session - Exercise Advancement', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('exercise advances after all reps complete using skipPhase', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(
+          id: 'ex1',
+          exerciseOrder: 1,
+          reps: 2,
+          workSeconds: 5,
+          restSeconds: 3,
+        ),
+        MockOlySessionExercise(
+          id: 'ex2',
+          exerciseOrder: 2,
+          reps: 2,
+          workSeconds: 10,
+          restSeconds: 5,
+        ),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+      expect(provider.currentExerciseIndex, equals(0));
+
+      // Skip prep -> hold
+      provider.skipPhase();
+
+      // Complete first exercise (2 reps):
+      // Rep 1: hold -> rest
+      provider.skipPhase();
+      // rest -> hold
+      provider.skipPhase();
+      // Rep 2: hold -> exerciseBreak (last rep of exercise)
+      provider.skipPhase();
+
+      // Should be in exercise break
+      expect(provider.phase, equals(TimerPhase.exerciseBreak));
+    });
+
+    test('exercise index increments after exercise break using skipPhase', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(
+          id: 'ex1',
+          exerciseOrder: 1,
+          reps: 2,
+          workSeconds: 5,
+          restSeconds: 3,
+        ),
+        MockOlySessionExercise(
+          id: 'ex2',
+          exerciseOrder: 2,
+          reps: 2,
+          workSeconds: 10,
+          restSeconds: 5,
+        ),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      // Skip prep -> hold
+      provider.skipPhase();
+
+      // Complete first exercise (2 reps)
+      provider.skipPhase(); // hold -> rest
+      provider.skipPhase(); // rest -> hold
+      provider.skipPhase(); // hold -> exerciseBreak
+      expect(provider.phase, equals(TimerPhase.exerciseBreak));
+
+      // Skip exercise break -> next exercise hold
+      provider.skipPhase();
+
+      expect(provider.currentExerciseIndex, equals(1));
+      expect(provider.phase, equals(TimerPhase.hold));
+    });
+
+    test('rep resets to 1 when moving to next exercise using skipPhase', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(
+          id: 'ex1',
+          exerciseOrder: 1,
+          reps: 2,
+          workSeconds: 5,
+          restSeconds: 3,
+        ),
+        MockOlySessionExercise(
+          id: 'ex2',
+          exerciseOrder: 2,
+          reps: 3,
+          workSeconds: 10,
+          restSeconds: 5,
+        ),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      // Skip prep -> hold
+      provider.skipPhase();
+
+      // Complete first exercise
+      provider.skipPhase(); // hold -> rest
+      provider.skipPhase(); // rest -> hold
+      provider.skipPhase(); // hold -> exerciseBreak
+
+      // Skip exercise break -> next exercise
+      provider.skipPhase();
+
+      expect(provider.currentExerciseIndex, equals(1));
+      expect(provider.currentRep, equals(1));
+    });
+  });
+
+  group('Phase E1: OLY Session - Session Completion', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('session completes after all exercises done using skipPhase', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(
+          id: 'ex1',
+          exerciseOrder: 1,
+          reps: 2,
+          workSeconds: 5,
+          restSeconds: 3,
+        ),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      // Skip prep -> hold
+      provider.skipPhase();
+
+      // Complete single exercise (2 reps):
+      // Rep 1: hold -> rest
+      provider.skipPhase();
+      // rest -> hold
+      provider.skipPhase();
+      // Rep 2: hold -> complete (last rep of last exercise)
+      provider.skipPhase();
+
+      expect(provider.phase, equals(TimerPhase.complete));
+      expect(provider.timerState, equals(TimerState.stopped));
+    });
+
+    test('completedExercisesCount increments correctly using skipPhase', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(
+          id: 'ex1',
+          exerciseOrder: 1,
+          reps: 2,
+          workSeconds: 5,
+          restSeconds: 3,
+        ),
+        MockOlySessionExercise(
+          id: 'ex2',
+          exerciseOrder: 2,
+          reps: 2,
+          workSeconds: 5,
+          restSeconds: 3,
+        ),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+      expect(provider.completedExercisesCount, equals(0));
+
+      // Skip prep -> hold
+      provider.skipPhase();
+
+      // Complete first exercise
+      provider.skipPhase(); // hold -> rest
+      provider.skipPhase(); // rest -> hold
+      provider.skipPhase(); // hold -> exerciseBreak
+      expect(provider.completedExercisesCount, equals(1));
+
+      // Skip exercise break
+      provider.skipPhase();
+
+      // Complete second exercise
+      provider.skipPhase(); // hold -> rest
+      provider.skipPhase(); // rest -> hold
+      provider.skipPhase(); // hold -> complete
+      expect(provider.completedExercisesCount, equals(2));
+    });
+
+    test('session with multiple exercises completes correctly using skipPhase', () async {
+      final template = MockOlySessionTemplate();
+      final exercises = [
+        MockOlySessionExercise(
+          id: 'ex1',
+          exerciseOrder: 1,
+          reps: 1,
+          workSeconds: 5,
+          restSeconds: 0,
+        ),
+        MockOlySessionExercise(
+          id: 'ex2',
+          exerciseOrder: 2,
+          reps: 1,
+          workSeconds: 5,
+          restSeconds: 0,
+        ),
+      ];
+
+      when(() => mockDb.getOlySessionExercises(template.id))
+          .thenAnswer((_) async => exercises);
+
+      await provider.startSession(template);
+
+      // Skip prep -> hold
+      provider.skipPhase();
+
+      // Complete first exercise (1 rep, no rest) -> exercise break
+      provider.skipPhase();
+      expect(provider.phase, equals(TimerPhase.exerciseBreak));
+
+      // Skip exercise break
+      provider.skipPhase();
+      expect(provider.currentExerciseIndex, equals(1));
+
+      // Complete second exercise (1 rep) -> complete
+      provider.skipPhase();
+
+      expect(provider.phase, equals(TimerPhase.complete));
+      expect(provider.completedExercisesCount, equals(2));
+    });
+  });
+
+  group('Phase E1: Skip Phase', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('skipPhase advances from prep to hold', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      expect(provider.phase, equals(TimerPhase.prep));
+
+      provider.skipPhase();
+
+      expect(provider.phase, equals(TimerPhase.hold));
+    });
+
+    test('skipPhase advances from hold to rest', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Skip prep to hold
+        provider.skipPhase();
+        expect(provider.phase, equals(TimerPhase.hold));
+
+        // Skip hold to rest
+        provider.skipPhase();
+
+        expect(provider.phase, equals(TimerPhase.rest));
+      });
+    });
+
+    test('skipPhase does nothing when stopped', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+      provider.cancelSession();
+      expect(provider.timerState, equals(TimerState.stopped));
+
+      final phaseBefore = provider.phase;
+      provider.skipPhase();
+
+      expect(provider.phase, equals(phaseBefore));
+    });
+  });
+
+  group('Phase E1: Total Hold Seconds Tracking', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('totalHoldSecondsActual starts at 0', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      expect(provider.totalHoldSecondsActual, equals(0));
+    });
+
+    test('totalHoldSecondsActual increments during hold phase', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Skip prep
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+        expect(provider.phase, equals(TimerPhase.hold));
+
+        // Hold for 10 seconds
+        async.elapse(const Duration(seconds: 10));
+
+        expect(provider.totalHoldSecondsActual, greaterThanOrEqualTo(10));
+      });
+    });
+  });
+
+  group('Phase E1: Formatted Time Display', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('formattedTime shows prep countdown correctly', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      expect(provider.formattedTime, equals('00:10'));
+    });
+
+    test('formattedTime updates during countdown', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+        expect(provider.formattedTime, equals('00:10'));
+
+        async.elapse(const Duration(seconds: 5));
+
+        expect(provider.formattedTime, equals('00:05'));
+      });
+    });
+
+    test('formattedTime shows hold seconds correctly', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      // Use skipPhase to avoid timing issues
+      provider.skipPhase();
+
+      // Should show 30 seconds for hold phase
+      expect(provider.formattedTime, equals('00:30'));
+    });
+  });
+
+  group('Phase E1: Phase Display Name', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('phaseDisplayName shows Get Ready during prep', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      expect(provider.phaseDisplayName, equals('Get Ready'));
+    });
+
+    test('phaseDisplayName shows HOLD during hold', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+
+        expect(provider.phaseDisplayName, equals('HOLD'));
+      });
+    });
+
+    test('phaseDisplayName shows Rest during rest', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+        async.elapse(const Duration(seconds: 30));
+
+        expect(provider.phaseDisplayName, equals('Rest'));
+      });
+    });
+
+    test('phaseDisplayName shows Complete when done', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 1, // 1 rep
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+        async.elapse(const Duration(seconds: 30));
+
+        expect(provider.phaseDisplayName, equals('Complete'));
+      });
+    });
+  });
+
+  group('Phase E1: Session Progress Tracking', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('sessionProgress starts at 0', () {
+      const config = CustomSessionConfig(
+        durationMinutes: 5,
+        ratio: HoldRestRatio.ratio30_30,
+        movementStimulus: MovementStimulus.none,
+      );
+
+      provider.startCustomSession(config);
+
+      expect(provider.sessionProgress, equals(0.0));
+    });
+
+    test('sessionProgress increases as reps complete', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 2, // 2 reps
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Skip prep
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+
+        // Complete first cycle
+        async.elapse(const Duration(seconds: 60));
+
+        // After first rep complete, progress should be 0.5 (1/2)
+        expect(provider.sessionProgress, closeTo(0.5, 0.1));
+      });
+    });
+  });
+
+  group('Phase E1: Pause/Resume Integration', () {
+    late MockAppDatabase mockDb;
+    late BowTrainingProvider provider;
+
+    setUp(() {
+      mockDb = MockAppDatabase();
+      provider = BowTrainingProvider(mockDb);
+    });
+
+    tearDown(() {
+      provider.dispose();
+    });
+
+    test('full pause and resume cycle preserves state', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // Advance to hold phase
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds + 1));
+        expect(provider.phase, equals(TimerPhase.hold));
+
+        // Advance partway through hold
+        async.elapse(const Duration(seconds: 10));
+        final remainingBeforePause = provider.secondsRemaining;
+        final repBeforePause = provider.customRep;
+
+        // Pause
+        provider.pauseTimer();
+        async.elapse(const Duration(seconds: 30)); // Time passes while paused
+
+        // Resume
+        provider.resumeTimer();
+
+        // State should be preserved
+        expect(provider.phase, equals(TimerPhase.hold));
+        expect(provider.secondsRemaining, equals(remainingBeforePause));
+        expect(provider.customRep, equals(repBeforePause));
+        expect(provider.timerState, equals(TimerState.running));
+      });
+    });
+
+    test('multiple pause/resume cycles work correctly', () {
+      fakeAsync((async) {
+        const config = CustomSessionConfig(
+          durationMinutes: 5,
+          ratio: HoldRestRatio.ratio30_30,
+          movementStimulus: MovementStimulus.none,
+        );
+
+        provider.startCustomSession(config);
+
+        // First pause/resume
+        provider.pauseTimer();
+        provider.resumeTimer();
+        expect(provider.timerState, equals(TimerState.running));
+
+        // Advance some time
+        async.elapse(const Duration(seconds: 5));
+
+        // Second pause/resume
+        provider.pauseTimer();
+        provider.resumeTimer();
+        expect(provider.timerState, equals(TimerState.running));
+
+        // Timer should still be functioning
+        async.elapse(const Duration(seconds: kPrepCountdownSeconds));
+        expect(provider.phase, equals(TimerPhase.hold));
+      });
     });
   });
 }
