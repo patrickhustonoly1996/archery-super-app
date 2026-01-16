@@ -51,3 +51,21 @@ re range (0-10) (new test line 754)  \n✅ Test getArrowsForSession() returns co
 ndles concurrent preference updates\n- Handles concurrent equipment creation\n- Transaction rollback on error maintains integrity\n\n**All Tests Passing:** 779/779 tests ✅\n\n**Changes committed and pushed to GitHub** (commit 6223e7e)\n\nThe tests verify:\n✅ Foreign key relationships work correctly  \n✅ Cascade deletes work as designed (session → ends → arrows)  \n✅ No orphaned records after deletions  \n✅ Concurrent operations handle safely  \n✅ Transaction rollbacks maintain data integrity\n\n
 
 ---
+## ✓ Iteration 6 - US-006: Phase B1: Extract CSV parsing logic to service
+*2026-01-16T09:33:17.810Z (330s)*
+
+**Status:** Completed
+
+**Notes:**
+usiness logic)\n\nThe service includes:\n- `parseScoresCsv()` - Parses score data with 11 optional fields (handicap, hits, golds, xs, etc.)\n- `parseVolumeCsv()` - Parses arrow volume training data\n- `ScoreDraft` and `VolumeDraft` data classes for type-safe parsed data\n- Flexible column detection supporting multiple naming conventions\n- Multiple date format support (YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY)\n\nAll 779 tests passing. Changes committed to main branch (commit a163154).\n\n
+
+---
+## ✓ Iteration 7 - US-007: Phase B2-B3: Test CSV parsing
+*2026-01-16T09:37:37.632Z (259s)*
+
+**Status:** Completed
+
+**Notes:**
+invalid values\n✅ Test parseScoresCsv() - handles missing optional columns - Test verifies all optional fields return null when not present\n✅ Test parseScoresCsv() - rejects missing required columns - Tests show default position handling for missing date/score/round columns\n✅ Test parseScoresCsv() - handles UTF-8 BOM - Test with \\uFEFF prefix in header\n✅ Test parseScoresCsv() - handles Windows line endings - Test with \\r\\n in string values\n✅ flutter test passes - All 820 tests passing\n\n
+
+---
