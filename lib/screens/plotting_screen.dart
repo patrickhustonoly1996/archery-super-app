@@ -87,63 +87,55 @@ class PlottingScreen extends StatelessWidget {
                 Expanded(
                   child: Stack(
                     children: [
-                      // Main target
+                      // Main target - uses synchronous getter for immediate updates
                       Center(
                         child: Padding(
                           padding: const EdgeInsets.all(AppSpacing.lg),
-                          child: FutureBuilder(
-                            // Key forces rebuild when arrows change
-                            key: ValueKey('target_${provider.ends.length}_${provider.arrowsInCurrentEnd}'),
-                            future: provider.getAllSessionArrows(),
-                            builder: (context, snapshot) {
-                              final allArrows = snapshot.data ?? [];
-                              return LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final size = constraints.maxWidth < constraints.maxHeight
-                                      ? constraints.maxWidth
-                                      : constraints.maxHeight - 120; // Leave room for zoom
-                                  final isTriSpot = (provider.roundType?.faceCount ?? 1) == 3;
-                                  return InteractiveTargetFace(
-                                    arrows: allArrows,
-                                    size: size.clamp(200.0, 400.0),
-                                    enabled: !provider.isEndComplete,
-                                    isIndoor: provider.roundType?.isIndoor ?? false,
-                                    triSpot: isTriSpot,
-                                    onArrowPlotted: (x, y) async {
-                                      // Check if shaft tagging is enabled
-                                      if (provider.shaftTaggingEnabled &&
-                                          provider.selectedQuiverId != null) {
-                                        // Show shaft selector bottom sheet
-                                        final equipmentProvider =
-                                            context.read<EquipmentProvider>();
-                                        final shafts = equipmentProvider
-                                            .getShaftsForQuiver(
-                                                provider.selectedQuiverId!);
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final size = constraints.maxWidth < constraints.maxHeight
+                                  ? constraints.maxWidth
+                                  : constraints.maxHeight - 120; // Leave room for zoom
+                              final isTriSpot = (provider.roundType?.faceCount ?? 1) == 3;
+                              return InteractiveTargetFace(
+                                arrows: provider.allSessionArrows,
+                                size: size.clamp(200.0, 400.0),
+                                enabled: !provider.isEndComplete,
+                                isIndoor: provider.roundType?.isIndoor ?? false,
+                                triSpot: isTriSpot,
+                                onArrowPlotted: (x, y) async {
+                                  // Check if shaft tagging is enabled
+                                  if (provider.shaftTaggingEnabled &&
+                                      provider.selectedQuiverId != null) {
+                                    // Show shaft selector bottom sheet
+                                    final equipmentProvider =
+                                        context.read<EquipmentProvider>();
+                                    final shafts = equipmentProvider
+                                        .getShaftsForQuiver(
+                                            provider.selectedQuiverId!);
 
-                                        await showModalBottomSheet(
-                                          context: context,
-                                          backgroundColor: Colors.transparent,
-                                          builder: (_) =>
-                                              ShaftSelectorBottomSheet(
-                                            shafts: shafts,
-                                            onShaftSelected: (shaftNumber) {
-                                              provider.plotArrow(
-                                                x: x,
-                                                y: y,
-                                                shaftNumber: shaftNumber,
-                                              );
-                                            },
-                                            onSkip: () {
-                                              provider.plotArrow(x: x, y: y);
-                                            },
-                                          ),
-                                        );
-                                      } else {
-                                        // No shaft tagging - plot directly
-                                        provider.plotArrow(x: x, y: y);
-                                      }
-                                    },
-                                  );
+                                    await showModalBottomSheet(
+                                      context: context,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (_) =>
+                                          ShaftSelectorBottomSheet(
+                                        shafts: shafts,
+                                        onShaftSelected: (shaftNumber) {
+                                          provider.plotArrow(
+                                            x: x,
+                                            y: y,
+                                            shaftNumber: shaftNumber,
+                                          );
+                                        },
+                                        onSkip: () {
+                                          provider.plotArrow(x: x, y: y);
+                                        },
+                                      ),
+                                    );
+                                  } else {
+                                    // No shaft tagging - plot directly
+                                    provider.plotArrow(x: x, y: y);
+                                  }
                                 },
                               );
                             },

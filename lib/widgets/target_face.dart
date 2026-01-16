@@ -255,12 +255,13 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   // Zoom window constants
   static const double _linecutterZoomFactor = 6.0;
   static const double _zoomWindowSize = 120.0;
+  static const double _linecutterWindowSize = 160.0; // Larger window for precision
   // Diagonal offset: 60px total distance at ~45° angle
   // sqrt(42² + 42²) ≈ 59.4px ≈ 60px
   static const double _holdOffsetX = 42.0; // Horizontal component (sign flipped for lefties)
   static const double _holdOffsetY = 42.0; // Vertical component (always upward)
-  static const double _boundaryProximityThreshold = 0.04; // 4% of radius - wider detection zone
-  static const Duration _linecutterActivationDelay = Duration(milliseconds: 300); // Quick activation
+  static const double _boundaryProximityThreshold = 0.015; // 1.5% of radius - tighter detection zone
+  static const Duration _linecutterActivationDelay = Duration(milliseconds: 400); // Delay before activation
 
   /// Cached zoom factor to prevent jumps during drag
   double? _cachedZoomFactor;
@@ -378,22 +379,22 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
       final proximity = _checkBoundaryProximity(_arrowPosition!);
 
       if (proximity.isNear && !_isLinecutterMode) {
-        // Near a boundary and not in linecutter mode yet
+        // Near a boundary - start timer to activate linecutter mode
         _isNearBoundary = true;
         _nearestBoundaryDistance = proximity.distance;
         _nearestBoundaryRing = proximity.ring;
 
         // Start timer if not already running
         _linecutterActivationTimer ??= Timer(_linecutterActivationDelay, () {
-            // Timer completed - activate linecutter mode if still near boundary
-            if (_isNearBoundary && !_isLinecutterMode) {
-              setState(() {
-                _isLinecutterMode = true;
-              });
-              // Haptic feedback for mode activation
-              HapticFeedback.mediumImpact();
-            }
-          });
+          // Timer completed - activate linecutter mode if still near boundary
+          if (_isNearBoundary && !_isLinecutterMode) {
+            setState(() {
+              _isLinecutterMode = true;
+            });
+            // Haptic feedback for mode activation
+            HapticFeedback.mediumImpact();
+          }
+        });
       } else if (!proximity.isNear) {
         // Moved away from boundary - cancel timer and exit mode
         _isNearBoundary = false;
@@ -495,6 +496,9 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
           zoomX = screenSize.width - _zoomWindowSize - 10;
         }
 
+        // Use larger window in linecutter mode
+        final currentWindowSize = _isLinecutterMode ? _linecutterWindowSize : _zoomWindowSize;
+
         return Positioned(
           left: zoomX,
           top: zoomY,
@@ -503,7 +507,7 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
             arrowPosition: _arrowPosition!,
             arrows: widget.arrows,
             zoomFactor: _zoomFactor,
-            windowSize: _zoomWindowSize,
+            windowSize: currentWindowSize,
             isLinecutterMode: _isLinecutterMode,
             isNearBoundary: _isNearBoundary,
             nearestRing: _nearestBoundaryRing,
@@ -577,10 +581,12 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
         final proximity = _checkBoundaryProximity(_arrowPosition!);
 
         if (proximity.isNear && !_isLinecutterMode) {
+          // Near a boundary - start timer to activate linecutter mode
           _isNearBoundary = true;
           _nearestBoundaryDistance = proximity.distance;
           _nearestBoundaryRing = proximity.ring;
 
+          // Start timer if not already running
           _linecutterActivationTimer ??= Timer(_linecutterActivationDelay, () {
             if (_isNearBoundary && !_isLinecutterMode) {
               setState(() {
@@ -763,8 +769,17 @@ class _ZoomWindow extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(
               color: isLinecutterMode ? AppColors.success : AppColors.gold,
-              width: isLinecutterMode ? 3 : 2,
+              width: isLinecutterMode ? 6 : 2, // Thicker border in linecutter mode
             ),
+            boxShadow: isLinecutterMode
+                ? [
+                    BoxShadow(
+                      color: AppColors.success.withOpacity(0.6),
+                      blurRadius: 12,
+                      spreadRadius: 2,
+                    ),
+                  ]
+                : null,
             color: AppColors.backgroundDark,
           ),
           child: ClipOval(
@@ -786,51 +801,58 @@ class _ZoomWindow extends StatelessWidget {
                       child: SizedBox(
                         width: targetSize,
                         height: targetSize,
-                        child: CustomPaint(
-                          painter: _TargetFacePainter(triSpot: triSpot),
-                          child: Builder(
-                          builder: (context) {
-                            // Calculate marker size for this target
-                            final markerSize = (targetSize * _ArrowMarker._markerFraction).clamp(4.0, 10.0);
-                            final halfMarker = markerSize / 2;
-                            return Stack(
-                              children: [
-                                // Show existing arrows
-                                ...arrows.map((arrow) {
-                                  final centerX = targetSize / 2;
-                                  final centerY = targetSize / 2;
-                                  final radius = targetSize / 2;
-                                  final x = centerX + (arrow.x * radius);
-                                  final y = centerY + (arrow.y * radius);
-                                  return Positioned(
-                                    left: x - halfMarker,
-                                    top: y - halfMarker,
-                                    child: _ArrowMarker(
-                                      score: arrow.score,
-                                      isX: arrow.isX,
-                                      shaftNumber: arrow.shaftNumber,
-                                      targetSize: targetSize,
+                        child: Stack(
+                          children: [
+                            // Base target face
+                            CustomPaint(
+                              size: Size(targetSize, targetSize),
+                              painter: _TargetFacePainter(triSpot: triSpot),
+                            ),
+                            // Arrows and current position
+                            Builder(
+                              builder: (context) {
+                                // Calculate marker size - smaller in zoom window to avoid huge markers
+                                // Divide by zoomFactor to counteract the transform scale
+                                final baseMarkerSize = (targetSize * _ArrowMarker._markerFraction).clamp(4.0, 10.0);
+                                final markerSize = (baseMarkerSize / zoomFactor).clamp(1.5, 4.0);
+                                final halfMarker = markerSize / 2;
+                                return Stack(
+                                  children: [
+                                    // Show existing arrows
+                                    ...arrows.map((arrow) {
+                                      final centerX = targetSize / 2;
+                                      final centerY = targetSize / 2;
+                                      final radius = targetSize / 2;
+                                      final x = centerX + (arrow.x * radius);
+                                      final y = centerY + (arrow.y * radius);
+                                      return Positioned(
+                                        left: x - halfMarker,
+                                        top: y - halfMarker,
+                                        child: _ZoomWindowArrowMarker(
+                                          score: arrow.score,
+                                          size: markerSize,
+                                        ),
+                                      );
+                                    }),
+                                    // Show current arrow position (slightly larger for visibility)
+                                    Positioned(
+                                      left: arrowPosition.dx - halfMarker - 0.5,
+                                      top: arrowPosition.dy - halfMarker - 0.5,
+                                      child: Container(
+                                        width: markerSize + 1,
+                                        height: markerSize + 1,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: AppColors.gold,
+                                          border: Border.all(color: Colors.black, width: 0.5),
+                                        ),
+                                      ),
                                     ),
-                                  );
-                                }),
-                                // Show current arrow position (slightly larger for visibility)
-                                Positioned(
-                                  left: arrowPosition.dx - halfMarker - 1,
-                                  top: arrowPosition.dy - halfMarker - 1,
-                                  child: Container(
-                                    width: markerSize + 2,
-                                    height: markerSize + 2,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: AppColors.gold,
-                                      border: Border.all(color: Colors.black, width: 1.5),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -846,22 +868,30 @@ class _ZoomWindow extends StatelessWidget {
           ),
         ),
 
-        // Linecutter mode label
+        // Linecutter mode label - prominent "Line cutter?" prompt
         if (isLinecutterMode)
           Positioned(
-            bottom: 0,
+            bottom: -8,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: AppColors.success,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(6),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.5),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Text(
-                'LINECUTTER',
+                'Line cutter?',
                 style: TextStyle(
                   color: AppColors.backgroundDark,
-                  fontSize: 10,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
                 ),
               ),
             ),
@@ -951,4 +981,110 @@ class _CrosshairPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// Painter that highlights the nearest ring boundary with a glowing effect
+class _BoundaryHighlightPainter extends CustomPainter {
+  final int ringNumber;
+  final double targetSize;
+
+  _BoundaryHighlightPainter({
+    required this.ringNumber,
+    required this.targetSize,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+
+    // Get the boundary position for this ring
+    double ringBoundary;
+    if (ringNumber == 10) {
+      // Could be X or 10 boundary - use 10 ring
+      ringBoundary = TargetRings.ring10;
+    } else if (ringNumber >= 1 && ringNumber <= 9) {
+      // Standard rings
+      final ringBoundaries = [
+        0.0, // placeholder for index 0
+        TargetRings.ring1,
+        TargetRings.ring2,
+        TargetRings.ring3,
+        TargetRings.ring4,
+        TargetRings.ring5,
+        TargetRings.ring6,
+        TargetRings.ring7,
+        TargetRings.ring8,
+        TargetRings.ring9,
+      ];
+      ringBoundary = ringBoundaries[ringNumber];
+    } else {
+      return; // Invalid ring number
+    }
+
+    final ringRadiusPixels = ringBoundary * radius;
+
+    // Draw glowing highlight on the ring boundary
+    // Outer glow
+    final glowPaint = Paint()
+      ..color = AppColors.success.withOpacity(0.4)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    canvas.drawCircle(center, ringRadiusPixels, glowPaint);
+
+    // Inner bright line
+    final highlightPaint = Paint()
+      ..color = AppColors.success
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+    canvas.drawCircle(center, ringRadiusPixels, highlightPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _BoundaryHighlightPainter oldDelegate) {
+    return ringNumber != oldDelegate.ringNumber ||
+        targetSize != oldDelegate.targetSize;
+  }
+}
+
+/// Simple small arrow marker for zoom window - just a colored dot
+class _ZoomWindowArrowMarker extends StatelessWidget {
+  final int score;
+  final double size;
+
+  const _ZoomWindowArrowMarker({
+    required this.score,
+    required this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Use contrasting color based on ring
+    Color markerColor;
+    if (score >= 9) {
+      markerColor = Colors.black; // Black on gold
+    } else if (score >= 7) {
+      markerColor = Colors.white; // White on red
+    } else if (score >= 5) {
+      markerColor = Colors.white; // White on blue
+    } else if (score >= 3) {
+      markerColor = Colors.white; // White on black
+    } else {
+      markerColor = Colors.black; // Black on white
+    }
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: markerColor,
+        border: Border.all(
+          color: markerColor == Colors.black ? Colors.white : Colors.black,
+          width: 0.3,
+        ),
+      ),
+    );
+  }
 }

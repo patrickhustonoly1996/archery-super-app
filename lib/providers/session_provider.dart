@@ -21,6 +21,9 @@ class SessionProvider extends ChangeNotifier {
   List<Arrow> _currentEndArrows = [];
   End? _activeEnd;
 
+  // Cached arrows from completed ends (for synchronous access)
+  List<Arrow> _completedEndArrows = [];
+
   // Equipment state
   String? _selectedBowId;
   String? _selectedQuiverId;
@@ -121,6 +124,9 @@ class SessionProvider extends ChangeNotifier {
     _selectedQuiverId = session.quiverId;
     _shaftTaggingEnabled = session.shaftTaggingEnabled;
 
+    // Cache completed end arrows for synchronous access
+    await _refreshCompletedEndArrowsCache();
+
     // Find or create active end
     final activeEnd = await _db.getCurrentEnd(session.id);
     if (activeEnd != null) {
@@ -166,6 +172,7 @@ class SessionProvider extends ChangeNotifier {
       _currentRoundType = roundType;
       _ends = [];
       _currentEndArrows = [];
+      _completedEndArrows = []; // Clear cache for new session
 
       // Store equipment state
       _selectedBowId = bowId;
@@ -277,6 +284,9 @@ class SessionProvider extends ChangeNotifier {
     final endScore = currentEndScore;
     final endXs = currentEndXs;
 
+    // Add current end arrows to completed cache before clearing
+    _completedEndArrows = [..._completedEndArrows, ..._currentEndArrows];
+
     // Commit the end
     await _db.commitEnd(_activeEnd!.id, endScore, endXs);
 
@@ -331,11 +341,18 @@ class SessionProvider extends ChangeNotifier {
     _currentRoundType = null;
     _ends = [];
     _currentEndArrows = [];
+    _completedEndArrows = [];
     _activeEnd = null;
     notifyListeners();
   }
 
   /// Get all arrows for display on the target face (all ends + current)
+  /// This is the synchronous version for immediate UI updates.
+  List<Arrow> get allSessionArrows {
+    return [..._completedEndArrows, ..._currentEndArrows];
+  }
+
+  /// Async version that fetches from database (for initial load/refresh)
   Future<List<Arrow>> getAllSessionArrows() async {
     final allArrows = <Arrow>[];
 
@@ -349,6 +366,16 @@ class SessionProvider extends ChangeNotifier {
     allArrows.addAll(_currentEndArrows);
 
     return allArrows;
+  }
+
+  /// Refresh the completed end arrows cache from database
+  Future<void> _refreshCompletedEndArrowsCache() async {
+    final allArrows = <Arrow>[];
+    for (final end in _ends) {
+      final endArrows = await _db.getArrowsForEnd(end.id);
+      allArrows.addAll(endArrows);
+    }
+    _completedEndArrows = allArrows;
   }
 
   /// Get last N arrows from completed ends + current end for rolling average
@@ -425,6 +452,7 @@ class SessionProvider extends ChangeNotifier {
     _currentRoundType = null;
     _ends = [];
     _currentEndArrows = [];
+    _completedEndArrows = [];
     _activeEnd = null;
     notifyListeners();
   }
