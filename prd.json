@@ -1,0 +1,292 @@
+{
+  "name": "Archery Super App Testing Roadmap",
+  "description": "Implement comprehensive test coverage following the Testing Roadmap phases A-E",
+  "branchName": "ralph/testing-roadmap",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Phase A1: Create database test infrastructure",
+      "description": "As a developer, I want database test infrastructure so I can test all database operations",
+      "acceptanceCriteria": [
+        "Create test/db/database_test.dart",
+        "Set up in-memory test database",
+        "Create test fixtures for sessions, arrows, equipment",
+        "Helper methods for common test patterns",
+        "flutter test passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": "Reference lib/db/database.dart for the database schema",
+      "dependsOn": []
+    },
+    {
+      "id": "US-002",
+      "title": "Phase A2: Test session operations",
+      "description": "As a developer, I want tests for session CRUD operations so data integrity is verified",
+      "acceptanceCriteria": [
+        "Test createSession() creates with valid data",
+        "Test createSession() generates unique ID",
+        "Test getSession() retrieves by ID",
+        "Test getSession() returns null for missing ID",
+        "Test updateSession() updates existing",
+        "Test deleteSession() removes and cascades to arrows",
+        "Test getAllSessions() returns all ordered by date",
+        "Test getSessionsByDateRange() filters correctly",
+        "flutter test passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-001"
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Phase A3: Test arrow operations",
+      "description": "As a developer, I want tests for arrow CRUD operations so plotting data integrity is verified",
+      "acceptanceCriteria": [
+        "Test createArrow() creates with valid coordinates",
+        "Test createArrow() validates score range (0-10)",
+        "Test getArrowsForSession() returns correct arrows",
+        "Test getArrowsForEnd() filters by end number",
+        "Test updateArrow() updates position and score",
+        "Test deleteArrow() removes single arrow",
+        "Test deleteArrowsForSession() bulk delete",
+        "flutter test passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-001"
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "Phase A4: Test equipment operations",
+      "description": "As a developer, I want tests for equipment CRUD operations so equipment management is verified",
+      "acceptanceCriteria": [
+        "Test CRUD for bows (create, read, update, delete)",
+        "Test CRUD for quivers",
+        "Test CRUD for shafts",
+        "Test equipment relationships (quiver -> shafts)",
+        "Test active equipment selection",
+        "flutter test passes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-001"
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "Phase A5: Test data integrity",
+      "description": "As a developer, I want data integrity tests so database constraints are verified",
+      "acceptanceCriteria": [
+        "Test foreign key constraints work",
+        "Test cascade deletes work",
+        "Test no orphaned records",
+        "Test concurrent access handling",
+        "flutter test passes"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-002",
+        "US-003",
+        "US-004"
+      ]
+    },
+    {
+      "id": "US-006",
+      "title": "Phase B1: Extract CSV parsing logic to service",
+      "description": "As a developer, I want CSV parsing logic extracted to a testable service so I can write unit tests",
+      "acceptanceCriteria": [
+        "Create lib/services/import_service.dart",
+        "Extract parseScoresCsv() from import_screen.dart",
+        "Extract parseVolumeCsv() from volume_import_screen.dart",
+        "Screens use the new service",
+        "App still works (manual verify or existing tests pass)",
+        "flutter test passes"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": "This is a refactor - extract parsing logic from screens to a service class",
+      "dependsOn": []
+    },
+    {
+      "id": "US-007",
+      "title": "Phase B2-B3: Test CSV parsing",
+      "description": "As a developer, I want CSV parsing tests so import accuracy is verified",
+      "acceptanceCriteria": [
+        "Create test/services/import_service_test.dart",
+        "Test parseScoresCsv() - valid file parses correctly",
+        "Test parseScoresCsv() - handles different date formats",
+        "Test parseScoresCsv() - validates score values",
+        "Test parseScoresCsv() - reports row-level errors",
+        "Test parseScoresCsv() - handles missing optional columns",
+        "Test parseScoresCsv() - rejects missing required columns",
+        "Test parseScoresCsv() - handles UTF-8 BOM",
+        "Test parseScoresCsv() - handles Windows line endings",
+        "flutter test passes"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-006"
+      ]
+    },
+    {
+      "id": "US-008",
+      "title": "Phase B4: Test volume import",
+      "description": "As a developer, I want volume import tests so arrow volume tracking is verified",
+      "acceptanceCriteria": [
+        "Test parseVolumeCsv() - valid file parses correctly",
+        "Test parseVolumeCsv() - validates arrow counts",
+        "Test parseVolumeCsv() - handles date variations",
+        "Test parseVolumeCsv() - reports errors with line numbers",
+        "flutter test passes"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-006"
+      ]
+    },
+    {
+      "id": "US-009",
+      "title": "Phase B5: Test import error handling",
+      "description": "As a developer, I want import error handling tests so users get helpful feedback",
+      "acceptanceCriteria": [
+        "Test empty file returns helpful error",
+        "Test binary file rejected gracefully",
+        "Test extremely large file handled (or rejected with message)",
+        "Test partial success reports what worked and what failed",
+        "flutter test passes"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": "This addresses the P0 silent CSV parsing failure issue from CODE_REVIEW",
+      "dependsOn": [
+        "US-007",
+        "US-008"
+      ]
+    },
+    {
+      "id": "US-010",
+      "title": "Phase C1-C2: Test breath training session lifecycle",
+      "description": "As a developer, I want breath training session lifecycle tests so session management is verified",
+      "acceptanceCriteria": [
+        "Create test/services/breath_training_service_test.dart",
+        "Test startSession() initializes state correctly",
+        "Test pauseSession() pauses timer",
+        "Test resumeSession() resumes from paused state",
+        "Test completeSession() calculates final stats",
+        "Test cancelSession() cleans up state",
+        "flutter test passes"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": "Reference lib/services/breath_training_service.dart",
+      "dependsOn": []
+    },
+    {
+      "id": "US-011",
+      "title": "Phase C3: Test breath hold logic",
+      "description": "As a developer, I want breath hold tests so timing accuracy is verified",
+      "acceptanceCriteria": [
+        "Test hold timer increments correctly",
+        "Test personal best detection",
+        "Test recovery phase timing",
+        "Test session statistics calculation",
+        "flutter test passes"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-010"
+      ]
+    },
+    {
+      "id": "US-012",
+      "title": "Phase C4: Test paced breathing logic",
+      "description": "As a developer, I want paced breathing tests so phase transitions are verified",
+      "acceptanceCriteria": [
+        "Test phase transitions (inhale -> hold -> exhale)",
+        "Test configurable phase durations",
+        "Test cycle counting",
+        "Test audio cue timing",
+        "flutter test passes"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-010"
+      ]
+    },
+    {
+      "id": "US-013",
+      "title": "Phase D1: Test volume chart calculations",
+      "description": "As a developer, I want volume chart tests so data visualization accuracy is verified",
+      "acceptanceCriteria": [
+        "Create test/widgets/volume_chart_test.dart",
+        "Test EMA line calculations match volume_calculator",
+        "Test empty data renders without crash",
+        "Test single data point handled",
+        "Test date range filtering works",
+        "Test Y-axis scaling appropriate for data range",
+        "flutter test passes"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": "Reference lib/widgets/volume_chart.dart",
+      "dependsOn": []
+    },
+    {
+      "id": "US-014",
+      "title": "Phase D2: Test handicap chart calculations",
+      "description": "As a developer, I want handicap chart tests so handicap visualization is verified",
+      "acceptanceCriteria": [
+        "Create test/widgets/handicap_chart_test.dart",
+        "Test handicap points plotted correctly",
+        "Test trend line calculation",
+        "Test empty data handled",
+        "Test date filtering works",
+        "flutter test passes"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": "Reference lib/widgets/handicap_chart.dart",
+      "dependsOn": []
+    },
+    {
+      "id": "US-015",
+      "title": "Phase D3: Test group centre widget",
+      "description": "As a developer, I want group centre widget tests so sight adjustment accuracy is verified",
+      "acceptanceCriteria": [
+        "Create test/widgets/group_centre_widget_test.dart",
+        "Test centre position calculated correctly",
+        "Test sight click values display correctly",
+        "Test direction indicators (L/R, U/D) correct",
+        "Test zero adjustment case handled",
+        "Test large adjustment warning",
+        "flutter test passes"
+      ],
+      "priority": 15,
+      "passes": false,
+      "notes": "Reference lib/widgets/group_centre_widget.dart",
+      "dependsOn": []
+    }
+  ],
+  "metadata": {
+    "updatedAt": "2026-01-16T09:01:39.848Z"
+  }
+}

@@ -300,6 +300,9 @@ class UserTrainingProgress extends Table {
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  // Constructor for testing with custom executor
+  AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
+
   @override
   int get schemaVersion => 6;
 

@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "sessionId": "91ea0f4f-db03-4b78-90da-88042a23fcd5",
+  "status": "running",
+  "startedAt": "2026-01-16T09:01:18.408Z",
+  "updatedAt": "2026-01-16T09:01:39.929Z",
+  "currentIteration": 0,
+  "maxIterations": 0,
+  "tasksCompleted": 0,
+  "isPaused": false,
+  "agentPlugin": "claude",
+  "trackerState": {
+    "plugin": "json",
+    "prdPath": "./prd.json",
+    "totalTasks": 15,
+    "tasks": [
+      {
+        "id": "US-001",
+        "title": "Phase A1: Create database test infrastructure",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-002",
+        "title": "Phase A2: Test session operations",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-003",
+        "title": "Phase A3: Test arrow operations",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-004",
+        "title": "Phase A4: Test equipment operations",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-005",
+        "title": "Phase A5: Test data integrity",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-006",
+        "title": "Phase B1: Extract CSV parsing logic to service",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-007",
+        "title": "Phase B2-B3: Test CSV parsing",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-008",
+        "title": "Phase B4: Test volume import",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-009",
+        "title": "Phase B5: Test import error handling",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-010",
+        "title": "Phase C1-C2: Test breath training session lifecycle",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-011",
+        "title": "Phase C3: Test breath hold logic",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-012",
+        "title": "Phase C4: Test paced breathing logic",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-013",
+        "title": "Phase D1: Test volume chart calculations",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-014",
+        "title": "Phase D2: Test handicap chart calculations",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-015",
+        "title": "Phase D3: Test group centre widget",
+        "status": "open",
+        "completedInSession": false
+      }
+    ]
+  },
+  "iterations": [],
+  "skippedTaskIds": [],
+  "cwd": "C:\\Users\\patri\\Desktop\\archery_super_app_v1",
+  "activeTaskIds": [
+    "US-001"
+  ],
+  "subagentPanelVisible": false
+}

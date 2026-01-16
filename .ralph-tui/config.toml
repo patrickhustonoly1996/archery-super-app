@@ -1,0 +1,22 @@
+# Ralph TUI Configuration for Archery Super App
+
+# Use JSON file tracker
+defaultTracker = "json"
+
+# Maximum iterations (0 = unlimited)
+maxIterations = 0
+
+# Delay between iterations in ms
+iterationDelay = 1000
+
+# Output directory for logs
+outputDir = ".ralph-output"
+
+# Claude agent with auto-accept permissions
+[[agents]]
+name = "claude"
+plugin = "claude"
+defaultFlags = ["--dangerously-skip-permissions"]
+
+[agents.options]
+model = "sonnet"
