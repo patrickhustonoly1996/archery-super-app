@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:archery_super_app/db/database.dart';
 import 'package:archery_super_app/models/arrow_coordinate.dart';
 import 'package:archery_super_app/theme/app_theme.dart';
+import 'package:uuid/uuid.dart';
 import '../test_helpers.dart';
 
 /// Tests for SessionProvider logic and scoring calculations.
@@ -427,20 +428,21 @@ void main() {
   });
 
   group('Session ID Generation', () {
-    test('uses millisecond timestamp', () {
-      final id = DateTime.now().millisecondsSinceEpoch.toString();
-      expect(id.length, greaterThan(10));
-      expect(int.tryParse(id), isNotNull);
+    test('uses UUID v4', () {
+      final id = const Uuid().v4();
+      // UUID v4 format: 8-4-4-4-12 characters (36 total with hyphens)
+      expect(id.length, equals(36));
+      expect(id.contains('-'), isTrue);
     });
 
-    test('generates unique IDs with suffix', () {
+    test('generates unique IDs in tight loop', () {
       final ids = <String>{};
+      const uuid = Uuid();
       for (int i = 0; i < 100; i++) {
-        // Add index suffix to ensure uniqueness in tight loop
-        final id = '${DateTime.now().millisecondsSinceEpoch}_$i';
+        final id = uuid.v4();
         ids.add(id);
       }
-      // All should be unique with index suffix
+      // All should be unique (UUID v4 has negligible collision probability)
       expect(ids.length, equals(100));
     });
   });

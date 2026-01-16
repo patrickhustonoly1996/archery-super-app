@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
 import '../db/database.dart';
+import '../mixins/form_validation_mixin.dart';
 
 class BowFormScreen extends StatefulWidget {
   final Bow? bow;
@@ -13,7 +14,7 @@ class BowFormScreen extends StatefulWidget {
   State<BowFormScreen> createState() => _BowFormScreenState();
 }
 
-class _BowFormScreenState extends State<BowFormScreen> {
+class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _braceHeightController;
@@ -208,12 +209,8 @@ class _BowFormScreenState extends State<BowFormScreen> {
                 hintText: 'e.g., Indoor Recurve',
               ),
               textCapitalization: TextCapitalization.words,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Please enter a bow name';
-                }
-                return null;
-              },
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              validator: (value) => validateRequired(value, fieldName: 'Name'),
             ),
             const SizedBox(height: AppSpacing.md),
             DropdownButtonFormField<String>(

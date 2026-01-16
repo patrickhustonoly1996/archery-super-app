@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:uuid/uuid.dart';
 
 /// Tests for EquipmentProvider logic.
 ///
@@ -6,16 +7,20 @@ import 'package:flutter_test/flutter_test.dart';
 /// These tests cover the pure logic aspects that can be tested in isolation.
 void main() {
   group('Equipment ID Generation', () {
-    test('generates unique bow ID from timestamp', () {
-      final bowId = DateTime.now().millisecondsSinceEpoch.toString();
+    test('generates unique bow ID using UUID', () {
+      const uuid = Uuid();
+      final bowId = uuid.v4();
       expect(bowId.isNotEmpty, isTrue);
-      expect(int.tryParse(bowId), isNotNull);
+      expect(bowId.length, equals(36));
+      expect(bowId.contains('-'), isTrue);
     });
 
-    test('generates unique quiver ID from timestamp', () {
-      final quiverId = DateTime.now().millisecondsSinceEpoch.toString();
+    test('generates unique quiver ID using UUID', () {
+      const uuid = Uuid();
+      final quiverId = uuid.v4();
       expect(quiverId.isNotEmpty, isTrue);
-      expect(int.tryParse(quiverId), isNotNull);
+      expect(quiverId.length, equals(36));
+      expect(quiverId.contains('-'), isTrue);
     });
 
     test('shaft ID format is quiverId_shaft_number', () {

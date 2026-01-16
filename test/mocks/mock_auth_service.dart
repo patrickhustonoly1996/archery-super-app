@@ -5,6 +5,7 @@
 library;
 
 import 'dart:async';
+import 'package:uuid/uuid.dart';
 
 /// Mock user class for testing
 class MockUser {
@@ -68,7 +69,7 @@ class MockAuthService {
 
     // Simulate successful Google sign-in
     final user = MockUser(
-      uid: 'google_${DateTime.now().millisecondsSinceEpoch}',
+      uid: 'google_${const Uuid().v4()}',
       email: 'test@gmail.com',
       displayName: 'Test User',
     );
@@ -95,7 +96,7 @@ class MockAuthService {
     }
 
     final user = MockUser(
-      uid: 'email_${DateTime.now().millisecondsSinceEpoch}',
+      uid: 'email_${const Uuid().v4()}',
       email: email,
     );
 
@@ -173,7 +174,7 @@ class MockAuthService {
     }
 
     final user = MockUser(
-      uid: 'magic_${DateTime.now().millisecondsSinceEpoch}',
+      uid: 'magic_${const Uuid().v4()}',
       email: _pendingMagicLinkEmail,
     );
 
@@ -194,7 +195,7 @@ class MockAuthService {
     }
 
     final user = MockUser(
-      uid: 'magic_${DateTime.now().millisecondsSinceEpoch}',
+      uid: 'magic_${const Uuid().v4()}',
       email: email,
     );
 
@@ -234,7 +235,7 @@ class MockAuthService {
     String? displayName,
   }) {
     final user = MockUser(
-      uid: uid ?? 'test_${DateTime.now().millisecondsSinceEpoch}',
+      uid: uid ?? 'test_${const Uuid().v4()}',
       email: email ?? 'test@example.com',
       displayName: displayName ?? 'Test User',
     );
@@ -245,7 +246,7 @@ class MockAuthService {
   /// Pre-register a user for testing sign-in
   void registerUser(String email, String password) {
     final user = MockUser(
-      uid: 'pre_${DateTime.now().millisecondsSinceEpoch}',
+      uid: 'pre_${const Uuid().v4()}',
       email: email,
     );
     _users[user.uid] = user;

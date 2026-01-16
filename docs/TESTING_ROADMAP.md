@@ -421,6 +421,14 @@ After completing each phase, verify:
 
 ---
 
+## PWA Testing
+
+**See:** `docs/PWA_TESTING.md`
+
+PWA-specific issues (iOS Safari standalone mode, service workers, offline) cannot be caught by Flutter unit tests. Manual PWA testing checklist must be run before each web release.
+
+---
+
 ## Summary for Patrick
 
 **Testing Status:** ✅ **COMPLETE**
@@ -432,6 +440,7 @@ After completing each phase, verify:
 - ✅ Breath training service (all session states)
 - ✅ Chart widgets (volume, handicap, group centre)
 - ✅ Integration flows (plotting, import, training)
+- ✅ PWA manual checklist (see `docs/PWA_TESTING.md`)
 
 **Key Achievements:**
 - Test count: **694 → 1,348** (+654 tests, 94% increase)
