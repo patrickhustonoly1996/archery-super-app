@@ -3,7 +3,12 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/session_provider.dart';
 import '../providers/equipment_provider.dart';
+import '../providers/skills_provider.dart';
+import '../providers/sight_marks_provider.dart';
+import '../models/sight_mark.dart';
+import '../utils/handicap_calculator.dart';
 import '../widgets/stat_box.dart';
+import '../widgets/sight_mark_entry_form.dart';
 import 'home_screen.dart';
 
 class SessionCompleteScreen extends StatefulWidget {
@@ -15,15 +20,63 @@ class SessionCompleteScreen extends StatefulWidget {
 
 class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
   bool _hasCheckedTopPercentile = false;
+  bool _hasAwardedXp = false;
+  bool _hasPromptedSightMark = false;
   bool? _isTopScore;
   bool _snapshotSaved = false;
+  bool _sightMarkSaved = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkTopPercentile();
+      _awardSessionXp();
+      _promptSightMark();
     });
+  }
+
+  /// Award XP for completing this session
+  Future<void> _awardSessionXp() async {
+    if (_hasAwardedXp) return;
+    _hasAwardedXp = true;
+
+    final sessionProvider = context.read<SessionProvider>();
+    final skillsProvider = context.read<SkillsProvider>();
+    final session = sessionProvider.currentSession;
+    final roundType = sessionProvider.roundType;
+
+    if (session == null || roundType == null) return;
+
+    // Calculate handicap for XP
+    final handicap = HandicapCalculator.calculateHandicap(
+      roundType.id,
+      sessionProvider.totalScore,
+    ) ?? 100; // Default to 100 if not supported
+
+    // Count arrows
+    int arrowCount = 0;
+    for (final end in sessionProvider.ends) {
+      arrowCount += roundType.arrowsPerEnd;
+    }
+
+    // Check if arrows were plotted (has x,y coordinates)
+    final allArrows = await sessionProvider.getAllSessionArrows();
+    final hasPlottedArrows = allArrows.any((a) => a.xMm != 0 || a.yMm != 0);
+
+    // Check if competition
+    final isCompetition = session.sessionType == 'competition';
+
+    // Award XP
+    await skillsProvider.awardSessionXp(
+      sessionId: session.id,
+      handicap: handicap,
+      arrowCount: arrowCount,
+      hasPlottedArrows: hasPlottedArrows,
+      isCompetition: isCompetition,
+      competitionScore: isCompetition ? sessionProvider.totalScore : null,
+      maxScore: roundType.maxScore,
+    );
   }
 
   Future<void> _checkTopPercentile() async {
@@ -46,6 +99,132 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
       setState(() => _isTopScore = true);
       _showKitSnapshotPrompt();
     }
+  }
+
+  /// Prompt user to record sight mark after completing a round
+  Future<void> _promptSightMark() async {
+    if (_hasPromptedSightMark) return;
+    _hasPromptedSightMark = true;
+
+    final sessionProvider = context.read<SessionProvider>();
+    final session = sessionProvider.currentSession;
+    final roundType = sessionProvider.roundType;
+
+    // Only prompt if we have a bow selected
+    if (session == null || roundType == null || session.bowId == null) return;
+
+    // Short delay to let the UI settle
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (!mounted) return;
+
+    // Show the sight mark prompt
+    _showSightMarkPrompt(
+      bowId: session.bowId!,
+      distance: roundType.distance.toDouble(),
+      unit: DistanceUnit.meters, // WA rounds are in meters
+    );
+  }
+
+  void _showSightMarkPrompt({
+    required String bowId,
+    required double distance,
+    required DistanceUnit unit,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceDark,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.gold.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.visibility,
+                    color: AppColors.gold,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(
+                    'Record Sight Mark?',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Record your sight mark for ${distance.toStringAsFixed(0)}${unit.abbreviation} to help with future sessions.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text('Skip'),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _showSightMarkEntry(bowId, distance, unit);
+                    },
+                    child: const Text('Record'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSightMarkEntry(String bowId, double distance, DistanceUnit unit) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surfaceDark,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.md)),
+      ),
+      builder: (ctx) => SightMarkEntryForm(
+        bowId: bowId,
+        defaultDistance: distance,
+        defaultUnit: unit,
+        onSaved: () {
+          Navigator.pop(ctx);
+          setState(() => _sightMarkSaved = true);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Sight mark saved'),
+              backgroundColor: AppColors.surfaceLight,
+            ),
+          );
+        },
+      ),
+    );
   }
 
   void _showKitSnapshotPrompt() {

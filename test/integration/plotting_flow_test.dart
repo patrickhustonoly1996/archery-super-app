@@ -18,7 +18,7 @@ import 'package:archery_super_app/screens/plotting_screen.dart';
 import 'package:archery_super_app/screens/session_start_screen.dart';
 import 'package:archery_super_app/screens/session_complete_screen.dart';
 import 'package:archery_super_app/screens/home_screen.dart';
-import 'package:archery_super_app/widgets/scorecard_widget.dart';
+import 'package:archery_super_app/widgets/full_scorecard_widget.dart';
 import 'package:archery_super_app/widgets/target_face.dart';
 import 'package:archery_super_app/theme/app_theme.dart';
 import '../mocks/mock_connectivity_provider.dart';
@@ -180,7 +180,7 @@ void main() {
         expect(sessionProvider.arrowsInCurrentEnd, equals(1));
 
         // Verify scorecard displays the arrow
-        expect(find.byType(ScorecardWidget), findsOneWidget);
+        expect(find.byType(FullScorecardWidget), findsOneWidget);
       });
 
       testWidgets('plot multiple arrows -> end totals update correctly',

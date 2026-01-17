@@ -28,6 +28,8 @@ class GroupCentreWidget extends StatelessWidget {
   final double minZoom;
   /// Confidence multiplier: 1.0 = ~68% (1 SD), 2.0 = ~95% (2 SD)
   final double confidenceMultiplier;
+  /// Show ring notation (e.g., "9.2 ring group")
+  final bool showRingNotation;
 
   const GroupCentreWidget({
     super.key,
@@ -36,7 +38,26 @@ class GroupCentreWidget extends StatelessWidget {
     this.size = 80,
     this.minZoom = 2.0,
     this.confidenceMultiplier = 1.0,
+    this.showRingNotation = true,
   });
+
+  /// Calculate the group size in ring units
+  /// Uses the mean of the two semi-axes of the confidence ellipse
+  /// Normalized coords: 1.0 = edge of target, 0.1 = ring 10 boundary
+  String _calculateRingNotation(_EllipseParams ellipse) {
+    if (ellipse.semiAxisX == 0 && ellipse.semiAxisY == 0) return '';
+
+    // Mean of semi-axes gives average "radius" of the ellipse
+    final meanAxis = (ellipse.semiAxisX + ellipse.semiAxisY) / 2;
+
+    // Convert to ring units: ring 10 is at ~0.1 normalized
+    // So multiply by 10 to get approximate ring spread
+    // A 0.1 spread means the group fits within 1 ring width
+    final ringSpread = meanAxis * 10;
+
+    // Format as "X.Y ring"
+    return '${ringSpread.toStringAsFixed(1)} ring';
+  }
 
   /// Calculate the confidence ellipse parameters from arrow positions
   /// Uses eigenvalue decomposition of the covariance matrix
@@ -108,6 +129,7 @@ class GroupCentreWidget extends StatelessWidget {
 
     // Calculate confidence ellipse
     final ellipse = _calculateEllipse(avgX, avgY);
+    final ringNotation = showRingNotation ? _calculateRingNotation(ellipse) : '';
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -121,6 +143,17 @@ class GroupCentreWidget extends StatelessWidget {
             fontWeight: FontWeight.w500,
           ),
         ),
+
+        // Ring notation (if enabled and we have data)
+        if (showRingNotation && ringNotation.isNotEmpty)
+          Text(
+            ringNotation,
+            style: TextStyle(
+              color: AppColors.gold,
+              fontSize: 9,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
 
         const SizedBox(height: 4),
 

@@ -72,6 +72,11 @@ class FirestoreSyncService {
       downloaded += milestonesResult.downloaded;
       uploaded += milestonesResult.uploaded;
 
+      // Sync sight marks
+      final sightMarksResult = await _syncSightMarks(db);
+      downloaded += sightMarksResult.downloaded;
+      uploaded += sightMarksResult.uploaded;
+
       // Update last sync timestamp
       await _userDoc.collection('metadata').doc('sync').set({
         'lastSync': FieldValue.serverTimestamp(),
@@ -798,6 +803,93 @@ class FirestoreSyncService {
       debugPrint('Milestones: downloaded=$downloaded, uploaded=$uploaded');
     } catch (e) {
       debugPrint('Error syncing milestones: $e');
+    }
+
+    return _MergeResult(downloaded, uploaded);
+  }
+
+  // ============================================================================
+  // SIGHT MARKS SYNC
+  // ============================================================================
+
+  Future<_MergeResult> _syncSightMarks(AppDatabase db) async {
+    int downloaded = 0;
+    int uploaded = 0;
+
+    try {
+      // Get local sight marks (including soft-deleted for sync purposes)
+      final localMarks = await db.getAllSightMarks();
+      final localMap = {for (var m in localMarks) m.id: m};
+
+      // Get cloud sight marks
+      final cloudDoc = await _userDoc.collection('data').doc('sight_marks').get();
+      final cloudData = cloudDoc.data();
+      final cloudMarks = (cloudData?['sightMarks'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+      final cloudMap = {for (var m in cloudMarks) m['id'] as String: m};
+
+      // Download sight marks only in cloud
+      for (final entry in cloudMap.entries) {
+        if (!localMap.containsKey(entry.key)) {
+          try {
+            final m = entry.value;
+            await db.insertSightMark(SightMarksCompanion.insert(
+              id: m['id'] as String,
+              bowId: m['bowId'] as String,
+              distance: m['distance'] as double,
+              unit: Value(m['unit'] as String? ?? 'meters'),
+              sightValue: m['sightValue'] as String,
+              weatherData: Value(m['weatherData'] as String?),
+              elevationDelta: Value((m['elevationDelta'] as num?)?.toDouble()),
+              slopeAngle: Value((m['slopeAngle'] as num?)?.toDouble()),
+              sessionId: Value(m['sessionId'] as String?),
+              endNumber: Value(m['endNumber'] as int?),
+              shotCount: Value(m['shotCount'] as int?),
+              confidenceScore: Value((m['confidenceScore'] as num?)?.toDouble()),
+            ));
+            downloaded++;
+          } catch (e) {
+            debugPrint('Error downloading sight mark ${entry.key}: $e');
+          }
+        }
+      }
+
+      // Check for local-only sight marks to upload
+      bool needsUpload = false;
+      for (final mark in localMarks) {
+        if (!cloudMap.containsKey(mark.id)) {
+          needsUpload = true;
+          uploaded++;
+        }
+      }
+
+      // Upload if needed
+      if (needsUpload && localMarks.isNotEmpty) {
+        await _userDoc.collection('data').doc('sight_marks').set({
+          'sightMarks': localMarks.map((m) => {
+            'id': m.id,
+            'bowId': m.bowId,
+            'distance': m.distance,
+            'unit': m.unit,
+            'sightValue': m.sightValue,
+            'weatherData': m.weatherData,
+            'elevationDelta': m.elevationDelta,
+            'slopeAngle': m.slopeAngle,
+            'sessionId': m.sessionId,
+            'endNumber': m.endNumber,
+            'shotCount': m.shotCount,
+            'confidenceScore': m.confidenceScore,
+            'recordedAt': m.recordedAt.toIso8601String(),
+            'updatedAt': m.updatedAt?.toIso8601String(),
+            'deletedAt': m.deletedAt?.toIso8601String(),
+          }).toList(),
+          'lastUpdated': FieldValue.serverTimestamp(),
+          'count': localMarks.length,
+        });
+      }
+
+      debugPrint('Sight marks: downloaded=$downloaded, uploaded=$uploaded');
+    } catch (e) {
+      debugPrint('Error syncing sight marks: $e');
     }
 
     return _MergeResult(downloaded, uploaded);

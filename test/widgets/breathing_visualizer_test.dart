@@ -128,6 +128,11 @@ void main() {
 
     group('Size', () {
       testWidgets('respects size parameter', (tester) async {
+        // Use mobile screen size (< 600 width) to test base size
+        tester.view.physicalSize = const Size(400, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
         await tester.pumpWidget(createBreathingVisualizer(
           size: 200,
         ));
@@ -139,12 +144,17 @@ void main() {
           ).first,
         );
 
-        // The outer SizedBox should match the size
+        // The outer SizedBox should match the size on mobile
         expect(sizedBox.width, equals(200));
         expect(sizedBox.height, equals(200));
       });
 
       testWidgets('uses default size of 280', (tester) async {
+        // Use mobile screen size (< 600 width) to test base size
+        tester.view.physicalSize = const Size(400, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
         await tester.pumpWidget(createBreathingVisualizer());
 
         final sizedBox = tester.widget<SizedBox>(
@@ -156,6 +166,28 @@ void main() {
 
         expect(sizedBox.width, equals(280));
         expect(sizedBox.height, equals(280));
+      });
+
+      testWidgets('scales up on large screens', (tester) async {
+        // Use large screen size (> 600 width) to test scaling
+        tester.view.physicalSize = const Size(900, 1200);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(createBreathingVisualizer(
+          size: 200,
+        ));
+
+        final sizedBox = tester.widget<SizedBox>(
+          find.descendant(
+            of: find.byType(BreathingVisualizer),
+            matching: find.byType(SizedBox),
+          ).first,
+        );
+
+        // On large screens, size is scaled up 30%
+        expect(sizedBox.width, equals(260)); // 200 * 1.3
+        expect(sizedBox.height, equals(260));
       });
     });
 

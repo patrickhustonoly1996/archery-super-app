@@ -10,7 +10,9 @@ Each main feature area has a **parent skill level** (1-99). Sub-metrics contribu
 
 ## Skill Categories
 
-**8 Skills Total** (Max Total Level: 792)
+**9 Skills Total** (Max Total Level: 891)
+
+*Future consideration: Mental Game as 10th skill*
 
 ---
 
@@ -82,7 +84,7 @@ How regularly you show up - the habit of practice.
 
 ---
 
-### 3. BREATH WORK (Mental/Physical Control)
+### 5. BREATH WORK (Breath Control)
 **Contributes:**
 - **Paced Breathing** - Sessions completed, duration achieved
 - **Breath Hold** - Best hold times, progression through difficulty levels
@@ -96,7 +98,7 @@ How regularly you show up - the habit of practice.
 
 ---
 
-### 4. EQUIPMENT (Tuning Mastery)
+### 6. EQUIPMENT (Tuning Mastery)
 The science of setup - understanding and optimizing your gear.
 
 **Contributes:**
@@ -120,7 +122,7 @@ The science of setup - understanding and optimizing your gear.
 
 ---
 
-### 5. ROUTINES (Process Mastery)
+### 7. ROUTINES (Process Mastery)
 The discipline of consistent processes - shot routine to competition day.
 
 **Contributes:**
@@ -146,7 +148,7 @@ The discipline of consistent processes - shot routine to competition day.
 
 ---
 
-### 6. COMPETITION (Performance Under Pressure)
+### 8. COMPETITION (Performance Under Pressure)
 The ultimate test - how you perform when it counts.
 
 **Contributes:**
@@ -175,6 +177,31 @@ Competition HC vs Practice HC ratio:
 - Lv.50 = Regular competitor, moderate pressure handling
 - Lv.75 = Experienced competitor, performs close to practice level
 - Lv.99 = Elite competitor, thrives under pressure
+
+---
+
+### 9. ANALYSIS (Learning & Review)
+The meta-skill of improvement - learning from your shooting, not just doing it.
+
+**Contributes:**
+- **Form Review** - Using delay cam to analyze technique
+- **Arrow Plotting** - Plotting arrows and analyzing patterns
+- **Session Review** - Reviewing scores, trends, statistics
+- **Reflection** - Writing notes, identifying insights, acting on learnings
+
+**XP Sources:**
+- Use delay cam and review footage
+- Plot arrows during/after sessions
+- Review statistics and trends
+- Write session notes/reflections
+- Identify and document patterns (e.g., "I miss left when tired")
+- Close the feedback loop (act on insights in subsequent sessions)
+
+**Level Mapping:**
+- Lv.1 = Shoots and forgets, no review habit
+- Lv.50 = Occasional review, starting to spot patterns
+- Lv.75 = Regular analysis, actively learning from data
+- Lv.99 = Systematic review process, continuous improvement mindset
 
 ---
 
@@ -329,7 +356,7 @@ Each menu item shows:
 
 ## Total Level
 
-Display combined "Total Level" (sum of all 7 skills, max 693) prominently:
+Display combined "Total Level" (sum of all 9 skills, max 891) prominently:
 - Show in skills panel header
 - Optionally on main menu or profile
 - Single number representing overall progression

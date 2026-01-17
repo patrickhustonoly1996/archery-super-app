@@ -1,18 +1,33 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../db/database.dart';
+import 'nock_rotation_selector.dart';
 
-class ShaftSelectorBottomSheet extends StatelessWidget {
+class ShaftSelectorBottomSheet extends StatefulWidget {
   final List<Shaft> shafts;
-  final Function(int shaftNumber) onShaftSelected;
+  final Function(int shaftNumber, {String? nockRotation}) onShaftSelected;
   final VoidCallback onSkip;
+  /// Shaft numbers already used in this end (disabled but not retired)
+  final Set<int> usedShaftNumbers;
+  /// Whether to show nock rotation selector
+  final bool showNockRotation;
 
   const ShaftSelectorBottomSheet({
     super.key,
     required this.shafts,
     required this.onShaftSelected,
     required this.onSkip,
+    this.usedShaftNumbers = const {},
+    this.showNockRotation = false,
   });
+
+  @override
+  State<ShaftSelectorBottomSheet> createState() =>
+      _ShaftSelectorBottomSheetState();
+}
+
+class _ShaftSelectorBottomSheetState extends State<ShaftSelectorBottomSheet> {
+  String? _selectedNockRotation;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +47,18 @@ class ShaftSelectorBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
 
+          // Nock rotation selector (optional)
+          if (widget.showNockRotation) ...[
+            Center(
+              child: NockRotationSelector(
+                selectedPosition: _selectedNockRotation,
+                onSelected: (pos) => setState(() => _selectedNockRotation = pos),
+                size: 100,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
+
           // Shaft grid (4 columns)
           GridView.builder(
             shrinkWrap: true,
@@ -42,16 +69,23 @@ class ShaftSelectorBottomSheet extends StatelessWidget {
               mainAxisSpacing: AppSpacing.sm,
               childAspectRatio: 1.2,
             ),
-            itemCount: shafts.length,
+            itemCount: widget.shafts.length,
             itemBuilder: (context, index) {
-              final shaft = shafts[index];
+              final shaft = widget.shafts[index];
+              final isRetired = shaft.retiredAt != null;
+              final isUsedThisEnd = widget.usedShaftNumbers.contains(shaft.number);
+              final isAvailable = !isRetired && !isUsedThisEnd;
               return _ShaftButton(
                 number: shaft.number,
-                isRetired: shaft.retiredAt != null,
-                onTap: shaft.retiredAt == null
+                isRetired: isRetired,
+                isUsedThisEnd: isUsedThisEnd,
+                onTap: isAvailable
                     ? () {
                         Navigator.pop(context);
-                        onShaftSelected(shaft.number);
+                        widget.onShaftSelected(
+                          shaft.number,
+                          nockRotation: _selectedNockRotation,
+                        );
                       }
                     : null,
               );
@@ -66,7 +100,7 @@ class ShaftSelectorBottomSheet extends StatelessWidget {
             child: OutlinedButton(
               onPressed: () {
                 Navigator.pop(context);
-                onSkip();
+                widget.onSkip();
               },
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.textSecondary,
@@ -85,20 +119,28 @@ class ShaftSelectorBottomSheet extends StatelessWidget {
 class _ShaftButton extends StatelessWidget {
   final int number;
   final bool isRetired;
+  final bool isUsedThisEnd;
   final VoidCallback? onTap;
 
   const _ShaftButton({
     required this.number,
     required this.isRetired,
+    this.isUsedThisEnd = false,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Determine visual state
+    final isDisabled = isRetired || isUsedThisEnd;
+    final backgroundColor = isDisabled
+        ? AppColors.surfaceLight.withOpacity(0.3)
+        : AppColors.surfaceDark;
+    final borderColor = isDisabled ? AppColors.textMuted : AppColors.gold;
+    final textColor = isDisabled ? AppColors.textMuted : AppColors.gold;
+
     return Material(
-      color: isRetired
-          ? AppColors.surfaceLight.withOpacity(0.3)
-          : AppColors.surfaceDark,
+      color: backgroundColor,
       borderRadius: BorderRadius.circular(AppSpacing.sm),
       child: InkWell(
         onTap: onTap,
@@ -106,19 +148,34 @@ class _ShaftButton extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(
-              color: isRetired ? AppColors.textMuted : AppColors.gold,
+              color: borderColor,
               width: 2,
             ),
             borderRadius: BorderRadius.circular(AppSpacing.sm),
           ),
-          child: Center(
-            child: Text(
-              number.toString(),
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: isRetired ? AppColors.textMuted : AppColors.gold,
-                    fontWeight: FontWeight.bold,
+          child: Stack(
+            children: [
+              Center(
+                child: Text(
+                  number.toString(),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: textColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+              // Show checkmark for used shafts (not retired, just used this end)
+              if (isUsedThisEnd && !isRetired)
+                Positioned(
+                  top: 2,
+                  right: 2,
+                  child: Icon(
+                    Icons.check,
+                    size: 14,
+                    color: AppColors.textMuted,
                   ),
-            ),
+                ),
+            ],
           ),
         ),
       ),

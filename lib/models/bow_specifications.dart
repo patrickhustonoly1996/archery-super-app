@@ -89,6 +89,47 @@ class BowSpecifications {
     }
   }
 
+  /// Create from a Bow object, reading from both dedicated columns and JSON settings.
+  /// Dedicated columns take precedence over JSON settings.
+  factory BowSpecifications.fromBow(dynamic bow) {
+    // First load from JSON settings as base
+    final base = BowSpecifications.fromJson(bow.settings as String?);
+
+    // Override with dedicated columns if present
+    return BowSpecifications(
+      // Primary tuning - prefer dedicated columns
+      braceHeight: bow.braceHeight as double? ?? base.braceHeight,
+      nockingPoint: bow.nockingPointHeight as double? ?? base.nockingPoint,
+      tillerTop: bow.tillerTop as double? ?? base.tillerTop,
+      tillerBottom: bow.tillerBottom as double? ?? base.tillerBottom,
+      // Equipment - prefer dedicated columns
+      riserModel: bow.riserModel as String? ?? base.riserModel,
+      limbModel: bow.limbModel as String? ?? base.limbModel,
+      limbPoundage: bow.poundage as double? ?? base.limbPoundage,
+      // Button/clicker - prefer dedicated columns
+      buttonSpringTension: bow.buttonTension as String? ?? base.buttonSpringTension,
+      clickerPosition: bow.clickerPosition as double? ?? base.clickerPosition,
+      // Carry over fields only in JSON
+      riserLength: base.riserLength,
+      limbLength: base.limbLength,
+      stringMaterial: base.stringMaterial,
+      stringStrands: base.stringStrands,
+      buttonModel: base.buttonModel,
+      centreShot: base.centreShot,
+      clickerModel: base.clickerModel,
+      sightModel: base.sightModel,
+      sightExtensionLength: base.sightExtensionLength,
+      longRodLength: base.longRodLength,
+      sideRodLength: base.sideRodLength,
+      vBarAngle: base.vBarAngle,
+      stabilizerWeights: base.stabilizerWeights,
+      arrowModel: base.arrowModel,
+      arrowSpine: base.arrowSpine,
+      arrowLength: base.arrowLength,
+      notes: base.notes,
+    );
+  }
+
   factory BowSpecifications.fromMap(Map<String, dynamic> map) {
     return BowSpecifications(
       braceHeight: _parseDouble(map['braceHeight']),

@@ -6,9 +6,11 @@ import '../providers/session_provider.dart';
 import '../providers/bow_training_provider.dart';
 import '../providers/breath_training_provider.dart';
 import '../providers/equipment_provider.dart';
+import '../providers/skills_provider.dart';
 import '../services/auth_service.dart';
 import '../widgets/pixel_bow_icon.dart';
 import '../widgets/connectivity_indicator.dart';
+import '../widgets/level_badge.dart';
 import 'session_start_screen.dart';
 import 'plotting_screen.dart';
 import 'history_screen.dart';
@@ -90,6 +92,7 @@ class _HomeScreenState extends State<HomeScreen>
       label: 'SCORE',
       sublabel: 'New session',
       pixelIcon: PixelIconType.target,
+      skillId: 'archery_skill',
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const SessionStartScreen()),
@@ -99,6 +102,7 @@ class _HomeScreenState extends State<HomeScreen>
       label: 'SCORES',
       sublabel: 'Score record',
       pixelIcon: PixelIconType.scroll,
+      skillId: 'archery_skill',
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const HistoryScreen()),
@@ -108,6 +112,7 @@ class _HomeScreenState extends State<HomeScreen>
       label: 'STATS',
       sublabel: 'Trends & data',
       pixelIcon: PixelIconType.chart,
+      skillId: 'volume',
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const StatisticsScreen()),
@@ -117,6 +122,7 @@ class _HomeScreenState extends State<HomeScreen>
       label: 'BOW DRILLS',
       sublabel: 'Timed training',
       pixelIcon: PixelIconType.bow,
+      skillId: 'bow_fitness',
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const BowTrainingHomeScreen()),
@@ -126,6 +132,7 @@ class _HomeScreenState extends State<HomeScreen>
       label: 'DELAY CAM',
       sublabel: 'Form review',
       pixelIcon: PixelIconType.video,
+      skillId: 'analysis',
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const DelayedCameraScreen()),
@@ -135,6 +142,7 @@ class _HomeScreenState extends State<HomeScreen>
       label: 'BREATHE',
       sublabel: 'Focus & calm',
       pixelIcon: PixelIconType.lungs,
+      skillId: 'breath_work',
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const BreathTrainingHomeScreen()),
@@ -144,6 +152,7 @@ class _HomeScreenState extends State<HomeScreen>
       label: 'GEAR',
       sublabel: 'Bows & arrows',
       pixelIcon: PixelIconType.gear,
+      skillId: 'equipment',
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const EquipmentScreen()),
@@ -753,6 +762,7 @@ class _MenuItem {
   final VoidCallback onTap;
   final bool isHighlight;
   final bool isDestructive;
+  final String? skillId; // Links to skill for level display
 
   const _MenuItem({
     required this.label,
@@ -761,6 +771,7 @@ class _MenuItem {
     required this.onTap,
     this.isHighlight = false,
     this.isDestructive = false,
+    this.skillId,
   });
 }
 
@@ -1762,6 +1773,22 @@ class _MenuItemWidget extends StatelessWidget {
                     ],
                   ),
                 ),
+
+                // Level badge (if skill is assigned)
+                if (item.skillId != null)
+                  Consumer<SkillsProvider>(
+                    builder: (context, skillsProvider, _) {
+                      final skill = skillsProvider.getSkill(item.skillId!);
+                      if (skill == null) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: LevelBadge(
+                          level: skill.currentLevel,
+                          currentXp: skill.currentXp,
+                        ),
+                      );
+                    },
+                  ),
 
                 // Chevron
                 Text(

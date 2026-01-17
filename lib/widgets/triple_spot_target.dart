@@ -38,38 +38,22 @@ class TripleSpotTarget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate individual face size (3 faces with small gaps)
-    final faceSize = (size - 16) / 3; // 8px gap between faces
+    // Triple spot arranged vertically (stacked) as per Portsmouth rules
+    // Account for 8px gaps (x2) + 2px border on each side (x6)
+    final faceSize = (size - 28) / 3;
 
     return SizedBox(
-      width: size,
-      height: faceSize + (showFaceLabels ? 24 : 0),
+      width: faceSize + 4, // Single face width + border
+      height: size,
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildFace(0, faceSize),
-              const SizedBox(width: 8),
-              _buildFace(1, faceSize),
-              const SizedBox(width: 8),
-              _buildFace(2, faceSize),
-            ],
-          ),
-          if (showFaceLabels) ...[
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildLabel(0, faceSize),
-                const SizedBox(width: 8),
-                _buildLabel(1, faceSize),
-                const SizedBox(width: 8),
-                _buildLabel(2, faceSize),
-              ],
-            ),
-          ],
+          _buildFace(0, faceSize),
+          const SizedBox(height: 8),
+          _buildFace(1, faceSize),
+          const SizedBox(height: 8),
+          _buildFace(2, faceSize),
         ],
       ),
     );
@@ -152,32 +136,35 @@ class _InteractiveTripleSpotTargetState
 
   @override
   Widget build(BuildContext context) {
-    final faceSize = (widget.size - 16) / 3;
+    // Triple spot arranged vertically (stacked) as per Portsmouth rules
+    // Account for 8px gaps (x2) + 2px border on each side (x6)
+    final faceSize = (widget.size - 28) / 3;
 
-    return Column(
+    return Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Face selector row
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildInteractiveFace(0, faceSize),
-            const SizedBox(width: 8),
-            _buildInteractiveFace(1, faceSize),
-            const SizedBox(width: 8),
-            _buildInteractiveFace(2, faceSize),
-          ],
-        ),
-        const SizedBox(height: 8),
-        // Face labels with arrow counts
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        // Face labels on the left
+        Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             _buildFaceLabel(0, faceSize),
-            const SizedBox(width: 8),
+            const SizedBox(height: 8),
             _buildFaceLabel(1, faceSize),
-            const SizedBox(width: 8),
+            const SizedBox(height: 8),
             _buildFaceLabel(2, faceSize),
+          ],
+        ),
+        const SizedBox(width: 8),
+        // Stacked faces
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildInteractiveFace(0, faceSize),
+            const SizedBox(height: 8),
+            _buildInteractiveFace(1, faceSize),
+            const SizedBox(height: 8),
+            _buildInteractiveFace(2, faceSize),
           ],
         ),
       ],
@@ -234,12 +221,16 @@ class _InteractiveTripleSpotTargetState
         widget.arrows.where((a) => a.faceIndex == faceIndex).toList();
     final isSelected = _selectedFace == faceIndex;
     final hasArrow = faceArrows.isNotEmpty;
+    final score = hasArrow
+        ? faceArrows.map((a) => a.score).reduce((a, b) => a + b)
+        : 0;
 
     return GestureDetector(
       onTap: () => setState(() => _selectedFace = faceIndex),
       child: Container(
-        width: faceSize,
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        width: 48, // Fixed narrow width for side labels
+        height: faceSize + 4, // Match face height including border
+        padding: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.gold.withOpacity(0.2) : Colors.transparent,
           border: Border.all(
@@ -248,22 +239,22 @@ class _InteractiveTripleSpotTargetState
           borderRadius: BorderRadius.circular(4),
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'SPOT ${faceIndex + 1}',
-              textAlign: TextAlign.center,
+              '${faceIndex + 1}',
               style: TextStyle(
                 fontFamily: AppFonts.pixel,
-                fontSize: 12,
+                fontSize: 16,
                 color: isSelected ? AppColors.gold : AppColors.textMuted,
               ),
             ),
             if (hasArrow)
               Text(
-                '${faceArrows.map((a) => a.score).reduce((a, b) => a + b)}',
+                '$score',
                 style: TextStyle(
                   fontFamily: AppFonts.body,
-                  fontSize: 10,
+                  fontSize: 12,
                   color: AppColors.gold,
                 ),
               ),

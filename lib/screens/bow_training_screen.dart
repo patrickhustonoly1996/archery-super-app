@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/bow_training_provider.dart';
+import '../providers/skills_provider.dart';
 import '../db/database.dart';
 import '../utils/error_handler.dart';
 import 'bow_training_intro_screen.dart';
@@ -609,6 +610,9 @@ class _CompletionView extends StatelessWidget {
                 // Log session button
                 ElevatedButton(
                   onPressed: () async {
+                    // Capture hold time before provider resets state
+                    final totalHoldSeconds = provider.totalHoldSecondsActual;
+
                     final result = await ErrorHandler.run(
                       context,
                       () => provider.completeSession(
@@ -623,6 +627,17 @@ class _CompletionView extends StatelessWidget {
                       errorMessage: 'Failed to save session',
                     );
                     if (result.success) {
+                      // Award XP for bow fitness
+                      if (context.mounted) {
+                        final skillsProvider = context.read<SkillsProvider>();
+                        await skillsProvider.awardBowTrainingXp(
+                          logId: 'bow_training_${DateTime.now().millisecondsSinceEpoch}',
+                          totalHoldSeconds: totalHoldSeconds,
+                          feedbackShaking: feedbackShaking,
+                          feedbackStructure: feedbackStructure,
+                          feedbackRest: feedbackRest,
+                        );
+                      }
                       onComplete();
                       if (context.mounted) {
                         Navigator.pop(context);

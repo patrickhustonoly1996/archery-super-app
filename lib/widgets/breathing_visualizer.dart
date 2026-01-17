@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
@@ -107,20 +108,26 @@ class _BreathingVisualizerState extends State<BreathingVisualizer>
 
   @override
   Widget build(BuildContext context) {
+    // On web, use larger size for better visibility
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = kIsWeb || screenWidth > 600;
+    final effectiveSize = isLargeScreen ? widget.size * 1.3 : widget.size;
+    final textScale = isLargeScreen ? 1.3 : 1.0;
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        final circleSize = widget.size * _getScaleFactor();
+        final circleSize = effectiveSize * _getScaleFactor();
         return SizedBox(
-          width: widget.size,
-          height: widget.size,
+          width: effectiveSize,
+          height: effectiveSize,
           child: Stack(
             alignment: Alignment.center,
             children: [
               // Outer guide ring (max size indicator)
               Container(
-                width: widget.size,
-                height: widget.size,
+                width: effectiveSize,
+                height: effectiveSize,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
@@ -132,8 +139,8 @@ class _BreathingVisualizerState extends State<BreathingVisualizer>
 
               // Inner guide ring (min size indicator)
               Container(
-                width: widget.size * 0.4,
-                height: widget.size * 0.4,
+                width: effectiveSize * 0.4,
+                height: effectiveSize * 0.4,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
@@ -152,12 +159,12 @@ class _BreathingVisualizerState extends State<BreathingVisualizer>
                   color: _getPhaseColor().withValues(alpha: 0.15),
                   border: Border.all(
                     color: _getPhaseColor(),
-                    width: 3,
+                    width: isLargeScreen ? 4 : 3,
                   ),
                 ),
               ),
 
-              // Center text
+              // Center text - larger on web
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -165,17 +172,17 @@ class _BreathingVisualizerState extends State<BreathingVisualizer>
                     Text(
                       widget.centerText!,
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 24 * textScale,
                         fontWeight: FontWeight.w500,
                         color: _getPhaseColor(),
                       ),
                     ),
                   if (widget.secondaryText != null) ...[
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4 * textScale),
                     Text(
                       widget.secondaryText!,
-                      style: const TextStyle(
-                        fontSize: 14,
+                      style: TextStyle(
+                        fontSize: 14 * textScale,
                         color: AppColors.textSecondary,
                       ),
                     ),

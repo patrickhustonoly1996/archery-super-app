@@ -82,6 +82,7 @@ class Arrows extends Table {
   IntColumn get sequence => integer()(); // order shot within end
   IntColumn get shaftNumber => integer().nullable()(); // Legacy: arrow number for display
   TextColumn get shaftId => text().nullable().references(Shafts, #id)(); // FK to Shafts table
+  TextColumn get nockRotation => text().nullable()(); // Clock position: '12', '4', '8' etc.
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
@@ -121,11 +122,27 @@ class Bows extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();
   TextColumn get bowType => text()(); // recurve, compound
-  TextColumn get settings => text().nullable()(); // JSON for tiller, brace height, etc.
+  TextColumn get settings => text().nullable()(); // JSON for misc settings
   BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()(); // soft delete for undo
+
+  // Equipment details
+  TextColumn get riserModel => text().nullable()();
+  DateTimeColumn get riserPurchaseDate => dateTime().nullable()();
+  TextColumn get limbModel => text().nullable()();
+  DateTimeColumn get limbPurchaseDate => dateTime().nullable()();
+  RealColumn get poundage => real().nullable()(); // Draw weight in lbs
+
+  // Tuning settings
+  RealColumn get tillerTop => real().nullable()(); // mm
+  RealColumn get tillerBottom => real().nullable()(); // mm
+  RealColumn get braceHeight => real().nullable()(); // inches
+  RealColumn get nockingPointHeight => real().nullable()(); // mm above square
+  RealColumn get buttonPosition => real().nullable()(); // mm from riser
+  TextColumn get buttonTension => text().nullable()(); // soft/medium/stiff or number
+  RealColumn get clickerPosition => real().nullable()(); // mm
 
   @override
   Set<Column> get primaryKey => {id};
@@ -156,12 +173,86 @@ class Shafts extends Table {
   IntColumn get spine => integer().nullable()(); // Static spine (e.g., 500, 600)
   RealColumn get lengthInches => real().nullable()(); // Arrow length in inches
   IntColumn get pointWeight => integer().nullable()(); // Point weight in grains
-  TextColumn get fletchingType => text().nullable()(); // e.g., "vanes", "feathers"
+  TextColumn get fletchingType => text().nullable()(); // e.g., "vanes", "feathers", "spin wings"
   TextColumn get fletchingColor => text().nullable()(); // e.g., "blue", "red/white"
   TextColumn get nockColor => text().nullable()(); // e.g., "blue", "green"
   TextColumn get notes => text().nullable()(); // "Bent nock", "Replaced 2024-01"
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get retiredAt => dateTime().nullable()(); // soft delete
+
+  // New detailed specs
+  RealColumn get totalWeight => real().nullable()(); // Total weight in grains
+  TextColumn get pointType => text().nullable()(); // break-off, glue-in, screw-in
+  TextColumn get nockBrand => text().nullable()(); // e.g., "Beiter", "Easton"
+  TextColumn get fletchingSize => text().nullable()(); // e.g., "1.75 inch", "2 inch"
+  RealColumn get fletchingAngle => real().nullable()(); // Helical degrees
+  BoolColumn get hasWrap => boolean().nullable()(); // Has arrow wrap
+  TextColumn get wrapColor => text().nullable()(); // Wrap color/pattern
+  DateTimeColumn get purchaseDate => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Stabilizer setups (linked to a bow)
+class Stabilizers extends Table {
+  TextColumn get id => text()();
+  TextColumn get bowId => text().references(Bows, #id)();
+  TextColumn get name => text().nullable()(); // Optional name for this setup
+
+  // Long rod
+  TextColumn get longRodModel => text().nullable()();
+  RealColumn get longRodLength => real().nullable()(); // inches
+  RealColumn get longRodWeight => real().nullable()(); // oz
+  DateTimeColumn get longRodPurchaseDate => dateTime().nullable()();
+
+  // Side rods
+  TextColumn get sideRodModel => text().nullable()();
+  RealColumn get sideRodLength => real().nullable()(); // inches
+  RealColumn get sideRodWeight => real().nullable()(); // oz
+  DateTimeColumn get sideRodPurchaseDate => dateTime().nullable()();
+
+  // Extender
+  RealColumn get extenderLength => real().nullable()(); // inches
+
+  // V-bar
+  TextColumn get vbarModel => text().nullable()();
+  RealColumn get vbarAngleHorizontal => real().nullable()(); // degrees
+  RealColumn get vbarAngleVertical => real().nullable()(); // degrees
+
+  // Weights
+  TextColumn get weightArrangement => text().nullable()(); // e.g., "3x1oz long, 2x1oz sides"
+
+  // Dampers
+  TextColumn get damperModel => text().nullable()();
+  TextColumn get damperPositions => text().nullable()(); // e.g., "end of long, between weights"
+
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Bow strings (linked to a bow)
+class BowStrings extends Table {
+  TextColumn get id => text()();
+  TextColumn get bowId => text().references(Bows, #id)();
+  TextColumn get name => text().nullable()(); // Optional name for this string
+
+  TextColumn get material => text().nullable()(); // e.g., "8125G", "BCY-X", "FF Plus"
+  IntColumn get strandCount => integer().nullable()();
+  TextColumn get servingMaterial => text().nullable()(); // e.g., "Angel Majesty"
+  RealColumn get stringLength => real().nullable()(); // inches (AMO length)
+  TextColumn get color => text().nullable()(); // String color
+
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get purchaseDate => dateTime().nullable()();
+  DateTimeColumn get retiredAt => dateTime().nullable()();
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -377,6 +468,103 @@ class TuningSessions extends Table {
 }
 
 // ============================================================================
+// SKILLS LEVELING SYSTEM
+// ============================================================================
+
+/// Skill definitions and user progress (RuneScape-inspired 1-99 leveling)
+class SkillLevels extends Table {
+  TextColumn get id => text()(); // 'archery_skill', 'volume', etc.
+  TextColumn get name => text()(); // Display name
+  TextColumn get description => text().nullable()(); // What this skill tracks
+  IntColumn get currentLevel => integer().withDefault(const Constant(1))();
+  IntColumn get currentXp => integer().withDefault(const Constant(0))();
+  DateTimeColumn get lastLevelUpAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Append-only XP history log
+class XpHistory extends Table {
+  TextColumn get id => text()();
+  TextColumn get skillId => text()(); // Links to SkillLevels.id
+  IntColumn get xpAmount => integer()();
+  TextColumn get source => text()(); // 'session', 'training', 'breath', etc.
+  TextColumn get sourceId => text().nullable()(); // sessionId / logId reference
+  TextColumn get reason => text().nullable()(); // Human-readable reason
+  DateTimeColumn get earnedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// ============================================================================
+// SIGHT MARKS SYSTEM
+// ============================================================================
+
+/// Sight mark records per bow per distance
+class SightMarks extends Table {
+  TextColumn get id => text()();
+  TextColumn get bowId => text().references(Bows, #id)();
+  RealColumn get distance => real()(); // Distance value
+  TextColumn get unit => text().withDefault(const Constant('meters'))(); // 'meters' or 'yards'
+  TextColumn get sightValue => text()(); // Stored as string to preserve notation (e.g., "5.14" or "51.4")
+  TextColumn get weatherData => text().nullable()(); // JSON: temp, humidity, pressure, wind
+  RealColumn get elevationDelta => real().nullable()(); // meters above/below reference
+  RealColumn get slopeAngle => real().nullable()(); // degrees (-15 to +15)
+  TextColumn get sessionId => text().nullable()(); // Which session it was recorded from
+  IntColumn get endNumber => integer().nullable()(); // Which end it was recorded from
+  IntColumn get shotCount => integer().nullable()(); // Number of arrows shot with this mark
+  RealColumn get confidenceScore => real().nullable()(); // 0.0 to 1.0
+  DateTimeColumn get recordedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().nullable()();
+  DateTimeColumn get deletedAt => dateTime().nullable()(); // soft delete
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Sight mark notation preferences per bow
+class SightMarkPreferencesTable extends Table {
+  TextColumn get bowId => text().references(Bows, #id)();
+  TextColumn get notationStyle => text().withDefault(const Constant('decimal'))(); // 'decimal' or 'whole'
+  IntColumn get decimalPlaces => integer().withDefault(const Constant(2))(); // 1 or 2
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {bowId};
+}
+
+// ============================================================================
+// AUTO-PLOT SYSTEM
+// ============================================================================
+
+/// Registered target references for camera-based arrow detection
+class RegisteredTargets extends Table {
+  TextColumn get id => text()();
+  TextColumn get targetType => text()(); // '40cm', '80cm', '122cm', 'triple_40cm'
+  TextColumn get imagePath => text()(); // Local file path to reference image
+  BoolColumn get isTripleSpot => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Auto-Plot usage tracking for entitlement limits
+class AutoPlotUsage extends Table {
+  TextColumn get id => text()();
+  TextColumn get yearMonth => text()(); // '2026-01' format
+  IntColumn get scanCount => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// ============================================================================
 // DATABASE
 // ============================================================================
 
@@ -390,6 +578,8 @@ class TuningSessions extends Table {
   Bows,
   Quivers,
   Shafts,
+  Stabilizers,
+  BowStrings,
   VolumeEntries,
   // OLY Bow Training System
   OlyExerciseTypes,
@@ -406,6 +596,15 @@ class TuningSessions extends Table {
   // Kit Snapshots & Tuning System
   KitSnapshots,
   TuningSessions,
+  // Skills Leveling System
+  SkillLevels,
+  XpHistory,
+  // Sight Marks System
+  SightMarks,
+  SightMarkPreferencesTable,
+  // Auto-Plot System
+  RegisteredTargets,
+  AutoPlotUsage,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -414,7 +613,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 18;
 
   @override
   MigrationStrategy get migration {
@@ -423,6 +622,7 @@ class AppDatabase extends _$AppDatabase {
         await m.createAll();
         await _seedRoundTypes();
         await _seedOlyTrainingData();
+        await _seedSkillLevels();
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from == 1) {
@@ -501,6 +701,57 @@ class AppDatabase extends _$AppDatabase {
           // Add shaftId foreign key to arrows
           await m.addColumn(arrows, arrows.shaftId);
         }
+        if (from <= 13) {
+          // Equipment expansion - comprehensive tuning details
+
+          // New tables
+          await m.createTable(stabilizers);
+          await m.createTable(bowStrings);
+
+          // Expand Bows table with equipment details
+          await m.addColumn(bows, bows.riserModel);
+          await m.addColumn(bows, bows.riserPurchaseDate);
+          await m.addColumn(bows, bows.limbModel);
+          await m.addColumn(bows, bows.limbPurchaseDate);
+          await m.addColumn(bows, bows.poundage);
+          await m.addColumn(bows, bows.tillerTop);
+          await m.addColumn(bows, bows.tillerBottom);
+          await m.addColumn(bows, bows.braceHeight);
+          await m.addColumn(bows, bows.nockingPointHeight);
+          await m.addColumn(bows, bows.buttonPosition);
+          await m.addColumn(bows, bows.buttonTension);
+          await m.addColumn(bows, bows.clickerPosition);
+
+          // Expand Shafts table with detailed specs
+          await m.addColumn(shafts, shafts.totalWeight);
+          await m.addColumn(shafts, shafts.pointType);
+          await m.addColumn(shafts, shafts.nockBrand);
+          await m.addColumn(shafts, shafts.fletchingSize);
+          await m.addColumn(shafts, shafts.fletchingAngle);
+          await m.addColumn(shafts, shafts.hasWrap);
+          await m.addColumn(shafts, shafts.wrapColor);
+          await m.addColumn(shafts, shafts.purchaseDate);
+        }
+        if (from <= 14) {
+          // Skills leveling system
+          await m.createTable(skillLevels);
+          await m.createTable(xpHistory);
+          await _seedSkillLevels();
+        }
+        if (from <= 15) {
+          // Sight marks system
+          await m.createTable(sightMarks);
+          await m.createTable(sightMarkPreferencesTable);
+        }
+        if (from <= 16) {
+          // Auto-Plot system
+          await m.createTable(registeredTargets);
+          await m.createTable(autoPlotUsage);
+        }
+        if (from <= 17) {
+          // Nock rotation tracking for arrows
+          await m.addColumn(arrows, arrows.nockRotation);
+        }
       },
     );
   }
@@ -572,6 +823,12 @@ class AppDatabase extends _$AppDatabase {
           totalScore: Value(totalScore),
           totalXs: Value(totalXs),
         ),
+      );
+
+  /// Toggle shaft tagging for a session
+  Future<int> setShaftTagging(String sessionId, bool enabled) =>
+      (update(sessions)..where((t) => t.id.equals(sessionId))).write(
+        SessionsCompanion(shaftTaggingEnabled: Value(enabled)),
       );
 
   /// Soft delete session (for undo support)
@@ -1259,6 +1516,67 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // ===========================================================================
+  // SKILL LEVELS SEED
+  // ===========================================================================
+
+  Future<void> _seedSkillLevels() async {
+    final skills = [
+      SkillLevelsCompanion.insert(
+        id: 'archery_skill',
+        name: 'Archery Skill',
+        description: const Value('Scoring performance based on handicap'),
+      ),
+      SkillLevelsCompanion.insert(
+        id: 'volume',
+        name: 'Volume',
+        description: const Value('Arrow count tracking'),
+      ),
+      SkillLevelsCompanion.insert(
+        id: 'consistency',
+        name: 'Consistency',
+        description: const Value('Training frequency and streaks'),
+      ),
+      SkillLevelsCompanion.insert(
+        id: 'bow_fitness',
+        name: 'Bow Fitness',
+        description: const Value('Hold times and physical conditioning'),
+      ),
+      SkillLevelsCompanion.insert(
+        id: 'breath_work',
+        name: 'Breath Work',
+        description: const Value('Breath control and hold training'),
+      ),
+      SkillLevelsCompanion.insert(
+        id: 'equipment',
+        name: 'Equipment',
+        description: const Value('Kit management and tuning'),
+      ),
+      SkillLevelsCompanion.insert(
+        id: 'competition',
+        name: 'Competition',
+        description: const Value('Competition experience'),
+      ),
+      SkillLevelsCompanion.insert(
+        id: 'analysis',
+        name: 'Analysis',
+        description: const Value('Arrow plotting and pattern analysis'),
+      ),
+    ];
+
+    for (final skill in skills) {
+      await into(skillLevels).insert(skill, mode: InsertMode.insertOrIgnore);
+    }
+  }
+
+  /// Public method to ensure skill levels exist (re-seeds if missing)
+  Future<void> ensureSkillLevelsExist() async {
+    final existing = await getAllSkillLevels();
+    if (existing.isEmpty) {
+      await _seedSkillLevels();
+    }
+  }
+
+  // ===========================================================================
   // MILESTONES
   // ===========================================================================
 
@@ -1460,6 +1778,282 @@ class AppDatabase extends _$AppDatabase {
             ..orderBy([(t) => OrderingTerm.desc(t.date)])
             ..limit(limit))
           .get();
+
+  // ===========================================================================
+  // SKILL LEVELS
+  // ===========================================================================
+
+  Future<List<SkillLevel>> getAllSkillLevels() =>
+      (select(skillLevels)..orderBy([(t) => OrderingTerm.asc(t.name)])).get();
+
+  Future<SkillLevel?> getSkillLevel(String id) =>
+      (select(skillLevels)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<int> insertSkillLevel(SkillLevelsCompanion skill) =>
+      into(skillLevels).insert(skill, mode: InsertMode.insertOrIgnore);
+
+  Future<int> updateSkillLevel(String id, {int? currentXp, int? currentLevel, DateTime? lastLevelUpAt}) =>
+      (update(skillLevels)..where((t) => t.id.equals(id))).write(
+        SkillLevelsCompanion(
+          currentXp: currentXp != null ? Value(currentXp) : const Value.absent(),
+          currentLevel: currentLevel != null ? Value(currentLevel) : const Value.absent(),
+          lastLevelUpAt: lastLevelUpAt != null ? Value(lastLevelUpAt) : const Value.absent(),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+
+  /// Get total level across all skills
+  Future<int> getTotalLevel() async {
+    final skills = await getAllSkillLevels();
+    return skills.fold<int>(0, (sum, skill) => sum + skill.currentLevel);
+  }
+
+  // ===========================================================================
+  // XP HISTORY
+  // ===========================================================================
+
+  Future<List<XpHistoryData>> getAllXpHistory() =>
+      (select(xpHistory)..orderBy([(t) => OrderingTerm.desc(t.earnedAt)])).get();
+
+  Future<List<XpHistoryData>> getXpHistoryForSkill(String skillId) =>
+      (select(xpHistory)
+            ..where((t) => t.skillId.equals(skillId))
+            ..orderBy([(t) => OrderingTerm.desc(t.earnedAt)]))
+          .get();
+
+  Future<List<XpHistoryData>> getRecentXpHistory({int limit = 50}) =>
+      (select(xpHistory)
+            ..orderBy([(t) => OrderingTerm.desc(t.earnedAt)])
+            ..limit(limit))
+          .get();
+
+  Future<int> insertXpHistory(XpHistoryCompanion history) =>
+      into(xpHistory).insert(history);
+
+  /// Award XP to a skill and log it
+  Future<void> awardXp({
+    required String skillId,
+    required int xpAmount,
+    required String source,
+    String? sourceId,
+    String? reason,
+  }) async {
+    if (xpAmount <= 0) return;
+
+    // Insert XP history record
+    await insertXpHistory(
+      XpHistoryCompanion.insert(
+        id: UniqueId.withPrefix('xp'),
+        skillId: skillId,
+        xpAmount: xpAmount,
+        source: source,
+        sourceId: Value(sourceId),
+        reason: Value(reason),
+      ),
+    );
+
+    // Update skill XP total
+    final skill = await getSkillLevel(skillId);
+    if (skill != null) {
+      final newXp = skill.currentXp + xpAmount;
+      await updateSkillLevel(skillId, currentXp: newXp);
+    }
+  }
+
+  /// Get total XP earned for a skill from history
+  Future<int> getTotalXpForSkill(String skillId) async {
+    final history = await getXpHistoryForSkill(skillId);
+    return history.fold<int>(0, (sum, entry) => sum + entry.xpAmount);
+  }
+
+  /// Get XP earned in date range for a skill
+  Future<int> getXpInRange(String skillId, DateTime start, DateTime end) async {
+    final history = await (select(xpHistory)
+          ..where((t) =>
+              t.skillId.equals(skillId) &
+              t.earnedAt.isBiggerOrEqualValue(start) &
+              t.earnedAt.isSmallerOrEqualValue(end)))
+        .get();
+    return history.fold<int>(0, (sum, entry) => sum + entry.xpAmount);
+  }
+
+  // ===========================================================================
+  // SIGHT MARKS
+  // ===========================================================================
+
+  /// Get all sight marks for a bow (excluding soft-deleted)
+  Future<List<SightMark>> getSightMarksForBow(String bowId) =>
+      (select(sightMarks)
+            ..where((t) => t.bowId.equals(bowId) & t.deletedAt.isNull())
+            ..orderBy([(t) => OrderingTerm.asc(t.distance)]))
+          .get();
+
+  /// Get all sight marks (excluding soft-deleted)
+  Future<List<SightMark>> getAllSightMarks() =>
+      (select(sightMarks)
+            ..where((t) => t.deletedAt.isNull())
+            ..orderBy([(t) => OrderingTerm.asc(t.distance)]))
+          .get();
+
+  /// Get sight mark by ID
+  Future<SightMark?> getSightMark(String id) =>
+      (select(sightMarks)
+            ..where((t) => t.id.equals(id) & t.deletedAt.isNull()))
+          .getSingleOrNull();
+
+  /// Get sight marks for a specific distance and unit
+  Future<List<SightMark>> getSightMarksAtDistance(
+    String bowId,
+    double distance,
+    String unit,
+  ) =>
+      (select(sightMarks)
+            ..where((t) =>
+                t.bowId.equals(bowId) &
+                t.distance.equals(distance) &
+                t.unit.equals(unit) &
+                t.deletedAt.isNull())
+            ..orderBy([(t) => OrderingTerm.desc(t.recordedAt)]))
+          .get();
+
+  /// Get the most recent sight mark at a distance
+  Future<SightMark?> getLatestSightMarkAtDistance(
+    String bowId,
+    double distance,
+    String unit,
+  ) =>
+      (select(sightMarks)
+            ..where((t) =>
+                t.bowId.equals(bowId) &
+                t.distance.equals(distance) &
+                t.unit.equals(unit) &
+                t.deletedAt.isNull())
+            ..orderBy([(t) => OrderingTerm.desc(t.recordedAt)])
+            ..limit(1))
+          .getSingleOrNull();
+
+  /// Insert a new sight mark
+  Future<int> insertSightMark(SightMarksCompanion mark) =>
+      into(sightMarks).insert(mark);
+
+  /// Update an existing sight mark
+  Future<bool> updateSightMark(SightMarksCompanion mark) =>
+      update(sightMarks).replace(mark);
+
+  /// Soft delete a sight mark
+  Future<int> softDeleteSightMark(String id) =>
+      (update(sightMarks)..where((t) => t.id.equals(id)))
+          .write(SightMarksCompanion(deletedAt: Value(DateTime.now())));
+
+  /// Restore a soft-deleted sight mark
+  Future<int> restoreSightMark(String id) =>
+      (update(sightMarks)..where((t) => t.id.equals(id)))
+          .write(const SightMarksCompanion(deletedAt: Value(null)));
+
+  /// Permanently delete a sight mark
+  Future<int> deleteSightMark(String id) =>
+      (delete(sightMarks)..where((t) => t.id.equals(id))).go();
+
+  /// Delete all sight marks for a bow
+  Future<int> deleteSightMarksForBow(String bowId) =>
+      (delete(sightMarks)..where((t) => t.bowId.equals(bowId))).go();
+
+  // ===========================================================================
+  // SIGHT MARK PREFERENCES
+  // ===========================================================================
+
+  /// Get sight mark preferences for a bow
+  Future<SightMarkPreferencesTableData?> getSightMarkPreferences(String bowId) =>
+      (select(sightMarkPreferencesTable)..where((t) => t.bowId.equals(bowId)))
+          .getSingleOrNull();
+
+  /// Insert or update sight mark preferences for a bow
+  Future<void> setSightMarkPreferences({
+    required String bowId,
+    String? notationStyle,
+    int? decimalPlaces,
+  }) async {
+    final existing = await getSightMarkPreferences(bowId);
+    if (existing != null) {
+      await (update(sightMarkPreferencesTable)..where((t) => t.bowId.equals(bowId)))
+          .write(SightMarkPreferencesTableCompanion(
+        notationStyle: notationStyle != null ? Value(notationStyle) : const Value.absent(),
+        decimalPlaces: decimalPlaces != null ? Value(decimalPlaces) : const Value.absent(),
+        updatedAt: Value(DateTime.now()),
+      ));
+    } else {
+      await into(sightMarkPreferencesTable).insert(
+        SightMarkPreferencesTableCompanion.insert(
+          bowId: bowId,
+          notationStyle: Value(notationStyle ?? 'decimal'),
+          decimalPlaces: Value(decimalPlaces ?? 2),
+        ),
+      );
+    }
+  }
+
+  /// Delete sight mark preferences for a bow
+  Future<int> deleteSightMarkPreferences(String bowId) =>
+      (delete(sightMarkPreferencesTable)..where((t) => t.bowId.equals(bowId))).go();
+
+  // ===========================================================================
+  // AUTO-PLOT
+  // ===========================================================================
+
+  /// Get all registered targets
+  Future<List<RegisteredTarget>> getAllRegisteredTargets() =>
+      (select(registeredTargets)..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
+
+  /// Get registered target by ID
+  Future<RegisteredTarget?> getRegisteredTarget(String id) =>
+      (select(registeredTargets)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  /// Get registered target by type
+  Future<RegisteredTarget?> getRegisteredTargetByType(String targetType) =>
+      (select(registeredTargets)..where((t) => t.targetType.equals(targetType))).getSingleOrNull();
+
+  /// Insert a new registered target
+  Future<int> insertRegisteredTarget(RegisteredTargetsCompanion target) =>
+      into(registeredTargets).insert(target);
+
+  /// Delete a registered target
+  Future<int> deleteRegisteredTarget(String id) =>
+      (delete(registeredTargets)..where((t) => t.id.equals(id))).go();
+
+  /// Get current month's auto-plot usage
+  Future<AutoPlotUsageData?> getAutoPlotUsage(String yearMonth) =>
+      (select(autoPlotUsage)..where((t) => t.yearMonth.equals(yearMonth))).getSingleOrNull();
+
+  /// Increment auto-plot scan count for current month
+  Future<int> incrementAutoPlotUsage() async {
+    final yearMonth = _getCurrentYearMonth();
+    final existing = await getAutoPlotUsage(yearMonth);
+
+    if (existing != null) {
+      return (update(autoPlotUsage)..where((t) => t.yearMonth.equals(yearMonth)))
+          .write(AutoPlotUsageCompanion(scanCount: Value(existing.scanCount + 1)));
+    } else {
+      return into(autoPlotUsage).insert(
+        AutoPlotUsageCompanion.insert(
+          id: UniqueId.withPrefix('apu'),
+          yearMonth: yearMonth,
+          scanCount: const Value(1),
+        ),
+      );
+    }
+  }
+
+  /// Get current auto-plot scan count for the month
+  Future<int> getCurrentAutoPlotScanCount() async {
+    final yearMonth = _getCurrentYearMonth();
+    final usage = await getAutoPlotUsage(yearMonth);
+    return usage?.scanCount ?? 0;
+  }
+
+  String _getCurrentYearMonth() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}';
+  }
 }
 
 QueryExecutor _openConnection() {

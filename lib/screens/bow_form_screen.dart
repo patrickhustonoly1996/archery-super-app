@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
@@ -17,98 +18,81 @@ class BowFormScreen extends StatefulWidget {
 
 class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin {
   final _formKey = GlobalKey<FormState>();
+
+  // Basic info
   late TextEditingController _nameController;
+  String _bowType = 'recurve';
+  bool _setAsDefault = false;
+
+  // Equipment
+  late TextEditingController _riserModelController;
+  late TextEditingController _limbModelController;
+  late TextEditingController _poundageController;
+
+  // Tuning
   late TextEditingController _braceHeightController;
   late TextEditingController _tillerTopController;
   late TextEditingController _tillerBottomController;
-  late TextEditingController _drawWeightController;
-  late TextEditingController _riserController;
-  late TextEditingController _limbsController;
-  late TextEditingController _stabilizerController;
-  late TextEditingController _notesController;
-  String _bowType = 'recurve';
-  bool _setAsDefault = false;
+  late TextEditingController _nockingPointController;
+  late TextEditingController _buttonPositionController;
+  late TextEditingController _buttonTensionController;
+  late TextEditingController _clickerPositionController;
+
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.bow?.name ?? '');
-    _bowType = widget.bow?.bowType ?? 'recurve';
-    _setAsDefault = widget.bow?.isDefault ?? false;
+    final bow = widget.bow;
 
-    // Parse existing settings if editing
-    final settings = _parseSettings(widget.bow?.settings);
-    _braceHeightController = TextEditingController(text: settings['braceHeight'] ?? '');
-    _tillerTopController = TextEditingController(text: settings['tillerTop'] ?? '');
-    _tillerBottomController = TextEditingController(text: settings['tillerBottom'] ?? '');
-    _drawWeightController = TextEditingController(text: settings['drawWeight'] ?? '');
-    _riserController = TextEditingController(text: settings['riser'] ?? '');
-    _limbsController = TextEditingController(text: settings['limbs'] ?? '');
-    _stabilizerController = TextEditingController(text: settings['stabilizer'] ?? '');
-    _notesController = TextEditingController(text: settings['notes'] ?? '');
-  }
+    _nameController = TextEditingController(text: bow?.name ?? '');
+    _bowType = bow?.bowType ?? 'recurve';
+    _setAsDefault = bow?.isDefault ?? false;
 
-  Map<String, String> _parseSettings(String? settingsJson) {
-    if (settingsJson == null || settingsJson.isEmpty) {
-      return {};
-    }
-    try {
-      // Simple key=value parsing (avoiding heavy json dependency)
-      final result = <String, String>{};
-      final pairs = settingsJson.split('|');
-      for (final pair in pairs) {
-        final parts = pair.split(':');
-        if (parts.length == 2) {
-          result[parts[0]] = parts[1];
-        }
-      }
-      return result;
-    } catch (e) {
-      return {};
-    }
-  }
+    // Equipment - read from dedicated columns
+    _riserModelController = TextEditingController(text: bow?.riserModel ?? '');
+    _limbModelController = TextEditingController(text: bow?.limbModel ?? '');
+    _poundageController = TextEditingController(
+      text: bow?.poundage?.toStringAsFixed(0) ?? '',
+    );
 
-  String _buildSettings() {
-    final parts = <String>[];
-    if (_braceHeightController.text.isNotEmpty) {
-      parts.add('braceHeight:${_braceHeightController.text}');
-    }
-    if (_tillerTopController.text.isNotEmpty) {
-      parts.add('tillerTop:${_tillerTopController.text}');
-    }
-    if (_tillerBottomController.text.isNotEmpty) {
-      parts.add('tillerBottom:${_tillerBottomController.text}');
-    }
-    if (_drawWeightController.text.isNotEmpty) {
-      parts.add('drawWeight:${_drawWeightController.text}');
-    }
-    if (_riserController.text.isNotEmpty) {
-      parts.add('riser:${_riserController.text}');
-    }
-    if (_limbsController.text.isNotEmpty) {
-      parts.add('limbs:${_limbsController.text}');
-    }
-    if (_stabilizerController.text.isNotEmpty) {
-      parts.add('stabilizer:${_stabilizerController.text}');
-    }
-    if (_notesController.text.isNotEmpty) {
-      parts.add('notes:${_notesController.text}');
-    }
-    return parts.join('|');
+    // Tuning - read from dedicated columns
+    _braceHeightController = TextEditingController(
+      text: bow?.braceHeight?.toStringAsFixed(1) ?? '',
+    );
+    _tillerTopController = TextEditingController(
+      text: bow?.tillerTop?.toStringAsFixed(1) ?? '',
+    );
+    _tillerBottomController = TextEditingController(
+      text: bow?.tillerBottom?.toStringAsFixed(1) ?? '',
+    );
+    _nockingPointController = TextEditingController(
+      text: bow?.nockingPointHeight?.toStringAsFixed(1) ?? '',
+    );
+    _buttonPositionController = TextEditingController(
+      text: bow?.buttonPosition?.toStringAsFixed(1) ?? '',
+    );
+    _buttonTensionController = TextEditingController(
+      text: bow?.buttonTension ?? '',
+    );
+    _clickerPositionController = TextEditingController(
+      text: bow?.clickerPosition?.toStringAsFixed(1) ?? '',
+    );
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _riserModelController.dispose();
+    _limbModelController.dispose();
+    _poundageController.dispose();
     _braceHeightController.dispose();
     _tillerTopController.dispose();
     _tillerBottomController.dispose();
-    _drawWeightController.dispose();
-    _riserController.dispose();
-    _limbsController.dispose();
-    _stabilizerController.dispose();
-    _notesController.dispose();
+    _nockingPointController.dispose();
+    _buttonPositionController.dispose();
+    _buttonTensionController.dispose();
+    _clickerPositionController.dispose();
     super.dispose();
   }
 
@@ -119,15 +103,40 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
 
     try {
       final provider = context.read<EquipmentProvider>();
-      final settings = _buildSettings();
+
+      // Parse numeric values
+      final poundage = double.tryParse(_poundageController.text);
+      final braceHeight = double.tryParse(_braceHeightController.text);
+      final tillerTop = double.tryParse(_tillerTopController.text);
+      final tillerBottom = double.tryParse(_tillerBottomController.text);
+      final nockingPoint = double.tryParse(_nockingPointController.text);
+      final buttonPosition = double.tryParse(_buttonPositionController.text);
+      final clickerPosition = double.tryParse(_clickerPositionController.text);
+
+      // Get text values (null if empty)
+      final riserModel = _riserModelController.text.trim().isEmpty
+          ? null : _riserModelController.text.trim();
+      final limbModel = _limbModelController.text.trim().isEmpty
+          ? null : _limbModelController.text.trim();
+      final buttonTension = _buttonTensionController.text.trim().isEmpty
+          ? null : _buttonTensionController.text.trim();
 
       if (widget.bow == null) {
         // Create new bow
         await provider.createBow(
           name: _nameController.text.trim(),
           bowType: _bowType,
-          settings: settings.isNotEmpty ? settings : null,
           setAsDefault: _setAsDefault,
+          riserModel: riserModel,
+          limbModel: limbModel,
+          poundage: poundage,
+          braceHeight: braceHeight,
+          tillerTop: tillerTop,
+          tillerBottom: tillerBottom,
+          nockingPointHeight: nockingPoint,
+          buttonPosition: buttonPosition,
+          buttonTension: buttonTension,
+          clickerPosition: clickerPosition,
         );
       } else {
         // Update existing bow
@@ -135,7 +144,16 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
           id: widget.bow!.id,
           name: _nameController.text.trim(),
           bowType: _bowType,
-          settings: settings.isNotEmpty ? settings : null,
+          riserModel: riserModel,
+          limbModel: limbModel,
+          poundage: poundage,
+          braceHeight: braceHeight,
+          tillerTop: tillerTop,
+          tillerBottom: tillerBottom,
+          nockingPointHeight: nockingPoint,
+          buttonPosition: buttonPosition,
+          buttonTension: buttonTension,
+          clickerPosition: clickerPosition,
         );
         if (_setAsDefault) {
           await provider.setDefaultBow(widget.bow!.id);
@@ -198,12 +216,7 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
             // Basic Info Section
-            Text(
-              'Basic Info',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: AppColors.gold,
-                  ),
-            ),
+            _buildSectionHeader(context, 'BASIC INFO'),
             const SizedBox(height: AppSpacing.sm),
             TextFormField(
               controller: _nameController,
@@ -250,38 +263,37 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
             const SizedBox(height: AppSpacing.md),
 
             // Equipment Section
-            Text(
-              'Equipment',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: AppColors.gold,
-                  ),
-            ),
+            _buildSectionHeader(context, 'EQUIPMENT'),
             const SizedBox(height: AppSpacing.sm),
             TextFormField(
-              controller: _riserController,
+              controller: _riserModelController,
               decoration: const InputDecoration(
-                labelText: 'Riser',
+                labelText: 'Riser Model',
                 hintText: 'e.g., Hoyt Formula Xi 25"',
               ),
               textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: AppSpacing.md),
             TextFormField(
-              controller: _limbsController,
+              controller: _limbModelController,
               decoration: const InputDecoration(
-                labelText: 'Limbs',
-                hintText: 'e.g., Uukha VX1000 44#',
+                labelText: 'Limb Model',
+                hintText: 'e.g., Uukha VX1000',
               ),
               textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: AppSpacing.md),
             TextFormField(
-              controller: _stabilizerController,
+              controller: _poundageController,
               decoration: const InputDecoration(
-                labelText: 'Stabilizer Setup',
-                hintText: 'e.g., Doinker 30" long, 12" sides',
+                labelText: 'Draw Weight',
+                hintText: 'e.g., 48',
+                suffixText: 'lbs',
               ),
-              textCapitalization: TextCapitalization.sentences,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+              ],
             ),
 
             const SizedBox(height: AppSpacing.xl),
@@ -289,36 +301,40 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
             const SizedBox(height: AppSpacing.md),
 
             // Tuning Section
-            Text(
-              'Tuning',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: AppColors.gold,
-                  ),
-            ),
+            _buildSectionHeader(context, 'TUNING', isPrimary: true),
             const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
                 Expanded(
                   child: TextFormField(
-                    controller: _drawWeightController,
+                    controller: _braceHeightController,
                     decoration: const InputDecoration(
-                      labelText: 'Draw Weight',
-                      hintText: 'e.g., 48',
-                      suffixText: 'lbs',
+                      labelText: 'Brace Height',
+                      hintText: '225',
+                      suffixText: 'mm',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                    ],
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: TextFormField(
-                    controller: _braceHeightController,
+                    controller: _nockingPointController,
                     decoration: const InputDecoration(
-                      labelText: 'Brace Height',
-                      hintText: 'e.g., 225',
+                      labelText: 'Nocking Point',
+                      hintText: '3',
                       suffixText: 'mm',
                     ),
-                    keyboardType: TextInputType.number,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                      signed: true,
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d*$')),
+                    ],
                   ),
                 ),
               ],
@@ -331,10 +347,13 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
                     controller: _tillerTopController,
                     decoration: const InputDecoration(
                       labelText: 'Tiller Top',
-                      hintText: 'e.g., 3',
+                      hintText: '175',
                       suffixText: 'mm',
                     ),
-                    keyboardType: TextInputType.number,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                    ],
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
@@ -343,39 +362,86 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
                     controller: _tillerBottomController,
                     decoration: const InputDecoration(
                       labelText: 'Tiller Bottom',
-                      hintText: 'e.g., 0',
+                      hintText: '170',
                       suffixText: 'mm',
                     ),
-                    keyboardType: TextInputType.number,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                    ],
                   ),
                 ),
               ],
             ),
-
-            const SizedBox(height: AppSpacing.xl),
-            const Divider(),
             const SizedBox(height: AppSpacing.md),
-
-            // Notes Section
-            Text(
-              'Notes',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: AppColors.gold,
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _buttonPositionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Button Position',
+                      hintText: '10',
+                      suffixText: 'mm',
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                    ],
                   ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: TextFormField(
+                    controller: _buttonTensionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Button Tension',
+                      hintText: 'Medium',
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.md),
             TextFormField(
-              controller: _notesController,
+              controller: _clickerPositionController,
               decoration: const InputDecoration(
-                labelText: 'Additional Notes',
-                hintText: 'Any other setup details...',
+                labelText: 'Clicker Position',
+                hintText: '45',
+                suffixText: 'mm',
+                helperText: 'Distance from button center',
               ),
-              textCapitalization: TextCapitalization.sentences,
-              maxLines: 3,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+              ],
             ),
             const SizedBox(height: AppSpacing.xxl),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title, {bool isPrimary = false}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: isPrimary
+            ? AppColors.gold.withOpacity(0.1)
+            : AppColors.surfaceBright.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(AppSpacing.xs),
+      ),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: isPrimary ? AppColors.gold : AppColors.textSecondary,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+            ),
       ),
     );
   }

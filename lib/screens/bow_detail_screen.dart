@@ -6,8 +6,13 @@ import '../db/database.dart';
 import '../models/bow_specifications.dart';
 import '../widgets/bow_icon.dart';
 import '../utils/undo_manager.dart';
+import '../providers/sight_marks_provider.dart';
+import '../models/sight_mark.dart';
 import 'bow_form_screen.dart';
+import 'sight_marks_screen.dart';
 import 'bow_specs_screen.dart';
+import 'stabilizer_form_screen.dart';
+import 'string_form_screen.dart';
 
 /// Detailed view of a bow with all specifications
 class BowDetailScreen extends StatefulWidget {
@@ -42,7 +47,7 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final specs = BowSpecifications.fromJson(_bow.settings);
+    final specs = BowSpecifications.fromBow(_bow);
 
     return Scaffold(
       appBar: AppBar(
@@ -244,39 +249,17 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
             const SizedBox(height: AppSpacing.lg),
 
             // Stabilizers Section
-            _buildSection(
-              context,
-              title: 'STABILIZERS',
-              children: [
-                _buildSpecRow(
-                  context,
-                  label: 'Long Rod',
-                  value: specs.longRodLength != null
-                      ? '${specs.longRodLength!.toStringAsFixed(0)}"'
-                      : null,
-                ),
-                _buildSpecRow(
-                  context,
-                  label: 'Side Rods',
-                  value: specs.sideRodLength != null
-                      ? '${specs.sideRodLength!.toStringAsFixed(0)}"'
-                      : null,
-                ),
-                _buildSpecRow(
-                  context,
-                  label: 'V-Bar Angle',
-                  value: specs.vBarAngle != null
-                      ? '${specs.vBarAngle!.toStringAsFixed(0)}°'
-                      : null,
-                ),
-                _buildSpecRow(
-                  context,
-                  label: 'Weights',
-                  value: specs.stabilizerWeights,
-                ),
-              ],
-              onEdit: () => _editSpecs(context, 'stabilizers'),
-            ),
+            _buildStabilizersSection(context),
+
+            const SizedBox(height: AppSpacing.lg),
+
+            // Strings Section
+            _buildStringsSection(context),
+
+            const SizedBox(height: AppSpacing.lg),
+
+            // Sight Marks Section
+            _buildSightMarksSection(context),
 
             const SizedBox(height: AppSpacing.lg),
 
@@ -539,6 +522,447 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
       ),
     );
     _refreshBow();
+  }
+
+  Widget _buildStabilizersSection(BuildContext context) {
+    return FutureBuilder<List<Stabilizer>>(
+      future: context.read<EquipmentProvider>().getStabilizersForBow(_bow.id),
+      builder: (context, snapshot) {
+        final stabilizers = snapshot.data ?? [];
+
+        return Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.surfaceBright),
+            borderRadius: BorderRadius.circular(AppSpacing.sm),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceBright.withOpacity(0.5),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppSpacing.sm - 1),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'STABILIZERS',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                          ),
+                    ),
+                    InkWell(
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => StabilizerFormScreen(bowId: _bow.id),
+                          ),
+                        );
+                        setState(() {});
+                      },
+                      child: const Icon(Icons.add, size: 20, color: AppColors.gold),
+                    ),
+                  ],
+                ),
+              ),
+              if (stabilizers.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Text(
+                    'No stabilizer setups recorded',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textMuted,
+                        ),
+                  ),
+                )
+              else
+                ...stabilizers.map((s) => _buildStabilizerTile(context, s)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStabilizerTile(BuildContext context, Stabilizer s) {
+    final parts = <String>[];
+    if (s.longRodLength != null) parts.add('Long: ${s.longRodLength!.toStringAsFixed(0)}"');
+    if (s.sideRodLength != null) parts.add('Sides: ${s.sideRodLength!.toStringAsFixed(0)}"');
+    if (s.vbarAngleHorizontal != null) parts.add('V-bar: ${s.vbarAngleHorizontal!.toStringAsFixed(0)}°');
+
+    return InkWell(
+      onTap: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => StabilizerFormScreen(bowId: _bow.id, stabilizer: s),
+          ),
+        );
+        setState(() {});
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          children: [
+            const Icon(Icons.straighten, size: 20, color: AppColors.textSecondary),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    s.name ?? s.longRodModel ?? 'Stabilizer Setup',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  if (parts.isNotEmpty)
+                    Text(
+                      parts.join(' | '),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                    ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, size: 20, color: AppColors.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStringsSection(BuildContext context) {
+    return FutureBuilder<List<BowString>>(
+      future: context.read<EquipmentProvider>().getStringsForBow(_bow.id),
+      builder: (context, snapshot) {
+        final strings = snapshot.data ?? [];
+
+        return Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.surfaceBright),
+            borderRadius: BorderRadius.circular(AppSpacing.sm),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceBright.withOpacity(0.5),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppSpacing.sm - 1),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'STRINGS',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                          ),
+                    ),
+                    InkWell(
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => StringFormScreen(bowId: _bow.id),
+                          ),
+                        );
+                        setState(() {});
+                      },
+                      child: const Icon(Icons.add, size: 20, color: AppColors.gold),
+                    ),
+                  ],
+                ),
+              ),
+              if (strings.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Text(
+                    'No strings recorded',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textMuted,
+                        ),
+                  ),
+                )
+              else
+                ...strings.map((s) => _buildStringTile(context, s)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStringTile(BuildContext context, BowString s) {
+    final parts = <String>[];
+    if (s.material != null) parts.add(s.material!);
+    if (s.strandCount != null) parts.add('${s.strandCount} strands');
+    if (s.stringLength != null) parts.add('${s.stringLength!.toStringAsFixed(0)}"');
+
+    return InkWell(
+      onTap: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => StringFormScreen(bowId: _bow.id, bowString: s),
+          ),
+        );
+        setState(() {});
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          children: [
+            Icon(
+              s.isActive ? Icons.check_circle : Icons.circle_outlined,
+              size: 20,
+              color: s.isActive ? AppColors.gold : AppColors.textMuted,
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        s.name ?? s.material ?? 'String',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      if (s.isActive) ...[
+                        const SizedBox(width: AppSpacing.sm),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.xs,
+                            vertical: 1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.gold.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'ACTIVE',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.gold,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  if (parts.isNotEmpty)
+                    Text(
+                      parts.join(' | '),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                    ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, size: 20, color: AppColors.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSightMarksSection(BuildContext context) {
+    // Load sight marks when section is built
+    context.read<SightMarksProvider>().loadMarksForBow(_bow.id);
+
+    return Consumer<SightMarksProvider>(
+      builder: (context, provider, child) {
+        final marks = provider.getMarksForBow(_bow.id);
+
+        // Group by distance for summary
+        final metricDistances = marks
+            .where((m) => m.unit == DistanceUnit.meters)
+            .map((m) => m.distance)
+            .toSet()
+            .toList()
+          ..sort();
+
+        return Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+            borderRadius: BorderRadius.circular(AppSpacing.sm),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withOpacity(0.1),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppSpacing.sm - 1),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.visibility, size: 16, color: AppColors.gold),
+                        const SizedBox(width: AppSpacing.sm),
+                        Text(
+                          'SIGHT MARKS',
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: AppColors.gold,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                              ),
+                        ),
+                      ],
+                    ),
+                    InkWell(
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => SightMarksScreen(
+                              bowId: _bow.id,
+                              bowName: _bow.name,
+                            ),
+                          ),
+                        );
+                        setState(() {});
+                      },
+                      child: const Icon(Icons.chevron_right, size: 20, color: AppColors.gold),
+                    ),
+                  ],
+                ),
+              ),
+              if (marks.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: InkWell(
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SightMarksScreen(
+                            bowId: _bow.id,
+                            bowName: _bow.name,
+                          ),
+                        ),
+                      );
+                      setState(() {});
+                    },
+                    child: Row(
+                      children: [
+                        Icon(Icons.add_circle_outline, size: 20, color: AppColors.textMuted),
+                        const SizedBox(width: AppSpacing.sm),
+                        Text(
+                          'Tap to add sight marks',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: AppColors.textMuted,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: InkWell(
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SightMarksScreen(
+                            bowId: _bow.id,
+                            bowName: _bow.name,
+                          ),
+                        ),
+                      );
+                      setState(() {});
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Summary row showing recorded distances
+                        Wrap(
+                          spacing: AppSpacing.sm,
+                          runSpacing: AppSpacing.sm,
+                          children: metricDistances.take(6).map((d) {
+                            final mark = marks.firstWhere(
+                              (m) => m.distance == d && m.unit == DistanceUnit.meters,
+                            );
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.sm,
+                                vertical: AppSpacing.xs,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceBright,
+                                borderRadius: BorderRadius.circular(AppSpacing.xs),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '${d.toStringAsFixed(0)}m',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: AppColors.textMuted,
+                                          fontSize: 10,
+                                        ),
+                                  ),
+                                  Text(
+                                    mark.sightValue,
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          color: AppColors.gold,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        if (metricDistances.length > 6) ...[
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            '+${metricDistances.length - 6} more',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.textMuted,
+                                ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _showDeleteDialog(BuildContext context) {

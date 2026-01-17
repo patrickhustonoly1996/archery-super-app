@@ -11,6 +11,7 @@ import '../../services/vibration_service.dart';
 import '../../widgets/breathing_visualizer.dart';
 import '../../widgets/breathing_reminder.dart';
 import '../../providers/breath_training_provider.dart';
+import '../../providers/skills_provider.dart';
 
 /// Patrick's long exhale test
 /// Test: Hold start to time your exhale, release to stop
@@ -284,9 +285,10 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
 
     try {
       final db = Provider.of<AppDatabase>(context, listen: false);
+      final logId = UniqueId.generate();
       await db.insertBreathTrainingLog(
         BreathTrainingLogsCompanion.insert(
-          id: UniqueId.generate(),
+          id: logId,
           sessionType: 'patrickBreath',
           bestExhaleSeconds: Value(_bestThisSession),
           rounds: Value(_exhaleTimes.length),
@@ -294,6 +296,15 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
         ),
       );
       debugPrint('Patrick breath session saved: ${_bestThisSession}s best exhale');
+
+      // Award XP for breath work
+      if (mounted) {
+        final skillsProvider = context.read<SkillsProvider>();
+        await skillsProvider.awardBreathTrainingXp(
+          logId: logId,
+          bestExhaleSeconds: _bestThisSession,
+        );
+      }
     } catch (e) {
       debugPrint('Error saving patrick breath session: $e');
     }

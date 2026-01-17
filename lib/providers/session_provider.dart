@@ -44,6 +44,14 @@ class SessionProvider extends ChangeNotifier {
   String? get selectedQuiverId => _selectedQuiverId;
   bool get shaftTaggingEnabled => _shaftTaggingEnabled;
 
+  /// Toggle shaft tagging on/off during session
+  Future<void> setShaftTagging(bool enabled) async {
+    if (_currentSession == null) return;
+    await _db.setShaftTagging(_currentSession!.id, enabled);
+    _shaftTaggingEnabled = enabled;
+    notifyListeners();
+  }
+
   int get currentEndNumber => _activeEnd?.endNumber ?? 1;
   int get arrowsPerEnd => _arrowsPerEndOverride ?? _currentRoundType?.arrowsPerEnd ?? 3;
   int get totalEnds => _currentRoundType?.totalEnds ?? 10;
@@ -217,6 +225,7 @@ class SessionProvider extends ChangeNotifier {
     required ArrowCoordinate coord,
     int faceIndex = 0,
     int? shaftNumber,
+    String? nockRotation,
   }) async {
     if (_activeEnd == null || isEndComplete) return;
 
@@ -252,6 +261,7 @@ class SessionProvider extends ChangeNotifier {
       sequence: _currentEndArrows.length + 1,
       shaftNumber: Value(shaftNumber),
       shaftId: Value(shaftId),
+      nockRotation: Value(nockRotation),
     ));
 
     // Reload current end arrows
@@ -271,6 +281,7 @@ class SessionProvider extends ChangeNotifier {
     required double y,
     int faceIndex = 0,
     int? shaftNumber,
+    String? nockRotation,
   }) async {
     // Convert normalized to ArrowCoordinate and use the mm method
     final coord = ArrowCoordinate.fromNormalized(
@@ -282,6 +293,7 @@ class SessionProvider extends ChangeNotifier {
       coord: coord,
       faceIndex: faceIndex,
       shaftNumber: shaftNumber,
+      nockRotation: nockRotation,
     );
   }
 

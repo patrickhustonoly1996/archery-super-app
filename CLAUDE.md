@@ -17,7 +17,7 @@ Build partner for Patrick Huston (Olympic archer). New to software, time-constra
 - **Local authority:** Data lives locally, cloud = backup
 - **Graceful failure:** Degrade to manual if AI/API unavailable
 - **Snappy UX:** No waiting. Load instantly, fetch in background, cache aggressively. Loading screens are failure.
-- **Entitlement:** £1/month, 72hr grace → read-only
+- **Entitlement:** Base £2/month, Auto-Plot £7.20/month (includes base). 72hr grace → read-only
 
 ## Data Rules
 

@@ -126,11 +126,12 @@ class _TargetFacePainter extends CustomPainter {
       canvas.drawCircle(center, ringRadius, paint);
     }
 
-    // Draw ring lines - solid black for clarity
+    // Draw ring lines - thin black lines matching 5-zone tri-spot appearance
+    const lineWidth = 0.8;
     final linePaint = Paint()
       ..color = Colors.black
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
+      ..strokeWidth = lineWidth;
 
     for (final ring in rings) {
       canvas.drawCircle(center, ring.$1 * radius * ringScale, linePaint);
@@ -146,7 +147,7 @@ class _TargetFacePainter extends CustomPainter {
     final crossSize = xSize * radius * ringScale * 0.25; // 25% of X ring
     final crossPaint = Paint()
       ..color = Colors.black
-      ..strokeWidth = 1.5
+      ..strokeWidth = lineWidth
       ..strokeCap = StrokeCap.round;
     // Vertical line
     canvas.drawLine(
@@ -271,8 +272,9 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   static const double _holdOffsetX = 50.0; // Horizontal (sign flipped for lefties)
   static const double _holdOffsetY = 50.0; // Vertical (always upward)
 
-  // Linecutter detection threshold
-  static const double _boundaryProximityThreshold = 0.015; // 1.5% of radius
+  // Linecutter detection threshold - ~4% of radius gives a reasonable "near the line" zone
+  // Each ring is 10% of radius, so 4% covers roughly the inner/outer 40% of each ring
+  static const double _boundaryProximityThreshold = 0.04;
 
   /// Convert widget-space pixel position to normalized coordinates (-1 to +1)
   /// This is the DIRECT path - no transform reversal needed

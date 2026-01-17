@@ -12,6 +12,7 @@ import '../../services/training_session_service.dart';
 import '../../widgets/breathing_visualizer.dart';
 import '../../widgets/breathing_reminder.dart';
 import '../../providers/breath_training_provider.dart';
+import '../../providers/skills_provider.dart';
 
 /// Breath hold session with progressive difficulty
 /// Structure: paced breaths -> exhale hold -> paced recovery -> repeat
@@ -482,9 +483,10 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
   Future<void> _saveSessionToDatabase() async {
     try {
       final db = Provider.of<AppDatabase>(context, listen: false);
+      final logId = UniqueId.generate();
       await db.insertBreathTrainingLog(
         BreathTrainingLogsCompanion.insert(
-          id: UniqueId.generate(),
+          id: logId,
           sessionType: 'breathHold',
           totalHoldSeconds: Value(_totalHoldTime),
           bestHoldThisSession: Value(_bestHoldThisSession),
@@ -494,6 +496,15 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
         ),
       );
       debugPrint('Breath hold session saved: ${_totalHoldTime}s total, ${_bestHoldThisSession}s best');
+
+      // Award XP for breath work
+      if (mounted) {
+        final skillsProvider = context.read<SkillsProvider>();
+        await skillsProvider.awardBreathTrainingXp(
+          logId: logId,
+          bestHoldSeconds: _bestHoldThisSession,
+        );
+      }
     } catch (e) {
       debugPrint('Error saving breath hold session: $e');
     }

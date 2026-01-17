@@ -13,9 +13,9 @@ class SplashBranding extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // App icon
+            // App icon (golden arrow)
             Image.asset(
-              'assets/icon/app_icon.png',
+              'assets/favicon.png',
               width: 120,
               height: 120,
               errorBuilder: (context, error, stackTrace) {

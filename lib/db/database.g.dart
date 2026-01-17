@@ -761,6 +761,140 @@ class $BowsTable extends Bows with TableInfo<$BowsTable, Bow> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _riserModelMeta = const VerificationMeta(
+    'riserModel',
+  );
+  @override
+  late final GeneratedColumn<String> riserModel = GeneratedColumn<String>(
+    'riser_model',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _riserPurchaseDateMeta = const VerificationMeta(
+    'riserPurchaseDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> riserPurchaseDate =
+      GeneratedColumn<DateTime>(
+        'riser_purchase_date',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _limbModelMeta = const VerificationMeta(
+    'limbModel',
+  );
+  @override
+  late final GeneratedColumn<String> limbModel = GeneratedColumn<String>(
+    'limb_model',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _limbPurchaseDateMeta = const VerificationMeta(
+    'limbPurchaseDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> limbPurchaseDate =
+      GeneratedColumn<DateTime>(
+        'limb_purchase_date',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _poundageMeta = const VerificationMeta(
+    'poundage',
+  );
+  @override
+  late final GeneratedColumn<double> poundage = GeneratedColumn<double>(
+    'poundage',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _tillerTopMeta = const VerificationMeta(
+    'tillerTop',
+  );
+  @override
+  late final GeneratedColumn<double> tillerTop = GeneratedColumn<double>(
+    'tiller_top',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _tillerBottomMeta = const VerificationMeta(
+    'tillerBottom',
+  );
+  @override
+  late final GeneratedColumn<double> tillerBottom = GeneratedColumn<double>(
+    'tiller_bottom',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _braceHeightMeta = const VerificationMeta(
+    'braceHeight',
+  );
+  @override
+  late final GeneratedColumn<double> braceHeight = GeneratedColumn<double>(
+    'brace_height',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nockingPointHeightMeta =
+      const VerificationMeta('nockingPointHeight');
+  @override
+  late final GeneratedColumn<double> nockingPointHeight =
+      GeneratedColumn<double>(
+        'nocking_point_height',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _buttonPositionMeta = const VerificationMeta(
+    'buttonPosition',
+  );
+  @override
+  late final GeneratedColumn<double> buttonPosition = GeneratedColumn<double>(
+    'button_position',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _buttonTensionMeta = const VerificationMeta(
+    'buttonTension',
+  );
+  @override
+  late final GeneratedColumn<String> buttonTension = GeneratedColumn<String>(
+    'button_tension',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _clickerPositionMeta = const VerificationMeta(
+    'clickerPosition',
+  );
+  @override
+  late final GeneratedColumn<double> clickerPosition = GeneratedColumn<double>(
+    'clicker_position',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -771,6 +905,18 @@ class $BowsTable extends Bows with TableInfo<$BowsTable, Bow> {
     createdAt,
     updatedAt,
     deletedAt,
+    riserModel,
+    riserPurchaseDate,
+    limbModel,
+    limbPurchaseDate,
+    poundage,
+    tillerTop,
+    tillerBottom,
+    braceHeight,
+    nockingPointHeight,
+    buttonPosition,
+    buttonTension,
+    clickerPosition,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -835,6 +981,102 @@ class $BowsTable extends Bows with TableInfo<$BowsTable, Bow> {
         deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
       );
     }
+    if (data.containsKey('riser_model')) {
+      context.handle(
+        _riserModelMeta,
+        riserModel.isAcceptableOrUnknown(data['riser_model']!, _riserModelMeta),
+      );
+    }
+    if (data.containsKey('riser_purchase_date')) {
+      context.handle(
+        _riserPurchaseDateMeta,
+        riserPurchaseDate.isAcceptableOrUnknown(
+          data['riser_purchase_date']!,
+          _riserPurchaseDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('limb_model')) {
+      context.handle(
+        _limbModelMeta,
+        limbModel.isAcceptableOrUnknown(data['limb_model']!, _limbModelMeta),
+      );
+    }
+    if (data.containsKey('limb_purchase_date')) {
+      context.handle(
+        _limbPurchaseDateMeta,
+        limbPurchaseDate.isAcceptableOrUnknown(
+          data['limb_purchase_date']!,
+          _limbPurchaseDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('poundage')) {
+      context.handle(
+        _poundageMeta,
+        poundage.isAcceptableOrUnknown(data['poundage']!, _poundageMeta),
+      );
+    }
+    if (data.containsKey('tiller_top')) {
+      context.handle(
+        _tillerTopMeta,
+        tillerTop.isAcceptableOrUnknown(data['tiller_top']!, _tillerTopMeta),
+      );
+    }
+    if (data.containsKey('tiller_bottom')) {
+      context.handle(
+        _tillerBottomMeta,
+        tillerBottom.isAcceptableOrUnknown(
+          data['tiller_bottom']!,
+          _tillerBottomMeta,
+        ),
+      );
+    }
+    if (data.containsKey('brace_height')) {
+      context.handle(
+        _braceHeightMeta,
+        braceHeight.isAcceptableOrUnknown(
+          data['brace_height']!,
+          _braceHeightMeta,
+        ),
+      );
+    }
+    if (data.containsKey('nocking_point_height')) {
+      context.handle(
+        _nockingPointHeightMeta,
+        nockingPointHeight.isAcceptableOrUnknown(
+          data['nocking_point_height']!,
+          _nockingPointHeightMeta,
+        ),
+      );
+    }
+    if (data.containsKey('button_position')) {
+      context.handle(
+        _buttonPositionMeta,
+        buttonPosition.isAcceptableOrUnknown(
+          data['button_position']!,
+          _buttonPositionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('button_tension')) {
+      context.handle(
+        _buttonTensionMeta,
+        buttonTension.isAcceptableOrUnknown(
+          data['button_tension']!,
+          _buttonTensionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('clicker_position')) {
+      context.handle(
+        _clickerPositionMeta,
+        clickerPosition.isAcceptableOrUnknown(
+          data['clicker_position']!,
+          _clickerPositionMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -876,6 +1118,54 @@ class $BowsTable extends Bows with TableInfo<$BowsTable, Bow> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
       ),
+      riserModel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}riser_model'],
+      ),
+      riserPurchaseDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}riser_purchase_date'],
+      ),
+      limbModel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}limb_model'],
+      ),
+      limbPurchaseDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}limb_purchase_date'],
+      ),
+      poundage: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}poundage'],
+      ),
+      tillerTop: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}tiller_top'],
+      ),
+      tillerBottom: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}tiller_bottom'],
+      ),
+      braceHeight: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}brace_height'],
+      ),
+      nockingPointHeight: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}nocking_point_height'],
+      ),
+      buttonPosition: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}button_position'],
+      ),
+      buttonTension: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}button_tension'],
+      ),
+      clickerPosition: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}clicker_position'],
+      ),
     );
   }
 
@@ -894,6 +1184,18 @@ class Bow extends DataClass implements Insertable<Bow> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
+  final String? riserModel;
+  final DateTime? riserPurchaseDate;
+  final String? limbModel;
+  final DateTime? limbPurchaseDate;
+  final double? poundage;
+  final double? tillerTop;
+  final double? tillerBottom;
+  final double? braceHeight;
+  final double? nockingPointHeight;
+  final double? buttonPosition;
+  final String? buttonTension;
+  final double? clickerPosition;
   const Bow({
     required this.id,
     required this.name,
@@ -903,6 +1205,18 @@ class Bow extends DataClass implements Insertable<Bow> {
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
+    this.riserModel,
+    this.riserPurchaseDate,
+    this.limbModel,
+    this.limbPurchaseDate,
+    this.poundage,
+    this.tillerTop,
+    this.tillerBottom,
+    this.braceHeight,
+    this.nockingPointHeight,
+    this.buttonPosition,
+    this.buttonTension,
+    this.clickerPosition,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -918,6 +1232,42 @@ class Bow extends DataClass implements Insertable<Bow> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    if (!nullToAbsent || riserModel != null) {
+      map['riser_model'] = Variable<String>(riserModel);
+    }
+    if (!nullToAbsent || riserPurchaseDate != null) {
+      map['riser_purchase_date'] = Variable<DateTime>(riserPurchaseDate);
+    }
+    if (!nullToAbsent || limbModel != null) {
+      map['limb_model'] = Variable<String>(limbModel);
+    }
+    if (!nullToAbsent || limbPurchaseDate != null) {
+      map['limb_purchase_date'] = Variable<DateTime>(limbPurchaseDate);
+    }
+    if (!nullToAbsent || poundage != null) {
+      map['poundage'] = Variable<double>(poundage);
+    }
+    if (!nullToAbsent || tillerTop != null) {
+      map['tiller_top'] = Variable<double>(tillerTop);
+    }
+    if (!nullToAbsent || tillerBottom != null) {
+      map['tiller_bottom'] = Variable<double>(tillerBottom);
+    }
+    if (!nullToAbsent || braceHeight != null) {
+      map['brace_height'] = Variable<double>(braceHeight);
+    }
+    if (!nullToAbsent || nockingPointHeight != null) {
+      map['nocking_point_height'] = Variable<double>(nockingPointHeight);
+    }
+    if (!nullToAbsent || buttonPosition != null) {
+      map['button_position'] = Variable<double>(buttonPosition);
+    }
+    if (!nullToAbsent || buttonTension != null) {
+      map['button_tension'] = Variable<String>(buttonTension);
+    }
+    if (!nullToAbsent || clickerPosition != null) {
+      map['clicker_position'] = Variable<double>(clickerPosition);
     }
     return map;
   }
@@ -936,6 +1286,42 @@ class Bow extends DataClass implements Insertable<Bow> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      riserModel: riserModel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(riserModel),
+      riserPurchaseDate: riserPurchaseDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(riserPurchaseDate),
+      limbModel: limbModel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(limbModel),
+      limbPurchaseDate: limbPurchaseDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(limbPurchaseDate),
+      poundage: poundage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(poundage),
+      tillerTop: tillerTop == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tillerTop),
+      tillerBottom: tillerBottom == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tillerBottom),
+      braceHeight: braceHeight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(braceHeight),
+      nockingPointHeight: nockingPointHeight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nockingPointHeight),
+      buttonPosition: buttonPosition == null && nullToAbsent
+          ? const Value.absent()
+          : Value(buttonPosition),
+      buttonTension: buttonTension == null && nullToAbsent
+          ? const Value.absent()
+          : Value(buttonTension),
+      clickerPosition: clickerPosition == null && nullToAbsent
+          ? const Value.absent()
+          : Value(clickerPosition),
     );
   }
 
@@ -953,6 +1339,24 @@ class Bow extends DataClass implements Insertable<Bow> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      riserModel: serializer.fromJson<String?>(json['riserModel']),
+      riserPurchaseDate: serializer.fromJson<DateTime?>(
+        json['riserPurchaseDate'],
+      ),
+      limbModel: serializer.fromJson<String?>(json['limbModel']),
+      limbPurchaseDate: serializer.fromJson<DateTime?>(
+        json['limbPurchaseDate'],
+      ),
+      poundage: serializer.fromJson<double?>(json['poundage']),
+      tillerTop: serializer.fromJson<double?>(json['tillerTop']),
+      tillerBottom: serializer.fromJson<double?>(json['tillerBottom']),
+      braceHeight: serializer.fromJson<double?>(json['braceHeight']),
+      nockingPointHeight: serializer.fromJson<double?>(
+        json['nockingPointHeight'],
+      ),
+      buttonPosition: serializer.fromJson<double?>(json['buttonPosition']),
+      buttonTension: serializer.fromJson<String?>(json['buttonTension']),
+      clickerPosition: serializer.fromJson<double?>(json['clickerPosition']),
     );
   }
   @override
@@ -967,6 +1371,18 @@ class Bow extends DataClass implements Insertable<Bow> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'riserModel': serializer.toJson<String?>(riserModel),
+      'riserPurchaseDate': serializer.toJson<DateTime?>(riserPurchaseDate),
+      'limbModel': serializer.toJson<String?>(limbModel),
+      'limbPurchaseDate': serializer.toJson<DateTime?>(limbPurchaseDate),
+      'poundage': serializer.toJson<double?>(poundage),
+      'tillerTop': serializer.toJson<double?>(tillerTop),
+      'tillerBottom': serializer.toJson<double?>(tillerBottom),
+      'braceHeight': serializer.toJson<double?>(braceHeight),
+      'nockingPointHeight': serializer.toJson<double?>(nockingPointHeight),
+      'buttonPosition': serializer.toJson<double?>(buttonPosition),
+      'buttonTension': serializer.toJson<String?>(buttonTension),
+      'clickerPosition': serializer.toJson<double?>(clickerPosition),
     };
   }
 
@@ -979,6 +1395,18 @@ class Bow extends DataClass implements Insertable<Bow> {
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
+    Value<String?> riserModel = const Value.absent(),
+    Value<DateTime?> riserPurchaseDate = const Value.absent(),
+    Value<String?> limbModel = const Value.absent(),
+    Value<DateTime?> limbPurchaseDate = const Value.absent(),
+    Value<double?> poundage = const Value.absent(),
+    Value<double?> tillerTop = const Value.absent(),
+    Value<double?> tillerBottom = const Value.absent(),
+    Value<double?> braceHeight = const Value.absent(),
+    Value<double?> nockingPointHeight = const Value.absent(),
+    Value<double?> buttonPosition = const Value.absent(),
+    Value<String?> buttonTension = const Value.absent(),
+    Value<double?> clickerPosition = const Value.absent(),
   }) => Bow(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -988,6 +1416,30 @@ class Bow extends DataClass implements Insertable<Bow> {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    riserModel: riserModel.present ? riserModel.value : this.riserModel,
+    riserPurchaseDate: riserPurchaseDate.present
+        ? riserPurchaseDate.value
+        : this.riserPurchaseDate,
+    limbModel: limbModel.present ? limbModel.value : this.limbModel,
+    limbPurchaseDate: limbPurchaseDate.present
+        ? limbPurchaseDate.value
+        : this.limbPurchaseDate,
+    poundage: poundage.present ? poundage.value : this.poundage,
+    tillerTop: tillerTop.present ? tillerTop.value : this.tillerTop,
+    tillerBottom: tillerBottom.present ? tillerBottom.value : this.tillerBottom,
+    braceHeight: braceHeight.present ? braceHeight.value : this.braceHeight,
+    nockingPointHeight: nockingPointHeight.present
+        ? nockingPointHeight.value
+        : this.nockingPointHeight,
+    buttonPosition: buttonPosition.present
+        ? buttonPosition.value
+        : this.buttonPosition,
+    buttonTension: buttonTension.present
+        ? buttonTension.value
+        : this.buttonTension,
+    clickerPosition: clickerPosition.present
+        ? clickerPosition.value
+        : this.clickerPosition,
   );
   Bow copyWithCompanion(BowsCompanion data) {
     return Bow(
@@ -999,6 +1451,36 @@ class Bow extends DataClass implements Insertable<Bow> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      riserModel: data.riserModel.present
+          ? data.riserModel.value
+          : this.riserModel,
+      riserPurchaseDate: data.riserPurchaseDate.present
+          ? data.riserPurchaseDate.value
+          : this.riserPurchaseDate,
+      limbModel: data.limbModel.present ? data.limbModel.value : this.limbModel,
+      limbPurchaseDate: data.limbPurchaseDate.present
+          ? data.limbPurchaseDate.value
+          : this.limbPurchaseDate,
+      poundage: data.poundage.present ? data.poundage.value : this.poundage,
+      tillerTop: data.tillerTop.present ? data.tillerTop.value : this.tillerTop,
+      tillerBottom: data.tillerBottom.present
+          ? data.tillerBottom.value
+          : this.tillerBottom,
+      braceHeight: data.braceHeight.present
+          ? data.braceHeight.value
+          : this.braceHeight,
+      nockingPointHeight: data.nockingPointHeight.present
+          ? data.nockingPointHeight.value
+          : this.nockingPointHeight,
+      buttonPosition: data.buttonPosition.present
+          ? data.buttonPosition.value
+          : this.buttonPosition,
+      buttonTension: data.buttonTension.present
+          ? data.buttonTension.value
+          : this.buttonTension,
+      clickerPosition: data.clickerPosition.present
+          ? data.clickerPosition.value
+          : this.clickerPosition,
     );
   }
 
@@ -1012,7 +1494,19 @@ class Bow extends DataClass implements Insertable<Bow> {
           ..write('isDefault: $isDefault, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('deletedAt: $deletedAt')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('riserModel: $riserModel, ')
+          ..write('riserPurchaseDate: $riserPurchaseDate, ')
+          ..write('limbModel: $limbModel, ')
+          ..write('limbPurchaseDate: $limbPurchaseDate, ')
+          ..write('poundage: $poundage, ')
+          ..write('tillerTop: $tillerTop, ')
+          ..write('tillerBottom: $tillerBottom, ')
+          ..write('braceHeight: $braceHeight, ')
+          ..write('nockingPointHeight: $nockingPointHeight, ')
+          ..write('buttonPosition: $buttonPosition, ')
+          ..write('buttonTension: $buttonTension, ')
+          ..write('clickerPosition: $clickerPosition')
           ..write(')'))
         .toString();
   }
@@ -1027,6 +1521,18 @@ class Bow extends DataClass implements Insertable<Bow> {
     createdAt,
     updatedAt,
     deletedAt,
+    riserModel,
+    riserPurchaseDate,
+    limbModel,
+    limbPurchaseDate,
+    poundage,
+    tillerTop,
+    tillerBottom,
+    braceHeight,
+    nockingPointHeight,
+    buttonPosition,
+    buttonTension,
+    clickerPosition,
   );
   @override
   bool operator ==(Object other) =>
@@ -1039,7 +1545,19 @@ class Bow extends DataClass implements Insertable<Bow> {
           other.isDefault == this.isDefault &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.deletedAt == this.deletedAt);
+          other.deletedAt == this.deletedAt &&
+          other.riserModel == this.riserModel &&
+          other.riserPurchaseDate == this.riserPurchaseDate &&
+          other.limbModel == this.limbModel &&
+          other.limbPurchaseDate == this.limbPurchaseDate &&
+          other.poundage == this.poundage &&
+          other.tillerTop == this.tillerTop &&
+          other.tillerBottom == this.tillerBottom &&
+          other.braceHeight == this.braceHeight &&
+          other.nockingPointHeight == this.nockingPointHeight &&
+          other.buttonPosition == this.buttonPosition &&
+          other.buttonTension == this.buttonTension &&
+          other.clickerPosition == this.clickerPosition);
 }
 
 class BowsCompanion extends UpdateCompanion<Bow> {
@@ -1051,6 +1569,18 @@ class BowsCompanion extends UpdateCompanion<Bow> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
+  final Value<String?> riserModel;
+  final Value<DateTime?> riserPurchaseDate;
+  final Value<String?> limbModel;
+  final Value<DateTime?> limbPurchaseDate;
+  final Value<double?> poundage;
+  final Value<double?> tillerTop;
+  final Value<double?> tillerBottom;
+  final Value<double?> braceHeight;
+  final Value<double?> nockingPointHeight;
+  final Value<double?> buttonPosition;
+  final Value<String?> buttonTension;
+  final Value<double?> clickerPosition;
   final Value<int> rowid;
   const BowsCompanion({
     this.id = const Value.absent(),
@@ -1061,6 +1591,18 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.riserModel = const Value.absent(),
+    this.riserPurchaseDate = const Value.absent(),
+    this.limbModel = const Value.absent(),
+    this.limbPurchaseDate = const Value.absent(),
+    this.poundage = const Value.absent(),
+    this.tillerTop = const Value.absent(),
+    this.tillerBottom = const Value.absent(),
+    this.braceHeight = const Value.absent(),
+    this.nockingPointHeight = const Value.absent(),
+    this.buttonPosition = const Value.absent(),
+    this.buttonTension = const Value.absent(),
+    this.clickerPosition = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   BowsCompanion.insert({
@@ -1072,6 +1614,18 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.riserModel = const Value.absent(),
+    this.riserPurchaseDate = const Value.absent(),
+    this.limbModel = const Value.absent(),
+    this.limbPurchaseDate = const Value.absent(),
+    this.poundage = const Value.absent(),
+    this.tillerTop = const Value.absent(),
+    this.tillerBottom = const Value.absent(),
+    this.braceHeight = const Value.absent(),
+    this.nockingPointHeight = const Value.absent(),
+    this.buttonPosition = const Value.absent(),
+    this.buttonTension = const Value.absent(),
+    this.clickerPosition = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -1085,6 +1639,18 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
+    Expression<String>? riserModel,
+    Expression<DateTime>? riserPurchaseDate,
+    Expression<String>? limbModel,
+    Expression<DateTime>? limbPurchaseDate,
+    Expression<double>? poundage,
+    Expression<double>? tillerTop,
+    Expression<double>? tillerBottom,
+    Expression<double>? braceHeight,
+    Expression<double>? nockingPointHeight,
+    Expression<double>? buttonPosition,
+    Expression<String>? buttonTension,
+    Expression<double>? clickerPosition,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1096,6 +1662,19 @@ class BowsCompanion extends UpdateCompanion<Bow> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (riserModel != null) 'riser_model': riserModel,
+      if (riserPurchaseDate != null) 'riser_purchase_date': riserPurchaseDate,
+      if (limbModel != null) 'limb_model': limbModel,
+      if (limbPurchaseDate != null) 'limb_purchase_date': limbPurchaseDate,
+      if (poundage != null) 'poundage': poundage,
+      if (tillerTop != null) 'tiller_top': tillerTop,
+      if (tillerBottom != null) 'tiller_bottom': tillerBottom,
+      if (braceHeight != null) 'brace_height': braceHeight,
+      if (nockingPointHeight != null)
+        'nocking_point_height': nockingPointHeight,
+      if (buttonPosition != null) 'button_position': buttonPosition,
+      if (buttonTension != null) 'button_tension': buttonTension,
+      if (clickerPosition != null) 'clicker_position': clickerPosition,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1109,6 +1688,18 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
+    Value<String?>? riserModel,
+    Value<DateTime?>? riserPurchaseDate,
+    Value<String?>? limbModel,
+    Value<DateTime?>? limbPurchaseDate,
+    Value<double?>? poundage,
+    Value<double?>? tillerTop,
+    Value<double?>? tillerBottom,
+    Value<double?>? braceHeight,
+    Value<double?>? nockingPointHeight,
+    Value<double?>? buttonPosition,
+    Value<String?>? buttonTension,
+    Value<double?>? clickerPosition,
     Value<int>? rowid,
   }) {
     return BowsCompanion(
@@ -1120,6 +1711,18 @@ class BowsCompanion extends UpdateCompanion<Bow> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      riserModel: riserModel ?? this.riserModel,
+      riserPurchaseDate: riserPurchaseDate ?? this.riserPurchaseDate,
+      limbModel: limbModel ?? this.limbModel,
+      limbPurchaseDate: limbPurchaseDate ?? this.limbPurchaseDate,
+      poundage: poundage ?? this.poundage,
+      tillerTop: tillerTop ?? this.tillerTop,
+      tillerBottom: tillerBottom ?? this.tillerBottom,
+      braceHeight: braceHeight ?? this.braceHeight,
+      nockingPointHeight: nockingPointHeight ?? this.nockingPointHeight,
+      buttonPosition: buttonPosition ?? this.buttonPosition,
+      buttonTension: buttonTension ?? this.buttonTension,
+      clickerPosition: clickerPosition ?? this.clickerPosition,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1151,6 +1754,42 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
     }
+    if (riserModel.present) {
+      map['riser_model'] = Variable<String>(riserModel.value);
+    }
+    if (riserPurchaseDate.present) {
+      map['riser_purchase_date'] = Variable<DateTime>(riserPurchaseDate.value);
+    }
+    if (limbModel.present) {
+      map['limb_model'] = Variable<String>(limbModel.value);
+    }
+    if (limbPurchaseDate.present) {
+      map['limb_purchase_date'] = Variable<DateTime>(limbPurchaseDate.value);
+    }
+    if (poundage.present) {
+      map['poundage'] = Variable<double>(poundage.value);
+    }
+    if (tillerTop.present) {
+      map['tiller_top'] = Variable<double>(tillerTop.value);
+    }
+    if (tillerBottom.present) {
+      map['tiller_bottom'] = Variable<double>(tillerBottom.value);
+    }
+    if (braceHeight.present) {
+      map['brace_height'] = Variable<double>(braceHeight.value);
+    }
+    if (nockingPointHeight.present) {
+      map['nocking_point_height'] = Variable<double>(nockingPointHeight.value);
+    }
+    if (buttonPosition.present) {
+      map['button_position'] = Variable<double>(buttonPosition.value);
+    }
+    if (buttonTension.present) {
+      map['button_tension'] = Variable<String>(buttonTension.value);
+    }
+    if (clickerPosition.present) {
+      map['clicker_position'] = Variable<double>(clickerPosition.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1168,6 +1807,18 @@ class BowsCompanion extends UpdateCompanion<Bow> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('riserModel: $riserModel, ')
+          ..write('riserPurchaseDate: $riserPurchaseDate, ')
+          ..write('limbModel: $limbModel, ')
+          ..write('limbPurchaseDate: $limbPurchaseDate, ')
+          ..write('poundage: $poundage, ')
+          ..write('tillerTop: $tillerTop, ')
+          ..write('tillerBottom: $tillerBottom, ')
+          ..write('braceHeight: $braceHeight, ')
+          ..write('nockingPointHeight: $nockingPointHeight, ')
+          ..write('buttonPosition: $buttonPosition, ')
+          ..write('buttonTension: $buttonTension, ')
+          ..write('clickerPosition: $clickerPosition, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3163,6 +3814,97 @@ class $ShaftsTable extends Shafts with TableInfo<$ShaftsTable, Shaft> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _totalWeightMeta = const VerificationMeta(
+    'totalWeight',
+  );
+  @override
+  late final GeneratedColumn<double> totalWeight = GeneratedColumn<double>(
+    'total_weight',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _pointTypeMeta = const VerificationMeta(
+    'pointType',
+  );
+  @override
+  late final GeneratedColumn<String> pointType = GeneratedColumn<String>(
+    'point_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nockBrandMeta = const VerificationMeta(
+    'nockBrand',
+  );
+  @override
+  late final GeneratedColumn<String> nockBrand = GeneratedColumn<String>(
+    'nock_brand',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _fletchingSizeMeta = const VerificationMeta(
+    'fletchingSize',
+  );
+  @override
+  late final GeneratedColumn<String> fletchingSize = GeneratedColumn<String>(
+    'fletching_size',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _fletchingAngleMeta = const VerificationMeta(
+    'fletchingAngle',
+  );
+  @override
+  late final GeneratedColumn<double> fletchingAngle = GeneratedColumn<double>(
+    'fletching_angle',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _hasWrapMeta = const VerificationMeta(
+    'hasWrap',
+  );
+  @override
+  late final GeneratedColumn<bool> hasWrap = GeneratedColumn<bool>(
+    'has_wrap',
+    aliasedName,
+    true,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("has_wrap" IN (0, 1))',
+    ),
+  );
+  static const VerificationMeta _wrapColorMeta = const VerificationMeta(
+    'wrapColor',
+  );
+  @override
+  late final GeneratedColumn<String> wrapColor = GeneratedColumn<String>(
+    'wrap_color',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _purchaseDateMeta = const VerificationMeta(
+    'purchaseDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> purchaseDate = GeneratedColumn<DateTime>(
+    'purchase_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3178,6 +3920,14 @@ class $ShaftsTable extends Shafts with TableInfo<$ShaftsTable, Shaft> {
     notes,
     createdAt,
     retiredAt,
+    totalWeight,
+    pointType,
+    nockBrand,
+    fletchingSize,
+    fletchingAngle,
+    hasWrap,
+    wrapColor,
+    purchaseDate,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3284,6 +4034,66 @@ class $ShaftsTable extends Shafts with TableInfo<$ShaftsTable, Shaft> {
         retiredAt.isAcceptableOrUnknown(data['retired_at']!, _retiredAtMeta),
       );
     }
+    if (data.containsKey('total_weight')) {
+      context.handle(
+        _totalWeightMeta,
+        totalWeight.isAcceptableOrUnknown(
+          data['total_weight']!,
+          _totalWeightMeta,
+        ),
+      );
+    }
+    if (data.containsKey('point_type')) {
+      context.handle(
+        _pointTypeMeta,
+        pointType.isAcceptableOrUnknown(data['point_type']!, _pointTypeMeta),
+      );
+    }
+    if (data.containsKey('nock_brand')) {
+      context.handle(
+        _nockBrandMeta,
+        nockBrand.isAcceptableOrUnknown(data['nock_brand']!, _nockBrandMeta),
+      );
+    }
+    if (data.containsKey('fletching_size')) {
+      context.handle(
+        _fletchingSizeMeta,
+        fletchingSize.isAcceptableOrUnknown(
+          data['fletching_size']!,
+          _fletchingSizeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('fletching_angle')) {
+      context.handle(
+        _fletchingAngleMeta,
+        fletchingAngle.isAcceptableOrUnknown(
+          data['fletching_angle']!,
+          _fletchingAngleMeta,
+        ),
+      );
+    }
+    if (data.containsKey('has_wrap')) {
+      context.handle(
+        _hasWrapMeta,
+        hasWrap.isAcceptableOrUnknown(data['has_wrap']!, _hasWrapMeta),
+      );
+    }
+    if (data.containsKey('wrap_color')) {
+      context.handle(
+        _wrapColorMeta,
+        wrapColor.isAcceptableOrUnknown(data['wrap_color']!, _wrapColorMeta),
+      );
+    }
+    if (data.containsKey('purchase_date')) {
+      context.handle(
+        _purchaseDateMeta,
+        purchaseDate.isAcceptableOrUnknown(
+          data['purchase_date']!,
+          _purchaseDateMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -3345,6 +4155,38 @@ class $ShaftsTable extends Shafts with TableInfo<$ShaftsTable, Shaft> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}retired_at'],
       ),
+      totalWeight: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}total_weight'],
+      ),
+      pointType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}point_type'],
+      ),
+      nockBrand: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nock_brand'],
+      ),
+      fletchingSize: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}fletching_size'],
+      ),
+      fletchingAngle: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}fletching_angle'],
+      ),
+      hasWrap: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}has_wrap'],
+      ),
+      wrapColor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}wrap_color'],
+      ),
+      purchaseDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}purchase_date'],
+      ),
     );
   }
 
@@ -3368,6 +4210,14 @@ class Shaft extends DataClass implements Insertable<Shaft> {
   final String? notes;
   final DateTime createdAt;
   final DateTime? retiredAt;
+  final double? totalWeight;
+  final String? pointType;
+  final String? nockBrand;
+  final String? fletchingSize;
+  final double? fletchingAngle;
+  final bool? hasWrap;
+  final String? wrapColor;
+  final DateTime? purchaseDate;
   const Shaft({
     required this.id,
     required this.quiverId,
@@ -3382,6 +4232,14 @@ class Shaft extends DataClass implements Insertable<Shaft> {
     this.notes,
     required this.createdAt,
     this.retiredAt,
+    this.totalWeight,
+    this.pointType,
+    this.nockBrand,
+    this.fletchingSize,
+    this.fletchingAngle,
+    this.hasWrap,
+    this.wrapColor,
+    this.purchaseDate,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3416,6 +4274,30 @@ class Shaft extends DataClass implements Insertable<Shaft> {
     map['created_at'] = Variable<DateTime>(createdAt);
     if (!nullToAbsent || retiredAt != null) {
       map['retired_at'] = Variable<DateTime>(retiredAt);
+    }
+    if (!nullToAbsent || totalWeight != null) {
+      map['total_weight'] = Variable<double>(totalWeight);
+    }
+    if (!nullToAbsent || pointType != null) {
+      map['point_type'] = Variable<String>(pointType);
+    }
+    if (!nullToAbsent || nockBrand != null) {
+      map['nock_brand'] = Variable<String>(nockBrand);
+    }
+    if (!nullToAbsent || fletchingSize != null) {
+      map['fletching_size'] = Variable<String>(fletchingSize);
+    }
+    if (!nullToAbsent || fletchingAngle != null) {
+      map['fletching_angle'] = Variable<double>(fletchingAngle);
+    }
+    if (!nullToAbsent || hasWrap != null) {
+      map['has_wrap'] = Variable<bool>(hasWrap);
+    }
+    if (!nullToAbsent || wrapColor != null) {
+      map['wrap_color'] = Variable<String>(wrapColor);
+    }
+    if (!nullToAbsent || purchaseDate != null) {
+      map['purchase_date'] = Variable<DateTime>(purchaseDate);
     }
     return map;
   }
@@ -3453,6 +4335,30 @@ class Shaft extends DataClass implements Insertable<Shaft> {
       retiredAt: retiredAt == null && nullToAbsent
           ? const Value.absent()
           : Value(retiredAt),
+      totalWeight: totalWeight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(totalWeight),
+      pointType: pointType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pointType),
+      nockBrand: nockBrand == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nockBrand),
+      fletchingSize: fletchingSize == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fletchingSize),
+      fletchingAngle: fletchingAngle == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fletchingAngle),
+      hasWrap: hasWrap == null && nullToAbsent
+          ? const Value.absent()
+          : Value(hasWrap),
+      wrapColor: wrapColor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(wrapColor),
+      purchaseDate: purchaseDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(purchaseDate),
     );
   }
 
@@ -3475,6 +4381,14 @@ class Shaft extends DataClass implements Insertable<Shaft> {
       notes: serializer.fromJson<String?>(json['notes']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       retiredAt: serializer.fromJson<DateTime?>(json['retiredAt']),
+      totalWeight: serializer.fromJson<double?>(json['totalWeight']),
+      pointType: serializer.fromJson<String?>(json['pointType']),
+      nockBrand: serializer.fromJson<String?>(json['nockBrand']),
+      fletchingSize: serializer.fromJson<String?>(json['fletchingSize']),
+      fletchingAngle: serializer.fromJson<double?>(json['fletchingAngle']),
+      hasWrap: serializer.fromJson<bool?>(json['hasWrap']),
+      wrapColor: serializer.fromJson<String?>(json['wrapColor']),
+      purchaseDate: serializer.fromJson<DateTime?>(json['purchaseDate']),
     );
   }
   @override
@@ -3494,6 +4408,14 @@ class Shaft extends DataClass implements Insertable<Shaft> {
       'notes': serializer.toJson<String?>(notes),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'retiredAt': serializer.toJson<DateTime?>(retiredAt),
+      'totalWeight': serializer.toJson<double?>(totalWeight),
+      'pointType': serializer.toJson<String?>(pointType),
+      'nockBrand': serializer.toJson<String?>(nockBrand),
+      'fletchingSize': serializer.toJson<String?>(fletchingSize),
+      'fletchingAngle': serializer.toJson<double?>(fletchingAngle),
+      'hasWrap': serializer.toJson<bool?>(hasWrap),
+      'wrapColor': serializer.toJson<String?>(wrapColor),
+      'purchaseDate': serializer.toJson<DateTime?>(purchaseDate),
     };
   }
 
@@ -3511,6 +4433,14 @@ class Shaft extends DataClass implements Insertable<Shaft> {
     Value<String?> notes = const Value.absent(),
     DateTime? createdAt,
     Value<DateTime?> retiredAt = const Value.absent(),
+    Value<double?> totalWeight = const Value.absent(),
+    Value<String?> pointType = const Value.absent(),
+    Value<String?> nockBrand = const Value.absent(),
+    Value<String?> fletchingSize = const Value.absent(),
+    Value<double?> fletchingAngle = const Value.absent(),
+    Value<bool?> hasWrap = const Value.absent(),
+    Value<String?> wrapColor = const Value.absent(),
+    Value<DateTime?> purchaseDate = const Value.absent(),
   }) => Shaft(
     id: id ?? this.id,
     quiverId: quiverId ?? this.quiverId,
@@ -3529,6 +4459,18 @@ class Shaft extends DataClass implements Insertable<Shaft> {
     notes: notes.present ? notes.value : this.notes,
     createdAt: createdAt ?? this.createdAt,
     retiredAt: retiredAt.present ? retiredAt.value : this.retiredAt,
+    totalWeight: totalWeight.present ? totalWeight.value : this.totalWeight,
+    pointType: pointType.present ? pointType.value : this.pointType,
+    nockBrand: nockBrand.present ? nockBrand.value : this.nockBrand,
+    fletchingSize: fletchingSize.present
+        ? fletchingSize.value
+        : this.fletchingSize,
+    fletchingAngle: fletchingAngle.present
+        ? fletchingAngle.value
+        : this.fletchingAngle,
+    hasWrap: hasWrap.present ? hasWrap.value : this.hasWrap,
+    wrapColor: wrapColor.present ? wrapColor.value : this.wrapColor,
+    purchaseDate: purchaseDate.present ? purchaseDate.value : this.purchaseDate,
   );
   Shaft copyWithCompanion(ShaftsCompanion data) {
     return Shaft(
@@ -3553,6 +4495,22 @@ class Shaft extends DataClass implements Insertable<Shaft> {
       notes: data.notes.present ? data.notes.value : this.notes,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       retiredAt: data.retiredAt.present ? data.retiredAt.value : this.retiredAt,
+      totalWeight: data.totalWeight.present
+          ? data.totalWeight.value
+          : this.totalWeight,
+      pointType: data.pointType.present ? data.pointType.value : this.pointType,
+      nockBrand: data.nockBrand.present ? data.nockBrand.value : this.nockBrand,
+      fletchingSize: data.fletchingSize.present
+          ? data.fletchingSize.value
+          : this.fletchingSize,
+      fletchingAngle: data.fletchingAngle.present
+          ? data.fletchingAngle.value
+          : this.fletchingAngle,
+      hasWrap: data.hasWrap.present ? data.hasWrap.value : this.hasWrap,
+      wrapColor: data.wrapColor.present ? data.wrapColor.value : this.wrapColor,
+      purchaseDate: data.purchaseDate.present
+          ? data.purchaseDate.value
+          : this.purchaseDate,
     );
   }
 
@@ -3571,13 +4529,21 @@ class Shaft extends DataClass implements Insertable<Shaft> {
           ..write('nockColor: $nockColor, ')
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
-          ..write('retiredAt: $retiredAt')
+          ..write('retiredAt: $retiredAt, ')
+          ..write('totalWeight: $totalWeight, ')
+          ..write('pointType: $pointType, ')
+          ..write('nockBrand: $nockBrand, ')
+          ..write('fletchingSize: $fletchingSize, ')
+          ..write('fletchingAngle: $fletchingAngle, ')
+          ..write('hasWrap: $hasWrap, ')
+          ..write('wrapColor: $wrapColor, ')
+          ..write('purchaseDate: $purchaseDate')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     quiverId,
     number,
@@ -3591,7 +4557,15 @@ class Shaft extends DataClass implements Insertable<Shaft> {
     notes,
     createdAt,
     retiredAt,
-  );
+    totalWeight,
+    pointType,
+    nockBrand,
+    fletchingSize,
+    fletchingAngle,
+    hasWrap,
+    wrapColor,
+    purchaseDate,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3608,7 +4582,15 @@ class Shaft extends DataClass implements Insertable<Shaft> {
           other.nockColor == this.nockColor &&
           other.notes == this.notes &&
           other.createdAt == this.createdAt &&
-          other.retiredAt == this.retiredAt);
+          other.retiredAt == this.retiredAt &&
+          other.totalWeight == this.totalWeight &&
+          other.pointType == this.pointType &&
+          other.nockBrand == this.nockBrand &&
+          other.fletchingSize == this.fletchingSize &&
+          other.fletchingAngle == this.fletchingAngle &&
+          other.hasWrap == this.hasWrap &&
+          other.wrapColor == this.wrapColor &&
+          other.purchaseDate == this.purchaseDate);
 }
 
 class ShaftsCompanion extends UpdateCompanion<Shaft> {
@@ -3625,6 +4607,14 @@ class ShaftsCompanion extends UpdateCompanion<Shaft> {
   final Value<String?> notes;
   final Value<DateTime> createdAt;
   final Value<DateTime?> retiredAt;
+  final Value<double?> totalWeight;
+  final Value<String?> pointType;
+  final Value<String?> nockBrand;
+  final Value<String?> fletchingSize;
+  final Value<double?> fletchingAngle;
+  final Value<bool?> hasWrap;
+  final Value<String?> wrapColor;
+  final Value<DateTime?> purchaseDate;
   final Value<int> rowid;
   const ShaftsCompanion({
     this.id = const Value.absent(),
@@ -3640,6 +4630,14 @@ class ShaftsCompanion extends UpdateCompanion<Shaft> {
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.retiredAt = const Value.absent(),
+    this.totalWeight = const Value.absent(),
+    this.pointType = const Value.absent(),
+    this.nockBrand = const Value.absent(),
+    this.fletchingSize = const Value.absent(),
+    this.fletchingAngle = const Value.absent(),
+    this.hasWrap = const Value.absent(),
+    this.wrapColor = const Value.absent(),
+    this.purchaseDate = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ShaftsCompanion.insert({
@@ -3656,6 +4654,14 @@ class ShaftsCompanion extends UpdateCompanion<Shaft> {
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.retiredAt = const Value.absent(),
+    this.totalWeight = const Value.absent(),
+    this.pointType = const Value.absent(),
+    this.nockBrand = const Value.absent(),
+    this.fletchingSize = const Value.absent(),
+    this.fletchingAngle = const Value.absent(),
+    this.hasWrap = const Value.absent(),
+    this.wrapColor = const Value.absent(),
+    this.purchaseDate = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        quiverId = Value(quiverId),
@@ -3674,6 +4680,14 @@ class ShaftsCompanion extends UpdateCompanion<Shaft> {
     Expression<String>? notes,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? retiredAt,
+    Expression<double>? totalWeight,
+    Expression<String>? pointType,
+    Expression<String>? nockBrand,
+    Expression<String>? fletchingSize,
+    Expression<double>? fletchingAngle,
+    Expression<bool>? hasWrap,
+    Expression<String>? wrapColor,
+    Expression<DateTime>? purchaseDate,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3690,6 +4704,14 @@ class ShaftsCompanion extends UpdateCompanion<Shaft> {
       if (notes != null) 'notes': notes,
       if (createdAt != null) 'created_at': createdAt,
       if (retiredAt != null) 'retired_at': retiredAt,
+      if (totalWeight != null) 'total_weight': totalWeight,
+      if (pointType != null) 'point_type': pointType,
+      if (nockBrand != null) 'nock_brand': nockBrand,
+      if (fletchingSize != null) 'fletching_size': fletchingSize,
+      if (fletchingAngle != null) 'fletching_angle': fletchingAngle,
+      if (hasWrap != null) 'has_wrap': hasWrap,
+      if (wrapColor != null) 'wrap_color': wrapColor,
+      if (purchaseDate != null) 'purchase_date': purchaseDate,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3708,6 +4730,14 @@ class ShaftsCompanion extends UpdateCompanion<Shaft> {
     Value<String?>? notes,
     Value<DateTime>? createdAt,
     Value<DateTime?>? retiredAt,
+    Value<double?>? totalWeight,
+    Value<String?>? pointType,
+    Value<String?>? nockBrand,
+    Value<String?>? fletchingSize,
+    Value<double?>? fletchingAngle,
+    Value<bool?>? hasWrap,
+    Value<String?>? wrapColor,
+    Value<DateTime?>? purchaseDate,
     Value<int>? rowid,
   }) {
     return ShaftsCompanion(
@@ -3724,6 +4754,14 @@ class ShaftsCompanion extends UpdateCompanion<Shaft> {
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       retiredAt: retiredAt ?? this.retiredAt,
+      totalWeight: totalWeight ?? this.totalWeight,
+      pointType: pointType ?? this.pointType,
+      nockBrand: nockBrand ?? this.nockBrand,
+      fletchingSize: fletchingSize ?? this.fletchingSize,
+      fletchingAngle: fletchingAngle ?? this.fletchingAngle,
+      hasWrap: hasWrap ?? this.hasWrap,
+      wrapColor: wrapColor ?? this.wrapColor,
+      purchaseDate: purchaseDate ?? this.purchaseDate,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3770,6 +4808,30 @@ class ShaftsCompanion extends UpdateCompanion<Shaft> {
     if (retiredAt.present) {
       map['retired_at'] = Variable<DateTime>(retiredAt.value);
     }
+    if (totalWeight.present) {
+      map['total_weight'] = Variable<double>(totalWeight.value);
+    }
+    if (pointType.present) {
+      map['point_type'] = Variable<String>(pointType.value);
+    }
+    if (nockBrand.present) {
+      map['nock_brand'] = Variable<String>(nockBrand.value);
+    }
+    if (fletchingSize.present) {
+      map['fletching_size'] = Variable<String>(fletchingSize.value);
+    }
+    if (fletchingAngle.present) {
+      map['fletching_angle'] = Variable<double>(fletchingAngle.value);
+    }
+    if (hasWrap.present) {
+      map['has_wrap'] = Variable<bool>(hasWrap.value);
+    }
+    if (wrapColor.present) {
+      map['wrap_color'] = Variable<String>(wrapColor.value);
+    }
+    if (purchaseDate.present) {
+      map['purchase_date'] = Variable<DateTime>(purchaseDate.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3792,6 +4854,14 @@ class ShaftsCompanion extends UpdateCompanion<Shaft> {
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
           ..write('retiredAt: $retiredAt, ')
+          ..write('totalWeight: $totalWeight, ')
+          ..write('pointType: $pointType, ')
+          ..write('nockBrand: $nockBrand, ')
+          ..write('fletchingSize: $fletchingSize, ')
+          ..write('fletchingAngle: $fletchingAngle, ')
+          ..write('hasWrap: $hasWrap, ')
+          ..write('wrapColor: $wrapColor, ')
+          ..write('purchaseDate: $purchaseDate, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3932,6 +5002,17 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
       'REFERENCES shafts (id)',
     ),
   );
+  static const VerificationMeta _nockRotationMeta = const VerificationMeta(
+    'nockRotation',
+  );
+  @override
+  late final GeneratedColumn<String> nockRotation = GeneratedColumn<String>(
+    'nock_rotation',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -3958,6 +5039,7 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
     sequence,
     shaftNumber,
     shaftId,
+    nockRotation,
     createdAt,
   ];
   @override
@@ -4050,6 +5132,15 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
         shaftId.isAcceptableOrUnknown(data['shaft_id']!, _shaftIdMeta),
       );
     }
+    if (data.containsKey('nock_rotation')) {
+      context.handle(
+        _nockRotationMeta,
+        nockRotation.isAcceptableOrUnknown(
+          data['nock_rotation']!,
+          _nockRotationMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -4113,6 +5204,10 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
         DriftSqlType.string,
         data['${effectivePrefix}shaft_id'],
       ),
+      nockRotation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nock_rotation'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -4139,6 +5234,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
   final int sequence;
   final int? shaftNumber;
   final String? shaftId;
+  final String? nockRotation;
   final DateTime createdAt;
   const Arrow({
     required this.id,
@@ -4153,6 +5249,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     required this.sequence,
     this.shaftNumber,
     this.shaftId,
+    this.nockRotation,
     required this.createdAt,
   });
   @override
@@ -4173,6 +5270,9 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     }
     if (!nullToAbsent || shaftId != null) {
       map['shaft_id'] = Variable<String>(shaftId);
+    }
+    if (!nullToAbsent || nockRotation != null) {
+      map['nock_rotation'] = Variable<String>(nockRotation);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
@@ -4196,6 +5296,9 @@ class Arrow extends DataClass implements Insertable<Arrow> {
       shaftId: shaftId == null && nullToAbsent
           ? const Value.absent()
           : Value(shaftId),
+      nockRotation: nockRotation == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nockRotation),
       createdAt: Value(createdAt),
     );
   }
@@ -4218,6 +5321,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
       sequence: serializer.fromJson<int>(json['sequence']),
       shaftNumber: serializer.fromJson<int?>(json['shaftNumber']),
       shaftId: serializer.fromJson<String?>(json['shaftId']),
+      nockRotation: serializer.fromJson<String?>(json['nockRotation']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -4237,6 +5341,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
       'sequence': serializer.toJson<int>(sequence),
       'shaftNumber': serializer.toJson<int?>(shaftNumber),
       'shaftId': serializer.toJson<String?>(shaftId),
+      'nockRotation': serializer.toJson<String?>(nockRotation),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -4254,6 +5359,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     int? sequence,
     Value<int?> shaftNumber = const Value.absent(),
     Value<String?> shaftId = const Value.absent(),
+    Value<String?> nockRotation = const Value.absent(),
     DateTime? createdAt,
   }) => Arrow(
     id: id ?? this.id,
@@ -4268,6 +5374,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     sequence: sequence ?? this.sequence,
     shaftNumber: shaftNumber.present ? shaftNumber.value : this.shaftNumber,
     shaftId: shaftId.present ? shaftId.value : this.shaftId,
+    nockRotation: nockRotation.present ? nockRotation.value : this.nockRotation,
     createdAt: createdAt ?? this.createdAt,
   );
   Arrow copyWithCompanion(ArrowsCompanion data) {
@@ -4286,6 +5393,9 @@ class Arrow extends DataClass implements Insertable<Arrow> {
           ? data.shaftNumber.value
           : this.shaftNumber,
       shaftId: data.shaftId.present ? data.shaftId.value : this.shaftId,
+      nockRotation: data.nockRotation.present
+          ? data.nockRotation.value
+          : this.nockRotation,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -4305,6 +5415,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
           ..write('sequence: $sequence, ')
           ..write('shaftNumber: $shaftNumber, ')
           ..write('shaftId: $shaftId, ')
+          ..write('nockRotation: $nockRotation, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -4324,6 +5435,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     sequence,
     shaftNumber,
     shaftId,
+    nockRotation,
     createdAt,
   );
   @override
@@ -4342,6 +5454,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
           other.sequence == this.sequence &&
           other.shaftNumber == this.shaftNumber &&
           other.shaftId == this.shaftId &&
+          other.nockRotation == this.nockRotation &&
           other.createdAt == this.createdAt);
 }
 
@@ -4358,6 +5471,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
   final Value<int> sequence;
   final Value<int?> shaftNumber;
   final Value<String?> shaftId;
+  final Value<String?> nockRotation;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const ArrowsCompanion({
@@ -4373,6 +5487,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     this.sequence = const Value.absent(),
     this.shaftNumber = const Value.absent(),
     this.shaftId = const Value.absent(),
+    this.nockRotation = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -4389,6 +5504,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     required int sequence,
     this.shaftNumber = const Value.absent(),
     this.shaftId = const Value.absent(),
+    this.nockRotation = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -4410,6 +5526,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     Expression<int>? sequence,
     Expression<int>? shaftNumber,
     Expression<String>? shaftId,
+    Expression<String>? nockRotation,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -4426,6 +5543,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
       if (sequence != null) 'sequence': sequence,
       if (shaftNumber != null) 'shaft_number': shaftNumber,
       if (shaftId != null) 'shaft_id': shaftId,
+      if (nockRotation != null) 'nock_rotation': nockRotation,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -4444,6 +5562,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     Value<int>? sequence,
     Value<int?>? shaftNumber,
     Value<String?>? shaftId,
+    Value<String?>? nockRotation,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -4460,6 +5579,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
       sequence: sequence ?? this.sequence,
       shaftNumber: shaftNumber ?? this.shaftNumber,
       shaftId: shaftId ?? this.shaftId,
+      nockRotation: nockRotation ?? this.nockRotation,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -4504,6 +5624,9 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     if (shaftId.present) {
       map['shaft_id'] = Variable<String>(shaftId.value);
     }
+    if (nockRotation.present) {
+      map['nock_rotation'] = Variable<String>(nockRotation.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -4528,6 +5651,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
           ..write('sequence: $sequence, ')
           ..write('shaftNumber: $shaftNumber, ')
           ..write('shaftId: $shaftId, ')
+          ..write('nockRotation: $nockRotation, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -5339,6 +6463,2084 @@ class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
     return (StringBuffer('UserPreferencesCompanion(')
           ..write('key: $key, ')
           ..write('value: $value, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $StabilizersTable extends Stabilizers
+    with TableInfo<$StabilizersTable, Stabilizer> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StabilizersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bowIdMeta = const VerificationMeta('bowId');
+  @override
+  late final GeneratedColumn<String> bowId = GeneratedColumn<String>(
+    'bow_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES bows (id)',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _longRodModelMeta = const VerificationMeta(
+    'longRodModel',
+  );
+  @override
+  late final GeneratedColumn<String> longRodModel = GeneratedColumn<String>(
+    'long_rod_model',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _longRodLengthMeta = const VerificationMeta(
+    'longRodLength',
+  );
+  @override
+  late final GeneratedColumn<double> longRodLength = GeneratedColumn<double>(
+    'long_rod_length',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _longRodWeightMeta = const VerificationMeta(
+    'longRodWeight',
+  );
+  @override
+  late final GeneratedColumn<double> longRodWeight = GeneratedColumn<double>(
+    'long_rod_weight',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _longRodPurchaseDateMeta =
+      const VerificationMeta('longRodPurchaseDate');
+  @override
+  late final GeneratedColumn<DateTime> longRodPurchaseDate =
+      GeneratedColumn<DateTime>(
+        'long_rod_purchase_date',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _sideRodModelMeta = const VerificationMeta(
+    'sideRodModel',
+  );
+  @override
+  late final GeneratedColumn<String> sideRodModel = GeneratedColumn<String>(
+    'side_rod_model',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sideRodLengthMeta = const VerificationMeta(
+    'sideRodLength',
+  );
+  @override
+  late final GeneratedColumn<double> sideRodLength = GeneratedColumn<double>(
+    'side_rod_length',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sideRodWeightMeta = const VerificationMeta(
+    'sideRodWeight',
+  );
+  @override
+  late final GeneratedColumn<double> sideRodWeight = GeneratedColumn<double>(
+    'side_rod_weight',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sideRodPurchaseDateMeta =
+      const VerificationMeta('sideRodPurchaseDate');
+  @override
+  late final GeneratedColumn<DateTime> sideRodPurchaseDate =
+      GeneratedColumn<DateTime>(
+        'side_rod_purchase_date',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _extenderLengthMeta = const VerificationMeta(
+    'extenderLength',
+  );
+  @override
+  late final GeneratedColumn<double> extenderLength = GeneratedColumn<double>(
+    'extender_length',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _vbarModelMeta = const VerificationMeta(
+    'vbarModel',
+  );
+  @override
+  late final GeneratedColumn<String> vbarModel = GeneratedColumn<String>(
+    'vbar_model',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _vbarAngleHorizontalMeta =
+      const VerificationMeta('vbarAngleHorizontal');
+  @override
+  late final GeneratedColumn<double> vbarAngleHorizontal =
+      GeneratedColumn<double>(
+        'vbar_angle_horizontal',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _vbarAngleVerticalMeta = const VerificationMeta(
+    'vbarAngleVertical',
+  );
+  @override
+  late final GeneratedColumn<double> vbarAngleVertical =
+      GeneratedColumn<double>(
+        'vbar_angle_vertical',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _weightArrangementMeta = const VerificationMeta(
+    'weightArrangement',
+  );
+  @override
+  late final GeneratedColumn<String> weightArrangement =
+      GeneratedColumn<String>(
+        'weight_arrangement',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _damperModelMeta = const VerificationMeta(
+    'damperModel',
+  );
+  @override
+  late final GeneratedColumn<String> damperModel = GeneratedColumn<String>(
+    'damper_model',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _damperPositionsMeta = const VerificationMeta(
+    'damperPositions',
+  );
+  @override
+  late final GeneratedColumn<String> damperPositions = GeneratedColumn<String>(
+    'damper_positions',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    bowId,
+    name,
+    longRodModel,
+    longRodLength,
+    longRodWeight,
+    longRodPurchaseDate,
+    sideRodModel,
+    sideRodLength,
+    sideRodWeight,
+    sideRodPurchaseDate,
+    extenderLength,
+    vbarModel,
+    vbarAngleHorizontal,
+    vbarAngleVertical,
+    weightArrangement,
+    damperModel,
+    damperPositions,
+    notes,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'stabilizers';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Stabilizer> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('bow_id')) {
+      context.handle(
+        _bowIdMeta,
+        bowId.isAcceptableOrUnknown(data['bow_id']!, _bowIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bowIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    }
+    if (data.containsKey('long_rod_model')) {
+      context.handle(
+        _longRodModelMeta,
+        longRodModel.isAcceptableOrUnknown(
+          data['long_rod_model']!,
+          _longRodModelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('long_rod_length')) {
+      context.handle(
+        _longRodLengthMeta,
+        longRodLength.isAcceptableOrUnknown(
+          data['long_rod_length']!,
+          _longRodLengthMeta,
+        ),
+      );
+    }
+    if (data.containsKey('long_rod_weight')) {
+      context.handle(
+        _longRodWeightMeta,
+        longRodWeight.isAcceptableOrUnknown(
+          data['long_rod_weight']!,
+          _longRodWeightMeta,
+        ),
+      );
+    }
+    if (data.containsKey('long_rod_purchase_date')) {
+      context.handle(
+        _longRodPurchaseDateMeta,
+        longRodPurchaseDate.isAcceptableOrUnknown(
+          data['long_rod_purchase_date']!,
+          _longRodPurchaseDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('side_rod_model')) {
+      context.handle(
+        _sideRodModelMeta,
+        sideRodModel.isAcceptableOrUnknown(
+          data['side_rod_model']!,
+          _sideRodModelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('side_rod_length')) {
+      context.handle(
+        _sideRodLengthMeta,
+        sideRodLength.isAcceptableOrUnknown(
+          data['side_rod_length']!,
+          _sideRodLengthMeta,
+        ),
+      );
+    }
+    if (data.containsKey('side_rod_weight')) {
+      context.handle(
+        _sideRodWeightMeta,
+        sideRodWeight.isAcceptableOrUnknown(
+          data['side_rod_weight']!,
+          _sideRodWeightMeta,
+        ),
+      );
+    }
+    if (data.containsKey('side_rod_purchase_date')) {
+      context.handle(
+        _sideRodPurchaseDateMeta,
+        sideRodPurchaseDate.isAcceptableOrUnknown(
+          data['side_rod_purchase_date']!,
+          _sideRodPurchaseDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('extender_length')) {
+      context.handle(
+        _extenderLengthMeta,
+        extenderLength.isAcceptableOrUnknown(
+          data['extender_length']!,
+          _extenderLengthMeta,
+        ),
+      );
+    }
+    if (data.containsKey('vbar_model')) {
+      context.handle(
+        _vbarModelMeta,
+        vbarModel.isAcceptableOrUnknown(data['vbar_model']!, _vbarModelMeta),
+      );
+    }
+    if (data.containsKey('vbar_angle_horizontal')) {
+      context.handle(
+        _vbarAngleHorizontalMeta,
+        vbarAngleHorizontal.isAcceptableOrUnknown(
+          data['vbar_angle_horizontal']!,
+          _vbarAngleHorizontalMeta,
+        ),
+      );
+    }
+    if (data.containsKey('vbar_angle_vertical')) {
+      context.handle(
+        _vbarAngleVerticalMeta,
+        vbarAngleVertical.isAcceptableOrUnknown(
+          data['vbar_angle_vertical']!,
+          _vbarAngleVerticalMeta,
+        ),
+      );
+    }
+    if (data.containsKey('weight_arrangement')) {
+      context.handle(
+        _weightArrangementMeta,
+        weightArrangement.isAcceptableOrUnknown(
+          data['weight_arrangement']!,
+          _weightArrangementMeta,
+        ),
+      );
+    }
+    if (data.containsKey('damper_model')) {
+      context.handle(
+        _damperModelMeta,
+        damperModel.isAcceptableOrUnknown(
+          data['damper_model']!,
+          _damperModelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('damper_positions')) {
+      context.handle(
+        _damperPositionsMeta,
+        damperPositions.isAcceptableOrUnknown(
+          data['damper_positions']!,
+          _damperPositionsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Stabilizer map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Stabilizer(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      bowId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bow_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      ),
+      longRodModel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}long_rod_model'],
+      ),
+      longRodLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}long_rod_length'],
+      ),
+      longRodWeight: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}long_rod_weight'],
+      ),
+      longRodPurchaseDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}long_rod_purchase_date'],
+      ),
+      sideRodModel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}side_rod_model'],
+      ),
+      sideRodLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}side_rod_length'],
+      ),
+      sideRodWeight: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}side_rod_weight'],
+      ),
+      sideRodPurchaseDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}side_rod_purchase_date'],
+      ),
+      extenderLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}extender_length'],
+      ),
+      vbarModel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}vbar_model'],
+      ),
+      vbarAngleHorizontal: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}vbar_angle_horizontal'],
+      ),
+      vbarAngleVertical: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}vbar_angle_vertical'],
+      ),
+      weightArrangement: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}weight_arrangement'],
+      ),
+      damperModel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}damper_model'],
+      ),
+      damperPositions: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}damper_positions'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $StabilizersTable createAlias(String alias) {
+    return $StabilizersTable(attachedDatabase, alias);
+  }
+}
+
+class Stabilizer extends DataClass implements Insertable<Stabilizer> {
+  final String id;
+  final String bowId;
+  final String? name;
+  final String? longRodModel;
+  final double? longRodLength;
+  final double? longRodWeight;
+  final DateTime? longRodPurchaseDate;
+  final String? sideRodModel;
+  final double? sideRodLength;
+  final double? sideRodWeight;
+  final DateTime? sideRodPurchaseDate;
+  final double? extenderLength;
+  final String? vbarModel;
+  final double? vbarAngleHorizontal;
+  final double? vbarAngleVertical;
+  final String? weightArrangement;
+  final String? damperModel;
+  final String? damperPositions;
+  final String? notes;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const Stabilizer({
+    required this.id,
+    required this.bowId,
+    this.name,
+    this.longRodModel,
+    this.longRodLength,
+    this.longRodWeight,
+    this.longRodPurchaseDate,
+    this.sideRodModel,
+    this.sideRodLength,
+    this.sideRodWeight,
+    this.sideRodPurchaseDate,
+    this.extenderLength,
+    this.vbarModel,
+    this.vbarAngleHorizontal,
+    this.vbarAngleVertical,
+    this.weightArrangement,
+    this.damperModel,
+    this.damperPositions,
+    this.notes,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['bow_id'] = Variable<String>(bowId);
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    if (!nullToAbsent || longRodModel != null) {
+      map['long_rod_model'] = Variable<String>(longRodModel);
+    }
+    if (!nullToAbsent || longRodLength != null) {
+      map['long_rod_length'] = Variable<double>(longRodLength);
+    }
+    if (!nullToAbsent || longRodWeight != null) {
+      map['long_rod_weight'] = Variable<double>(longRodWeight);
+    }
+    if (!nullToAbsent || longRodPurchaseDate != null) {
+      map['long_rod_purchase_date'] = Variable<DateTime>(longRodPurchaseDate);
+    }
+    if (!nullToAbsent || sideRodModel != null) {
+      map['side_rod_model'] = Variable<String>(sideRodModel);
+    }
+    if (!nullToAbsent || sideRodLength != null) {
+      map['side_rod_length'] = Variable<double>(sideRodLength);
+    }
+    if (!nullToAbsent || sideRodWeight != null) {
+      map['side_rod_weight'] = Variable<double>(sideRodWeight);
+    }
+    if (!nullToAbsent || sideRodPurchaseDate != null) {
+      map['side_rod_purchase_date'] = Variable<DateTime>(sideRodPurchaseDate);
+    }
+    if (!nullToAbsent || extenderLength != null) {
+      map['extender_length'] = Variable<double>(extenderLength);
+    }
+    if (!nullToAbsent || vbarModel != null) {
+      map['vbar_model'] = Variable<String>(vbarModel);
+    }
+    if (!nullToAbsent || vbarAngleHorizontal != null) {
+      map['vbar_angle_horizontal'] = Variable<double>(vbarAngleHorizontal);
+    }
+    if (!nullToAbsent || vbarAngleVertical != null) {
+      map['vbar_angle_vertical'] = Variable<double>(vbarAngleVertical);
+    }
+    if (!nullToAbsent || weightArrangement != null) {
+      map['weight_arrangement'] = Variable<String>(weightArrangement);
+    }
+    if (!nullToAbsent || damperModel != null) {
+      map['damper_model'] = Variable<String>(damperModel);
+    }
+    if (!nullToAbsent || damperPositions != null) {
+      map['damper_positions'] = Variable<String>(damperPositions);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  StabilizersCompanion toCompanion(bool nullToAbsent) {
+    return StabilizersCompanion(
+      id: Value(id),
+      bowId: Value(bowId),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      longRodModel: longRodModel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(longRodModel),
+      longRodLength: longRodLength == null && nullToAbsent
+          ? const Value.absent()
+          : Value(longRodLength),
+      longRodWeight: longRodWeight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(longRodWeight),
+      longRodPurchaseDate: longRodPurchaseDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(longRodPurchaseDate),
+      sideRodModel: sideRodModel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sideRodModel),
+      sideRodLength: sideRodLength == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sideRodLength),
+      sideRodWeight: sideRodWeight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sideRodWeight),
+      sideRodPurchaseDate: sideRodPurchaseDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sideRodPurchaseDate),
+      extenderLength: extenderLength == null && nullToAbsent
+          ? const Value.absent()
+          : Value(extenderLength),
+      vbarModel: vbarModel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(vbarModel),
+      vbarAngleHorizontal: vbarAngleHorizontal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(vbarAngleHorizontal),
+      vbarAngleVertical: vbarAngleVertical == null && nullToAbsent
+          ? const Value.absent()
+          : Value(vbarAngleVertical),
+      weightArrangement: weightArrangement == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weightArrangement),
+      damperModel: damperModel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(damperModel),
+      damperPositions: damperPositions == null && nullToAbsent
+          ? const Value.absent()
+          : Value(damperPositions),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory Stabilizer.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Stabilizer(
+      id: serializer.fromJson<String>(json['id']),
+      bowId: serializer.fromJson<String>(json['bowId']),
+      name: serializer.fromJson<String?>(json['name']),
+      longRodModel: serializer.fromJson<String?>(json['longRodModel']),
+      longRodLength: serializer.fromJson<double?>(json['longRodLength']),
+      longRodWeight: serializer.fromJson<double?>(json['longRodWeight']),
+      longRodPurchaseDate: serializer.fromJson<DateTime?>(
+        json['longRodPurchaseDate'],
+      ),
+      sideRodModel: serializer.fromJson<String?>(json['sideRodModel']),
+      sideRodLength: serializer.fromJson<double?>(json['sideRodLength']),
+      sideRodWeight: serializer.fromJson<double?>(json['sideRodWeight']),
+      sideRodPurchaseDate: serializer.fromJson<DateTime?>(
+        json['sideRodPurchaseDate'],
+      ),
+      extenderLength: serializer.fromJson<double?>(json['extenderLength']),
+      vbarModel: serializer.fromJson<String?>(json['vbarModel']),
+      vbarAngleHorizontal: serializer.fromJson<double?>(
+        json['vbarAngleHorizontal'],
+      ),
+      vbarAngleVertical: serializer.fromJson<double?>(
+        json['vbarAngleVertical'],
+      ),
+      weightArrangement: serializer.fromJson<String?>(
+        json['weightArrangement'],
+      ),
+      damperModel: serializer.fromJson<String?>(json['damperModel']),
+      damperPositions: serializer.fromJson<String?>(json['damperPositions']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'bowId': serializer.toJson<String>(bowId),
+      'name': serializer.toJson<String?>(name),
+      'longRodModel': serializer.toJson<String?>(longRodModel),
+      'longRodLength': serializer.toJson<double?>(longRodLength),
+      'longRodWeight': serializer.toJson<double?>(longRodWeight),
+      'longRodPurchaseDate': serializer.toJson<DateTime?>(longRodPurchaseDate),
+      'sideRodModel': serializer.toJson<String?>(sideRodModel),
+      'sideRodLength': serializer.toJson<double?>(sideRodLength),
+      'sideRodWeight': serializer.toJson<double?>(sideRodWeight),
+      'sideRodPurchaseDate': serializer.toJson<DateTime?>(sideRodPurchaseDate),
+      'extenderLength': serializer.toJson<double?>(extenderLength),
+      'vbarModel': serializer.toJson<String?>(vbarModel),
+      'vbarAngleHorizontal': serializer.toJson<double?>(vbarAngleHorizontal),
+      'vbarAngleVertical': serializer.toJson<double?>(vbarAngleVertical),
+      'weightArrangement': serializer.toJson<String?>(weightArrangement),
+      'damperModel': serializer.toJson<String?>(damperModel),
+      'damperPositions': serializer.toJson<String?>(damperPositions),
+      'notes': serializer.toJson<String?>(notes),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  Stabilizer copyWith({
+    String? id,
+    String? bowId,
+    Value<String?> name = const Value.absent(),
+    Value<String?> longRodModel = const Value.absent(),
+    Value<double?> longRodLength = const Value.absent(),
+    Value<double?> longRodWeight = const Value.absent(),
+    Value<DateTime?> longRodPurchaseDate = const Value.absent(),
+    Value<String?> sideRodModel = const Value.absent(),
+    Value<double?> sideRodLength = const Value.absent(),
+    Value<double?> sideRodWeight = const Value.absent(),
+    Value<DateTime?> sideRodPurchaseDate = const Value.absent(),
+    Value<double?> extenderLength = const Value.absent(),
+    Value<String?> vbarModel = const Value.absent(),
+    Value<double?> vbarAngleHorizontal = const Value.absent(),
+    Value<double?> vbarAngleVertical = const Value.absent(),
+    Value<String?> weightArrangement = const Value.absent(),
+    Value<String?> damperModel = const Value.absent(),
+    Value<String?> damperPositions = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => Stabilizer(
+    id: id ?? this.id,
+    bowId: bowId ?? this.bowId,
+    name: name.present ? name.value : this.name,
+    longRodModel: longRodModel.present ? longRodModel.value : this.longRodModel,
+    longRodLength: longRodLength.present
+        ? longRodLength.value
+        : this.longRodLength,
+    longRodWeight: longRodWeight.present
+        ? longRodWeight.value
+        : this.longRodWeight,
+    longRodPurchaseDate: longRodPurchaseDate.present
+        ? longRodPurchaseDate.value
+        : this.longRodPurchaseDate,
+    sideRodModel: sideRodModel.present ? sideRodModel.value : this.sideRodModel,
+    sideRodLength: sideRodLength.present
+        ? sideRodLength.value
+        : this.sideRodLength,
+    sideRodWeight: sideRodWeight.present
+        ? sideRodWeight.value
+        : this.sideRodWeight,
+    sideRodPurchaseDate: sideRodPurchaseDate.present
+        ? sideRodPurchaseDate.value
+        : this.sideRodPurchaseDate,
+    extenderLength: extenderLength.present
+        ? extenderLength.value
+        : this.extenderLength,
+    vbarModel: vbarModel.present ? vbarModel.value : this.vbarModel,
+    vbarAngleHorizontal: vbarAngleHorizontal.present
+        ? vbarAngleHorizontal.value
+        : this.vbarAngleHorizontal,
+    vbarAngleVertical: vbarAngleVertical.present
+        ? vbarAngleVertical.value
+        : this.vbarAngleVertical,
+    weightArrangement: weightArrangement.present
+        ? weightArrangement.value
+        : this.weightArrangement,
+    damperModel: damperModel.present ? damperModel.value : this.damperModel,
+    damperPositions: damperPositions.present
+        ? damperPositions.value
+        : this.damperPositions,
+    notes: notes.present ? notes.value : this.notes,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  Stabilizer copyWithCompanion(StabilizersCompanion data) {
+    return Stabilizer(
+      id: data.id.present ? data.id.value : this.id,
+      bowId: data.bowId.present ? data.bowId.value : this.bowId,
+      name: data.name.present ? data.name.value : this.name,
+      longRodModel: data.longRodModel.present
+          ? data.longRodModel.value
+          : this.longRodModel,
+      longRodLength: data.longRodLength.present
+          ? data.longRodLength.value
+          : this.longRodLength,
+      longRodWeight: data.longRodWeight.present
+          ? data.longRodWeight.value
+          : this.longRodWeight,
+      longRodPurchaseDate: data.longRodPurchaseDate.present
+          ? data.longRodPurchaseDate.value
+          : this.longRodPurchaseDate,
+      sideRodModel: data.sideRodModel.present
+          ? data.sideRodModel.value
+          : this.sideRodModel,
+      sideRodLength: data.sideRodLength.present
+          ? data.sideRodLength.value
+          : this.sideRodLength,
+      sideRodWeight: data.sideRodWeight.present
+          ? data.sideRodWeight.value
+          : this.sideRodWeight,
+      sideRodPurchaseDate: data.sideRodPurchaseDate.present
+          ? data.sideRodPurchaseDate.value
+          : this.sideRodPurchaseDate,
+      extenderLength: data.extenderLength.present
+          ? data.extenderLength.value
+          : this.extenderLength,
+      vbarModel: data.vbarModel.present ? data.vbarModel.value : this.vbarModel,
+      vbarAngleHorizontal: data.vbarAngleHorizontal.present
+          ? data.vbarAngleHorizontal.value
+          : this.vbarAngleHorizontal,
+      vbarAngleVertical: data.vbarAngleVertical.present
+          ? data.vbarAngleVertical.value
+          : this.vbarAngleVertical,
+      weightArrangement: data.weightArrangement.present
+          ? data.weightArrangement.value
+          : this.weightArrangement,
+      damperModel: data.damperModel.present
+          ? data.damperModel.value
+          : this.damperModel,
+      damperPositions: data.damperPositions.present
+          ? data.damperPositions.value
+          : this.damperPositions,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Stabilizer(')
+          ..write('id: $id, ')
+          ..write('bowId: $bowId, ')
+          ..write('name: $name, ')
+          ..write('longRodModel: $longRodModel, ')
+          ..write('longRodLength: $longRodLength, ')
+          ..write('longRodWeight: $longRodWeight, ')
+          ..write('longRodPurchaseDate: $longRodPurchaseDate, ')
+          ..write('sideRodModel: $sideRodModel, ')
+          ..write('sideRodLength: $sideRodLength, ')
+          ..write('sideRodWeight: $sideRodWeight, ')
+          ..write('sideRodPurchaseDate: $sideRodPurchaseDate, ')
+          ..write('extenderLength: $extenderLength, ')
+          ..write('vbarModel: $vbarModel, ')
+          ..write('vbarAngleHorizontal: $vbarAngleHorizontal, ')
+          ..write('vbarAngleVertical: $vbarAngleVertical, ')
+          ..write('weightArrangement: $weightArrangement, ')
+          ..write('damperModel: $damperModel, ')
+          ..write('damperPositions: $damperPositions, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+    id,
+    bowId,
+    name,
+    longRodModel,
+    longRodLength,
+    longRodWeight,
+    longRodPurchaseDate,
+    sideRodModel,
+    sideRodLength,
+    sideRodWeight,
+    sideRodPurchaseDate,
+    extenderLength,
+    vbarModel,
+    vbarAngleHorizontal,
+    vbarAngleVertical,
+    weightArrangement,
+    damperModel,
+    damperPositions,
+    notes,
+    createdAt,
+    updatedAt,
+  ]);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Stabilizer &&
+          other.id == this.id &&
+          other.bowId == this.bowId &&
+          other.name == this.name &&
+          other.longRodModel == this.longRodModel &&
+          other.longRodLength == this.longRodLength &&
+          other.longRodWeight == this.longRodWeight &&
+          other.longRodPurchaseDate == this.longRodPurchaseDate &&
+          other.sideRodModel == this.sideRodModel &&
+          other.sideRodLength == this.sideRodLength &&
+          other.sideRodWeight == this.sideRodWeight &&
+          other.sideRodPurchaseDate == this.sideRodPurchaseDate &&
+          other.extenderLength == this.extenderLength &&
+          other.vbarModel == this.vbarModel &&
+          other.vbarAngleHorizontal == this.vbarAngleHorizontal &&
+          other.vbarAngleVertical == this.vbarAngleVertical &&
+          other.weightArrangement == this.weightArrangement &&
+          other.damperModel == this.damperModel &&
+          other.damperPositions == this.damperPositions &&
+          other.notes == this.notes &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
+  final Value<String> id;
+  final Value<String> bowId;
+  final Value<String?> name;
+  final Value<String?> longRodModel;
+  final Value<double?> longRodLength;
+  final Value<double?> longRodWeight;
+  final Value<DateTime?> longRodPurchaseDate;
+  final Value<String?> sideRodModel;
+  final Value<double?> sideRodLength;
+  final Value<double?> sideRodWeight;
+  final Value<DateTime?> sideRodPurchaseDate;
+  final Value<double?> extenderLength;
+  final Value<String?> vbarModel;
+  final Value<double?> vbarAngleHorizontal;
+  final Value<double?> vbarAngleVertical;
+  final Value<String?> weightArrangement;
+  final Value<String?> damperModel;
+  final Value<String?> damperPositions;
+  final Value<String?> notes;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const StabilizersCompanion({
+    this.id = const Value.absent(),
+    this.bowId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.longRodModel = const Value.absent(),
+    this.longRodLength = const Value.absent(),
+    this.longRodWeight = const Value.absent(),
+    this.longRodPurchaseDate = const Value.absent(),
+    this.sideRodModel = const Value.absent(),
+    this.sideRodLength = const Value.absent(),
+    this.sideRodWeight = const Value.absent(),
+    this.sideRodPurchaseDate = const Value.absent(),
+    this.extenderLength = const Value.absent(),
+    this.vbarModel = const Value.absent(),
+    this.vbarAngleHorizontal = const Value.absent(),
+    this.vbarAngleVertical = const Value.absent(),
+    this.weightArrangement = const Value.absent(),
+    this.damperModel = const Value.absent(),
+    this.damperPositions = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StabilizersCompanion.insert({
+    required String id,
+    required String bowId,
+    this.name = const Value.absent(),
+    this.longRodModel = const Value.absent(),
+    this.longRodLength = const Value.absent(),
+    this.longRodWeight = const Value.absent(),
+    this.longRodPurchaseDate = const Value.absent(),
+    this.sideRodModel = const Value.absent(),
+    this.sideRodLength = const Value.absent(),
+    this.sideRodWeight = const Value.absent(),
+    this.sideRodPurchaseDate = const Value.absent(),
+    this.extenderLength = const Value.absent(),
+    this.vbarModel = const Value.absent(),
+    this.vbarAngleHorizontal = const Value.absent(),
+    this.vbarAngleVertical = const Value.absent(),
+    this.weightArrangement = const Value.absent(),
+    this.damperModel = const Value.absent(),
+    this.damperPositions = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       bowId = Value(bowId);
+  static Insertable<Stabilizer> custom({
+    Expression<String>? id,
+    Expression<String>? bowId,
+    Expression<String>? name,
+    Expression<String>? longRodModel,
+    Expression<double>? longRodLength,
+    Expression<double>? longRodWeight,
+    Expression<DateTime>? longRodPurchaseDate,
+    Expression<String>? sideRodModel,
+    Expression<double>? sideRodLength,
+    Expression<double>? sideRodWeight,
+    Expression<DateTime>? sideRodPurchaseDate,
+    Expression<double>? extenderLength,
+    Expression<String>? vbarModel,
+    Expression<double>? vbarAngleHorizontal,
+    Expression<double>? vbarAngleVertical,
+    Expression<String>? weightArrangement,
+    Expression<String>? damperModel,
+    Expression<String>? damperPositions,
+    Expression<String>? notes,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (bowId != null) 'bow_id': bowId,
+      if (name != null) 'name': name,
+      if (longRodModel != null) 'long_rod_model': longRodModel,
+      if (longRodLength != null) 'long_rod_length': longRodLength,
+      if (longRodWeight != null) 'long_rod_weight': longRodWeight,
+      if (longRodPurchaseDate != null)
+        'long_rod_purchase_date': longRodPurchaseDate,
+      if (sideRodModel != null) 'side_rod_model': sideRodModel,
+      if (sideRodLength != null) 'side_rod_length': sideRodLength,
+      if (sideRodWeight != null) 'side_rod_weight': sideRodWeight,
+      if (sideRodPurchaseDate != null)
+        'side_rod_purchase_date': sideRodPurchaseDate,
+      if (extenderLength != null) 'extender_length': extenderLength,
+      if (vbarModel != null) 'vbar_model': vbarModel,
+      if (vbarAngleHorizontal != null)
+        'vbar_angle_horizontal': vbarAngleHorizontal,
+      if (vbarAngleVertical != null) 'vbar_angle_vertical': vbarAngleVertical,
+      if (weightArrangement != null) 'weight_arrangement': weightArrangement,
+      if (damperModel != null) 'damper_model': damperModel,
+      if (damperPositions != null) 'damper_positions': damperPositions,
+      if (notes != null) 'notes': notes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StabilizersCompanion copyWith({
+    Value<String>? id,
+    Value<String>? bowId,
+    Value<String?>? name,
+    Value<String?>? longRodModel,
+    Value<double?>? longRodLength,
+    Value<double?>? longRodWeight,
+    Value<DateTime?>? longRodPurchaseDate,
+    Value<String?>? sideRodModel,
+    Value<double?>? sideRodLength,
+    Value<double?>? sideRodWeight,
+    Value<DateTime?>? sideRodPurchaseDate,
+    Value<double?>? extenderLength,
+    Value<String?>? vbarModel,
+    Value<double?>? vbarAngleHorizontal,
+    Value<double?>? vbarAngleVertical,
+    Value<String?>? weightArrangement,
+    Value<String?>? damperModel,
+    Value<String?>? damperPositions,
+    Value<String?>? notes,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return StabilizersCompanion(
+      id: id ?? this.id,
+      bowId: bowId ?? this.bowId,
+      name: name ?? this.name,
+      longRodModel: longRodModel ?? this.longRodModel,
+      longRodLength: longRodLength ?? this.longRodLength,
+      longRodWeight: longRodWeight ?? this.longRodWeight,
+      longRodPurchaseDate: longRodPurchaseDate ?? this.longRodPurchaseDate,
+      sideRodModel: sideRodModel ?? this.sideRodModel,
+      sideRodLength: sideRodLength ?? this.sideRodLength,
+      sideRodWeight: sideRodWeight ?? this.sideRodWeight,
+      sideRodPurchaseDate: sideRodPurchaseDate ?? this.sideRodPurchaseDate,
+      extenderLength: extenderLength ?? this.extenderLength,
+      vbarModel: vbarModel ?? this.vbarModel,
+      vbarAngleHorizontal: vbarAngleHorizontal ?? this.vbarAngleHorizontal,
+      vbarAngleVertical: vbarAngleVertical ?? this.vbarAngleVertical,
+      weightArrangement: weightArrangement ?? this.weightArrangement,
+      damperModel: damperModel ?? this.damperModel,
+      damperPositions: damperPositions ?? this.damperPositions,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (bowId.present) {
+      map['bow_id'] = Variable<String>(bowId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (longRodModel.present) {
+      map['long_rod_model'] = Variable<String>(longRodModel.value);
+    }
+    if (longRodLength.present) {
+      map['long_rod_length'] = Variable<double>(longRodLength.value);
+    }
+    if (longRodWeight.present) {
+      map['long_rod_weight'] = Variable<double>(longRodWeight.value);
+    }
+    if (longRodPurchaseDate.present) {
+      map['long_rod_purchase_date'] = Variable<DateTime>(
+        longRodPurchaseDate.value,
+      );
+    }
+    if (sideRodModel.present) {
+      map['side_rod_model'] = Variable<String>(sideRodModel.value);
+    }
+    if (sideRodLength.present) {
+      map['side_rod_length'] = Variable<double>(sideRodLength.value);
+    }
+    if (sideRodWeight.present) {
+      map['side_rod_weight'] = Variable<double>(sideRodWeight.value);
+    }
+    if (sideRodPurchaseDate.present) {
+      map['side_rod_purchase_date'] = Variable<DateTime>(
+        sideRodPurchaseDate.value,
+      );
+    }
+    if (extenderLength.present) {
+      map['extender_length'] = Variable<double>(extenderLength.value);
+    }
+    if (vbarModel.present) {
+      map['vbar_model'] = Variable<String>(vbarModel.value);
+    }
+    if (vbarAngleHorizontal.present) {
+      map['vbar_angle_horizontal'] = Variable<double>(
+        vbarAngleHorizontal.value,
+      );
+    }
+    if (vbarAngleVertical.present) {
+      map['vbar_angle_vertical'] = Variable<double>(vbarAngleVertical.value);
+    }
+    if (weightArrangement.present) {
+      map['weight_arrangement'] = Variable<String>(weightArrangement.value);
+    }
+    if (damperModel.present) {
+      map['damper_model'] = Variable<String>(damperModel.value);
+    }
+    if (damperPositions.present) {
+      map['damper_positions'] = Variable<String>(damperPositions.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StabilizersCompanion(')
+          ..write('id: $id, ')
+          ..write('bowId: $bowId, ')
+          ..write('name: $name, ')
+          ..write('longRodModel: $longRodModel, ')
+          ..write('longRodLength: $longRodLength, ')
+          ..write('longRodWeight: $longRodWeight, ')
+          ..write('longRodPurchaseDate: $longRodPurchaseDate, ')
+          ..write('sideRodModel: $sideRodModel, ')
+          ..write('sideRodLength: $sideRodLength, ')
+          ..write('sideRodWeight: $sideRodWeight, ')
+          ..write('sideRodPurchaseDate: $sideRodPurchaseDate, ')
+          ..write('extenderLength: $extenderLength, ')
+          ..write('vbarModel: $vbarModel, ')
+          ..write('vbarAngleHorizontal: $vbarAngleHorizontal, ')
+          ..write('vbarAngleVertical: $vbarAngleVertical, ')
+          ..write('weightArrangement: $weightArrangement, ')
+          ..write('damperModel: $damperModel, ')
+          ..write('damperPositions: $damperPositions, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $BowStringsTable extends BowStrings
+    with TableInfo<$BowStringsTable, BowString> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BowStringsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bowIdMeta = const VerificationMeta('bowId');
+  @override
+  late final GeneratedColumn<String> bowId = GeneratedColumn<String>(
+    'bow_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES bows (id)',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _materialMeta = const VerificationMeta(
+    'material',
+  );
+  @override
+  late final GeneratedColumn<String> material = GeneratedColumn<String>(
+    'material',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _strandCountMeta = const VerificationMeta(
+    'strandCount',
+  );
+  @override
+  late final GeneratedColumn<int> strandCount = GeneratedColumn<int>(
+    'strand_count',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _servingMaterialMeta = const VerificationMeta(
+    'servingMaterial',
+  );
+  @override
+  late final GeneratedColumn<String> servingMaterial = GeneratedColumn<String>(
+    'serving_material',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _stringLengthMeta = const VerificationMeta(
+    'stringLength',
+  );
+  @override
+  late final GeneratedColumn<double> stringLength = GeneratedColumn<double>(
+    'string_length',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+    'color',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isActiveMeta = const VerificationMeta(
+    'isActive',
+  );
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+    'is_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _purchaseDateMeta = const VerificationMeta(
+    'purchaseDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> purchaseDate = GeneratedColumn<DateTime>(
+    'purchase_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _retiredAtMeta = const VerificationMeta(
+    'retiredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> retiredAt = GeneratedColumn<DateTime>(
+    'retired_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    bowId,
+    name,
+    material,
+    strandCount,
+    servingMaterial,
+    stringLength,
+    color,
+    isActive,
+    purchaseDate,
+    retiredAt,
+    notes,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'bow_strings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BowString> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('bow_id')) {
+      context.handle(
+        _bowIdMeta,
+        bowId.isAcceptableOrUnknown(data['bow_id']!, _bowIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bowIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    }
+    if (data.containsKey('material')) {
+      context.handle(
+        _materialMeta,
+        material.isAcceptableOrUnknown(data['material']!, _materialMeta),
+      );
+    }
+    if (data.containsKey('strand_count')) {
+      context.handle(
+        _strandCountMeta,
+        strandCount.isAcceptableOrUnknown(
+          data['strand_count']!,
+          _strandCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('serving_material')) {
+      context.handle(
+        _servingMaterialMeta,
+        servingMaterial.isAcceptableOrUnknown(
+          data['serving_material']!,
+          _servingMaterialMeta,
+        ),
+      );
+    }
+    if (data.containsKey('string_length')) {
+      context.handle(
+        _stringLengthMeta,
+        stringLength.isAcceptableOrUnknown(
+          data['string_length']!,
+          _stringLengthMeta,
+        ),
+      );
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+        _colorMeta,
+        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(
+        _isActiveMeta,
+        isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
+      );
+    }
+    if (data.containsKey('purchase_date')) {
+      context.handle(
+        _purchaseDateMeta,
+        purchaseDate.isAcceptableOrUnknown(
+          data['purchase_date']!,
+          _purchaseDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('retired_at')) {
+      context.handle(
+        _retiredAtMeta,
+        retiredAt.isAcceptableOrUnknown(data['retired_at']!, _retiredAtMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  BowString map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BowString(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      bowId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bow_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      ),
+      material: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}material'],
+      ),
+      strandCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}strand_count'],
+      ),
+      servingMaterial: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}serving_material'],
+      ),
+      stringLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}string_length'],
+      ),
+      color: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color'],
+      ),
+      isActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_active'],
+      )!,
+      purchaseDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}purchase_date'],
+      ),
+      retiredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}retired_at'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $BowStringsTable createAlias(String alias) {
+    return $BowStringsTable(attachedDatabase, alias);
+  }
+}
+
+class BowString extends DataClass implements Insertable<BowString> {
+  final String id;
+  final String bowId;
+  final String? name;
+  final String? material;
+  final int? strandCount;
+  final String? servingMaterial;
+  final double? stringLength;
+  final String? color;
+  final bool isActive;
+  final DateTime? purchaseDate;
+  final DateTime? retiredAt;
+  final String? notes;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const BowString({
+    required this.id,
+    required this.bowId,
+    this.name,
+    this.material,
+    this.strandCount,
+    this.servingMaterial,
+    this.stringLength,
+    this.color,
+    required this.isActive,
+    this.purchaseDate,
+    this.retiredAt,
+    this.notes,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['bow_id'] = Variable<String>(bowId);
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    if (!nullToAbsent || material != null) {
+      map['material'] = Variable<String>(material);
+    }
+    if (!nullToAbsent || strandCount != null) {
+      map['strand_count'] = Variable<int>(strandCount);
+    }
+    if (!nullToAbsent || servingMaterial != null) {
+      map['serving_material'] = Variable<String>(servingMaterial);
+    }
+    if (!nullToAbsent || stringLength != null) {
+      map['string_length'] = Variable<double>(stringLength);
+    }
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<String>(color);
+    }
+    map['is_active'] = Variable<bool>(isActive);
+    if (!nullToAbsent || purchaseDate != null) {
+      map['purchase_date'] = Variable<DateTime>(purchaseDate);
+    }
+    if (!nullToAbsent || retiredAt != null) {
+      map['retired_at'] = Variable<DateTime>(retiredAt);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  BowStringsCompanion toCompanion(bool nullToAbsent) {
+    return BowStringsCompanion(
+      id: Value(id),
+      bowId: Value(bowId),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      material: material == null && nullToAbsent
+          ? const Value.absent()
+          : Value(material),
+      strandCount: strandCount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(strandCount),
+      servingMaterial: servingMaterial == null && nullToAbsent
+          ? const Value.absent()
+          : Value(servingMaterial),
+      stringLength: stringLength == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stringLength),
+      color: color == null && nullToAbsent
+          ? const Value.absent()
+          : Value(color),
+      isActive: Value(isActive),
+      purchaseDate: purchaseDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(purchaseDate),
+      retiredAt: retiredAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retiredAt),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory BowString.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BowString(
+      id: serializer.fromJson<String>(json['id']),
+      bowId: serializer.fromJson<String>(json['bowId']),
+      name: serializer.fromJson<String?>(json['name']),
+      material: serializer.fromJson<String?>(json['material']),
+      strandCount: serializer.fromJson<int?>(json['strandCount']),
+      servingMaterial: serializer.fromJson<String?>(json['servingMaterial']),
+      stringLength: serializer.fromJson<double?>(json['stringLength']),
+      color: serializer.fromJson<String?>(json['color']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+      purchaseDate: serializer.fromJson<DateTime?>(json['purchaseDate']),
+      retiredAt: serializer.fromJson<DateTime?>(json['retiredAt']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'bowId': serializer.toJson<String>(bowId),
+      'name': serializer.toJson<String?>(name),
+      'material': serializer.toJson<String?>(material),
+      'strandCount': serializer.toJson<int?>(strandCount),
+      'servingMaterial': serializer.toJson<String?>(servingMaterial),
+      'stringLength': serializer.toJson<double?>(stringLength),
+      'color': serializer.toJson<String?>(color),
+      'isActive': serializer.toJson<bool>(isActive),
+      'purchaseDate': serializer.toJson<DateTime?>(purchaseDate),
+      'retiredAt': serializer.toJson<DateTime?>(retiredAt),
+      'notes': serializer.toJson<String?>(notes),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  BowString copyWith({
+    String? id,
+    String? bowId,
+    Value<String?> name = const Value.absent(),
+    Value<String?> material = const Value.absent(),
+    Value<int?> strandCount = const Value.absent(),
+    Value<String?> servingMaterial = const Value.absent(),
+    Value<double?> stringLength = const Value.absent(),
+    Value<String?> color = const Value.absent(),
+    bool? isActive,
+    Value<DateTime?> purchaseDate = const Value.absent(),
+    Value<DateTime?> retiredAt = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => BowString(
+    id: id ?? this.id,
+    bowId: bowId ?? this.bowId,
+    name: name.present ? name.value : this.name,
+    material: material.present ? material.value : this.material,
+    strandCount: strandCount.present ? strandCount.value : this.strandCount,
+    servingMaterial: servingMaterial.present
+        ? servingMaterial.value
+        : this.servingMaterial,
+    stringLength: stringLength.present ? stringLength.value : this.stringLength,
+    color: color.present ? color.value : this.color,
+    isActive: isActive ?? this.isActive,
+    purchaseDate: purchaseDate.present ? purchaseDate.value : this.purchaseDate,
+    retiredAt: retiredAt.present ? retiredAt.value : this.retiredAt,
+    notes: notes.present ? notes.value : this.notes,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  BowString copyWithCompanion(BowStringsCompanion data) {
+    return BowString(
+      id: data.id.present ? data.id.value : this.id,
+      bowId: data.bowId.present ? data.bowId.value : this.bowId,
+      name: data.name.present ? data.name.value : this.name,
+      material: data.material.present ? data.material.value : this.material,
+      strandCount: data.strandCount.present
+          ? data.strandCount.value
+          : this.strandCount,
+      servingMaterial: data.servingMaterial.present
+          ? data.servingMaterial.value
+          : this.servingMaterial,
+      stringLength: data.stringLength.present
+          ? data.stringLength.value
+          : this.stringLength,
+      color: data.color.present ? data.color.value : this.color,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      purchaseDate: data.purchaseDate.present
+          ? data.purchaseDate.value
+          : this.purchaseDate,
+      retiredAt: data.retiredAt.present ? data.retiredAt.value : this.retiredAt,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BowString(')
+          ..write('id: $id, ')
+          ..write('bowId: $bowId, ')
+          ..write('name: $name, ')
+          ..write('material: $material, ')
+          ..write('strandCount: $strandCount, ')
+          ..write('servingMaterial: $servingMaterial, ')
+          ..write('stringLength: $stringLength, ')
+          ..write('color: $color, ')
+          ..write('isActive: $isActive, ')
+          ..write('purchaseDate: $purchaseDate, ')
+          ..write('retiredAt: $retiredAt, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    bowId,
+    name,
+    material,
+    strandCount,
+    servingMaterial,
+    stringLength,
+    color,
+    isActive,
+    purchaseDate,
+    retiredAt,
+    notes,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BowString &&
+          other.id == this.id &&
+          other.bowId == this.bowId &&
+          other.name == this.name &&
+          other.material == this.material &&
+          other.strandCount == this.strandCount &&
+          other.servingMaterial == this.servingMaterial &&
+          other.stringLength == this.stringLength &&
+          other.color == this.color &&
+          other.isActive == this.isActive &&
+          other.purchaseDate == this.purchaseDate &&
+          other.retiredAt == this.retiredAt &&
+          other.notes == this.notes &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class BowStringsCompanion extends UpdateCompanion<BowString> {
+  final Value<String> id;
+  final Value<String> bowId;
+  final Value<String?> name;
+  final Value<String?> material;
+  final Value<int?> strandCount;
+  final Value<String?> servingMaterial;
+  final Value<double?> stringLength;
+  final Value<String?> color;
+  final Value<bool> isActive;
+  final Value<DateTime?> purchaseDate;
+  final Value<DateTime?> retiredAt;
+  final Value<String?> notes;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const BowStringsCompanion({
+    this.id = const Value.absent(),
+    this.bowId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.material = const Value.absent(),
+    this.strandCount = const Value.absent(),
+    this.servingMaterial = const Value.absent(),
+    this.stringLength = const Value.absent(),
+    this.color = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.purchaseDate = const Value.absent(),
+    this.retiredAt = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BowStringsCompanion.insert({
+    required String id,
+    required String bowId,
+    this.name = const Value.absent(),
+    this.material = const Value.absent(),
+    this.strandCount = const Value.absent(),
+    this.servingMaterial = const Value.absent(),
+    this.stringLength = const Value.absent(),
+    this.color = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.purchaseDate = const Value.absent(),
+    this.retiredAt = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       bowId = Value(bowId);
+  static Insertable<BowString> custom({
+    Expression<String>? id,
+    Expression<String>? bowId,
+    Expression<String>? name,
+    Expression<String>? material,
+    Expression<int>? strandCount,
+    Expression<String>? servingMaterial,
+    Expression<double>? stringLength,
+    Expression<String>? color,
+    Expression<bool>? isActive,
+    Expression<DateTime>? purchaseDate,
+    Expression<DateTime>? retiredAt,
+    Expression<String>? notes,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (bowId != null) 'bow_id': bowId,
+      if (name != null) 'name': name,
+      if (material != null) 'material': material,
+      if (strandCount != null) 'strand_count': strandCount,
+      if (servingMaterial != null) 'serving_material': servingMaterial,
+      if (stringLength != null) 'string_length': stringLength,
+      if (color != null) 'color': color,
+      if (isActive != null) 'is_active': isActive,
+      if (purchaseDate != null) 'purchase_date': purchaseDate,
+      if (retiredAt != null) 'retired_at': retiredAt,
+      if (notes != null) 'notes': notes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BowStringsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? bowId,
+    Value<String?>? name,
+    Value<String?>? material,
+    Value<int?>? strandCount,
+    Value<String?>? servingMaterial,
+    Value<double?>? stringLength,
+    Value<String?>? color,
+    Value<bool>? isActive,
+    Value<DateTime?>? purchaseDate,
+    Value<DateTime?>? retiredAt,
+    Value<String?>? notes,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return BowStringsCompanion(
+      id: id ?? this.id,
+      bowId: bowId ?? this.bowId,
+      name: name ?? this.name,
+      material: material ?? this.material,
+      strandCount: strandCount ?? this.strandCount,
+      servingMaterial: servingMaterial ?? this.servingMaterial,
+      stringLength: stringLength ?? this.stringLength,
+      color: color ?? this.color,
+      isActive: isActive ?? this.isActive,
+      purchaseDate: purchaseDate ?? this.purchaseDate,
+      retiredAt: retiredAt ?? this.retiredAt,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (bowId.present) {
+      map['bow_id'] = Variable<String>(bowId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (material.present) {
+      map['material'] = Variable<String>(material.value);
+    }
+    if (strandCount.present) {
+      map['strand_count'] = Variable<int>(strandCount.value);
+    }
+    if (servingMaterial.present) {
+      map['serving_material'] = Variable<String>(servingMaterial.value);
+    }
+    if (stringLength.present) {
+      map['string_length'] = Variable<double>(stringLength.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (purchaseDate.present) {
+      map['purchase_date'] = Variable<DateTime>(purchaseDate.value);
+    }
+    if (retiredAt.present) {
+      map['retired_at'] = Variable<DateTime>(retiredAt.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BowStringsCompanion(')
+          ..write('id: $id, ')
+          ..write('bowId: $bowId, ')
+          ..write('name: $name, ')
+          ..write('material: $material, ')
+          ..write('strandCount: $strandCount, ')
+          ..write('servingMaterial: $servingMaterial, ')
+          ..write('stringLength: $stringLength, ')
+          ..write('color: $color, ')
+          ..write('isActive: $isActive, ')
+          ..write('purchaseDate: $purchaseDate, ')
+          ..write('retiredAt: $retiredAt, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -12495,6 +15697,2873 @@ class TuningSessionsCompanion extends UpdateCompanion<TuningSession> {
   }
 }
 
+class $SkillLevelsTable extends SkillLevels
+    with TableInfo<$SkillLevelsTable, SkillLevel> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SkillLevelsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _currentLevelMeta = const VerificationMeta(
+    'currentLevel',
+  );
+  @override
+  late final GeneratedColumn<int> currentLevel = GeneratedColumn<int>(
+    'current_level',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _currentXpMeta = const VerificationMeta(
+    'currentXp',
+  );
+  @override
+  late final GeneratedColumn<int> currentXp = GeneratedColumn<int>(
+    'current_xp',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastLevelUpAtMeta = const VerificationMeta(
+    'lastLevelUpAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastLevelUpAt =
+      GeneratedColumn<DateTime>(
+        'last_level_up_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    description,
+    currentLevel,
+    currentXp,
+    lastLevelUpAt,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'skill_levels';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SkillLevel> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('current_level')) {
+      context.handle(
+        _currentLevelMeta,
+        currentLevel.isAcceptableOrUnknown(
+          data['current_level']!,
+          _currentLevelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('current_xp')) {
+      context.handle(
+        _currentXpMeta,
+        currentXp.isAcceptableOrUnknown(data['current_xp']!, _currentXpMeta),
+      );
+    }
+    if (data.containsKey('last_level_up_at')) {
+      context.handle(
+        _lastLevelUpAtMeta,
+        lastLevelUpAt.isAcceptableOrUnknown(
+          data['last_level_up_at']!,
+          _lastLevelUpAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SkillLevel map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SkillLevel(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      currentLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}current_level'],
+      )!,
+      currentXp: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}current_xp'],
+      )!,
+      lastLevelUpAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_level_up_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SkillLevelsTable createAlias(String alias) {
+    return $SkillLevelsTable(attachedDatabase, alias);
+  }
+}
+
+class SkillLevel extends DataClass implements Insertable<SkillLevel> {
+  final String id;
+  final String name;
+  final String? description;
+  final int currentLevel;
+  final int currentXp;
+  final DateTime? lastLevelUpAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const SkillLevel({
+    required this.id,
+    required this.name,
+    this.description,
+    required this.currentLevel,
+    required this.currentXp,
+    this.lastLevelUpAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    map['current_level'] = Variable<int>(currentLevel);
+    map['current_xp'] = Variable<int>(currentXp);
+    if (!nullToAbsent || lastLevelUpAt != null) {
+      map['last_level_up_at'] = Variable<DateTime>(lastLevelUpAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  SkillLevelsCompanion toCompanion(bool nullToAbsent) {
+    return SkillLevelsCompanion(
+      id: Value(id),
+      name: Value(name),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      currentLevel: Value(currentLevel),
+      currentXp: Value(currentXp),
+      lastLevelUpAt: lastLevelUpAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastLevelUpAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory SkillLevel.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SkillLevel(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      description: serializer.fromJson<String?>(json['description']),
+      currentLevel: serializer.fromJson<int>(json['currentLevel']),
+      currentXp: serializer.fromJson<int>(json['currentXp']),
+      lastLevelUpAt: serializer.fromJson<DateTime?>(json['lastLevelUpAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'description': serializer.toJson<String?>(description),
+      'currentLevel': serializer.toJson<int>(currentLevel),
+      'currentXp': serializer.toJson<int>(currentXp),
+      'lastLevelUpAt': serializer.toJson<DateTime?>(lastLevelUpAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  SkillLevel copyWith({
+    String? id,
+    String? name,
+    Value<String?> description = const Value.absent(),
+    int? currentLevel,
+    int? currentXp,
+    Value<DateTime?> lastLevelUpAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => SkillLevel(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    description: description.present ? description.value : this.description,
+    currentLevel: currentLevel ?? this.currentLevel,
+    currentXp: currentXp ?? this.currentXp,
+    lastLevelUpAt: lastLevelUpAt.present
+        ? lastLevelUpAt.value
+        : this.lastLevelUpAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  SkillLevel copyWithCompanion(SkillLevelsCompanion data) {
+    return SkillLevel(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      currentLevel: data.currentLevel.present
+          ? data.currentLevel.value
+          : this.currentLevel,
+      currentXp: data.currentXp.present ? data.currentXp.value : this.currentXp,
+      lastLevelUpAt: data.lastLevelUpAt.present
+          ? data.lastLevelUpAt.value
+          : this.lastLevelUpAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SkillLevel(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('currentLevel: $currentLevel, ')
+          ..write('currentXp: $currentXp, ')
+          ..write('lastLevelUpAt: $lastLevelUpAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    description,
+    currentLevel,
+    currentXp,
+    lastLevelUpAt,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SkillLevel &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.description == this.description &&
+          other.currentLevel == this.currentLevel &&
+          other.currentXp == this.currentXp &&
+          other.lastLevelUpAt == this.lastLevelUpAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class SkillLevelsCompanion extends UpdateCompanion<SkillLevel> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String?> description;
+  final Value<int> currentLevel;
+  final Value<int> currentXp;
+  final Value<DateTime?> lastLevelUpAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const SkillLevelsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.description = const Value.absent(),
+    this.currentLevel = const Value.absent(),
+    this.currentXp = const Value.absent(),
+    this.lastLevelUpAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SkillLevelsCompanion.insert({
+    required String id,
+    required String name,
+    this.description = const Value.absent(),
+    this.currentLevel = const Value.absent(),
+    this.currentXp = const Value.absent(),
+    this.lastLevelUpAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name);
+  static Insertable<SkillLevel> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? description,
+    Expression<int>? currentLevel,
+    Expression<int>? currentXp,
+    Expression<DateTime>? lastLevelUpAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (currentLevel != null) 'current_level': currentLevel,
+      if (currentXp != null) 'current_xp': currentXp,
+      if (lastLevelUpAt != null) 'last_level_up_at': lastLevelUpAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SkillLevelsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String?>? description,
+    Value<int>? currentLevel,
+    Value<int>? currentXp,
+    Value<DateTime?>? lastLevelUpAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return SkillLevelsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      currentLevel: currentLevel ?? this.currentLevel,
+      currentXp: currentXp ?? this.currentXp,
+      lastLevelUpAt: lastLevelUpAt ?? this.lastLevelUpAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (currentLevel.present) {
+      map['current_level'] = Variable<int>(currentLevel.value);
+    }
+    if (currentXp.present) {
+      map['current_xp'] = Variable<int>(currentXp.value);
+    }
+    if (lastLevelUpAt.present) {
+      map['last_level_up_at'] = Variable<DateTime>(lastLevelUpAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SkillLevelsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('currentLevel: $currentLevel, ')
+          ..write('currentXp: $currentXp, ')
+          ..write('lastLevelUpAt: $lastLevelUpAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $XpHistoryTable extends XpHistory
+    with TableInfo<$XpHistoryTable, XpHistoryData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $XpHistoryTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _skillIdMeta = const VerificationMeta(
+    'skillId',
+  );
+  @override
+  late final GeneratedColumn<String> skillId = GeneratedColumn<String>(
+    'skill_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _xpAmountMeta = const VerificationMeta(
+    'xpAmount',
+  );
+  @override
+  late final GeneratedColumn<int> xpAmount = GeneratedColumn<int>(
+    'xp_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta(
+    'sourceId',
+  );
+  @override
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+    'source_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+    'reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _earnedAtMeta = const VerificationMeta(
+    'earnedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> earnedAt = GeneratedColumn<DateTime>(
+    'earned_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    skillId,
+    xpAmount,
+    source,
+    sourceId,
+    reason,
+    earnedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'xp_history';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<XpHistoryData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('skill_id')) {
+      context.handle(
+        _skillIdMeta,
+        skillId.isAcceptableOrUnknown(data['skill_id']!, _skillIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_skillIdMeta);
+    }
+    if (data.containsKey('xp_amount')) {
+      context.handle(
+        _xpAmountMeta,
+        xpAmount.isAcceptableOrUnknown(data['xp_amount']!, _xpAmountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_xpAmountMeta);
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceMeta);
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(
+        _sourceIdMeta,
+        sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta),
+      );
+    }
+    if (data.containsKey('reason')) {
+      context.handle(
+        _reasonMeta,
+        reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
+      );
+    }
+    if (data.containsKey('earned_at')) {
+      context.handle(
+        _earnedAtMeta,
+        earnedAt.isAcceptableOrUnknown(data['earned_at']!, _earnedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  XpHistoryData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return XpHistoryData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      skillId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}skill_id'],
+      )!,
+      xpAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}xp_amount'],
+      )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+      sourceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_id'],
+      ),
+      reason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reason'],
+      ),
+      earnedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}earned_at'],
+      )!,
+    );
+  }
+
+  @override
+  $XpHistoryTable createAlias(String alias) {
+    return $XpHistoryTable(attachedDatabase, alias);
+  }
+}
+
+class XpHistoryData extends DataClass implements Insertable<XpHistoryData> {
+  final String id;
+  final String skillId;
+  final int xpAmount;
+  final String source;
+  final String? sourceId;
+  final String? reason;
+  final DateTime earnedAt;
+  const XpHistoryData({
+    required this.id,
+    required this.skillId,
+    required this.xpAmount,
+    required this.source,
+    this.sourceId,
+    this.reason,
+    required this.earnedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['skill_id'] = Variable<String>(skillId);
+    map['xp_amount'] = Variable<int>(xpAmount);
+    map['source'] = Variable<String>(source);
+    if (!nullToAbsent || sourceId != null) {
+      map['source_id'] = Variable<String>(sourceId);
+    }
+    if (!nullToAbsent || reason != null) {
+      map['reason'] = Variable<String>(reason);
+    }
+    map['earned_at'] = Variable<DateTime>(earnedAt);
+    return map;
+  }
+
+  XpHistoryCompanion toCompanion(bool nullToAbsent) {
+    return XpHistoryCompanion(
+      id: Value(id),
+      skillId: Value(skillId),
+      xpAmount: Value(xpAmount),
+      source: Value(source),
+      sourceId: sourceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceId),
+      reason: reason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reason),
+      earnedAt: Value(earnedAt),
+    );
+  }
+
+  factory XpHistoryData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return XpHistoryData(
+      id: serializer.fromJson<String>(json['id']),
+      skillId: serializer.fromJson<String>(json['skillId']),
+      xpAmount: serializer.fromJson<int>(json['xpAmount']),
+      source: serializer.fromJson<String>(json['source']),
+      sourceId: serializer.fromJson<String?>(json['sourceId']),
+      reason: serializer.fromJson<String?>(json['reason']),
+      earnedAt: serializer.fromJson<DateTime>(json['earnedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'skillId': serializer.toJson<String>(skillId),
+      'xpAmount': serializer.toJson<int>(xpAmount),
+      'source': serializer.toJson<String>(source),
+      'sourceId': serializer.toJson<String?>(sourceId),
+      'reason': serializer.toJson<String?>(reason),
+      'earnedAt': serializer.toJson<DateTime>(earnedAt),
+    };
+  }
+
+  XpHistoryData copyWith({
+    String? id,
+    String? skillId,
+    int? xpAmount,
+    String? source,
+    Value<String?> sourceId = const Value.absent(),
+    Value<String?> reason = const Value.absent(),
+    DateTime? earnedAt,
+  }) => XpHistoryData(
+    id: id ?? this.id,
+    skillId: skillId ?? this.skillId,
+    xpAmount: xpAmount ?? this.xpAmount,
+    source: source ?? this.source,
+    sourceId: sourceId.present ? sourceId.value : this.sourceId,
+    reason: reason.present ? reason.value : this.reason,
+    earnedAt: earnedAt ?? this.earnedAt,
+  );
+  XpHistoryData copyWithCompanion(XpHistoryCompanion data) {
+    return XpHistoryData(
+      id: data.id.present ? data.id.value : this.id,
+      skillId: data.skillId.present ? data.skillId.value : this.skillId,
+      xpAmount: data.xpAmount.present ? data.xpAmount.value : this.xpAmount,
+      source: data.source.present ? data.source.value : this.source,
+      sourceId: data.sourceId.present ? data.sourceId.value : this.sourceId,
+      reason: data.reason.present ? data.reason.value : this.reason,
+      earnedAt: data.earnedAt.present ? data.earnedAt.value : this.earnedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('XpHistoryData(')
+          ..write('id: $id, ')
+          ..write('skillId: $skillId, ')
+          ..write('xpAmount: $xpAmount, ')
+          ..write('source: $source, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('reason: $reason, ')
+          ..write('earnedAt: $earnedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, skillId, xpAmount, source, sourceId, reason, earnedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is XpHistoryData &&
+          other.id == this.id &&
+          other.skillId == this.skillId &&
+          other.xpAmount == this.xpAmount &&
+          other.source == this.source &&
+          other.sourceId == this.sourceId &&
+          other.reason == this.reason &&
+          other.earnedAt == this.earnedAt);
+}
+
+class XpHistoryCompanion extends UpdateCompanion<XpHistoryData> {
+  final Value<String> id;
+  final Value<String> skillId;
+  final Value<int> xpAmount;
+  final Value<String> source;
+  final Value<String?> sourceId;
+  final Value<String?> reason;
+  final Value<DateTime> earnedAt;
+  final Value<int> rowid;
+  const XpHistoryCompanion({
+    this.id = const Value.absent(),
+    this.skillId = const Value.absent(),
+    this.xpAmount = const Value.absent(),
+    this.source = const Value.absent(),
+    this.sourceId = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.earnedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  XpHistoryCompanion.insert({
+    required String id,
+    required String skillId,
+    required int xpAmount,
+    required String source,
+    this.sourceId = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.earnedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       skillId = Value(skillId),
+       xpAmount = Value(xpAmount),
+       source = Value(source);
+  static Insertable<XpHistoryData> custom({
+    Expression<String>? id,
+    Expression<String>? skillId,
+    Expression<int>? xpAmount,
+    Expression<String>? source,
+    Expression<String>? sourceId,
+    Expression<String>? reason,
+    Expression<DateTime>? earnedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (skillId != null) 'skill_id': skillId,
+      if (xpAmount != null) 'xp_amount': xpAmount,
+      if (source != null) 'source': source,
+      if (sourceId != null) 'source_id': sourceId,
+      if (reason != null) 'reason': reason,
+      if (earnedAt != null) 'earned_at': earnedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  XpHistoryCompanion copyWith({
+    Value<String>? id,
+    Value<String>? skillId,
+    Value<int>? xpAmount,
+    Value<String>? source,
+    Value<String?>? sourceId,
+    Value<String?>? reason,
+    Value<DateTime>? earnedAt,
+    Value<int>? rowid,
+  }) {
+    return XpHistoryCompanion(
+      id: id ?? this.id,
+      skillId: skillId ?? this.skillId,
+      xpAmount: xpAmount ?? this.xpAmount,
+      source: source ?? this.source,
+      sourceId: sourceId ?? this.sourceId,
+      reason: reason ?? this.reason,
+      earnedAt: earnedAt ?? this.earnedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (skillId.present) {
+      map['skill_id'] = Variable<String>(skillId.value);
+    }
+    if (xpAmount.present) {
+      map['xp_amount'] = Variable<int>(xpAmount.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    if (earnedAt.present) {
+      map['earned_at'] = Variable<DateTime>(earnedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('XpHistoryCompanion(')
+          ..write('id: $id, ')
+          ..write('skillId: $skillId, ')
+          ..write('xpAmount: $xpAmount, ')
+          ..write('source: $source, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('reason: $reason, ')
+          ..write('earnedAt: $earnedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SightMarksTable extends SightMarks
+    with TableInfo<$SightMarksTable, SightMark> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SightMarksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bowIdMeta = const VerificationMeta('bowId');
+  @override
+  late final GeneratedColumn<String> bowId = GeneratedColumn<String>(
+    'bow_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES bows (id)',
+    ),
+  );
+  static const VerificationMeta _distanceMeta = const VerificationMeta(
+    'distance',
+  );
+  @override
+  late final GeneratedColumn<double> distance = GeneratedColumn<double>(
+    'distance',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+    'unit',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('meters'),
+  );
+  static const VerificationMeta _sightValueMeta = const VerificationMeta(
+    'sightValue',
+  );
+  @override
+  late final GeneratedColumn<String> sightValue = GeneratedColumn<String>(
+    'sight_value',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _weatherDataMeta = const VerificationMeta(
+    'weatherData',
+  );
+  @override
+  late final GeneratedColumn<String> weatherData = GeneratedColumn<String>(
+    'weather_data',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _elevationDeltaMeta = const VerificationMeta(
+    'elevationDelta',
+  );
+  @override
+  late final GeneratedColumn<double> elevationDelta = GeneratedColumn<double>(
+    'elevation_delta',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _slopeAngleMeta = const VerificationMeta(
+    'slopeAngle',
+  );
+  @override
+  late final GeneratedColumn<double> slopeAngle = GeneratedColumn<double>(
+    'slope_angle',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sessionIdMeta = const VerificationMeta(
+    'sessionId',
+  );
+  @override
+  late final GeneratedColumn<String> sessionId = GeneratedColumn<String>(
+    'session_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _endNumberMeta = const VerificationMeta(
+    'endNumber',
+  );
+  @override
+  late final GeneratedColumn<int> endNumber = GeneratedColumn<int>(
+    'end_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _shotCountMeta = const VerificationMeta(
+    'shotCount',
+  );
+  @override
+  late final GeneratedColumn<int> shotCount = GeneratedColumn<int>(
+    'shot_count',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _confidenceScoreMeta = const VerificationMeta(
+    'confidenceScore',
+  );
+  @override
+  late final GeneratedColumn<double> confidenceScore = GeneratedColumn<double>(
+    'confidence_score',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _recordedAtMeta = const VerificationMeta(
+    'recordedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> recordedAt = GeneratedColumn<DateTime>(
+    'recorded_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    bowId,
+    distance,
+    unit,
+    sightValue,
+    weatherData,
+    elevationDelta,
+    slopeAngle,
+    sessionId,
+    endNumber,
+    shotCount,
+    confidenceScore,
+    recordedAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sight_marks';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SightMark> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('bow_id')) {
+      context.handle(
+        _bowIdMeta,
+        bowId.isAcceptableOrUnknown(data['bow_id']!, _bowIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bowIdMeta);
+    }
+    if (data.containsKey('distance')) {
+      context.handle(
+        _distanceMeta,
+        distance.isAcceptableOrUnknown(data['distance']!, _distanceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_distanceMeta);
+    }
+    if (data.containsKey('unit')) {
+      context.handle(
+        _unitMeta,
+        unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    }
+    if (data.containsKey('sight_value')) {
+      context.handle(
+        _sightValueMeta,
+        sightValue.isAcceptableOrUnknown(data['sight_value']!, _sightValueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sightValueMeta);
+    }
+    if (data.containsKey('weather_data')) {
+      context.handle(
+        _weatherDataMeta,
+        weatherData.isAcceptableOrUnknown(
+          data['weather_data']!,
+          _weatherDataMeta,
+        ),
+      );
+    }
+    if (data.containsKey('elevation_delta')) {
+      context.handle(
+        _elevationDeltaMeta,
+        elevationDelta.isAcceptableOrUnknown(
+          data['elevation_delta']!,
+          _elevationDeltaMeta,
+        ),
+      );
+    }
+    if (data.containsKey('slope_angle')) {
+      context.handle(
+        _slopeAngleMeta,
+        slopeAngle.isAcceptableOrUnknown(data['slope_angle']!, _slopeAngleMeta),
+      );
+    }
+    if (data.containsKey('session_id')) {
+      context.handle(
+        _sessionIdMeta,
+        sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta),
+      );
+    }
+    if (data.containsKey('end_number')) {
+      context.handle(
+        _endNumberMeta,
+        endNumber.isAcceptableOrUnknown(data['end_number']!, _endNumberMeta),
+      );
+    }
+    if (data.containsKey('shot_count')) {
+      context.handle(
+        _shotCountMeta,
+        shotCount.isAcceptableOrUnknown(data['shot_count']!, _shotCountMeta),
+      );
+    }
+    if (data.containsKey('confidence_score')) {
+      context.handle(
+        _confidenceScoreMeta,
+        confidenceScore.isAcceptableOrUnknown(
+          data['confidence_score']!,
+          _confidenceScoreMeta,
+        ),
+      );
+    }
+    if (data.containsKey('recorded_at')) {
+      context.handle(
+        _recordedAtMeta,
+        recordedAt.isAcceptableOrUnknown(data['recorded_at']!, _recordedAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SightMark map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SightMark(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      bowId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bow_id'],
+      )!,
+      distance: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}distance'],
+      )!,
+      unit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}unit'],
+      )!,
+      sightValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sight_value'],
+      )!,
+      weatherData: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}weather_data'],
+      ),
+      elevationDelta: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}elevation_delta'],
+      ),
+      slopeAngle: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}slope_angle'],
+      ),
+      sessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_id'],
+      ),
+      endNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}end_number'],
+      ),
+      shotCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}shot_count'],
+      ),
+      confidenceScore: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}confidence_score'],
+      ),
+      recordedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}recorded_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      ),
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $SightMarksTable createAlias(String alias) {
+    return $SightMarksTable(attachedDatabase, alias);
+  }
+}
+
+class SightMark extends DataClass implements Insertable<SightMark> {
+  final String id;
+  final String bowId;
+  final double distance;
+  final String unit;
+  final String sightValue;
+  final String? weatherData;
+  final double? elevationDelta;
+  final double? slopeAngle;
+  final String? sessionId;
+  final int? endNumber;
+  final int? shotCount;
+  final double? confidenceScore;
+  final DateTime recordedAt;
+  final DateTime? updatedAt;
+  final DateTime? deletedAt;
+  const SightMark({
+    required this.id,
+    required this.bowId,
+    required this.distance,
+    required this.unit,
+    required this.sightValue,
+    this.weatherData,
+    this.elevationDelta,
+    this.slopeAngle,
+    this.sessionId,
+    this.endNumber,
+    this.shotCount,
+    this.confidenceScore,
+    required this.recordedAt,
+    this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['bow_id'] = Variable<String>(bowId);
+    map['distance'] = Variable<double>(distance);
+    map['unit'] = Variable<String>(unit);
+    map['sight_value'] = Variable<String>(sightValue);
+    if (!nullToAbsent || weatherData != null) {
+      map['weather_data'] = Variable<String>(weatherData);
+    }
+    if (!nullToAbsent || elevationDelta != null) {
+      map['elevation_delta'] = Variable<double>(elevationDelta);
+    }
+    if (!nullToAbsent || slopeAngle != null) {
+      map['slope_angle'] = Variable<double>(slopeAngle);
+    }
+    if (!nullToAbsent || sessionId != null) {
+      map['session_id'] = Variable<String>(sessionId);
+    }
+    if (!nullToAbsent || endNumber != null) {
+      map['end_number'] = Variable<int>(endNumber);
+    }
+    if (!nullToAbsent || shotCount != null) {
+      map['shot_count'] = Variable<int>(shotCount);
+    }
+    if (!nullToAbsent || confidenceScore != null) {
+      map['confidence_score'] = Variable<double>(confidenceScore);
+    }
+    map['recorded_at'] = Variable<DateTime>(recordedAt);
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  SightMarksCompanion toCompanion(bool nullToAbsent) {
+    return SightMarksCompanion(
+      id: Value(id),
+      bowId: Value(bowId),
+      distance: Value(distance),
+      unit: Value(unit),
+      sightValue: Value(sightValue),
+      weatherData: weatherData == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weatherData),
+      elevationDelta: elevationDelta == null && nullToAbsent
+          ? const Value.absent()
+          : Value(elevationDelta),
+      slopeAngle: slopeAngle == null && nullToAbsent
+          ? const Value.absent()
+          : Value(slopeAngle),
+      sessionId: sessionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sessionId),
+      endNumber: endNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endNumber),
+      shotCount: shotCount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(shotCount),
+      confidenceScore: confidenceScore == null && nullToAbsent
+          ? const Value.absent()
+          : Value(confidenceScore),
+      recordedAt: Value(recordedAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory SightMark.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SightMark(
+      id: serializer.fromJson<String>(json['id']),
+      bowId: serializer.fromJson<String>(json['bowId']),
+      distance: serializer.fromJson<double>(json['distance']),
+      unit: serializer.fromJson<String>(json['unit']),
+      sightValue: serializer.fromJson<String>(json['sightValue']),
+      weatherData: serializer.fromJson<String?>(json['weatherData']),
+      elevationDelta: serializer.fromJson<double?>(json['elevationDelta']),
+      slopeAngle: serializer.fromJson<double?>(json['slopeAngle']),
+      sessionId: serializer.fromJson<String?>(json['sessionId']),
+      endNumber: serializer.fromJson<int?>(json['endNumber']),
+      shotCount: serializer.fromJson<int?>(json['shotCount']),
+      confidenceScore: serializer.fromJson<double?>(json['confidenceScore']),
+      recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
+      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'bowId': serializer.toJson<String>(bowId),
+      'distance': serializer.toJson<double>(distance),
+      'unit': serializer.toJson<String>(unit),
+      'sightValue': serializer.toJson<String>(sightValue),
+      'weatherData': serializer.toJson<String?>(weatherData),
+      'elevationDelta': serializer.toJson<double?>(elevationDelta),
+      'slopeAngle': serializer.toJson<double?>(slopeAngle),
+      'sessionId': serializer.toJson<String?>(sessionId),
+      'endNumber': serializer.toJson<int?>(endNumber),
+      'shotCount': serializer.toJson<int?>(shotCount),
+      'confidenceScore': serializer.toJson<double?>(confidenceScore),
+      'recordedAt': serializer.toJson<DateTime>(recordedAt),
+      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  SightMark copyWith({
+    String? id,
+    String? bowId,
+    double? distance,
+    String? unit,
+    String? sightValue,
+    Value<String?> weatherData = const Value.absent(),
+    Value<double?> elevationDelta = const Value.absent(),
+    Value<double?> slopeAngle = const Value.absent(),
+    Value<String?> sessionId = const Value.absent(),
+    Value<int?> endNumber = const Value.absent(),
+    Value<int?> shotCount = const Value.absent(),
+    Value<double?> confidenceScore = const Value.absent(),
+    DateTime? recordedAt,
+    Value<DateTime?> updatedAt = const Value.absent(),
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => SightMark(
+    id: id ?? this.id,
+    bowId: bowId ?? this.bowId,
+    distance: distance ?? this.distance,
+    unit: unit ?? this.unit,
+    sightValue: sightValue ?? this.sightValue,
+    weatherData: weatherData.present ? weatherData.value : this.weatherData,
+    elevationDelta: elevationDelta.present
+        ? elevationDelta.value
+        : this.elevationDelta,
+    slopeAngle: slopeAngle.present ? slopeAngle.value : this.slopeAngle,
+    sessionId: sessionId.present ? sessionId.value : this.sessionId,
+    endNumber: endNumber.present ? endNumber.value : this.endNumber,
+    shotCount: shotCount.present ? shotCount.value : this.shotCount,
+    confidenceScore: confidenceScore.present
+        ? confidenceScore.value
+        : this.confidenceScore,
+    recordedAt: recordedAt ?? this.recordedAt,
+    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  SightMark copyWithCompanion(SightMarksCompanion data) {
+    return SightMark(
+      id: data.id.present ? data.id.value : this.id,
+      bowId: data.bowId.present ? data.bowId.value : this.bowId,
+      distance: data.distance.present ? data.distance.value : this.distance,
+      unit: data.unit.present ? data.unit.value : this.unit,
+      sightValue: data.sightValue.present
+          ? data.sightValue.value
+          : this.sightValue,
+      weatherData: data.weatherData.present
+          ? data.weatherData.value
+          : this.weatherData,
+      elevationDelta: data.elevationDelta.present
+          ? data.elevationDelta.value
+          : this.elevationDelta,
+      slopeAngle: data.slopeAngle.present
+          ? data.slopeAngle.value
+          : this.slopeAngle,
+      sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
+      endNumber: data.endNumber.present ? data.endNumber.value : this.endNumber,
+      shotCount: data.shotCount.present ? data.shotCount.value : this.shotCount,
+      confidenceScore: data.confidenceScore.present
+          ? data.confidenceScore.value
+          : this.confidenceScore,
+      recordedAt: data.recordedAt.present
+          ? data.recordedAt.value
+          : this.recordedAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SightMark(')
+          ..write('id: $id, ')
+          ..write('bowId: $bowId, ')
+          ..write('distance: $distance, ')
+          ..write('unit: $unit, ')
+          ..write('sightValue: $sightValue, ')
+          ..write('weatherData: $weatherData, ')
+          ..write('elevationDelta: $elevationDelta, ')
+          ..write('slopeAngle: $slopeAngle, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('endNumber: $endNumber, ')
+          ..write('shotCount: $shotCount, ')
+          ..write('confidenceScore: $confidenceScore, ')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    bowId,
+    distance,
+    unit,
+    sightValue,
+    weatherData,
+    elevationDelta,
+    slopeAngle,
+    sessionId,
+    endNumber,
+    shotCount,
+    confidenceScore,
+    recordedAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SightMark &&
+          other.id == this.id &&
+          other.bowId == this.bowId &&
+          other.distance == this.distance &&
+          other.unit == this.unit &&
+          other.sightValue == this.sightValue &&
+          other.weatherData == this.weatherData &&
+          other.elevationDelta == this.elevationDelta &&
+          other.slopeAngle == this.slopeAngle &&
+          other.sessionId == this.sessionId &&
+          other.endNumber == this.endNumber &&
+          other.shotCount == this.shotCount &&
+          other.confidenceScore == this.confidenceScore &&
+          other.recordedAt == this.recordedAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class SightMarksCompanion extends UpdateCompanion<SightMark> {
+  final Value<String> id;
+  final Value<String> bowId;
+  final Value<double> distance;
+  final Value<String> unit;
+  final Value<String> sightValue;
+  final Value<String?> weatherData;
+  final Value<double?> elevationDelta;
+  final Value<double?> slopeAngle;
+  final Value<String?> sessionId;
+  final Value<int?> endNumber;
+  final Value<int?> shotCount;
+  final Value<double?> confidenceScore;
+  final Value<DateTime> recordedAt;
+  final Value<DateTime?> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const SightMarksCompanion({
+    this.id = const Value.absent(),
+    this.bowId = const Value.absent(),
+    this.distance = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.sightValue = const Value.absent(),
+    this.weatherData = const Value.absent(),
+    this.elevationDelta = const Value.absent(),
+    this.slopeAngle = const Value.absent(),
+    this.sessionId = const Value.absent(),
+    this.endNumber = const Value.absent(),
+    this.shotCount = const Value.absent(),
+    this.confidenceScore = const Value.absent(),
+    this.recordedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SightMarksCompanion.insert({
+    required String id,
+    required String bowId,
+    required double distance,
+    this.unit = const Value.absent(),
+    required String sightValue,
+    this.weatherData = const Value.absent(),
+    this.elevationDelta = const Value.absent(),
+    this.slopeAngle = const Value.absent(),
+    this.sessionId = const Value.absent(),
+    this.endNumber = const Value.absent(),
+    this.shotCount = const Value.absent(),
+    this.confidenceScore = const Value.absent(),
+    this.recordedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       bowId = Value(bowId),
+       distance = Value(distance),
+       sightValue = Value(sightValue);
+  static Insertable<SightMark> custom({
+    Expression<String>? id,
+    Expression<String>? bowId,
+    Expression<double>? distance,
+    Expression<String>? unit,
+    Expression<String>? sightValue,
+    Expression<String>? weatherData,
+    Expression<double>? elevationDelta,
+    Expression<double>? slopeAngle,
+    Expression<String>? sessionId,
+    Expression<int>? endNumber,
+    Expression<int>? shotCount,
+    Expression<double>? confidenceScore,
+    Expression<DateTime>? recordedAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (bowId != null) 'bow_id': bowId,
+      if (distance != null) 'distance': distance,
+      if (unit != null) 'unit': unit,
+      if (sightValue != null) 'sight_value': sightValue,
+      if (weatherData != null) 'weather_data': weatherData,
+      if (elevationDelta != null) 'elevation_delta': elevationDelta,
+      if (slopeAngle != null) 'slope_angle': slopeAngle,
+      if (sessionId != null) 'session_id': sessionId,
+      if (endNumber != null) 'end_number': endNumber,
+      if (shotCount != null) 'shot_count': shotCount,
+      if (confidenceScore != null) 'confidence_score': confidenceScore,
+      if (recordedAt != null) 'recorded_at': recordedAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SightMarksCompanion copyWith({
+    Value<String>? id,
+    Value<String>? bowId,
+    Value<double>? distance,
+    Value<String>? unit,
+    Value<String>? sightValue,
+    Value<String?>? weatherData,
+    Value<double?>? elevationDelta,
+    Value<double?>? slopeAngle,
+    Value<String?>? sessionId,
+    Value<int?>? endNumber,
+    Value<int?>? shotCount,
+    Value<double?>? confidenceScore,
+    Value<DateTime>? recordedAt,
+    Value<DateTime?>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return SightMarksCompanion(
+      id: id ?? this.id,
+      bowId: bowId ?? this.bowId,
+      distance: distance ?? this.distance,
+      unit: unit ?? this.unit,
+      sightValue: sightValue ?? this.sightValue,
+      weatherData: weatherData ?? this.weatherData,
+      elevationDelta: elevationDelta ?? this.elevationDelta,
+      slopeAngle: slopeAngle ?? this.slopeAngle,
+      sessionId: sessionId ?? this.sessionId,
+      endNumber: endNumber ?? this.endNumber,
+      shotCount: shotCount ?? this.shotCount,
+      confidenceScore: confidenceScore ?? this.confidenceScore,
+      recordedAt: recordedAt ?? this.recordedAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (bowId.present) {
+      map['bow_id'] = Variable<String>(bowId.value);
+    }
+    if (distance.present) {
+      map['distance'] = Variable<double>(distance.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (sightValue.present) {
+      map['sight_value'] = Variable<String>(sightValue.value);
+    }
+    if (weatherData.present) {
+      map['weather_data'] = Variable<String>(weatherData.value);
+    }
+    if (elevationDelta.present) {
+      map['elevation_delta'] = Variable<double>(elevationDelta.value);
+    }
+    if (slopeAngle.present) {
+      map['slope_angle'] = Variable<double>(slopeAngle.value);
+    }
+    if (sessionId.present) {
+      map['session_id'] = Variable<String>(sessionId.value);
+    }
+    if (endNumber.present) {
+      map['end_number'] = Variable<int>(endNumber.value);
+    }
+    if (shotCount.present) {
+      map['shot_count'] = Variable<int>(shotCount.value);
+    }
+    if (confidenceScore.present) {
+      map['confidence_score'] = Variable<double>(confidenceScore.value);
+    }
+    if (recordedAt.present) {
+      map['recorded_at'] = Variable<DateTime>(recordedAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SightMarksCompanion(')
+          ..write('id: $id, ')
+          ..write('bowId: $bowId, ')
+          ..write('distance: $distance, ')
+          ..write('unit: $unit, ')
+          ..write('sightValue: $sightValue, ')
+          ..write('weatherData: $weatherData, ')
+          ..write('elevationDelta: $elevationDelta, ')
+          ..write('slopeAngle: $slopeAngle, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('endNumber: $endNumber, ')
+          ..write('shotCount: $shotCount, ')
+          ..write('confidenceScore: $confidenceScore, ')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SightMarkPreferencesTableTable extends SightMarkPreferencesTable
+    with
+        TableInfo<
+          $SightMarkPreferencesTableTable,
+          SightMarkPreferencesTableData
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SightMarkPreferencesTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _bowIdMeta = const VerificationMeta('bowId');
+  @override
+  late final GeneratedColumn<String> bowId = GeneratedColumn<String>(
+    'bow_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES bows (id)',
+    ),
+  );
+  static const VerificationMeta _notationStyleMeta = const VerificationMeta(
+    'notationStyle',
+  );
+  @override
+  late final GeneratedColumn<String> notationStyle = GeneratedColumn<String>(
+    'notation_style',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('decimal'),
+  );
+  static const VerificationMeta _decimalPlacesMeta = const VerificationMeta(
+    'decimalPlaces',
+  );
+  @override
+  late final GeneratedColumn<int> decimalPlaces = GeneratedColumn<int>(
+    'decimal_places',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(2),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    bowId,
+    notationStyle,
+    decimalPlaces,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sight_mark_preferences_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SightMarkPreferencesTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('bow_id')) {
+      context.handle(
+        _bowIdMeta,
+        bowId.isAcceptableOrUnknown(data['bow_id']!, _bowIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bowIdMeta);
+    }
+    if (data.containsKey('notation_style')) {
+      context.handle(
+        _notationStyleMeta,
+        notationStyle.isAcceptableOrUnknown(
+          data['notation_style']!,
+          _notationStyleMeta,
+        ),
+      );
+    }
+    if (data.containsKey('decimal_places')) {
+      context.handle(
+        _decimalPlacesMeta,
+        decimalPlaces.isAcceptableOrUnknown(
+          data['decimal_places']!,
+          _decimalPlacesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {bowId};
+  @override
+  SightMarkPreferencesTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SightMarkPreferencesTableData(
+      bowId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bow_id'],
+      )!,
+      notationStyle: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notation_style'],
+      )!,
+      decimalPlaces: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}decimal_places'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      ),
+    );
+  }
+
+  @override
+  $SightMarkPreferencesTableTable createAlias(String alias) {
+    return $SightMarkPreferencesTableTable(attachedDatabase, alias);
+  }
+}
+
+class SightMarkPreferencesTableData extends DataClass
+    implements Insertable<SightMarkPreferencesTableData> {
+  final String bowId;
+  final String notationStyle;
+  final int decimalPlaces;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
+  const SightMarkPreferencesTableData({
+    required this.bowId,
+    required this.notationStyle,
+    required this.decimalPlaces,
+    required this.createdAt,
+    this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['bow_id'] = Variable<String>(bowId);
+    map['notation_style'] = Variable<String>(notationStyle);
+    map['decimal_places'] = Variable<int>(decimalPlaces);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    return map;
+  }
+
+  SightMarkPreferencesTableCompanion toCompanion(bool nullToAbsent) {
+    return SightMarkPreferencesTableCompanion(
+      bowId: Value(bowId),
+      notationStyle: Value(notationStyle),
+      decimalPlaces: Value(decimalPlaces),
+      createdAt: Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
+  factory SightMarkPreferencesTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SightMarkPreferencesTableData(
+      bowId: serializer.fromJson<String>(json['bowId']),
+      notationStyle: serializer.fromJson<String>(json['notationStyle']),
+      decimalPlaces: serializer.fromJson<int>(json['decimalPlaces']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'bowId': serializer.toJson<String>(bowId),
+      'notationStyle': serializer.toJson<String>(notationStyle),
+      'decimalPlaces': serializer.toJson<int>(decimalPlaces),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
+    };
+  }
+
+  SightMarkPreferencesTableData copyWith({
+    String? bowId,
+    String? notationStyle,
+    int? decimalPlaces,
+    DateTime? createdAt,
+    Value<DateTime?> updatedAt = const Value.absent(),
+  }) => SightMarkPreferencesTableData(
+    bowId: bowId ?? this.bowId,
+    notationStyle: notationStyle ?? this.notationStyle,
+    decimalPlaces: decimalPlaces ?? this.decimalPlaces,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+  );
+  SightMarkPreferencesTableData copyWithCompanion(
+    SightMarkPreferencesTableCompanion data,
+  ) {
+    return SightMarkPreferencesTableData(
+      bowId: data.bowId.present ? data.bowId.value : this.bowId,
+      notationStyle: data.notationStyle.present
+          ? data.notationStyle.value
+          : this.notationStyle,
+      decimalPlaces: data.decimalPlaces.present
+          ? data.decimalPlaces.value
+          : this.decimalPlaces,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SightMarkPreferencesTableData(')
+          ..write('bowId: $bowId, ')
+          ..write('notationStyle: $notationStyle, ')
+          ..write('decimalPlaces: $decimalPlaces, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(bowId, notationStyle, decimalPlaces, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SightMarkPreferencesTableData &&
+          other.bowId == this.bowId &&
+          other.notationStyle == this.notationStyle &&
+          other.decimalPlaces == this.decimalPlaces &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class SightMarkPreferencesTableCompanion
+    extends UpdateCompanion<SightMarkPreferencesTableData> {
+  final Value<String> bowId;
+  final Value<String> notationStyle;
+  final Value<int> decimalPlaces;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> updatedAt;
+  final Value<int> rowid;
+  const SightMarkPreferencesTableCompanion({
+    this.bowId = const Value.absent(),
+    this.notationStyle = const Value.absent(),
+    this.decimalPlaces = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SightMarkPreferencesTableCompanion.insert({
+    required String bowId,
+    this.notationStyle = const Value.absent(),
+    this.decimalPlaces = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : bowId = Value(bowId);
+  static Insertable<SightMarkPreferencesTableData> custom({
+    Expression<String>? bowId,
+    Expression<String>? notationStyle,
+    Expression<int>? decimalPlaces,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (bowId != null) 'bow_id': bowId,
+      if (notationStyle != null) 'notation_style': notationStyle,
+      if (decimalPlaces != null) 'decimal_places': decimalPlaces,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SightMarkPreferencesTableCompanion copyWith({
+    Value<String>? bowId,
+    Value<String>? notationStyle,
+    Value<int>? decimalPlaces,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return SightMarkPreferencesTableCompanion(
+      bowId: bowId ?? this.bowId,
+      notationStyle: notationStyle ?? this.notationStyle,
+      decimalPlaces: decimalPlaces ?? this.decimalPlaces,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (bowId.present) {
+      map['bow_id'] = Variable<String>(bowId.value);
+    }
+    if (notationStyle.present) {
+      map['notation_style'] = Variable<String>(notationStyle.value);
+    }
+    if (decimalPlaces.present) {
+      map['decimal_places'] = Variable<int>(decimalPlaces.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SightMarkPreferencesTableCompanion(')
+          ..write('bowId: $bowId, ')
+          ..write('notationStyle: $notationStyle, ')
+          ..write('decimalPlaces: $decimalPlaces, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RegisteredTargetsTable extends RegisteredTargets
+    with TableInfo<$RegisteredTargetsTable, RegisteredTarget> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RegisteredTargetsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetTypeMeta = const VerificationMeta(
+    'targetType',
+  );
+  @override
+  late final GeneratedColumn<String> targetType = GeneratedColumn<String>(
+    'target_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _imagePathMeta = const VerificationMeta(
+    'imagePath',
+  );
+  @override
+  late final GeneratedColumn<String> imagePath = GeneratedColumn<String>(
+    'image_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isTripleSpotMeta = const VerificationMeta(
+    'isTripleSpot',
+  );
+  @override
+  late final GeneratedColumn<bool> isTripleSpot = GeneratedColumn<bool>(
+    'is_triple_spot',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_triple_spot" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    targetType,
+    imagePath,
+    isTripleSpot,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'registered_targets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RegisteredTarget> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('target_type')) {
+      context.handle(
+        _targetTypeMeta,
+        targetType.isAcceptableOrUnknown(data['target_type']!, _targetTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetTypeMeta);
+    }
+    if (data.containsKey('image_path')) {
+      context.handle(
+        _imagePathMeta,
+        imagePath.isAcceptableOrUnknown(data['image_path']!, _imagePathMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_imagePathMeta);
+    }
+    if (data.containsKey('is_triple_spot')) {
+      context.handle(
+        _isTripleSpotMeta,
+        isTripleSpot.isAcceptableOrUnknown(
+          data['is_triple_spot']!,
+          _isTripleSpotMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RegisteredTarget map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RegisteredTarget(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      targetType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_type'],
+      )!,
+      imagePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}image_path'],
+      )!,
+      isTripleSpot: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_triple_spot'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RegisteredTargetsTable createAlias(String alias) {
+    return $RegisteredTargetsTable(attachedDatabase, alias);
+  }
+}
+
+class RegisteredTarget extends DataClass
+    implements Insertable<RegisteredTarget> {
+  final String id;
+  final String targetType;
+  final String imagePath;
+  final bool isTripleSpot;
+  final DateTime createdAt;
+  const RegisteredTarget({
+    required this.id,
+    required this.targetType,
+    required this.imagePath,
+    required this.isTripleSpot,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['target_type'] = Variable<String>(targetType);
+    map['image_path'] = Variable<String>(imagePath);
+    map['is_triple_spot'] = Variable<bool>(isTripleSpot);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  RegisteredTargetsCompanion toCompanion(bool nullToAbsent) {
+    return RegisteredTargetsCompanion(
+      id: Value(id),
+      targetType: Value(targetType),
+      imagePath: Value(imagePath),
+      isTripleSpot: Value(isTripleSpot),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory RegisteredTarget.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RegisteredTarget(
+      id: serializer.fromJson<String>(json['id']),
+      targetType: serializer.fromJson<String>(json['targetType']),
+      imagePath: serializer.fromJson<String>(json['imagePath']),
+      isTripleSpot: serializer.fromJson<bool>(json['isTripleSpot']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'targetType': serializer.toJson<String>(targetType),
+      'imagePath': serializer.toJson<String>(imagePath),
+      'isTripleSpot': serializer.toJson<bool>(isTripleSpot),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  RegisteredTarget copyWith({
+    String? id,
+    String? targetType,
+    String? imagePath,
+    bool? isTripleSpot,
+    DateTime? createdAt,
+  }) => RegisteredTarget(
+    id: id ?? this.id,
+    targetType: targetType ?? this.targetType,
+    imagePath: imagePath ?? this.imagePath,
+    isTripleSpot: isTripleSpot ?? this.isTripleSpot,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  RegisteredTarget copyWithCompanion(RegisteredTargetsCompanion data) {
+    return RegisteredTarget(
+      id: data.id.present ? data.id.value : this.id,
+      targetType: data.targetType.present
+          ? data.targetType.value
+          : this.targetType,
+      imagePath: data.imagePath.present ? data.imagePath.value : this.imagePath,
+      isTripleSpot: data.isTripleSpot.present
+          ? data.isTripleSpot.value
+          : this.isTripleSpot,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RegisteredTarget(')
+          ..write('id: $id, ')
+          ..write('targetType: $targetType, ')
+          ..write('imagePath: $imagePath, ')
+          ..write('isTripleSpot: $isTripleSpot, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, targetType, imagePath, isTripleSpot, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RegisteredTarget &&
+          other.id == this.id &&
+          other.targetType == this.targetType &&
+          other.imagePath == this.imagePath &&
+          other.isTripleSpot == this.isTripleSpot &&
+          other.createdAt == this.createdAt);
+}
+
+class RegisteredTargetsCompanion extends UpdateCompanion<RegisteredTarget> {
+  final Value<String> id;
+  final Value<String> targetType;
+  final Value<String> imagePath;
+  final Value<bool> isTripleSpot;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const RegisteredTargetsCompanion({
+    this.id = const Value.absent(),
+    this.targetType = const Value.absent(),
+    this.imagePath = const Value.absent(),
+    this.isTripleSpot = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RegisteredTargetsCompanion.insert({
+    required String id,
+    required String targetType,
+    required String imagePath,
+    this.isTripleSpot = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       targetType = Value(targetType),
+       imagePath = Value(imagePath);
+  static Insertable<RegisteredTarget> custom({
+    Expression<String>? id,
+    Expression<String>? targetType,
+    Expression<String>? imagePath,
+    Expression<bool>? isTripleSpot,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (targetType != null) 'target_type': targetType,
+      if (imagePath != null) 'image_path': imagePath,
+      if (isTripleSpot != null) 'is_triple_spot': isTripleSpot,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RegisteredTargetsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? targetType,
+    Value<String>? imagePath,
+    Value<bool>? isTripleSpot,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return RegisteredTargetsCompanion(
+      id: id ?? this.id,
+      targetType: targetType ?? this.targetType,
+      imagePath: imagePath ?? this.imagePath,
+      isTripleSpot: isTripleSpot ?? this.isTripleSpot,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (targetType.present) {
+      map['target_type'] = Variable<String>(targetType.value);
+    }
+    if (imagePath.present) {
+      map['image_path'] = Variable<String>(imagePath.value);
+    }
+    if (isTripleSpot.present) {
+      map['is_triple_spot'] = Variable<bool>(isTripleSpot.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RegisteredTargetsCompanion(')
+          ..write('id: $id, ')
+          ..write('targetType: $targetType, ')
+          ..write('imagePath: $imagePath, ')
+          ..write('isTripleSpot: $isTripleSpot, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AutoPlotUsageTable extends AutoPlotUsage
+    with TableInfo<$AutoPlotUsageTable, AutoPlotUsageData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AutoPlotUsageTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _yearMonthMeta = const VerificationMeta(
+    'yearMonth',
+  );
+  @override
+  late final GeneratedColumn<String> yearMonth = GeneratedColumn<String>(
+    'year_month',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scanCountMeta = const VerificationMeta(
+    'scanCount',
+  );
+  @override
+  late final GeneratedColumn<int> scanCount = GeneratedColumn<int>(
+    'scan_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, yearMonth, scanCount];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'auto_plot_usage';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AutoPlotUsageData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('year_month')) {
+      context.handle(
+        _yearMonthMeta,
+        yearMonth.isAcceptableOrUnknown(data['year_month']!, _yearMonthMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_yearMonthMeta);
+    }
+    if (data.containsKey('scan_count')) {
+      context.handle(
+        _scanCountMeta,
+        scanCount.isAcceptableOrUnknown(data['scan_count']!, _scanCountMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AutoPlotUsageData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AutoPlotUsageData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      yearMonth: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}year_month'],
+      )!,
+      scanCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}scan_count'],
+      )!,
+    );
+  }
+
+  @override
+  $AutoPlotUsageTable createAlias(String alias) {
+    return $AutoPlotUsageTable(attachedDatabase, alias);
+  }
+}
+
+class AutoPlotUsageData extends DataClass
+    implements Insertable<AutoPlotUsageData> {
+  final String id;
+  final String yearMonth;
+  final int scanCount;
+  const AutoPlotUsageData({
+    required this.id,
+    required this.yearMonth,
+    required this.scanCount,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['year_month'] = Variable<String>(yearMonth);
+    map['scan_count'] = Variable<int>(scanCount);
+    return map;
+  }
+
+  AutoPlotUsageCompanion toCompanion(bool nullToAbsent) {
+    return AutoPlotUsageCompanion(
+      id: Value(id),
+      yearMonth: Value(yearMonth),
+      scanCount: Value(scanCount),
+    );
+  }
+
+  factory AutoPlotUsageData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AutoPlotUsageData(
+      id: serializer.fromJson<String>(json['id']),
+      yearMonth: serializer.fromJson<String>(json['yearMonth']),
+      scanCount: serializer.fromJson<int>(json['scanCount']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'yearMonth': serializer.toJson<String>(yearMonth),
+      'scanCount': serializer.toJson<int>(scanCount),
+    };
+  }
+
+  AutoPlotUsageData copyWith({String? id, String? yearMonth, int? scanCount}) =>
+      AutoPlotUsageData(
+        id: id ?? this.id,
+        yearMonth: yearMonth ?? this.yearMonth,
+        scanCount: scanCount ?? this.scanCount,
+      );
+  AutoPlotUsageData copyWithCompanion(AutoPlotUsageCompanion data) {
+    return AutoPlotUsageData(
+      id: data.id.present ? data.id.value : this.id,
+      yearMonth: data.yearMonth.present ? data.yearMonth.value : this.yearMonth,
+      scanCount: data.scanCount.present ? data.scanCount.value : this.scanCount,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AutoPlotUsageData(')
+          ..write('id: $id, ')
+          ..write('yearMonth: $yearMonth, ')
+          ..write('scanCount: $scanCount')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, yearMonth, scanCount);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AutoPlotUsageData &&
+          other.id == this.id &&
+          other.yearMonth == this.yearMonth &&
+          other.scanCount == this.scanCount);
+}
+
+class AutoPlotUsageCompanion extends UpdateCompanion<AutoPlotUsageData> {
+  final Value<String> id;
+  final Value<String> yearMonth;
+  final Value<int> scanCount;
+  final Value<int> rowid;
+  const AutoPlotUsageCompanion({
+    this.id = const Value.absent(),
+    this.yearMonth = const Value.absent(),
+    this.scanCount = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AutoPlotUsageCompanion.insert({
+    required String id,
+    required String yearMonth,
+    this.scanCount = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       yearMonth = Value(yearMonth);
+  static Insertable<AutoPlotUsageData> custom({
+    Expression<String>? id,
+    Expression<String>? yearMonth,
+    Expression<int>? scanCount,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (yearMonth != null) 'year_month': yearMonth,
+      if (scanCount != null) 'scan_count': scanCount,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AutoPlotUsageCompanion copyWith({
+    Value<String>? id,
+    Value<String>? yearMonth,
+    Value<int>? scanCount,
+    Value<int>? rowid,
+  }) {
+    return AutoPlotUsageCompanion(
+      id: id ?? this.id,
+      yearMonth: yearMonth ?? this.yearMonth,
+      scanCount: scanCount ?? this.scanCount,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (yearMonth.present) {
+      map['year_month'] = Variable<String>(yearMonth.value);
+    }
+    if (scanCount.present) {
+      map['scan_count'] = Variable<int>(scanCount.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AutoPlotUsageCompanion(')
+          ..write('id: $id, ')
+          ..write('yearMonth: $yearMonth, ')
+          ..write('scanCount: $scanCount, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -12509,6 +18578,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $UserPreferencesTable userPreferences = $UserPreferencesTable(
     this,
   );
+  late final $StabilizersTable stabilizers = $StabilizersTable(this);
+  late final $BowStringsTable bowStrings = $BowStringsTable(this);
   late final $VolumeEntriesTable volumeEntries = $VolumeEntriesTable(this);
   late final $OlyExerciseTypesTable olyExerciseTypes = $OlyExerciseTypesTable(
     this,
@@ -12528,6 +18599,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $VolumeImportsTable volumeImports = $VolumeImportsTable(this);
   late final $KitSnapshotsTable kitSnapshots = $KitSnapshotsTable(this);
   late final $TuningSessionsTable tuningSessions = $TuningSessionsTable(this);
+  late final $SkillLevelsTable skillLevels = $SkillLevelsTable(this);
+  late final $XpHistoryTable xpHistory = $XpHistoryTable(this);
+  late final $SightMarksTable sightMarks = $SightMarksTable(this);
+  late final $SightMarkPreferencesTableTable sightMarkPreferencesTable =
+      $SightMarkPreferencesTableTable(this);
+  late final $RegisteredTargetsTable registeredTargets =
+      $RegisteredTargetsTable(this);
+  late final $AutoPlotUsageTable autoPlotUsage = $AutoPlotUsageTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -12542,6 +18621,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     arrows,
     importedScores,
     userPreferences,
+    stabilizers,
+    bowStrings,
     volumeEntries,
     olyExerciseTypes,
     olySessionTemplates,
@@ -12553,6 +18634,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     volumeImports,
     kitSnapshots,
     tuningSessions,
+    skillLevels,
+    xpHistory,
+    sightMarks,
+    sightMarkPreferencesTable,
+    registeredTargets,
+    autoPlotUsage,
   ];
 }
 
@@ -12988,6 +19075,18 @@ typedef $$BowsTableCreateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
+      Value<String?> riserModel,
+      Value<DateTime?> riserPurchaseDate,
+      Value<String?> limbModel,
+      Value<DateTime?> limbPurchaseDate,
+      Value<double?> poundage,
+      Value<double?> tillerTop,
+      Value<double?> tillerBottom,
+      Value<double?> braceHeight,
+      Value<double?> nockingPointHeight,
+      Value<double?> buttonPosition,
+      Value<String?> buttonTension,
+      Value<double?> clickerPosition,
       Value<int> rowid,
     });
 typedef $$BowsTableUpdateCompanionBuilder =
@@ -13000,6 +19099,18 @@ typedef $$BowsTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
+      Value<String?> riserModel,
+      Value<DateTime?> riserPurchaseDate,
+      Value<String?> limbModel,
+      Value<DateTime?> limbPurchaseDate,
+      Value<double?> poundage,
+      Value<double?> tillerTop,
+      Value<double?> tillerBottom,
+      Value<double?> braceHeight,
+      Value<double?> nockingPointHeight,
+      Value<double?> buttonPosition,
+      Value<String?> buttonTension,
+      Value<double?> clickerPosition,
       Value<int> rowid,
     });
 
@@ -13045,6 +19156,42 @@ final class $$BowsTableReferences
     );
   }
 
+  static MultiTypedResultKey<$StabilizersTable, List<Stabilizer>>
+  _stabilizersRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.stabilizers,
+    aliasName: $_aliasNameGenerator(db.bows.id, db.stabilizers.bowId),
+  );
+
+  $$StabilizersTableProcessedTableManager get stabilizersRefs {
+    final manager = $$StabilizersTableTableManager(
+      $_db,
+      $_db.stabilizers,
+    ).filter((f) => f.bowId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_stabilizersRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$BowStringsTable, List<BowString>>
+  _bowStringsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.bowStrings,
+    aliasName: $_aliasNameGenerator(db.bows.id, db.bowStrings.bowId),
+  );
+
+  $$BowStringsTableProcessedTableManager get bowStringsRefs {
+    final manager = $$BowStringsTableTableManager(
+      $_db,
+      $_db.bowStrings,
+    ).filter((f) => f.bowId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_bowStringsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<$TuningSessionsTable, List<TuningSession>>
   _tuningSessionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.tuningSessions,
@@ -13058,6 +19205,52 @@ final class $$BowsTableReferences
     ).filter((f) => f.bowId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_tuningSessionsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$SightMarksTable, List<SightMark>>
+  _sightMarksRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.sightMarks,
+    aliasName: $_aliasNameGenerator(db.bows.id, db.sightMarks.bowId),
+  );
+
+  $$SightMarksTableProcessedTableManager get sightMarksRefs {
+    final manager = $$SightMarksTableTableManager(
+      $_db,
+      $_db.sightMarks,
+    ).filter((f) => f.bowId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_sightMarksRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $SightMarkPreferencesTableTable,
+    List<SightMarkPreferencesTableData>
+  >
+  _sightMarkPreferencesTableRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.sightMarkPreferencesTable,
+        aliasName: $_aliasNameGenerator(
+          db.bows.id,
+          db.sightMarkPreferencesTable.bowId,
+        ),
+      );
+
+  $$SightMarkPreferencesTableTableProcessedTableManager
+  get sightMarkPreferencesTableRefs {
+    final manager = $$SightMarkPreferencesTableTableTableManager(
+      $_db,
+      $_db.sightMarkPreferencesTable,
+    ).filter((f) => f.bowId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _sightMarkPreferencesTableRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -13112,6 +19305,66 @@ class $$BowsTableFilterComposer extends Composer<_$AppDatabase, $BowsTable> {
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get riserModel => $composableBuilder(
+    column: $table.riserModel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get riserPurchaseDate => $composableBuilder(
+    column: $table.riserPurchaseDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get limbModel => $composableBuilder(
+    column: $table.limbModel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get limbPurchaseDate => $composableBuilder(
+    column: $table.limbPurchaseDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get poundage => $composableBuilder(
+    column: $table.poundage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get tillerTop => $composableBuilder(
+    column: $table.tillerTop,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get tillerBottom => $composableBuilder(
+    column: $table.tillerBottom,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get braceHeight => $composableBuilder(
+    column: $table.braceHeight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get nockingPointHeight => $composableBuilder(
+    column: $table.nockingPointHeight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get buttonPosition => $composableBuilder(
+    column: $table.buttonPosition,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get buttonTension => $composableBuilder(
+    column: $table.buttonTension,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get clickerPosition => $composableBuilder(
+    column: $table.clickerPosition,
+    builder: (column) => ColumnFilters(column),
+  );
+
   Expression<bool> quiversRefs(
     Expression<bool> Function($$QuiversTableFilterComposer f) f,
   ) {
@@ -13162,6 +19415,56 @@ class $$BowsTableFilterComposer extends Composer<_$AppDatabase, $BowsTable> {
     return f(composer);
   }
 
+  Expression<bool> stabilizersRefs(
+    Expression<bool> Function($$StabilizersTableFilterComposer f) f,
+  ) {
+    final $$StabilizersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.stabilizers,
+      getReferencedColumn: (t) => t.bowId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StabilizersTableFilterComposer(
+            $db: $db,
+            $table: $db.stabilizers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> bowStringsRefs(
+    Expression<bool> Function($$BowStringsTableFilterComposer f) f,
+  ) {
+    final $$BowStringsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.bowStrings,
+      getReferencedColumn: (t) => t.bowId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowStringsTableFilterComposer(
+            $db: $db,
+            $table: $db.bowStrings,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<bool> tuningSessionsRefs(
     Expression<bool> Function($$TuningSessionsTableFilterComposer f) f,
   ) {
@@ -13184,6 +19487,58 @@ class $$BowsTableFilterComposer extends Composer<_$AppDatabase, $BowsTable> {
                 $removeJoinBuilderFromRootComposer,
           ),
     );
+    return f(composer);
+  }
+
+  Expression<bool> sightMarksRefs(
+    Expression<bool> Function($$SightMarksTableFilterComposer f) f,
+  ) {
+    final $$SightMarksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sightMarks,
+      getReferencedColumn: (t) => t.bowId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SightMarksTableFilterComposer(
+            $db: $db,
+            $table: $db.sightMarks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> sightMarkPreferencesTableRefs(
+    Expression<bool> Function($$SightMarkPreferencesTableTableFilterComposer f)
+    f,
+  ) {
+    final $$SightMarkPreferencesTableTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.sightMarkPreferencesTable,
+          getReferencedColumn: (t) => t.bowId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$SightMarkPreferencesTableTableFilterComposer(
+                $db: $db,
+                $table: $db.sightMarkPreferencesTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 }
@@ -13235,6 +19590,66 @@ class $$BowsTableOrderingComposer extends Composer<_$AppDatabase, $BowsTable> {
     column: $table.deletedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get riserModel => $composableBuilder(
+    column: $table.riserModel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get riserPurchaseDate => $composableBuilder(
+    column: $table.riserPurchaseDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get limbModel => $composableBuilder(
+    column: $table.limbModel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get limbPurchaseDate => $composableBuilder(
+    column: $table.limbPurchaseDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get poundage => $composableBuilder(
+    column: $table.poundage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get tillerTop => $composableBuilder(
+    column: $table.tillerTop,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get tillerBottom => $composableBuilder(
+    column: $table.tillerBottom,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get braceHeight => $composableBuilder(
+    column: $table.braceHeight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get nockingPointHeight => $composableBuilder(
+    column: $table.nockingPointHeight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get buttonPosition => $composableBuilder(
+    column: $table.buttonPosition,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get buttonTension => $composableBuilder(
+    column: $table.buttonTension,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get clickerPosition => $composableBuilder(
+    column: $table.clickerPosition,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$BowsTableAnnotationComposer
@@ -13269,6 +19684,60 @@ class $$BowsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get riserModel => $composableBuilder(
+    column: $table.riserModel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get riserPurchaseDate => $composableBuilder(
+    column: $table.riserPurchaseDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get limbModel =>
+      $composableBuilder(column: $table.limbModel, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get limbPurchaseDate => $composableBuilder(
+    column: $table.limbPurchaseDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get poundage =>
+      $composableBuilder(column: $table.poundage, builder: (column) => column);
+
+  GeneratedColumn<double> get tillerTop =>
+      $composableBuilder(column: $table.tillerTop, builder: (column) => column);
+
+  GeneratedColumn<double> get tillerBottom => $composableBuilder(
+    column: $table.tillerBottom,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get braceHeight => $composableBuilder(
+    column: $table.braceHeight,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get nockingPointHeight => $composableBuilder(
+    column: $table.nockingPointHeight,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get buttonPosition => $composableBuilder(
+    column: $table.buttonPosition,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get buttonTension => $composableBuilder(
+    column: $table.buttonTension,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get clickerPosition => $composableBuilder(
+    column: $table.clickerPosition,
+    builder: (column) => column,
+  );
 
   Expression<T> quiversRefs<T extends Object>(
     Expression<T> Function($$QuiversTableAnnotationComposer a) f,
@@ -13320,6 +19789,56 @@ class $$BowsTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> stabilizersRefs<T extends Object>(
+    Expression<T> Function($$StabilizersTableAnnotationComposer a) f,
+  ) {
+    final $$StabilizersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.stabilizers,
+      getReferencedColumn: (t) => t.bowId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StabilizersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.stabilizers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> bowStringsRefs<T extends Object>(
+    Expression<T> Function($$BowStringsTableAnnotationComposer a) f,
+  ) {
+    final $$BowStringsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.bowStrings,
+      getReferencedColumn: (t) => t.bowId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowStringsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.bowStrings,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> tuningSessionsRefs<T extends Object>(
     Expression<T> Function($$TuningSessionsTableAnnotationComposer a) f,
   ) {
@@ -13344,6 +19863,58 @@ class $$BowsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> sightMarksRefs<T extends Object>(
+    Expression<T> Function($$SightMarksTableAnnotationComposer a) f,
+  ) {
+    final $$SightMarksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sightMarks,
+      getReferencedColumn: (t) => t.bowId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SightMarksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.sightMarks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> sightMarkPreferencesTableRefs<T extends Object>(
+    Expression<T> Function($$SightMarkPreferencesTableTableAnnotationComposer a)
+    f,
+  ) {
+    final $$SightMarkPreferencesTableTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.sightMarkPreferencesTable,
+          getReferencedColumn: (t) => t.bowId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$SightMarkPreferencesTableTableAnnotationComposer(
+                $db: $db,
+                $table: $db.sightMarkPreferencesTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$BowsTableTableManager
@@ -13362,7 +19933,11 @@ class $$BowsTableTableManager
           PrefetchHooks Function({
             bool quiversRefs,
             bool sessionsRefs,
+            bool stabilizersRefs,
+            bool bowStringsRefs,
             bool tuningSessionsRefs,
+            bool sightMarksRefs,
+            bool sightMarkPreferencesTableRefs,
           })
         > {
   $$BowsTableTableManager(_$AppDatabase db, $BowsTable table)
@@ -13386,6 +19961,18 @@ class $$BowsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String?> riserModel = const Value.absent(),
+                Value<DateTime?> riserPurchaseDate = const Value.absent(),
+                Value<String?> limbModel = const Value.absent(),
+                Value<DateTime?> limbPurchaseDate = const Value.absent(),
+                Value<double?> poundage = const Value.absent(),
+                Value<double?> tillerTop = const Value.absent(),
+                Value<double?> tillerBottom = const Value.absent(),
+                Value<double?> braceHeight = const Value.absent(),
+                Value<double?> nockingPointHeight = const Value.absent(),
+                Value<double?> buttonPosition = const Value.absent(),
+                Value<String?> buttonTension = const Value.absent(),
+                Value<double?> clickerPosition = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BowsCompanion(
                 id: id,
@@ -13396,6 +19983,18 @@ class $$BowsTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
+                riserModel: riserModel,
+                riserPurchaseDate: riserPurchaseDate,
+                limbModel: limbModel,
+                limbPurchaseDate: limbPurchaseDate,
+                poundage: poundage,
+                tillerTop: tillerTop,
+                tillerBottom: tillerBottom,
+                braceHeight: braceHeight,
+                nockingPointHeight: nockingPointHeight,
+                buttonPosition: buttonPosition,
+                buttonTension: buttonTension,
+                clickerPosition: clickerPosition,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -13408,6 +20007,18 @@ class $$BowsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String?> riserModel = const Value.absent(),
+                Value<DateTime?> riserPurchaseDate = const Value.absent(),
+                Value<String?> limbModel = const Value.absent(),
+                Value<DateTime?> limbPurchaseDate = const Value.absent(),
+                Value<double?> poundage = const Value.absent(),
+                Value<double?> tillerTop = const Value.absent(),
+                Value<double?> tillerBottom = const Value.absent(),
+                Value<double?> braceHeight = const Value.absent(),
+                Value<double?> nockingPointHeight = const Value.absent(),
+                Value<double?> buttonPosition = const Value.absent(),
+                Value<String?> buttonTension = const Value.absent(),
+                Value<double?> clickerPosition = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BowsCompanion.insert(
                 id: id,
@@ -13418,6 +20029,18 @@ class $$BowsTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
+                riserModel: riserModel,
+                riserPurchaseDate: riserPurchaseDate,
+                limbModel: limbModel,
+                limbPurchaseDate: limbPurchaseDate,
+                poundage: poundage,
+                tillerTop: tillerTop,
+                tillerBottom: tillerBottom,
+                braceHeight: braceHeight,
+                nockingPointHeight: nockingPointHeight,
+                buttonPosition: buttonPosition,
+                buttonTension: buttonTension,
+                clickerPosition: clickerPosition,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -13430,14 +20053,23 @@ class $$BowsTableTableManager
               ({
                 quiversRefs = false,
                 sessionsRefs = false,
+                stabilizersRefs = false,
+                bowStringsRefs = false,
                 tuningSessionsRefs = false,
+                sightMarksRefs = false,
+                sightMarkPreferencesTableRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (quiversRefs) db.quivers,
                     if (sessionsRefs) db.sessions,
+                    if (stabilizersRefs) db.stabilizers,
+                    if (bowStringsRefs) db.bowStrings,
                     if (tuningSessionsRefs) db.tuningSessions,
+                    if (sightMarksRefs) db.sightMarks,
+                    if (sightMarkPreferencesTableRefs)
+                      db.sightMarkPreferencesTable,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -13468,6 +20100,38 @@ class $$BowsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (stabilizersRefs)
+                        await $_getPrefetchedData<Bow, $BowsTable, Stabilizer>(
+                          currentTable: table,
+                          referencedTable: $$BowsTableReferences
+                              ._stabilizersRefsTable(db),
+                          managerFromTypedResult: (p0) => $$BowsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).stabilizersRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bowId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (bowStringsRefs)
+                        await $_getPrefetchedData<Bow, $BowsTable, BowString>(
+                          currentTable: table,
+                          referencedTable: $$BowsTableReferences
+                              ._bowStringsRefsTable(db),
+                          managerFromTypedResult: (p0) => $$BowsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).bowStringsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bowId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (tuningSessionsRefs)
                         await $_getPrefetchedData<
                           Bow,
@@ -13482,6 +20146,42 @@ class $$BowsTableTableManager
                             table,
                             p0,
                           ).tuningSessionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bowId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (sightMarksRefs)
+                        await $_getPrefetchedData<Bow, $BowsTable, SightMark>(
+                          currentTable: table,
+                          referencedTable: $$BowsTableReferences
+                              ._sightMarksRefsTable(db),
+                          managerFromTypedResult: (p0) => $$BowsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).sightMarksRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bowId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (sightMarkPreferencesTableRefs)
+                        await $_getPrefetchedData<
+                          Bow,
+                          $BowsTable,
+                          SightMarkPreferencesTableData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$BowsTableReferences
+                              ._sightMarkPreferencesTableRefsTable(db),
+                          managerFromTypedResult: (p0) => $$BowsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).sightMarkPreferencesTableRefs,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.bowId == item.id,
@@ -13511,7 +20211,11 @@ typedef $$BowsTableProcessedTableManager =
       PrefetchHooks Function({
         bool quiversRefs,
         bool sessionsRefs,
+        bool stabilizersRefs,
+        bool bowStringsRefs,
         bool tuningSessionsRefs,
+        bool sightMarksRefs,
+        bool sightMarkPreferencesTableRefs,
       })
     >;
 typedef $$QuiversTableCreateCompanionBuilder =
@@ -15313,6 +22017,14 @@ typedef $$ShaftsTableCreateCompanionBuilder =
       Value<String?> notes,
       Value<DateTime> createdAt,
       Value<DateTime?> retiredAt,
+      Value<double?> totalWeight,
+      Value<String?> pointType,
+      Value<String?> nockBrand,
+      Value<String?> fletchingSize,
+      Value<double?> fletchingAngle,
+      Value<bool?> hasWrap,
+      Value<String?> wrapColor,
+      Value<DateTime?> purchaseDate,
       Value<int> rowid,
     });
 typedef $$ShaftsTableUpdateCompanionBuilder =
@@ -15330,6 +22042,14 @@ typedef $$ShaftsTableUpdateCompanionBuilder =
       Value<String?> notes,
       Value<DateTime> createdAt,
       Value<DateTime?> retiredAt,
+      Value<double?> totalWeight,
+      Value<String?> pointType,
+      Value<String?> nockBrand,
+      Value<String?> fletchingSize,
+      Value<double?> fletchingAngle,
+      Value<bool?> hasWrap,
+      Value<String?> wrapColor,
+      Value<DateTime?> purchaseDate,
       Value<int> rowid,
     });
 
@@ -15440,6 +22160,46 @@ class $$ShaftsTableFilterComposer
 
   ColumnFilters<DateTime> get retiredAt => $composableBuilder(
     column: $table.retiredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get totalWeight => $composableBuilder(
+    column: $table.totalWeight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get pointType => $composableBuilder(
+    column: $table.pointType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nockBrand => $composableBuilder(
+    column: $table.nockBrand,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fletchingSize => $composableBuilder(
+    column: $table.fletchingSize,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get fletchingAngle => $composableBuilder(
+    column: $table.fletchingAngle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get hasWrap => $composableBuilder(
+    column: $table.hasWrap,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get wrapColor => $composableBuilder(
+    column: $table.wrapColor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get purchaseDate => $composableBuilder(
+    column: $table.purchaseDate,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -15561,6 +22321,46 @@ class $$ShaftsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get totalWeight => $composableBuilder(
+    column: $table.totalWeight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get pointType => $composableBuilder(
+    column: $table.pointType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nockBrand => $composableBuilder(
+    column: $table.nockBrand,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fletchingSize => $composableBuilder(
+    column: $table.fletchingSize,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get fletchingAngle => $composableBuilder(
+    column: $table.fletchingAngle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get hasWrap => $composableBuilder(
+    column: $table.hasWrap,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get wrapColor => $composableBuilder(
+    column: $table.wrapColor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get purchaseDate => $composableBuilder(
+    column: $table.purchaseDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$QuiversTableOrderingComposer get quiverId {
     final $$QuiversTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -15637,6 +22437,38 @@ class $$ShaftsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get retiredAt =>
       $composableBuilder(column: $table.retiredAt, builder: (column) => column);
+
+  GeneratedColumn<double> get totalWeight => $composableBuilder(
+    column: $table.totalWeight,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get pointType =>
+      $composableBuilder(column: $table.pointType, builder: (column) => column);
+
+  GeneratedColumn<String> get nockBrand =>
+      $composableBuilder(column: $table.nockBrand, builder: (column) => column);
+
+  GeneratedColumn<String> get fletchingSize => $composableBuilder(
+    column: $table.fletchingSize,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get fletchingAngle => $composableBuilder(
+    column: $table.fletchingAngle,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get hasWrap =>
+      $composableBuilder(column: $table.hasWrap, builder: (column) => column);
+
+  GeneratedColumn<String> get wrapColor =>
+      $composableBuilder(column: $table.wrapColor, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get purchaseDate => $composableBuilder(
+    column: $table.purchaseDate,
+    builder: (column) => column,
+  );
 
   $$QuiversTableAnnotationComposer get quiverId {
     final $$QuiversTableAnnotationComposer composer = $composerBuilder(
@@ -15728,6 +22560,14 @@ class $$ShaftsTableTableManager
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> retiredAt = const Value.absent(),
+                Value<double?> totalWeight = const Value.absent(),
+                Value<String?> pointType = const Value.absent(),
+                Value<String?> nockBrand = const Value.absent(),
+                Value<String?> fletchingSize = const Value.absent(),
+                Value<double?> fletchingAngle = const Value.absent(),
+                Value<bool?> hasWrap = const Value.absent(),
+                Value<String?> wrapColor = const Value.absent(),
+                Value<DateTime?> purchaseDate = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ShaftsCompanion(
                 id: id,
@@ -15743,6 +22583,14 @@ class $$ShaftsTableTableManager
                 notes: notes,
                 createdAt: createdAt,
                 retiredAt: retiredAt,
+                totalWeight: totalWeight,
+                pointType: pointType,
+                nockBrand: nockBrand,
+                fletchingSize: fletchingSize,
+                fletchingAngle: fletchingAngle,
+                hasWrap: hasWrap,
+                wrapColor: wrapColor,
+                purchaseDate: purchaseDate,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -15760,6 +22608,14 @@ class $$ShaftsTableTableManager
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> retiredAt = const Value.absent(),
+                Value<double?> totalWeight = const Value.absent(),
+                Value<String?> pointType = const Value.absent(),
+                Value<String?> nockBrand = const Value.absent(),
+                Value<String?> fletchingSize = const Value.absent(),
+                Value<double?> fletchingAngle = const Value.absent(),
+                Value<bool?> hasWrap = const Value.absent(),
+                Value<String?> wrapColor = const Value.absent(),
+                Value<DateTime?> purchaseDate = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ShaftsCompanion.insert(
                 id: id,
@@ -15775,6 +22631,14 @@ class $$ShaftsTableTableManager
                 notes: notes,
                 createdAt: createdAt,
                 retiredAt: retiredAt,
+                totalWeight: totalWeight,
+                pointType: pointType,
+                nockBrand: nockBrand,
+                fletchingSize: fletchingSize,
+                fletchingAngle: fletchingAngle,
+                hasWrap: hasWrap,
+                wrapColor: wrapColor,
+                purchaseDate: purchaseDate,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -15869,6 +22733,7 @@ typedef $$ArrowsTableCreateCompanionBuilder =
       required int sequence,
       Value<int?> shaftNumber,
       Value<String?> shaftId,
+      Value<String?> nockRotation,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -15886,6 +22751,7 @@ typedef $$ArrowsTableUpdateCompanionBuilder =
       Value<int> sequence,
       Value<int?> shaftNumber,
       Value<String?> shaftId,
+      Value<String?> nockRotation,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -15986,6 +22852,11 @@ class $$ArrowsTableFilterComposer
 
   ColumnFilters<int> get shaftNumber => $composableBuilder(
     column: $table.shaftNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nockRotation => $composableBuilder(
+    column: $table.nockRotation,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -16100,6 +22971,11 @@ class $$ArrowsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get nockRotation => $composableBuilder(
+    column: $table.nockRotation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -16193,6 +23069,11 @@ class $$ArrowsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get nockRotation => $composableBuilder(
+    column: $table.nockRotation,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -16283,6 +23164,7 @@ class $$ArrowsTableTableManager
                 Value<int> sequence = const Value.absent(),
                 Value<int?> shaftNumber = const Value.absent(),
                 Value<String?> shaftId = const Value.absent(),
+                Value<String?> nockRotation = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ArrowsCompanion(
@@ -16298,6 +23180,7 @@ class $$ArrowsTableTableManager
                 sequence: sequence,
                 shaftNumber: shaftNumber,
                 shaftId: shaftId,
+                nockRotation: nockRotation,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -16315,6 +23198,7 @@ class $$ArrowsTableTableManager
                 required int sequence,
                 Value<int?> shaftNumber = const Value.absent(),
                 Value<String?> shaftId = const Value.absent(),
+                Value<String?> nockRotation = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ArrowsCompanion.insert(
@@ -16330,6 +23214,7 @@ class $$ArrowsTableTableManager
                 sequence: sequence,
                 shaftNumber: shaftNumber,
                 shaftId: shaftId,
+                nockRotation: nockRotation,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -16860,6 +23745,1153 @@ typedef $$UserPreferencesTableProcessedTableManager =
       ),
       UserPreference,
       PrefetchHooks Function()
+    >;
+typedef $$StabilizersTableCreateCompanionBuilder =
+    StabilizersCompanion Function({
+      required String id,
+      required String bowId,
+      Value<String?> name,
+      Value<String?> longRodModel,
+      Value<double?> longRodLength,
+      Value<double?> longRodWeight,
+      Value<DateTime?> longRodPurchaseDate,
+      Value<String?> sideRodModel,
+      Value<double?> sideRodLength,
+      Value<double?> sideRodWeight,
+      Value<DateTime?> sideRodPurchaseDate,
+      Value<double?> extenderLength,
+      Value<String?> vbarModel,
+      Value<double?> vbarAngleHorizontal,
+      Value<double?> vbarAngleVertical,
+      Value<String?> weightArrangement,
+      Value<String?> damperModel,
+      Value<String?> damperPositions,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$StabilizersTableUpdateCompanionBuilder =
+    StabilizersCompanion Function({
+      Value<String> id,
+      Value<String> bowId,
+      Value<String?> name,
+      Value<String?> longRodModel,
+      Value<double?> longRodLength,
+      Value<double?> longRodWeight,
+      Value<DateTime?> longRodPurchaseDate,
+      Value<String?> sideRodModel,
+      Value<double?> sideRodLength,
+      Value<double?> sideRodWeight,
+      Value<DateTime?> sideRodPurchaseDate,
+      Value<double?> extenderLength,
+      Value<String?> vbarModel,
+      Value<double?> vbarAngleHorizontal,
+      Value<double?> vbarAngleVertical,
+      Value<String?> weightArrangement,
+      Value<String?> damperModel,
+      Value<String?> damperPositions,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$StabilizersTableReferences
+    extends BaseReferences<_$AppDatabase, $StabilizersTable, Stabilizer> {
+  $$StabilizersTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $BowsTable _bowIdTable(_$AppDatabase db) => db.bows.createAlias(
+    $_aliasNameGenerator(db.stabilizers.bowId, db.bows.id),
+  );
+
+  $$BowsTableProcessedTableManager get bowId {
+    final $_column = $_itemColumn<String>('bow_id')!;
+
+    final manager = $$BowsTableTableManager(
+      $_db,
+      $_db.bows,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_bowIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$StabilizersTableFilterComposer
+    extends Composer<_$AppDatabase, $StabilizersTable> {
+  $$StabilizersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get longRodModel => $composableBuilder(
+    column: $table.longRodModel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longRodLength => $composableBuilder(
+    column: $table.longRodLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longRodWeight => $composableBuilder(
+    column: $table.longRodWeight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get longRodPurchaseDate => $composableBuilder(
+    column: $table.longRodPurchaseDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sideRodModel => $composableBuilder(
+    column: $table.sideRodModel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get sideRodLength => $composableBuilder(
+    column: $table.sideRodLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get sideRodWeight => $composableBuilder(
+    column: $table.sideRodWeight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get sideRodPurchaseDate => $composableBuilder(
+    column: $table.sideRodPurchaseDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get extenderLength => $composableBuilder(
+    column: $table.extenderLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get vbarModel => $composableBuilder(
+    column: $table.vbarModel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get vbarAngleHorizontal => $composableBuilder(
+    column: $table.vbarAngleHorizontal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get vbarAngleVertical => $composableBuilder(
+    column: $table.vbarAngleVertical,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get weightArrangement => $composableBuilder(
+    column: $table.weightArrangement,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get damperModel => $composableBuilder(
+    column: $table.damperModel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get damperPositions => $composableBuilder(
+    column: $table.damperPositions,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$BowsTableFilterComposer get bowId {
+    final $$BowsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableFilterComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StabilizersTableOrderingComposer
+    extends Composer<_$AppDatabase, $StabilizersTable> {
+  $$StabilizersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get longRodModel => $composableBuilder(
+    column: $table.longRodModel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longRodLength => $composableBuilder(
+    column: $table.longRodLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longRodWeight => $composableBuilder(
+    column: $table.longRodWeight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get longRodPurchaseDate => $composableBuilder(
+    column: $table.longRodPurchaseDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sideRodModel => $composableBuilder(
+    column: $table.sideRodModel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get sideRodLength => $composableBuilder(
+    column: $table.sideRodLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get sideRodWeight => $composableBuilder(
+    column: $table.sideRodWeight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get sideRodPurchaseDate => $composableBuilder(
+    column: $table.sideRodPurchaseDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get extenderLength => $composableBuilder(
+    column: $table.extenderLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get vbarModel => $composableBuilder(
+    column: $table.vbarModel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get vbarAngleHorizontal => $composableBuilder(
+    column: $table.vbarAngleHorizontal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get vbarAngleVertical => $composableBuilder(
+    column: $table.vbarAngleVertical,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get weightArrangement => $composableBuilder(
+    column: $table.weightArrangement,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get damperModel => $composableBuilder(
+    column: $table.damperModel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get damperPositions => $composableBuilder(
+    column: $table.damperPositions,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$BowsTableOrderingComposer get bowId {
+    final $$BowsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableOrderingComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StabilizersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StabilizersTable> {
+  $$StabilizersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get longRodModel => $composableBuilder(
+    column: $table.longRodModel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get longRodLength => $composableBuilder(
+    column: $table.longRodLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get longRodWeight => $composableBuilder(
+    column: $table.longRodWeight,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get longRodPurchaseDate => $composableBuilder(
+    column: $table.longRodPurchaseDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sideRodModel => $composableBuilder(
+    column: $table.sideRodModel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get sideRodLength => $composableBuilder(
+    column: $table.sideRodLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get sideRodWeight => $composableBuilder(
+    column: $table.sideRodWeight,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get sideRodPurchaseDate => $composableBuilder(
+    column: $table.sideRodPurchaseDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get extenderLength => $composableBuilder(
+    column: $table.extenderLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get vbarModel =>
+      $composableBuilder(column: $table.vbarModel, builder: (column) => column);
+
+  GeneratedColumn<double> get vbarAngleHorizontal => $composableBuilder(
+    column: $table.vbarAngleHorizontal,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get vbarAngleVertical => $composableBuilder(
+    column: $table.vbarAngleVertical,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get weightArrangement => $composableBuilder(
+    column: $table.weightArrangement,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get damperModel => $composableBuilder(
+    column: $table.damperModel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get damperPositions => $composableBuilder(
+    column: $table.damperPositions,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$BowsTableAnnotationComposer get bowId {
+    final $$BowsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StabilizersTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StabilizersTable,
+          Stabilizer,
+          $$StabilizersTableFilterComposer,
+          $$StabilizersTableOrderingComposer,
+          $$StabilizersTableAnnotationComposer,
+          $$StabilizersTableCreateCompanionBuilder,
+          $$StabilizersTableUpdateCompanionBuilder,
+          (Stabilizer, $$StabilizersTableReferences),
+          Stabilizer,
+          PrefetchHooks Function({bool bowId})
+        > {
+  $$StabilizersTableTableManager(_$AppDatabase db, $StabilizersTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StabilizersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StabilizersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StabilizersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> bowId = const Value.absent(),
+                Value<String?> name = const Value.absent(),
+                Value<String?> longRodModel = const Value.absent(),
+                Value<double?> longRodLength = const Value.absent(),
+                Value<double?> longRodWeight = const Value.absent(),
+                Value<DateTime?> longRodPurchaseDate = const Value.absent(),
+                Value<String?> sideRodModel = const Value.absent(),
+                Value<double?> sideRodLength = const Value.absent(),
+                Value<double?> sideRodWeight = const Value.absent(),
+                Value<DateTime?> sideRodPurchaseDate = const Value.absent(),
+                Value<double?> extenderLength = const Value.absent(),
+                Value<String?> vbarModel = const Value.absent(),
+                Value<double?> vbarAngleHorizontal = const Value.absent(),
+                Value<double?> vbarAngleVertical = const Value.absent(),
+                Value<String?> weightArrangement = const Value.absent(),
+                Value<String?> damperModel = const Value.absent(),
+                Value<String?> damperPositions = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StabilizersCompanion(
+                id: id,
+                bowId: bowId,
+                name: name,
+                longRodModel: longRodModel,
+                longRodLength: longRodLength,
+                longRodWeight: longRodWeight,
+                longRodPurchaseDate: longRodPurchaseDate,
+                sideRodModel: sideRodModel,
+                sideRodLength: sideRodLength,
+                sideRodWeight: sideRodWeight,
+                sideRodPurchaseDate: sideRodPurchaseDate,
+                extenderLength: extenderLength,
+                vbarModel: vbarModel,
+                vbarAngleHorizontal: vbarAngleHorizontal,
+                vbarAngleVertical: vbarAngleVertical,
+                weightArrangement: weightArrangement,
+                damperModel: damperModel,
+                damperPositions: damperPositions,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String bowId,
+                Value<String?> name = const Value.absent(),
+                Value<String?> longRodModel = const Value.absent(),
+                Value<double?> longRodLength = const Value.absent(),
+                Value<double?> longRodWeight = const Value.absent(),
+                Value<DateTime?> longRodPurchaseDate = const Value.absent(),
+                Value<String?> sideRodModel = const Value.absent(),
+                Value<double?> sideRodLength = const Value.absent(),
+                Value<double?> sideRodWeight = const Value.absent(),
+                Value<DateTime?> sideRodPurchaseDate = const Value.absent(),
+                Value<double?> extenderLength = const Value.absent(),
+                Value<String?> vbarModel = const Value.absent(),
+                Value<double?> vbarAngleHorizontal = const Value.absent(),
+                Value<double?> vbarAngleVertical = const Value.absent(),
+                Value<String?> weightArrangement = const Value.absent(),
+                Value<String?> damperModel = const Value.absent(),
+                Value<String?> damperPositions = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StabilizersCompanion.insert(
+                id: id,
+                bowId: bowId,
+                name: name,
+                longRodModel: longRodModel,
+                longRodLength: longRodLength,
+                longRodWeight: longRodWeight,
+                longRodPurchaseDate: longRodPurchaseDate,
+                sideRodModel: sideRodModel,
+                sideRodLength: sideRodLength,
+                sideRodWeight: sideRodWeight,
+                sideRodPurchaseDate: sideRodPurchaseDate,
+                extenderLength: extenderLength,
+                vbarModel: vbarModel,
+                vbarAngleHorizontal: vbarAngleHorizontal,
+                vbarAngleVertical: vbarAngleVertical,
+                weightArrangement: weightArrangement,
+                damperModel: damperModel,
+                damperPositions: damperPositions,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$StabilizersTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({bowId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (bowId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.bowId,
+                                referencedTable: $$StabilizersTableReferences
+                                    ._bowIdTable(db),
+                                referencedColumn: $$StabilizersTableReferences
+                                    ._bowIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$StabilizersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StabilizersTable,
+      Stabilizer,
+      $$StabilizersTableFilterComposer,
+      $$StabilizersTableOrderingComposer,
+      $$StabilizersTableAnnotationComposer,
+      $$StabilizersTableCreateCompanionBuilder,
+      $$StabilizersTableUpdateCompanionBuilder,
+      (Stabilizer, $$StabilizersTableReferences),
+      Stabilizer,
+      PrefetchHooks Function({bool bowId})
+    >;
+typedef $$BowStringsTableCreateCompanionBuilder =
+    BowStringsCompanion Function({
+      required String id,
+      required String bowId,
+      Value<String?> name,
+      Value<String?> material,
+      Value<int?> strandCount,
+      Value<String?> servingMaterial,
+      Value<double?> stringLength,
+      Value<String?> color,
+      Value<bool> isActive,
+      Value<DateTime?> purchaseDate,
+      Value<DateTime?> retiredAt,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$BowStringsTableUpdateCompanionBuilder =
+    BowStringsCompanion Function({
+      Value<String> id,
+      Value<String> bowId,
+      Value<String?> name,
+      Value<String?> material,
+      Value<int?> strandCount,
+      Value<String?> servingMaterial,
+      Value<double?> stringLength,
+      Value<String?> color,
+      Value<bool> isActive,
+      Value<DateTime?> purchaseDate,
+      Value<DateTime?> retiredAt,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$BowStringsTableReferences
+    extends BaseReferences<_$AppDatabase, $BowStringsTable, BowString> {
+  $$BowStringsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $BowsTable _bowIdTable(_$AppDatabase db) => db.bows.createAlias(
+    $_aliasNameGenerator(db.bowStrings.bowId, db.bows.id),
+  );
+
+  $$BowsTableProcessedTableManager get bowId {
+    final $_column = $_itemColumn<String>('bow_id')!;
+
+    final manager = $$BowsTableTableManager(
+      $_db,
+      $_db.bows,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_bowIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$BowStringsTableFilterComposer
+    extends Composer<_$AppDatabase, $BowStringsTable> {
+  $$BowStringsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get material => $composableBuilder(
+    column: $table.material,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get strandCount => $composableBuilder(
+    column: $table.strandCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get servingMaterial => $composableBuilder(
+    column: $table.servingMaterial,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get stringLength => $composableBuilder(
+    column: $table.stringLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get purchaseDate => $composableBuilder(
+    column: $table.purchaseDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get retiredAt => $composableBuilder(
+    column: $table.retiredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$BowsTableFilterComposer get bowId {
+    final $$BowsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableFilterComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BowStringsTableOrderingComposer
+    extends Composer<_$AppDatabase, $BowStringsTable> {
+  $$BowStringsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get material => $composableBuilder(
+    column: $table.material,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get strandCount => $composableBuilder(
+    column: $table.strandCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get servingMaterial => $composableBuilder(
+    column: $table.servingMaterial,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get stringLength => $composableBuilder(
+    column: $table.stringLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get purchaseDate => $composableBuilder(
+    column: $table.purchaseDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get retiredAt => $composableBuilder(
+    column: $table.retiredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$BowsTableOrderingComposer get bowId {
+    final $$BowsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableOrderingComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BowStringsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BowStringsTable> {
+  $$BowStringsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get material =>
+      $composableBuilder(column: $table.material, builder: (column) => column);
+
+  GeneratedColumn<int> get strandCount => $composableBuilder(
+    column: $table.strandCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get servingMaterial => $composableBuilder(
+    column: $table.servingMaterial,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get stringLength => $composableBuilder(
+    column: $table.stringLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get purchaseDate => $composableBuilder(
+    column: $table.purchaseDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get retiredAt =>
+      $composableBuilder(column: $table.retiredAt, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$BowsTableAnnotationComposer get bowId {
+    final $$BowsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BowStringsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $BowStringsTable,
+          BowString,
+          $$BowStringsTableFilterComposer,
+          $$BowStringsTableOrderingComposer,
+          $$BowStringsTableAnnotationComposer,
+          $$BowStringsTableCreateCompanionBuilder,
+          $$BowStringsTableUpdateCompanionBuilder,
+          (BowString, $$BowStringsTableReferences),
+          BowString,
+          PrefetchHooks Function({bool bowId})
+        > {
+  $$BowStringsTableTableManager(_$AppDatabase db, $BowStringsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BowStringsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BowStringsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BowStringsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> bowId = const Value.absent(),
+                Value<String?> name = const Value.absent(),
+                Value<String?> material = const Value.absent(),
+                Value<int?> strandCount = const Value.absent(),
+                Value<String?> servingMaterial = const Value.absent(),
+                Value<double?> stringLength = const Value.absent(),
+                Value<String?> color = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<DateTime?> purchaseDate = const Value.absent(),
+                Value<DateTime?> retiredAt = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BowStringsCompanion(
+                id: id,
+                bowId: bowId,
+                name: name,
+                material: material,
+                strandCount: strandCount,
+                servingMaterial: servingMaterial,
+                stringLength: stringLength,
+                color: color,
+                isActive: isActive,
+                purchaseDate: purchaseDate,
+                retiredAt: retiredAt,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String bowId,
+                Value<String?> name = const Value.absent(),
+                Value<String?> material = const Value.absent(),
+                Value<int?> strandCount = const Value.absent(),
+                Value<String?> servingMaterial = const Value.absent(),
+                Value<double?> stringLength = const Value.absent(),
+                Value<String?> color = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<DateTime?> purchaseDate = const Value.absent(),
+                Value<DateTime?> retiredAt = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BowStringsCompanion.insert(
+                id: id,
+                bowId: bowId,
+                name: name,
+                material: material,
+                strandCount: strandCount,
+                servingMaterial: servingMaterial,
+                stringLength: stringLength,
+                color: color,
+                isActive: isActive,
+                purchaseDate: purchaseDate,
+                retiredAt: retiredAt,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$BowStringsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({bowId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (bowId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.bowId,
+                                referencedTable: $$BowStringsTableReferences
+                                    ._bowIdTable(db),
+                                referencedColumn: $$BowStringsTableReferences
+                                    ._bowIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$BowStringsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $BowStringsTable,
+      BowString,
+      $$BowStringsTableFilterComposer,
+      $$BowStringsTableOrderingComposer,
+      $$BowStringsTableAnnotationComposer,
+      $$BowStringsTableCreateCompanionBuilder,
+      $$BowStringsTableUpdateCompanionBuilder,
+      (BowString, $$BowStringsTableReferences),
+      BowString,
+      PrefetchHooks Function({bool bowId})
     >;
 typedef $$VolumeEntriesTableCreateCompanionBuilder =
     VolumeEntriesCompanion Function({
@@ -20914,6 +28946,1760 @@ typedef $$TuningSessionsTableProcessedTableManager =
       TuningSession,
       PrefetchHooks Function({bool bowId})
     >;
+typedef $$SkillLevelsTableCreateCompanionBuilder =
+    SkillLevelsCompanion Function({
+      required String id,
+      required String name,
+      Value<String?> description,
+      Value<int> currentLevel,
+      Value<int> currentXp,
+      Value<DateTime?> lastLevelUpAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$SkillLevelsTableUpdateCompanionBuilder =
+    SkillLevelsCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String?> description,
+      Value<int> currentLevel,
+      Value<int> currentXp,
+      Value<DateTime?> lastLevelUpAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$SkillLevelsTableFilterComposer
+    extends Composer<_$AppDatabase, $SkillLevelsTable> {
+  $$SkillLevelsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get currentLevel => $composableBuilder(
+    column: $table.currentLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get currentXp => $composableBuilder(
+    column: $table.currentXp,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastLevelUpAt => $composableBuilder(
+    column: $table.lastLevelUpAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SkillLevelsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SkillLevelsTable> {
+  $$SkillLevelsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get currentLevel => $composableBuilder(
+    column: $table.currentLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get currentXp => $composableBuilder(
+    column: $table.currentXp,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastLevelUpAt => $composableBuilder(
+    column: $table.lastLevelUpAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SkillLevelsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SkillLevelsTable> {
+  $$SkillLevelsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get currentLevel => $composableBuilder(
+    column: $table.currentLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get currentXp =>
+      $composableBuilder(column: $table.currentXp, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastLevelUpAt => $composableBuilder(
+    column: $table.lastLevelUpAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$SkillLevelsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SkillLevelsTable,
+          SkillLevel,
+          $$SkillLevelsTableFilterComposer,
+          $$SkillLevelsTableOrderingComposer,
+          $$SkillLevelsTableAnnotationComposer,
+          $$SkillLevelsTableCreateCompanionBuilder,
+          $$SkillLevelsTableUpdateCompanionBuilder,
+          (
+            SkillLevel,
+            BaseReferences<_$AppDatabase, $SkillLevelsTable, SkillLevel>,
+          ),
+          SkillLevel,
+          PrefetchHooks Function()
+        > {
+  $$SkillLevelsTableTableManager(_$AppDatabase db, $SkillLevelsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SkillLevelsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SkillLevelsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SkillLevelsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<int> currentLevel = const Value.absent(),
+                Value<int> currentXp = const Value.absent(),
+                Value<DateTime?> lastLevelUpAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SkillLevelsCompanion(
+                id: id,
+                name: name,
+                description: description,
+                currentLevel: currentLevel,
+                currentXp: currentXp,
+                lastLevelUpAt: lastLevelUpAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                Value<String?> description = const Value.absent(),
+                Value<int> currentLevel = const Value.absent(),
+                Value<int> currentXp = const Value.absent(),
+                Value<DateTime?> lastLevelUpAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SkillLevelsCompanion.insert(
+                id: id,
+                name: name,
+                description: description,
+                currentLevel: currentLevel,
+                currentXp: currentXp,
+                lastLevelUpAt: lastLevelUpAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SkillLevelsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SkillLevelsTable,
+      SkillLevel,
+      $$SkillLevelsTableFilterComposer,
+      $$SkillLevelsTableOrderingComposer,
+      $$SkillLevelsTableAnnotationComposer,
+      $$SkillLevelsTableCreateCompanionBuilder,
+      $$SkillLevelsTableUpdateCompanionBuilder,
+      (
+        SkillLevel,
+        BaseReferences<_$AppDatabase, $SkillLevelsTable, SkillLevel>,
+      ),
+      SkillLevel,
+      PrefetchHooks Function()
+    >;
+typedef $$XpHistoryTableCreateCompanionBuilder =
+    XpHistoryCompanion Function({
+      required String id,
+      required String skillId,
+      required int xpAmount,
+      required String source,
+      Value<String?> sourceId,
+      Value<String?> reason,
+      Value<DateTime> earnedAt,
+      Value<int> rowid,
+    });
+typedef $$XpHistoryTableUpdateCompanionBuilder =
+    XpHistoryCompanion Function({
+      Value<String> id,
+      Value<String> skillId,
+      Value<int> xpAmount,
+      Value<String> source,
+      Value<String?> sourceId,
+      Value<String?> reason,
+      Value<DateTime> earnedAt,
+      Value<int> rowid,
+    });
+
+class $$XpHistoryTableFilterComposer
+    extends Composer<_$AppDatabase, $XpHistoryTable> {
+  $$XpHistoryTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get skillId => $composableBuilder(
+    column: $table.skillId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get xpAmount => $composableBuilder(
+    column: $table.xpAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceId => $composableBuilder(
+    column: $table.sourceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reason => $composableBuilder(
+    column: $table.reason,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get earnedAt => $composableBuilder(
+    column: $table.earnedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$XpHistoryTableOrderingComposer
+    extends Composer<_$AppDatabase, $XpHistoryTable> {
+  $$XpHistoryTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get skillId => $composableBuilder(
+    column: $table.skillId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get xpAmount => $composableBuilder(
+    column: $table.xpAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceId => $composableBuilder(
+    column: $table.sourceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get reason => $composableBuilder(
+    column: $table.reason,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get earnedAt => $composableBuilder(
+    column: $table.earnedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$XpHistoryTableAnnotationComposer
+    extends Composer<_$AppDatabase, $XpHistoryTable> {
+  $$XpHistoryTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get skillId =>
+      $composableBuilder(column: $table.skillId, builder: (column) => column);
+
+  GeneratedColumn<int> get xpAmount =>
+      $composableBuilder(column: $table.xpAmount, builder: (column) => column);
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceId =>
+      $composableBuilder(column: $table.sourceId, builder: (column) => column);
+
+  GeneratedColumn<String> get reason =>
+      $composableBuilder(column: $table.reason, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get earnedAt =>
+      $composableBuilder(column: $table.earnedAt, builder: (column) => column);
+}
+
+class $$XpHistoryTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $XpHistoryTable,
+          XpHistoryData,
+          $$XpHistoryTableFilterComposer,
+          $$XpHistoryTableOrderingComposer,
+          $$XpHistoryTableAnnotationComposer,
+          $$XpHistoryTableCreateCompanionBuilder,
+          $$XpHistoryTableUpdateCompanionBuilder,
+          (
+            XpHistoryData,
+            BaseReferences<_$AppDatabase, $XpHistoryTable, XpHistoryData>,
+          ),
+          XpHistoryData,
+          PrefetchHooks Function()
+        > {
+  $$XpHistoryTableTableManager(_$AppDatabase db, $XpHistoryTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$XpHistoryTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$XpHistoryTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$XpHistoryTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> skillId = const Value.absent(),
+                Value<int> xpAmount = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<String?> sourceId = const Value.absent(),
+                Value<String?> reason = const Value.absent(),
+                Value<DateTime> earnedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => XpHistoryCompanion(
+                id: id,
+                skillId: skillId,
+                xpAmount: xpAmount,
+                source: source,
+                sourceId: sourceId,
+                reason: reason,
+                earnedAt: earnedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String skillId,
+                required int xpAmount,
+                required String source,
+                Value<String?> sourceId = const Value.absent(),
+                Value<String?> reason = const Value.absent(),
+                Value<DateTime> earnedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => XpHistoryCompanion.insert(
+                id: id,
+                skillId: skillId,
+                xpAmount: xpAmount,
+                source: source,
+                sourceId: sourceId,
+                reason: reason,
+                earnedAt: earnedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$XpHistoryTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $XpHistoryTable,
+      XpHistoryData,
+      $$XpHistoryTableFilterComposer,
+      $$XpHistoryTableOrderingComposer,
+      $$XpHistoryTableAnnotationComposer,
+      $$XpHistoryTableCreateCompanionBuilder,
+      $$XpHistoryTableUpdateCompanionBuilder,
+      (
+        XpHistoryData,
+        BaseReferences<_$AppDatabase, $XpHistoryTable, XpHistoryData>,
+      ),
+      XpHistoryData,
+      PrefetchHooks Function()
+    >;
+typedef $$SightMarksTableCreateCompanionBuilder =
+    SightMarksCompanion Function({
+      required String id,
+      required String bowId,
+      required double distance,
+      Value<String> unit,
+      required String sightValue,
+      Value<String?> weatherData,
+      Value<double?> elevationDelta,
+      Value<double?> slopeAngle,
+      Value<String?> sessionId,
+      Value<int?> endNumber,
+      Value<int?> shotCount,
+      Value<double?> confidenceScore,
+      Value<DateTime> recordedAt,
+      Value<DateTime?> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$SightMarksTableUpdateCompanionBuilder =
+    SightMarksCompanion Function({
+      Value<String> id,
+      Value<String> bowId,
+      Value<double> distance,
+      Value<String> unit,
+      Value<String> sightValue,
+      Value<String?> weatherData,
+      Value<double?> elevationDelta,
+      Value<double?> slopeAngle,
+      Value<String?> sessionId,
+      Value<int?> endNumber,
+      Value<int?> shotCount,
+      Value<double?> confidenceScore,
+      Value<DateTime> recordedAt,
+      Value<DateTime?> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+final class $$SightMarksTableReferences
+    extends BaseReferences<_$AppDatabase, $SightMarksTable, SightMark> {
+  $$SightMarksTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $BowsTable _bowIdTable(_$AppDatabase db) => db.bows.createAlias(
+    $_aliasNameGenerator(db.sightMarks.bowId, db.bows.id),
+  );
+
+  $$BowsTableProcessedTableManager get bowId {
+    final $_column = $_itemColumn<String>('bow_id')!;
+
+    final manager = $$BowsTableTableManager(
+      $_db,
+      $_db.bows,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_bowIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$SightMarksTableFilterComposer
+    extends Composer<_$AppDatabase, $SightMarksTable> {
+  $$SightMarksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get distance => $composableBuilder(
+    column: $table.distance,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sightValue => $composableBuilder(
+    column: $table.sightValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get weatherData => $composableBuilder(
+    column: $table.weatherData,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get elevationDelta => $composableBuilder(
+    column: $table.elevationDelta,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get slopeAngle => $composableBuilder(
+    column: $table.slopeAngle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sessionId => $composableBuilder(
+    column: $table.sessionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get endNumber => $composableBuilder(
+    column: $table.endNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get shotCount => $composableBuilder(
+    column: $table.shotCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get confidenceScore => $composableBuilder(
+    column: $table.confidenceScore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$BowsTableFilterComposer get bowId {
+    final $$BowsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableFilterComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SightMarksTableOrderingComposer
+    extends Composer<_$AppDatabase, $SightMarksTable> {
+  $$SightMarksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get distance => $composableBuilder(
+    column: $table.distance,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sightValue => $composableBuilder(
+    column: $table.sightValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get weatherData => $composableBuilder(
+    column: $table.weatherData,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get elevationDelta => $composableBuilder(
+    column: $table.elevationDelta,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get slopeAngle => $composableBuilder(
+    column: $table.slopeAngle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sessionId => $composableBuilder(
+    column: $table.sessionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get endNumber => $composableBuilder(
+    column: $table.endNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get shotCount => $composableBuilder(
+    column: $table.shotCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get confidenceScore => $composableBuilder(
+    column: $table.confidenceScore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$BowsTableOrderingComposer get bowId {
+    final $$BowsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableOrderingComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SightMarksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SightMarksTable> {
+  $$SightMarksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<double> get distance =>
+      $composableBuilder(column: $table.distance, builder: (column) => column);
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
+
+  GeneratedColumn<String> get sightValue => $composableBuilder(
+    column: $table.sightValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get weatherData => $composableBuilder(
+    column: $table.weatherData,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get elevationDelta => $composableBuilder(
+    column: $table.elevationDelta,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get slopeAngle => $composableBuilder(
+    column: $table.slopeAngle,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sessionId =>
+      $composableBuilder(column: $table.sessionId, builder: (column) => column);
+
+  GeneratedColumn<int> get endNumber =>
+      $composableBuilder(column: $table.endNumber, builder: (column) => column);
+
+  GeneratedColumn<int> get shotCount =>
+      $composableBuilder(column: $table.shotCount, builder: (column) => column);
+
+  GeneratedColumn<double> get confidenceScore => $composableBuilder(
+    column: $table.confidenceScore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  $$BowsTableAnnotationComposer get bowId {
+    final $$BowsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SightMarksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SightMarksTable,
+          SightMark,
+          $$SightMarksTableFilterComposer,
+          $$SightMarksTableOrderingComposer,
+          $$SightMarksTableAnnotationComposer,
+          $$SightMarksTableCreateCompanionBuilder,
+          $$SightMarksTableUpdateCompanionBuilder,
+          (SightMark, $$SightMarksTableReferences),
+          SightMark,
+          PrefetchHooks Function({bool bowId})
+        > {
+  $$SightMarksTableTableManager(_$AppDatabase db, $SightMarksTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SightMarksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SightMarksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SightMarksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> bowId = const Value.absent(),
+                Value<double> distance = const Value.absent(),
+                Value<String> unit = const Value.absent(),
+                Value<String> sightValue = const Value.absent(),
+                Value<String?> weatherData = const Value.absent(),
+                Value<double?> elevationDelta = const Value.absent(),
+                Value<double?> slopeAngle = const Value.absent(),
+                Value<String?> sessionId = const Value.absent(),
+                Value<int?> endNumber = const Value.absent(),
+                Value<int?> shotCount = const Value.absent(),
+                Value<double?> confidenceScore = const Value.absent(),
+                Value<DateTime> recordedAt = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SightMarksCompanion(
+                id: id,
+                bowId: bowId,
+                distance: distance,
+                unit: unit,
+                sightValue: sightValue,
+                weatherData: weatherData,
+                elevationDelta: elevationDelta,
+                slopeAngle: slopeAngle,
+                sessionId: sessionId,
+                endNumber: endNumber,
+                shotCount: shotCount,
+                confidenceScore: confidenceScore,
+                recordedAt: recordedAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String bowId,
+                required double distance,
+                Value<String> unit = const Value.absent(),
+                required String sightValue,
+                Value<String?> weatherData = const Value.absent(),
+                Value<double?> elevationDelta = const Value.absent(),
+                Value<double?> slopeAngle = const Value.absent(),
+                Value<String?> sessionId = const Value.absent(),
+                Value<int?> endNumber = const Value.absent(),
+                Value<int?> shotCount = const Value.absent(),
+                Value<double?> confidenceScore = const Value.absent(),
+                Value<DateTime> recordedAt = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SightMarksCompanion.insert(
+                id: id,
+                bowId: bowId,
+                distance: distance,
+                unit: unit,
+                sightValue: sightValue,
+                weatherData: weatherData,
+                elevationDelta: elevationDelta,
+                slopeAngle: slopeAngle,
+                sessionId: sessionId,
+                endNumber: endNumber,
+                shotCount: shotCount,
+                confidenceScore: confidenceScore,
+                recordedAt: recordedAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$SightMarksTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({bowId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (bowId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.bowId,
+                                referencedTable: $$SightMarksTableReferences
+                                    ._bowIdTable(db),
+                                referencedColumn: $$SightMarksTableReferences
+                                    ._bowIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$SightMarksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SightMarksTable,
+      SightMark,
+      $$SightMarksTableFilterComposer,
+      $$SightMarksTableOrderingComposer,
+      $$SightMarksTableAnnotationComposer,
+      $$SightMarksTableCreateCompanionBuilder,
+      $$SightMarksTableUpdateCompanionBuilder,
+      (SightMark, $$SightMarksTableReferences),
+      SightMark,
+      PrefetchHooks Function({bool bowId})
+    >;
+typedef $$SightMarkPreferencesTableTableCreateCompanionBuilder =
+    SightMarkPreferencesTableCompanion Function({
+      required String bowId,
+      Value<String> notationStyle,
+      Value<int> decimalPlaces,
+      Value<DateTime> createdAt,
+      Value<DateTime?> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$SightMarkPreferencesTableTableUpdateCompanionBuilder =
+    SightMarkPreferencesTableCompanion Function({
+      Value<String> bowId,
+      Value<String> notationStyle,
+      Value<int> decimalPlaces,
+      Value<DateTime> createdAt,
+      Value<DateTime?> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$SightMarkPreferencesTableTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $SightMarkPreferencesTableTable,
+          SightMarkPreferencesTableData
+        > {
+  $$SightMarkPreferencesTableTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $BowsTable _bowIdTable(_$AppDatabase db) => db.bows.createAlias(
+    $_aliasNameGenerator(db.sightMarkPreferencesTable.bowId, db.bows.id),
+  );
+
+  $$BowsTableProcessedTableManager get bowId {
+    final $_column = $_itemColumn<String>('bow_id')!;
+
+    final manager = $$BowsTableTableManager(
+      $_db,
+      $_db.bows,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_bowIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$SightMarkPreferencesTableTableFilterComposer
+    extends Composer<_$AppDatabase, $SightMarkPreferencesTableTable> {
+  $$SightMarkPreferencesTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get notationStyle => $composableBuilder(
+    column: $table.notationStyle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get decimalPlaces => $composableBuilder(
+    column: $table.decimalPlaces,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$BowsTableFilterComposer get bowId {
+    final $$BowsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableFilterComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SightMarkPreferencesTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $SightMarkPreferencesTableTable> {
+  $$SightMarkPreferencesTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get notationStyle => $composableBuilder(
+    column: $table.notationStyle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get decimalPlaces => $composableBuilder(
+    column: $table.decimalPlaces,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$BowsTableOrderingComposer get bowId {
+    final $$BowsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableOrderingComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SightMarkPreferencesTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SightMarkPreferencesTableTable> {
+  $$SightMarkPreferencesTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get notationStyle => $composableBuilder(
+    column: $table.notationStyle,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get decimalPlaces => $composableBuilder(
+    column: $table.decimalPlaces,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$BowsTableAnnotationComposer get bowId {
+    final $$BowsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SightMarkPreferencesTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SightMarkPreferencesTableTable,
+          SightMarkPreferencesTableData,
+          $$SightMarkPreferencesTableTableFilterComposer,
+          $$SightMarkPreferencesTableTableOrderingComposer,
+          $$SightMarkPreferencesTableTableAnnotationComposer,
+          $$SightMarkPreferencesTableTableCreateCompanionBuilder,
+          $$SightMarkPreferencesTableTableUpdateCompanionBuilder,
+          (
+            SightMarkPreferencesTableData,
+            $$SightMarkPreferencesTableTableReferences,
+          ),
+          SightMarkPreferencesTableData,
+          PrefetchHooks Function({bool bowId})
+        > {
+  $$SightMarkPreferencesTableTableTableManager(
+    _$AppDatabase db,
+    $SightMarkPreferencesTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SightMarkPreferencesTableTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$SightMarkPreferencesTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$SightMarkPreferencesTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> bowId = const Value.absent(),
+                Value<String> notationStyle = const Value.absent(),
+                Value<int> decimalPlaces = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SightMarkPreferencesTableCompanion(
+                bowId: bowId,
+                notationStyle: notationStyle,
+                decimalPlaces: decimalPlaces,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String bowId,
+                Value<String> notationStyle = const Value.absent(),
+                Value<int> decimalPlaces = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SightMarkPreferencesTableCompanion.insert(
+                bowId: bowId,
+                notationStyle: notationStyle,
+                decimalPlaces: decimalPlaces,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$SightMarkPreferencesTableTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({bowId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (bowId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.bowId,
+                                referencedTable:
+                                    $$SightMarkPreferencesTableTableReferences
+                                        ._bowIdTable(db),
+                                referencedColumn:
+                                    $$SightMarkPreferencesTableTableReferences
+                                        ._bowIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$SightMarkPreferencesTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SightMarkPreferencesTableTable,
+      SightMarkPreferencesTableData,
+      $$SightMarkPreferencesTableTableFilterComposer,
+      $$SightMarkPreferencesTableTableOrderingComposer,
+      $$SightMarkPreferencesTableTableAnnotationComposer,
+      $$SightMarkPreferencesTableTableCreateCompanionBuilder,
+      $$SightMarkPreferencesTableTableUpdateCompanionBuilder,
+      (
+        SightMarkPreferencesTableData,
+        $$SightMarkPreferencesTableTableReferences,
+      ),
+      SightMarkPreferencesTableData,
+      PrefetchHooks Function({bool bowId})
+    >;
+typedef $$RegisteredTargetsTableCreateCompanionBuilder =
+    RegisteredTargetsCompanion Function({
+      required String id,
+      required String targetType,
+      required String imagePath,
+      Value<bool> isTripleSpot,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$RegisteredTargetsTableUpdateCompanionBuilder =
+    RegisteredTargetsCompanion Function({
+      Value<String> id,
+      Value<String> targetType,
+      Value<String> imagePath,
+      Value<bool> isTripleSpot,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$RegisteredTargetsTableFilterComposer
+    extends Composer<_$AppDatabase, $RegisteredTargetsTable> {
+  $$RegisteredTargetsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get imagePath => $composableBuilder(
+    column: $table.imagePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isTripleSpot => $composableBuilder(
+    column: $table.isTripleSpot,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RegisteredTargetsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RegisteredTargetsTable> {
+  $$RegisteredTargetsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get imagePath => $composableBuilder(
+    column: $table.imagePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isTripleSpot => $composableBuilder(
+    column: $table.isTripleSpot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RegisteredTargetsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RegisteredTargetsTable> {
+  $$RegisteredTargetsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get imagePath =>
+      $composableBuilder(column: $table.imagePath, builder: (column) => column);
+
+  GeneratedColumn<bool> get isTripleSpot => $composableBuilder(
+    column: $table.isTripleSpot,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$RegisteredTargetsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RegisteredTargetsTable,
+          RegisteredTarget,
+          $$RegisteredTargetsTableFilterComposer,
+          $$RegisteredTargetsTableOrderingComposer,
+          $$RegisteredTargetsTableAnnotationComposer,
+          $$RegisteredTargetsTableCreateCompanionBuilder,
+          $$RegisteredTargetsTableUpdateCompanionBuilder,
+          (
+            RegisteredTarget,
+            BaseReferences<
+              _$AppDatabase,
+              $RegisteredTargetsTable,
+              RegisteredTarget
+            >,
+          ),
+          RegisteredTarget,
+          PrefetchHooks Function()
+        > {
+  $$RegisteredTargetsTableTableManager(
+    _$AppDatabase db,
+    $RegisteredTargetsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RegisteredTargetsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RegisteredTargetsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RegisteredTargetsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> targetType = const Value.absent(),
+                Value<String> imagePath = const Value.absent(),
+                Value<bool> isTripleSpot = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RegisteredTargetsCompanion(
+                id: id,
+                targetType: targetType,
+                imagePath: imagePath,
+                isTripleSpot: isTripleSpot,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String targetType,
+                required String imagePath,
+                Value<bool> isTripleSpot = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RegisteredTargetsCompanion.insert(
+                id: id,
+                targetType: targetType,
+                imagePath: imagePath,
+                isTripleSpot: isTripleSpot,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RegisteredTargetsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RegisteredTargetsTable,
+      RegisteredTarget,
+      $$RegisteredTargetsTableFilterComposer,
+      $$RegisteredTargetsTableOrderingComposer,
+      $$RegisteredTargetsTableAnnotationComposer,
+      $$RegisteredTargetsTableCreateCompanionBuilder,
+      $$RegisteredTargetsTableUpdateCompanionBuilder,
+      (
+        RegisteredTarget,
+        BaseReferences<
+          _$AppDatabase,
+          $RegisteredTargetsTable,
+          RegisteredTarget
+        >,
+      ),
+      RegisteredTarget,
+      PrefetchHooks Function()
+    >;
+typedef $$AutoPlotUsageTableCreateCompanionBuilder =
+    AutoPlotUsageCompanion Function({
+      required String id,
+      required String yearMonth,
+      Value<int> scanCount,
+      Value<int> rowid,
+    });
+typedef $$AutoPlotUsageTableUpdateCompanionBuilder =
+    AutoPlotUsageCompanion Function({
+      Value<String> id,
+      Value<String> yearMonth,
+      Value<int> scanCount,
+      Value<int> rowid,
+    });
+
+class $$AutoPlotUsageTableFilterComposer
+    extends Composer<_$AppDatabase, $AutoPlotUsageTable> {
+  $$AutoPlotUsageTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get yearMonth => $composableBuilder(
+    column: $table.yearMonth,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get scanCount => $composableBuilder(
+    column: $table.scanCount,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AutoPlotUsageTableOrderingComposer
+    extends Composer<_$AppDatabase, $AutoPlotUsageTable> {
+  $$AutoPlotUsageTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get yearMonth => $composableBuilder(
+    column: $table.yearMonth,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get scanCount => $composableBuilder(
+    column: $table.scanCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AutoPlotUsageTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AutoPlotUsageTable> {
+  $$AutoPlotUsageTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get yearMonth =>
+      $composableBuilder(column: $table.yearMonth, builder: (column) => column);
+
+  GeneratedColumn<int> get scanCount =>
+      $composableBuilder(column: $table.scanCount, builder: (column) => column);
+}
+
+class $$AutoPlotUsageTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AutoPlotUsageTable,
+          AutoPlotUsageData,
+          $$AutoPlotUsageTableFilterComposer,
+          $$AutoPlotUsageTableOrderingComposer,
+          $$AutoPlotUsageTableAnnotationComposer,
+          $$AutoPlotUsageTableCreateCompanionBuilder,
+          $$AutoPlotUsageTableUpdateCompanionBuilder,
+          (
+            AutoPlotUsageData,
+            BaseReferences<
+              _$AppDatabase,
+              $AutoPlotUsageTable,
+              AutoPlotUsageData
+            >,
+          ),
+          AutoPlotUsageData,
+          PrefetchHooks Function()
+        > {
+  $$AutoPlotUsageTableTableManager(_$AppDatabase db, $AutoPlotUsageTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AutoPlotUsageTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AutoPlotUsageTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AutoPlotUsageTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> yearMonth = const Value.absent(),
+                Value<int> scanCount = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AutoPlotUsageCompanion(
+                id: id,
+                yearMonth: yearMonth,
+                scanCount: scanCount,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String yearMonth,
+                Value<int> scanCount = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AutoPlotUsageCompanion.insert(
+                id: id,
+                yearMonth: yearMonth,
+                scanCount: scanCount,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AutoPlotUsageTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AutoPlotUsageTable,
+      AutoPlotUsageData,
+      $$AutoPlotUsageTableFilterComposer,
+      $$AutoPlotUsageTableOrderingComposer,
+      $$AutoPlotUsageTableAnnotationComposer,
+      $$AutoPlotUsageTableCreateCompanionBuilder,
+      $$AutoPlotUsageTableUpdateCompanionBuilder,
+      (
+        AutoPlotUsageData,
+        BaseReferences<_$AppDatabase, $AutoPlotUsageTable, AutoPlotUsageData>,
+      ),
+      AutoPlotUsageData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -20934,6 +30720,10 @@ class $AppDatabaseManager {
       $$ImportedScoresTableTableManager(_db, _db.importedScores);
   $$UserPreferencesTableTableManager get userPreferences =>
       $$UserPreferencesTableTableManager(_db, _db.userPreferences);
+  $$StabilizersTableTableManager get stabilizers =>
+      $$StabilizersTableTableManager(_db, _db.stabilizers);
+  $$BowStringsTableTableManager get bowStrings =>
+      $$BowStringsTableTableManager(_db, _db.bowStrings);
   $$VolumeEntriesTableTableManager get volumeEntries =>
       $$VolumeEntriesTableTableManager(_db, _db.volumeEntries);
   $$OlyExerciseTypesTableTableManager get olyExerciseTypes =>
@@ -20956,4 +30746,19 @@ class $AppDatabaseManager {
       $$KitSnapshotsTableTableManager(_db, _db.kitSnapshots);
   $$TuningSessionsTableTableManager get tuningSessions =>
       $$TuningSessionsTableTableManager(_db, _db.tuningSessions);
+  $$SkillLevelsTableTableManager get skillLevels =>
+      $$SkillLevelsTableTableManager(_db, _db.skillLevels);
+  $$XpHistoryTableTableManager get xpHistory =>
+      $$XpHistoryTableTableManager(_db, _db.xpHistory);
+  $$SightMarksTableTableManager get sightMarks =>
+      $$SightMarksTableTableManager(_db, _db.sightMarks);
+  $$SightMarkPreferencesTableTableTableManager get sightMarkPreferencesTable =>
+      $$SightMarkPreferencesTableTableTableManager(
+        _db,
+        _db.sightMarkPreferencesTable,
+      );
+  $$RegisteredTargetsTableTableManager get registeredTargets =>
+      $$RegisteredTargetsTableTableManager(_db, _db.registeredTargets);
+  $$AutoPlotUsageTableTableManager get autoPlotUsage =>
+      $$AutoPlotUsageTableTableManager(_db, _db.autoPlotUsage);
 }

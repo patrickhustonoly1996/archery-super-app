@@ -22,58 +22,109 @@ class ShaftDetailScreen extends StatefulWidget {
 class _ShaftDetailScreenState extends State<ShaftDetailScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers for individual mode
+  // Core specs
   late TextEditingController _spineController;
   late TextEditingController _lengthController;
+  late TextEditingController _totalWeightController;
+
+  // Point
   late TextEditingController _pointWeightController;
+  String? _pointType;
+
+  // Nock
+  late TextEditingController _nockColorController;
+  late TextEditingController _nockBrandController;
+
+  // Fletching
   late TextEditingController _fletchingTypeController;
   late TextEditingController _fletchingColorController;
-  late TextEditingController _nockColorController;
+  late TextEditingController _fletchingSizeController;
+  late TextEditingController _fletchingAngleController;
+
+  // Wrap
+  bool _hasWrap = false;
+  late TextEditingController _wrapColorController;
+
+  // Notes & date
   late TextEditingController _notesController;
+  DateTime? _purchaseDate;
 
   // For batch mode
   Set<int> _selectedShafts = {};
   bool _isBatchMode = false;
 
+  static const _pointTypes = ['break-off', 'glue-in', 'screw-in'];
+
   @override
   void initState() {
     super.initState();
     _isBatchMode = widget.shaft == null;
+    final s = widget.shaft;
 
-    // Initialize controllers with existing shaft data
-    _spineController = TextEditingController(
-      text: widget.shaft?.spine?.toString() ?? '',
+    _spineController = TextEditingController(text: s?.spine?.toString() ?? '');
+    _lengthController = TextEditingController(text: s?.lengthInches?.toString() ?? '');
+    _totalWeightController = TextEditingController(
+      text: s?.totalWeight?.toStringAsFixed(1) ?? '',
     );
-    _lengthController = TextEditingController(
-      text: widget.shaft?.lengthInches?.toString() ?? '',
+    _pointWeightController = TextEditingController(text: s?.pointWeight?.toString() ?? '');
+    _pointType = s?.pointType;
+    _nockColorController = TextEditingController(text: s?.nockColor ?? '');
+    _nockBrandController = TextEditingController(text: s?.nockBrand ?? '');
+    _fletchingTypeController = TextEditingController(text: s?.fletchingType ?? '');
+    _fletchingColorController = TextEditingController(text: s?.fletchingColor ?? '');
+    _fletchingSizeController = TextEditingController(text: s?.fletchingSize ?? '');
+    _fletchingAngleController = TextEditingController(
+      text: s?.fletchingAngle?.toStringAsFixed(1) ?? '',
     );
-    _pointWeightController = TextEditingController(
-      text: widget.shaft?.pointWeight?.toString() ?? '',
-    );
-    _fletchingTypeController = TextEditingController(
-      text: widget.shaft?.fletchingType ?? '',
-    );
-    _fletchingColorController = TextEditingController(
-      text: widget.shaft?.fletchingColor ?? '',
-    );
-    _nockColorController = TextEditingController(
-      text: widget.shaft?.nockColor ?? '',
-    );
-    _notesController = TextEditingController(
-      text: widget.shaft?.notes ?? '',
-    );
+    _hasWrap = s?.hasWrap ?? false;
+    _wrapColorController = TextEditingController(text: s?.wrapColor ?? '');
+    _notesController = TextEditingController(text: s?.notes ?? '');
+    _purchaseDate = s?.purchaseDate;
   }
 
   @override
   void dispose() {
     _spineController.dispose();
     _lengthController.dispose();
+    _totalWeightController.dispose();
     _pointWeightController.dispose();
+    _nockColorController.dispose();
+    _nockBrandController.dispose();
     _fletchingTypeController.dispose();
     _fletchingColorController.dispose();
-    _nockColorController.dispose();
+    _fletchingSizeController.dispose();
+    _fletchingAngleController.dispose();
+    _wrapColorController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  String? _nullIfEmpty(String text) {
+    final trimmed = text.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
+  Future<void> _selectPurchaseDate() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _purchaseDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: AppColors.gold,
+              surface: AppColors.surfaceDark,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (date != null) {
+      setState(() => _purchaseDate = date);
+    }
   }
 
   Future<void> _save() async {
@@ -81,27 +132,20 @@ class _ShaftDetailScreenState extends State<ShaftDetailScreen> {
 
     final equipmentProvider = context.read<EquipmentProvider>();
 
-    final spine = _spineController.text.isNotEmpty
-        ? int.tryParse(_spineController.text)
-        : null;
-    final length = _lengthController.text.isNotEmpty
-        ? double.tryParse(_lengthController.text)
-        : null;
-    final pointWeight = _pointWeightController.text.isNotEmpty
-        ? int.tryParse(_pointWeightController.text)
-        : null;
-    final fletchingType = _fletchingTypeController.text.isNotEmpty
-        ? _fletchingTypeController.text
-        : null;
-    final fletchingColor = _fletchingColorController.text.isNotEmpty
-        ? _fletchingColorController.text
-        : null;
-    final nockColor = _nockColorController.text.isNotEmpty
-        ? _nockColorController.text
-        : null;
+    final spine = int.tryParse(_spineController.text);
+    final length = double.tryParse(_lengthController.text);
+    final totalWeight = double.tryParse(_totalWeightController.text);
+    final pointWeight = int.tryParse(_pointWeightController.text);
+    final fletchingAngle = double.tryParse(_fletchingAngleController.text);
+
+    final fletchingType = _nullIfEmpty(_fletchingTypeController.text);
+    final fletchingColor = _nullIfEmpty(_fletchingColorController.text);
+    final fletchingSize = _nullIfEmpty(_fletchingSizeController.text);
+    final nockColor = _nullIfEmpty(_nockColorController.text);
+    final nockBrand = _nullIfEmpty(_nockBrandController.text);
+    final wrapColor = _hasWrap ? _nullIfEmpty(_wrapColorController.text) : null;
 
     if (_isBatchMode) {
-      // Batch update for selected shafts
       final allShafts = equipmentProvider.getShaftsForQuiver(widget.quiver.id);
       final selectedShaftIds = allShafts
           .where((s) => _selectedShafts.contains(s.number))
@@ -119,35 +163,45 @@ class _ShaftDetailScreenState extends State<ShaftDetailScreen> {
         shaftIds: selectedShaftIds,
         spine: spine,
         lengthInches: length,
+        totalWeight: totalWeight,
         pointWeight: pointWeight,
+        pointType: _pointType,
         fletchingType: fletchingType,
         fletchingColor: fletchingColor,
+        fletchingSize: fletchingSize,
+        fletchingAngle: fletchingAngle,
         nockColor: nockColor,
+        nockBrand: nockBrand,
+        hasWrap: _hasWrap,
+        wrapColor: wrapColor,
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Updated ${selectedShaftIds.length} shafts'),
-          ),
+          SnackBar(content: Text('Updated ${selectedShaftIds.length} shafts')),
         );
         Navigator.pop(context);
       }
     } else {
-      // Individual update
-      final notes = _notesController.text.isNotEmpty
-          ? _notesController.text
-          : null;
+      final notes = _nullIfEmpty(_notesController.text);
 
       await equipmentProvider.updateShaftSpecs(
         shaftId: widget.shaft!.id,
         spine: spine,
         lengthInches: length,
+        totalWeight: totalWeight,
         pointWeight: pointWeight,
+        pointType: _pointType,
         fletchingType: fletchingType,
         fletchingColor: fletchingColor,
+        fletchingSize: fletchingSize,
+        fletchingAngle: fletchingAngle,
         nockColor: nockColor,
+        nockBrand: nockBrand,
+        hasWrap: _hasWrap,
+        wrapColor: wrapColor,
         notes: notes,
+        purchaseDate: _purchaseDate,
       );
 
       if (mounted) {
@@ -198,53 +252,197 @@ class _ShaftDetailScreenState extends State<ShaftDetailScreen> {
               const SizedBox(height: AppSpacing.md),
             ],
 
-            _buildTextField(
-              controller: _spineController,
-              label: 'Spine',
-              hint: 'e.g., 500, 600',
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            // Core Specs Section
+            _buildSectionHeader(context, 'CORE SPECS'),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTextField(
+                    controller: _spineController,
+                    label: 'Spine',
+                    hint: '500',
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: _buildTextField(
+                    controller: _lengthController,
+                    label: 'Length',
+                    hint: '28.5',
+                    suffix: '"',
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.md),
-
             _buildTextField(
-              controller: _lengthController,
-              label: 'Length (inches)',
-              hint: 'e.g., 28.5',
+              controller: _totalWeightController,
+              label: 'Total Weight',
+              hint: '320',
+              suffix: 'gr',
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
             ),
-            const SizedBox(height: AppSpacing.md),
 
-            _buildTextField(
-              controller: _pointWeightController,
-              label: 'Point Weight (grains)',
-              hint: 'e.g., 100, 120',
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            const SizedBox(height: AppSpacing.xl),
+
+            // Point Section
+            _buildSectionHeader(context, 'POINT'),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTextField(
+                    controller: _pointWeightController,
+                    label: 'Weight',
+                    hint: '110',
+                    suffix: 'gr',
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value: _pointType,
+                    decoration: const InputDecoration(
+                      labelText: 'Type',
+                    ),
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text('—')),
+                      ..._pointTypes.map((t) => DropdownMenuItem(
+                            value: t,
+                            child: Text(t),
+                          )),
+                    ],
+                    onChanged: (v) => setState(() => _pointType = v),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: AppSpacing.xl),
+
+            // Nock Section
+            _buildSectionHeader(context, 'NOCK'),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTextField(
+                    controller: _nockBrandController,
+                    label: 'Brand',
+                    hint: 'Beiter',
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: _buildTextField(
+                    controller: _nockColorController,
+                    label: 'Color',
+                    hint: 'Blue',
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: AppSpacing.xl),
+
+            // Fletching Section
+            _buildSectionHeader(context, 'FLETCHING'),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTextField(
+                    controller: _fletchingTypeController,
+                    label: 'Type',
+                    hint: 'Spin Wings',
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: _buildTextField(
+                    controller: _fletchingSizeController,
+                    label: 'Size',
+                    hint: '1.75"',
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.md),
-
-            _buildTextField(
-              controller: _fletchingTypeController,
-              label: 'Fletching Type',
-              hint: 'e.g., vanes, feathers',
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTextField(
+                    controller: _fletchingColorController,
+                    label: 'Color',
+                    hint: 'Red/White',
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: _buildTextField(
+                    controller: _fletchingAngleController,
+                    label: 'Helical',
+                    hint: '2',
+                    suffix: '\u00B0',
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                      signed: true,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: AppSpacing.md),
 
-            _buildTextField(
-              controller: _fletchingColorController,
-              label: 'Fletching Color',
-              hint: 'e.g., blue, red/white',
-            ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.xl),
 
-            _buildTextField(
-              controller: _nockColorController,
-              label: 'Nock Color',
-              hint: 'e.g., blue, green',
+            // Wrap Section
+            _buildSectionHeader(context, 'WRAP'),
+            const SizedBox(height: AppSpacing.sm),
+            SwitchListTile(
+              title: const Text('Has arrow wrap'),
+              value: _hasWrap,
+              activeThumbColor: AppColors.gold,
+              onChanged: (v) => setState(() => _hasWrap = v),
+              contentPadding: EdgeInsets.zero,
             ),
+            if (_hasWrap)
+              _buildTextField(
+                controller: _wrapColorController,
+                label: 'Wrap Color/Design',
+                hint: 'Gold stripe',
+              ),
 
             if (!_isBatchMode) ...[
+              const SizedBox(height: AppSpacing.xl),
+
+              // Purchase & Notes Section
+              _buildSectionHeader(context, 'NOTES'),
+              const SizedBox(height: AppSpacing.sm),
+              InkWell(
+                onTap: _selectPurchaseDate,
+                child: InputDecorator(
+                  decoration: const InputDecoration(
+                    labelText: 'Purchase Date',
+                    suffixIcon: Icon(Icons.calendar_today, size: 20),
+                  ),
+                  child: Text(
+                    _purchaseDate != null
+                        ? '${_purchaseDate!.day}/${_purchaseDate!.month}/${_purchaseDate!.year}'
+                        : 'Tap to select',
+                    style: TextStyle(
+                      color: _purchaseDate != null
+                          ? AppColors.textPrimary
+                          : AppColors.textMuted,
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(height: AppSpacing.md),
               _buildTextField(
                 controller: _notesController,
@@ -253,8 +451,31 @@ class _ShaftDetailScreenState extends State<ShaftDetailScreen> {
                 maxLines: 3,
               ),
             ],
+
+            const SizedBox(height: AppSpacing.xxl),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceBright.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(AppSpacing.xs),
+      ),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+            ),
       ),
     );
   }
@@ -263,6 +484,7 @@ class _ShaftDetailScreenState extends State<ShaftDetailScreen> {
     required TextEditingController controller,
     required String label,
     String? hint,
+    String? suffix,
     TextInputType? keyboardType,
     List<TextInputFormatter>? inputFormatters,
     int maxLines = 1,
@@ -272,7 +494,7 @@ class _ShaftDetailScreenState extends State<ShaftDetailScreen> {
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        border: const OutlineInputBorder(),
+        suffixText: suffix,
       ),
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
@@ -291,15 +513,17 @@ class _ShaftDetailScreenState extends State<ShaftDetailScreen> {
         return FilterChip(
           label: Text(shaft.number.toString()),
           selected: isSelected,
-          onSelected: isRetired ? null : (selected) {
-            setState(() {
-              if (selected) {
-                _selectedShafts.add(shaft.number);
-              } else {
-                _selectedShafts.remove(shaft.number);
-              }
-            });
-          },
+          onSelected: isRetired
+              ? null
+              : (selected) {
+                  setState(() {
+                    if (selected) {
+                      _selectedShafts.add(shaft.number);
+                    } else {
+                      _selectedShafts.remove(shaft.number);
+                    }
+                  });
+                },
           backgroundColor: isRetired
               ? AppColors.surfaceLight.withOpacity(0.3)
               : AppColors.surfaceDark,

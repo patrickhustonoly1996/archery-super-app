@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../providers/session_provider.dart';
 import '../providers/equipment_provider.dart';
 import '../providers/connectivity_provider.dart';
+import '../providers/auto_plot_provider.dart';
 import '../widgets/target_face.dart';
 import '../widgets/triple_spot_target.dart';
 import '../widgets/group_centre_widget.dart';
@@ -15,6 +16,8 @@ import '../utils/undo_manager.dart';
 import '../db/database.dart';
 import 'session_complete_screen.dart';
 import 'home_screen.dart';
+import 'auto_plot_capture_screen.dart';
+import '../services/vision_api_service.dart';
 
 /// Preference key for triple spot view mode
 const String kTripleSpotViewPref = 'indoor_triple_spot_view';
@@ -28,6 +31,12 @@ const String kCompoundScoringPref = 'compound_scoring_mode';
 /// Preference key for group centre confidence multiplier
 /// 1.0 = ~68% (1 SD), 2.0 = ~95% (2 SD)
 const String kGroupCentreConfidencePref = 'group_centre_confidence';
+
+/// Preference key for showing ring notation on group centre
+const String kShowRingNotationPref = 'show_ring_notation';
+
+/// Preference key for tracking nock rotation per arrow
+const String kTrackNockRotationPref = 'track_nock_rotation';
 
 class PlottingScreen extends StatefulWidget {
   const PlottingScreen({super.key});
@@ -45,6 +54,10 @@ class _PlottingScreenState extends State<PlottingScreen> {
   bool _compoundScoring = false;
   // Group centre confidence multiplier (1.0 = 68%, 2.0 = 95%)
   double _confidenceMultiplier = 1.0;
+  // Show ring notation on group centre widgets
+  bool _showRingNotation = true;
+  // Track nock rotation per arrow
+  bool _trackNockRotation = false;
   // Selected face for plotting (0, 1, or 2)
   int _selectedFaceIndex = 0;
   bool _prefsLoaded = false;
@@ -65,12 +78,14 @@ class _PlottingScreenState extends State<PlottingScreen> {
     final combined = await db.getBoolPreference(kTripleSpotCombinedViewPref, defaultValue: false);
     final compound = await db.getBoolPreference(kCompoundScoringPref, defaultValue: false);
     final confidence = await db.getDoublePreference(kGroupCentreConfidencePref, defaultValue: 1.0);
+    final ringNotation = await db.getBoolPreference(kShowRingNotationPref, defaultValue: true);
     if (mounted) {
       setState(() {
         _useTripleSpotView = tripleSpot;
         _useCombinedView = combined;
         _compoundScoring = compound;
         _confidenceMultiplier = confidence;
+        _showRingNotation = ringNotation;
         _prefsLoaded = true;
       });
     }
@@ -100,6 +115,12 @@ class _PlottingScreenState extends State<PlottingScreen> {
     final newValue = _confidenceMultiplier == 1.0 ? 2.0 : 1.0;
     await db.setDoublePreference(kGroupCentreConfidencePref, newValue);
     setState(() => _confidenceMultiplier = newValue);
+  }
+
+  Future<void> _toggleRingNotation() async {
+    final db = context.read<AppDatabase>();
+    await db.setBoolPreference(kShowRingNotationPref, !_showRingNotation);
+    setState(() => _showRingNotation = !_showRingNotation);
   }
 
   @override
@@ -183,13 +204,14 @@ class _PlottingScreenState extends State<PlottingScreen> {
 
                 const SizedBox(height: AppSpacing.md),
 
-                // Indoor toggles: triple spot view + compound scoring
-                if (supportsTripleSpot)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
+                // Plotting toggles row
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Indoor toggles: triple spot view + compound scoring
+                      if (supportsTripleSpot) ...[
                         // View mode toggle (1 face vs 3 faces)
                         TripleSpotToggle(
                           isTripleSpot: _useTripleSpotView,
@@ -207,11 +229,17 @@ class _PlottingScreenState extends State<PlottingScreen> {
                             onChanged: _setCombinedView,
                           ),
                       ],
-                    ),
+                      // Arrow tracking toggle (available if quiver selected)
+                      if (provider.selectedQuiverId != null)
+                        _ArrowTrackingToggle(
+                          isEnabled: provider.shaftTaggingEnabled,
+                          onChanged: provider.setShaftTagging,
+                        ),
+                    ],
                   ),
+                ),
 
-                if (supportsTripleSpot)
-                  const SizedBox(height: AppSpacing.sm),
+                const SizedBox(height: AppSpacing.sm),
 
                 // Target face with rolling average overlay and fixed zoom window
                 Expanded(
@@ -304,9 +332,10 @@ class _PlottingScreenState extends State<PlottingScreen> {
                         left: AppSpacing.md,
                         child: GestureDetector(
                           onTap: _toggleConfidenceMultiplier,
+                          onLongPress: _toggleRingNotation,
                           child: FutureBuilder(
                             // Key forces rebuild when arrows or confidence change
-                            key: ValueKey('last12_${provider.ends.length}_${provider.arrowsInCurrentEnd}_$_confidenceMultiplier'),
+                            key: ValueKey('last12_${provider.ends.length}_${provider.arrowsInCurrentEnd}_${_confidenceMultiplier}_$_showRingNotation'),
                             future: provider.getLastNArrows(12),
                             builder: (context, snapshot) {
                               final arrows = snapshot.data ?? [];
@@ -316,6 +345,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                 label: 'Last 12 ($confLabel)',
                                 size: 80,
                                 confidenceMultiplier: _confidenceMultiplier,
+                                showRingNotation: _showRingNotation,
                               );
                             },
                           ),
@@ -328,9 +358,10 @@ class _PlottingScreenState extends State<PlottingScreen> {
                         right: AppSpacing.md,
                         child: GestureDetector(
                           onTap: _toggleConfidenceMultiplier,
+                          onLongPress: _toggleRingNotation,
                           child: Builder(
                             // Key forces rebuild when arrows or confidence change
-                            key: ValueKey('round_${provider.ends.length}_${provider.arrowsInCurrentEnd}_$_confidenceMultiplier'),
+                            key: ValueKey('round_${provider.ends.length}_${provider.arrowsInCurrentEnd}_${_confidenceMultiplier}_$_showRingNotation'),
                             builder: (context) {
                               // Use synchronous allSessionArrows for all arrows in this round
                               final allArrows = provider.allSessionArrows;
@@ -340,6 +371,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                 label: 'This Round ($confLabel)',
                                 size: 80,
                                 confidenceMultiplier: _confidenceMultiplier,
+                                showRingNotation: _showRingNotation,
                               );
                             },
                           ),
@@ -349,11 +381,19 @@ class _PlottingScreenState extends State<PlottingScreen> {
                   ),
                 ),
 
-                // Official scorecard (scrollable, with fixed height)
+                // Divider before scorecard
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  height: 1,
+                  color: AppColors.surfaceLight,
+                ),
+
+                // Official scorecard (at bottom, not floating)
                 GestureDetector(
                   onTap: () => _showFullScorecard(context, provider),
                   child: Container(
-                    constraints: const BoxConstraints(maxHeight: 180),
+                    margin: const EdgeInsets.only(top: AppSpacing.sm),
+                    constraints: const BoxConstraints(maxHeight: 160),
                     child: FutureBuilder(
                       future: provider.getAllCompletedEndArrows(),
                       builder: (context, snapshot) {
@@ -400,17 +440,25 @@ class _PlottingScreenState extends State<PlottingScreen> {
       final equipmentProvider = context.read<EquipmentProvider>();
       final shafts = equipmentProvider.getShaftsForQuiver(provider.selectedQuiverId!);
 
+      // Get shaft numbers already used in this end
+      final usedShaftNumbers = provider.currentEndArrows
+          .where((a) => a.shaftNumber != null)
+          .map((a) => a.shaftNumber!)
+          .toSet();
+
       await showModalBottomSheet(
         context: context,
         backgroundColor: Colors.transparent,
         builder: (_) => ShaftSelectorBottomSheet(
           shafts: shafts,
-          onShaftSelected: (shaftNumber) {
+          usedShaftNumbers: usedShaftNumbers,
+          onShaftSelected: (shaftNumber, {String? nockRotation}) {
             provider.plotArrow(
               x: x,
               y: y,
               faceIndex: faceIndex,
               shaftNumber: shaftNumber,
+              nockRotation: nockRotation,
             );
           },
           onSkip: () {
@@ -593,6 +641,56 @@ class _CompoundToggle extends StatelessWidget {
   }
 }
 
+/// Toggle for arrow/shaft tracking
+class _ArrowTrackingToggle extends StatelessWidget {
+  final bool isEnabled;
+  final ValueChanged<bool> onChanged;
+
+  const _ArrowTrackingToggle({
+    required this.isEnabled,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: isEnabled ? 'Arrow tracking ON' : 'Arrow tracking OFF',
+      child: GestureDetector(
+        onTap: () => onChanged(!isEnabled),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: isEnabled ? AppColors.gold.withOpacity(0.2) : Colors.transparent,
+            border: Border.all(
+              color: isEnabled ? AppColors.gold : AppColors.surfaceLight,
+            ),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.track_changes,
+                size: 14,
+                color: isEnabled ? AppColors.gold : AppColors.textMuted,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                isEnabled ? 'ON' : 'OFF',
+                style: TextStyle(
+                  fontFamily: AppFonts.pixel,
+                  fontSize: 12,
+                  color: isEnabled ? AppColors.gold : AppColors.textMuted,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ScoreSummaryBar extends StatelessWidget {
   final SessionProvider provider;
 
@@ -672,6 +770,65 @@ class _ActionButtons extends StatelessWidget {
 
   const _ActionButtons({required this.provider});
 
+  void _launchAutoPlot(BuildContext context) async {
+    final roundType = provider.roundType;
+    if (roundType == null) return;
+
+    // Determine target type from round
+    final targetType = _getTargetTypeFromRound(roundType);
+    final isTripleSpot = roundType.faceCount == 3;
+
+    // Check connectivity (Auto-Plot requires network)
+    final connectivity = context.read<ConnectivityProvider>();
+    if (connectivity.isOffline) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Auto-Plot requires internet connection'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    // Initialize auto-plot provider
+    final autoPlotProvider = context.read<AutoPlotProvider>();
+    autoPlotProvider.startCapture(targetType);
+
+    // Navigate to capture screen
+    final result = await Navigator.of(context).push<List<DetectedArrow>>(
+      MaterialPageRoute(
+        builder: (_) => AutoPlotCaptureScreen(
+          targetType: targetType,
+          isTripleSpot: isTripleSpot,
+        ),
+      ),
+    );
+
+    // Process detected arrows
+    if (result != null && result.isNotEmpty && context.mounted) {
+      for (final arrow in result) {
+        // Convert normalized coordinates to what the plotting system expects
+        await provider.plotArrow(
+          x: arrow.x,
+          y: arrow.y,
+          faceIndex: arrow.faceIndex,
+        );
+      }
+    }
+  }
+
+  String _getTargetTypeFromRound(RoundType roundType) {
+    // Determine target size from round configuration
+    final targetDiameter = roundType.targetDiameter;
+    if (roundType.faceCount == 3) {
+      return 'triple_40cm';
+    }
+    if (targetDiameter <= 40) return '40cm';
+    if (targetDiameter <= 60) return '60cm';
+    if (targetDiameter <= 80) return '80cm';
+    return '122cm';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -693,7 +850,29 @@ class _ActionButtons extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(width: AppSpacing.md),
+          const SizedBox(width: AppSpacing.sm),
+
+          // Auto-Plot button
+          Consumer<ConnectivityProvider>(
+            builder: (context, connectivity, _) {
+              final isEnabled = !connectivity.isOffline;
+              return IconButton(
+                onPressed: isEnabled ? () => _launchAutoPlot(context) : null,
+                icon: Icon(
+                  Icons.camera_alt,
+                  color: isEnabled ? AppColors.gold : AppColors.textSecondary,
+                  semanticLabel: 'Auto-Plot',
+                ),
+                tooltip: 'Auto-Plot (camera)',
+                style: IconButton.styleFrom(
+                  backgroundColor: AppColors.surfaceDark,
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                ),
+              );
+            },
+          ),
+
+          const SizedBox(width: AppSpacing.sm),
 
           // Next End / Complete button
           Expanded(

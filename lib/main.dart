@@ -14,6 +14,10 @@ import 'providers/breath_training_provider.dart';
 import 'providers/active_sessions_provider.dart';
 import 'providers/spider_graph_provider.dart';
 import 'providers/connectivity_provider.dart';
+import 'providers/skills_provider.dart';
+import 'providers/sight_marks_provider.dart';
+import 'providers/auto_plot_provider.dart';
+import 'services/vision_api_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/firestore_sync_service.dart';
@@ -83,6 +87,21 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
           ),
           ChangeNotifierProvider(
             create: (context) => ConnectivityProvider(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) =>
+                SkillsProvider(context.read<AppDatabase>())..loadSkills(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => SightMarksProvider(context.read<AppDatabase>()),
+          ),
+          ChangeNotifierProvider(
+            create: (context) {
+              // TODO: Replace with actual API key from secure storage or backend
+              final visionService = VisionApiService(apiKey: null);
+              return AutoPlotProvider(context.read<AppDatabase>(), visionService)
+                ..initialize();
+            },
           ),
         ],
         child: MaterialApp(
@@ -321,13 +340,9 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
           _hasReceivedData = true;
         }
 
-        // Show loading while checking auth state (with timeout)
+        // Show branded splash while checking auth state (with timeout)
         if (!_hasReceivedData && !_timedOut) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(color: AppColors.gold),
-            ),
-          );
+          return const SplashBranding();
         }
 
         // User is logged in (stream confirmed)

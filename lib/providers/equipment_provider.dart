@@ -48,12 +48,26 @@ class EquipmentProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Create a new bow
-  Future<void> createBow({
+  /// Create a new bow with all tuning data
+  Future<String> createBow({
     required String name,
     required String bowType,
     String? settings,
     bool setAsDefault = false,
+    // Equipment details
+    String? riserModel,
+    DateTime? riserPurchaseDate,
+    String? limbModel,
+    DateTime? limbPurchaseDate,
+    double? poundage,
+    // Tuning settings
+    double? tillerTop,
+    double? tillerBottom,
+    double? braceHeight,
+    double? nockingPointHeight,
+    double? buttonPosition,
+    String? buttonTension,
+    double? clickerPosition,
   }) async {
     final bowId = UniqueId.generate();
 
@@ -63,6 +77,18 @@ class EquipmentProvider extends ChangeNotifier {
       bowType: bowType,
       settings: Value(settings),
       isDefault: Value(setAsDefault),
+      riserModel: Value(riserModel),
+      riserPurchaseDate: Value(riserPurchaseDate),
+      limbModel: Value(limbModel),
+      limbPurchaseDate: Value(limbPurchaseDate),
+      poundage: Value(poundage),
+      tillerTop: Value(tillerTop),
+      tillerBottom: Value(tillerBottom),
+      braceHeight: Value(braceHeight),
+      nockingPointHeight: Value(nockingPointHeight),
+      buttonPosition: Value(buttonPosition),
+      buttonTension: Value(buttonTension),
+      clickerPosition: Value(clickerPosition),
     ));
 
     if (setAsDefault) {
@@ -70,6 +96,7 @@ class EquipmentProvider extends ChangeNotifier {
     }
 
     await loadEquipment();
+    return bowId;
   }
 
   /// Create a new quiver with shafts
@@ -106,12 +133,26 @@ class EquipmentProvider extends ChangeNotifier {
     await loadEquipment();
   }
 
-  /// Update bow
+  /// Update bow with all tuning data
   Future<void> updateBow({
     required String id,
     String? name,
     String? bowType,
     String? settings,
+    // Equipment details
+    String? riserModel,
+    DateTime? riserPurchaseDate,
+    String? limbModel,
+    DateTime? limbPurchaseDate,
+    double? poundage,
+    // Tuning settings
+    double? tillerTop,
+    double? tillerBottom,
+    double? braceHeight,
+    double? nockingPointHeight,
+    double? buttonPosition,
+    String? buttonTension,
+    double? clickerPosition,
   }) async {
     final bow = await _db.getBow(id);
     if (bow == null) return;
@@ -124,6 +165,20 @@ class EquipmentProvider extends ChangeNotifier {
       isDefault: Value(bow.isDefault),
       createdAt: Value(bow.createdAt),
       updatedAt: Value(DateTime.now()),
+      // Equipment details
+      riserModel: Value(riserModel ?? bow.riserModel),
+      riserPurchaseDate: Value(riserPurchaseDate ?? bow.riserPurchaseDate),
+      limbModel: Value(limbModel ?? bow.limbModel),
+      limbPurchaseDate: Value(limbPurchaseDate ?? bow.limbPurchaseDate),
+      poundage: Value(poundage ?? bow.poundage),
+      // Tuning settings
+      tillerTop: Value(tillerTop ?? bow.tillerTop),
+      tillerBottom: Value(tillerBottom ?? bow.tillerBottom),
+      braceHeight: Value(braceHeight ?? bow.braceHeight),
+      nockingPointHeight: Value(nockingPointHeight ?? bow.nockingPointHeight),
+      buttonPosition: Value(buttonPosition ?? bow.buttonPosition),
+      buttonTension: Value(buttonTension ?? bow.buttonTension),
+      clickerPosition: Value(clickerPosition ?? bow.clickerPosition),
     ));
 
     await loadEquipment();
@@ -186,6 +241,15 @@ class EquipmentProvider extends ChangeNotifier {
     String? fletchingColor,
     String? nockColor,
     String? notes,
+    // New v14 fields
+    double? totalWeight,
+    String? pointType,
+    String? nockBrand,
+    String? fletchingSize,
+    double? fletchingAngle,
+    bool? hasWrap,
+    String? wrapColor,
+    DateTime? purchaseDate,
   }) async {
     final shaft = await _db.getShaft(shaftId);
     if (shaft == null) return;
@@ -199,6 +263,14 @@ class EquipmentProvider extends ChangeNotifier {
       fletchingColor: Value(fletchingColor),
       nockColor: Value(nockColor),
       notes: Value(notes),
+      totalWeight: Value(totalWeight),
+      pointType: Value(pointType),
+      nockBrand: Value(nockBrand),
+      fletchingSize: Value(fletchingSize),
+      fletchingAngle: Value(fletchingAngle),
+      hasWrap: Value(hasWrap),
+      wrapColor: Value(wrapColor),
+      purchaseDate: Value(purchaseDate),
     ));
 
     await loadEquipment();
@@ -213,6 +285,14 @@ class EquipmentProvider extends ChangeNotifier {
     String? fletchingType,
     String? fletchingColor,
     String? nockColor,
+    // New v14 fields
+    double? totalWeight,
+    String? pointType,
+    String? nockBrand,
+    String? fletchingSize,
+    double? fletchingAngle,
+    bool? hasWrap,
+    String? wrapColor,
   }) async {
     for (final shaftId in shaftIds) {
       final shaft = await _db.getShaft(shaftId);
@@ -226,6 +306,13 @@ class EquipmentProvider extends ChangeNotifier {
         fletchingType: Value(fletchingType),
         fletchingColor: Value(fletchingColor),
         nockColor: Value(nockColor),
+        totalWeight: Value(totalWeight),
+        pointType: Value(pointType),
+        nockBrand: Value(nockBrand),
+        fletchingSize: Value(fletchingSize),
+        fletchingAngle: Value(fletchingAngle),
+        hasWrap: Value(hasWrap),
+        wrapColor: Value(wrapColor),
       ));
     }
 
@@ -278,6 +365,192 @@ class EquipmentProvider extends ChangeNotifier {
   Future<void> permanentlyDeleteQuiver(String quiverId) async {
     await _db.deleteQuiver(quiverId);
     await loadEquipment();
+  }
+
+  // ===========================================================================
+  // STABILIZERS
+  // ===========================================================================
+
+  /// Get stabilizers for a bow
+  Future<List<Stabilizer>> getStabilizersForBow(String bowId) async {
+    return (_db.select(_db.stabilizers)
+          ..where((t) => t.bowId.equals(bowId))
+          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+        .get();
+  }
+
+  /// Create a new stabilizer setup
+  Future<String> createStabilizer({
+    required String bowId,
+    String? name,
+    String? longRodModel,
+    double? longRodLength,
+    double? longRodWeight,
+    String? sideRodModel,
+    double? sideRodLength,
+    double? sideRodWeight,
+    double? extenderLength,
+    String? vbarModel,
+    double? vbarAngleHorizontal,
+    double? vbarAngleVertical,
+    String? weightArrangement,
+    String? damperModel,
+    String? damperPositions,
+    String? notes,
+  }) async {
+    final id = UniqueId.generate();
+    await _db.into(_db.stabilizers).insert(StabilizersCompanion.insert(
+      id: id,
+      bowId: bowId,
+      name: Value(name),
+      longRodModel: Value(longRodModel),
+      longRodLength: Value(longRodLength),
+      longRodWeight: Value(longRodWeight),
+      sideRodModel: Value(sideRodModel),
+      sideRodLength: Value(sideRodLength),
+      sideRodWeight: Value(sideRodWeight),
+      extenderLength: Value(extenderLength),
+      vbarModel: Value(vbarModel),
+      vbarAngleHorizontal: Value(vbarAngleHorizontal),
+      vbarAngleVertical: Value(vbarAngleVertical),
+      weightArrangement: Value(weightArrangement),
+      damperModel: Value(damperModel),
+      damperPositions: Value(damperPositions),
+      notes: Value(notes),
+    ));
+    return id;
+  }
+
+  /// Update a stabilizer setup
+  Future<void> updateStabilizer({
+    required String id,
+    String? name,
+    String? longRodModel,
+    double? longRodLength,
+    double? longRodWeight,
+    String? sideRodModel,
+    double? sideRodLength,
+    double? sideRodWeight,
+    double? extenderLength,
+    String? vbarModel,
+    double? vbarAngleHorizontal,
+    double? vbarAngleVertical,
+    String? weightArrangement,
+    String? damperModel,
+    String? damperPositions,
+    String? notes,
+  }) async {
+    await (_db.update(_db.stabilizers)..where((t) => t.id.equals(id))).write(
+      StabilizersCompanion(
+        name: Value(name),
+        longRodModel: Value(longRodModel),
+        longRodLength: Value(longRodLength),
+        longRodWeight: Value(longRodWeight),
+        sideRodModel: Value(sideRodModel),
+        sideRodLength: Value(sideRodLength),
+        sideRodWeight: Value(sideRodWeight),
+        extenderLength: Value(extenderLength),
+        vbarModel: Value(vbarModel),
+        vbarAngleHorizontal: Value(vbarAngleHorizontal),
+        vbarAngleVertical: Value(vbarAngleVertical),
+        weightArrangement: Value(weightArrangement),
+        damperModel: Value(damperModel),
+        damperPositions: Value(damperPositions),
+        notes: Value(notes),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  /// Delete a stabilizer setup
+  Future<void> deleteStabilizer(String id) async {
+    await (_db.delete(_db.stabilizers)..where((t) => t.id.equals(id))).go();
+  }
+
+  // ===========================================================================
+  // BOW STRINGS
+  // ===========================================================================
+
+  /// Get strings for a bow
+  Future<List<BowString>> getStringsForBow(String bowId) async {
+    return (_db.select(_db.bowStrings)
+          ..where((t) => t.bowId.equals(bowId))
+          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+        .get();
+  }
+
+  /// Create a new bow string
+  Future<String> createBowString({
+    required String bowId,
+    String? name,
+    String? material,
+    int? strandCount,
+    String? servingMaterial,
+    double? stringLength,
+    String? color,
+    DateTime? purchaseDate,
+    String? notes,
+  }) async {
+    final id = UniqueId.generate();
+    await _db.into(_db.bowStrings).insert(BowStringsCompanion.insert(
+      id: id,
+      bowId: bowId,
+      name: Value(name),
+      material: Value(material),
+      strandCount: Value(strandCount),
+      servingMaterial: Value(servingMaterial),
+      stringLength: Value(stringLength),
+      color: Value(color),
+      purchaseDate: Value(purchaseDate),
+      notes: Value(notes),
+    ));
+    return id;
+  }
+
+  /// Update a bow string
+  Future<void> updateBowString({
+    required String id,
+    String? name,
+    String? material,
+    int? strandCount,
+    String? servingMaterial,
+    double? stringLength,
+    String? color,
+    bool? isActive,
+    DateTime? purchaseDate,
+    DateTime? retiredAt,
+    String? notes,
+  }) async {
+    await (_db.update(_db.bowStrings)..where((t) => t.id.equals(id))).write(
+      BowStringsCompanion(
+        name: Value(name),
+        material: Value(material),
+        strandCount: Value(strandCount),
+        servingMaterial: Value(servingMaterial),
+        stringLength: Value(stringLength),
+        color: Value(color),
+        isActive: Value(isActive ?? true),
+        purchaseDate: Value(purchaseDate),
+        retiredAt: Value(retiredAt),
+        notes: Value(notes),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  /// Delete a bow string
+  Future<void> deleteBowString(String id) async {
+    await (_db.delete(_db.bowStrings)..where((t) => t.id.equals(id))).go();
+  }
+
+  /// Set a string as active (retire others)
+  Future<void> setActiveString(String bowId, String stringId) async {
+    // Deactivate all strings for this bow
+    await (_db.update(_db.bowStrings)..where((t) => t.bowId.equals(bowId)))
+        .write(const BowStringsCompanion(isActive: Value(false)));
+    // Activate the selected string
+    await (_db.update(_db.bowStrings)..where((t) => t.id.equals(stringId)))
+        .write(const BowStringsCompanion(isActive: Value(true)));
   }
 
   // ===========================================================================

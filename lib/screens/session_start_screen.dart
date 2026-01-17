@@ -6,6 +6,7 @@ import '../providers/session_provider.dart';
 import '../providers/equipment_provider.dart';
 import '../providers/connectivity_provider.dart';
 import '../widgets/offline_indicator.dart';
+import '../widgets/expected_sight_mark.dart';
 import 'plotting_screen.dart';
 
 class SessionStartScreen extends StatefulWidget {
@@ -232,6 +233,21 @@ class _SessionStartScreenState extends State<SessionStartScreen> {
                   ),
 
                   const SizedBox(height: AppSpacing.xl),
+
+                  // Expected sight mark (show when bow and round are selected)
+                  if (_selectedBowId != null && _selectedRoundId != null)
+                    Builder(
+                      builder: (context) {
+                        final round = _roundTypes.firstWhere(
+                          (r) => r.id == _selectedRoundId,
+                          orElse: () => _roundTypes.first,
+                        );
+                        return ExpectedSightMark(
+                          bowId: _selectedBowId,
+                          distance: round.distance.toDouble(),
+                        );
+                      },
+                    ),
 
                   // Round selection
                   Text(
