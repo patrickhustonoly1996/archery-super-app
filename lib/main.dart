@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'db/database.dart';
 import 'theme/app_theme.dart';
@@ -106,11 +107,14 @@ class AuthGate extends StatefulWidget {
 }
 
 class _AuthGateState extends State<AuthGate> {
+  static const String _wasLoggedInKey = 'was_logged_in';
+
   bool _timedOut = false;
   bool _hasReceivedData = false;
   User? _cachedUser;
   bool _hasTriggeredSync = false;
   bool _firebaseReady = false;
+  bool _wasLoggedIn = false; // Local flag for offline resilience
 
   @override
   void initState() {
@@ -119,8 +123,19 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   Future<void> _checkAuthState() async {
-    // Wait for Firebase to initialize with a timeout
-    // This handles offline scenarios where init might hang
+    // Load local "was logged in" flag first (instant, works offline)
+    final prefs = await SharedPreferences.getInstance();
+    _wasLoggedIn = prefs.getBool(_wasLoggedInKey) ?? false;
+
+    // If user was previously logged in, go straight to home - no Firebase wait
+    // Firebase will verify in background and update the flag if needed
+    if (_wasLoggedIn) {
+      if (mounted) setState(() {});
+      _verifyAuthInBackground(prefs);
+      return;
+    }
+
+    // User wasn't logged in - need to wait for Firebase to authenticate
     try {
       await firebaseInitFuture.timeout(
         const Duration(milliseconds: 500),
@@ -130,21 +145,22 @@ class _AuthGateState extends State<AuthGate> {
       );
       _cachedUser = FirebaseAuth.instance.currentUser;
       _firebaseReady = true;
+
+      // If logged in now, update flag and go to home
+      if (_cachedUser != null) {
+        await prefs.setBool(_wasLoggedInKey, true);
+        _wasLoggedIn = true;
+        _triggerBackgroundSync();
+        if (mounted) setState(() {});
+        return;
+      }
     } catch (e) {
       // Firebase didn't initialize in time (likely offline or slow network)
       debugPrint('Firebase init failed/timed out: $e');
       _firebaseReady = false;
     }
 
-    // If we have a cached user, we're done - go straight to home
-    if (_cachedUser != null) {
-      _triggerBackgroundSync();
-      if (mounted) setState(() {});
-      return;
-    }
-
-    // No cached user - if Firebase isn't ready, go straight to login
-    // (can't authenticate without Firebase anyway)
+    // No cached user and Firebase isn't ready - show login
     if (!_firebaseReady) {
       if (mounted) setState(() => _timedOut = true);
       return;
@@ -155,6 +171,31 @@ class _AuthGateState extends State<AuthGate> {
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted && !_hasReceivedData) {
         setState(() => _timedOut = true);
+      }
+    });
+  }
+
+  /// Verify auth state in background after showing home screen
+  /// Updates local flag if Firebase says user is actually logged out
+  void _verifyAuthInBackground(SharedPreferences prefs) {
+    Future.microtask(() async {
+      try {
+        await firebaseInitFuture;
+        final user = FirebaseAuth.instance.currentUser;
+
+        if (user != null) {
+          // User is still logged in - trigger sync
+          _cachedUser = user;
+          _firebaseReady = true;
+          _triggerBackgroundSync();
+        } else {
+          // Firebase says not logged in - user probably logged out elsewhere
+          // Update flag but don't kick them out mid-session
+          await prefs.setBool(_wasLoggedInKey, false);
+          debugPrint('Auth state mismatch: local=true, firebase=false');
+        }
+      } catch (e) {
+        debugPrint('Background auth verification failed: $e');
       }
     });
   }
@@ -206,13 +247,18 @@ class _AuthGateState extends State<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    // If we have a cached user, go straight to home (offline-first)
+    // If we have a cached user from Firebase, go straight to home
     if (_cachedUser != null) {
       return const HomeScreen();
     }
 
-    // If Firebase isn't ready or timed out, show login immediately
-    // No point waiting for a stream that can't connect
+    // Offline mode: Firebase isn't ready but user was previously logged in
+    // Trust local flag and show home screen
+    if (!_firebaseReady && _wasLoggedIn) {
+      return const HomeScreen();
+    }
+
+    // If Firebase isn't ready or timed out, show login
     if (!_firebaseReady || _timedOut) {
       return const LoginScreen();
     }
