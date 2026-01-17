@@ -14,6 +14,7 @@ class TargetFace extends StatelessWidget {
   final double size;
   final bool showRingLabels;
   final bool triSpot; // WA 18 tri-spot shows only 6-10 rings
+  final bool compoundScoring; // Compound inner 10 - smaller X ring
 
   const TargetFace({
     super.key,
@@ -21,6 +22,7 @@ class TargetFace extends StatelessWidget {
     this.size = 300,
     this.showRingLabels = false,
     this.triSpot = false,
+    this.compoundScoring = false,
   });
 
   @override
@@ -36,6 +38,7 @@ class TargetFace extends StatelessWidget {
         painter: _TargetFacePainter(
           showRingLabels: showRingLabels,
           triSpot: triSpot,
+          compoundScoring: compoundScoring,
         ),
         child: Stack(
           children: arrows.map((arrow) {
@@ -67,13 +70,27 @@ class TargetFace extends StatelessWidget {
 class _TargetFacePainter extends CustomPainter {
   final bool showRingLabels;
   final bool triSpot;
+  final bool compoundScoring;
 
-  _TargetFacePainter({this.showRingLabels = false, this.triSpot = false});
+  _TargetFacePainter({
+    this.showRingLabels = false,
+    this.triSpot = false,
+    this.compoundScoring = false,
+  });
+
+  // WA compound indoor: X ring is 20mm diameter on 40cm face (2.5% of radius)
+  // vs recurve X ring at 40mm diameter (5% of radius)
+  static const double compoundXRing = 0.025; // Half the size of recurve X
+  static const double compound10Ring = 0.05; // Compound 10 = recurve X size
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
+
+    // Ring sizes - compound has smaller inner 10/X
+    final xSize = compoundScoring ? compoundXRing : TargetRings.x;
+    final ring10Size = compoundScoring ? compound10Ring : TargetRings.ring10;
 
     // Ring colors from outside to inside
     // Tri-spot only shows rings 6-10 (no 1-5 rings)
@@ -83,8 +100,8 @@ class _TargetFacePainter extends CustomPainter {
             (TargetRings.ring7, AppColors.ring7), // 7 - red
             (TargetRings.ring8, AppColors.ring8), // 8 - red
             (TargetRings.ring9, AppColors.ring9), // 9 - gold
-            (TargetRings.ring10, AppColors.ring10), // 10 - gold
-            (TargetRings.x, AppColors.ringX), // X - gold center
+            (ring10Size, AppColors.ring10), // 10 - gold (smaller for compound)
+            (xSize, AppColors.ringX), // X - gold center (smaller for compound)
           ]
         : [
             (TargetRings.ring1, AppColors.ring1), // 1 - white
@@ -96,8 +113,8 @@ class _TargetFacePainter extends CustomPainter {
             (TargetRings.ring7, AppColors.ring7), // 7 - red
             (TargetRings.ring8, AppColors.ring8), // 8 - red
             (TargetRings.ring9, AppColors.ring9), // 9 - gold
-            (TargetRings.ring10, AppColors.ring10), // 10 - gold
-            (TargetRings.x, AppColors.ringX), // X - gold center
+            (ring10Size, AppColors.ring10), // 10 - gold (smaller for compound)
+            (xSize, AppColors.ringX), // X - gold center (smaller for compound)
           ];
 
     // For tri-spot, scale rings to fill the face (6 ring becomes the outer edge)
@@ -126,10 +143,10 @@ class _TargetFacePainter extends CustomPainter {
     final xPaint = Paint()
       ..color = AppColors.ringX
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, TargetRings.x * radius * ringScale, xPaint);
+    canvas.drawCircle(center, xSize * radius * ringScale, xPaint);
 
     // Draw center cross (within X ring)
-    final crossSize = TargetRings.x * radius * ringScale * 0.6; // 60% of X ring
+    final crossSize = xSize * radius * ringScale * 0.25; // 25% of X ring
     final crossPaint = Paint()
       ..color = Colors.black
       ..strokeWidth = 1.5
@@ -149,7 +166,9 @@ class _TargetFacePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _TargetFacePainter oldDelegate) =>
+      triSpot != oldDelegate.triSpot ||
+      compoundScoring != oldDelegate.compoundScoring;
 }
 
 class _ArrowMarker extends StatelessWidget {
@@ -214,6 +233,7 @@ class InteractiveTargetFace extends StatefulWidget {
   final bool isIndoor;
   final bool triSpot;
   final bool isLeftHanded;
+  final bool compoundScoring; // Smaller inner 10/X for compound
 
   /// Enable line cutter detection and in/out dialog
   final bool lineCutterDialogEnabled;
@@ -228,6 +248,7 @@ class InteractiveTargetFace extends StatefulWidget {
     this.triSpot = false,
     this.isLeftHanded = false,
     this.lineCutterDialogEnabled = false,
+    this.compoundScoring = false,
   });
 
   @override
@@ -759,6 +780,7 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
                 arrows: widget.arrows,
                 size: widget.size,
                 triSpot: widget.triSpot,
+                compoundScoring: widget.compoundScoring,
               ),
 
               // Offset line from touch to arrow
