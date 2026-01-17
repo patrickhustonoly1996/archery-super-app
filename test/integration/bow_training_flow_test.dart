@@ -209,6 +209,8 @@ void setupMockDatabase(MockAppDatabase db) {
   // Mock database methods
   when(() => db.ensureUserTrainingProgressExists()).thenAnswer((_) async {});
   when(() => db.ensureOlyTrainingDataExists()).thenAnswer((_) async {});
+  when(() => db.getPreference(any())).thenAnswer((_) async => null);
+  when(() => db.getAllOlyTrainingLogs()).thenAnswer((_) async => []);
   when(() => db.getAllOlySessionTemplates()).thenAnswer((_) async => [
         MockOlySessionTemplate(id: 'template_1', version: '1.0', name: 'Session 1.0'),
         MockOlySessionTemplate(id: 'template_2', version: '1.1', name: 'Session 1.1'),
@@ -282,9 +284,9 @@ void main() {
         ));
         await tester.pumpAndSettle();
 
-        // Verify session selection screen is shown
+        // Verify session selection screen is shown (intro screen)
         expect(find.text('Bow Training'), findsOneWidget);
-        expect(find.text('Quick Session'), findsOneWidget);
+        expect(find.text('Duration'), findsOneWidget);
 
         // Find and tap a preset session from the provider
         final templates = provider.sessionTemplates;
