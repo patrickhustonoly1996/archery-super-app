@@ -5,6 +5,7 @@ import '../providers/session_provider.dart';
 import '../providers/equipment_provider.dart';
 import '../providers/connectivity_provider.dart';
 import '../widgets/target_face.dart';
+import '../widgets/triple_spot_target.dart';
 import '../widgets/group_centre_widget.dart';
 import '../widgets/scorecard_widget.dart';
 import '../widgets/shaft_selector_bottom_sheet.dart';
@@ -14,8 +15,58 @@ import '../db/database.dart';
 import 'session_complete_screen.dart';
 import 'home_screen.dart';
 
-class PlottingScreen extends StatelessWidget {
+/// Preference key for triple spot view mode
+const String kTripleSpotViewPref = 'indoor_triple_spot_view';
+
+/// Preference key for combined view mode (when viewing triple spot)
+const String kTripleSpotCombinedViewPref = 'indoor_triple_spot_combined';
+
+class PlottingScreen extends StatefulWidget {
   const PlottingScreen({super.key});
+
+  @override
+  State<PlottingScreen> createState() => _PlottingScreenState();
+}
+
+class _PlottingScreenState extends State<PlottingScreen> {
+  // Default to triple spot for indoor rounds
+  bool _useTripleSpotView = true;
+  // Default to separate view (3 targets)
+  bool _useCombinedView = false;
+  // Selected face for plotting (0, 1, or 2)
+  int _selectedFaceIndex = 0;
+  bool _prefsLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    final db = context.read<AppDatabase>();
+    final tripleSpot = await db.getBoolPreference(kTripleSpotViewPref, defaultValue: true);
+    final combined = await db.getBoolPreference(kTripleSpotCombinedViewPref, defaultValue: false);
+    if (mounted) {
+      setState(() {
+        _useTripleSpotView = tripleSpot;
+        _useCombinedView = combined;
+        _prefsLoaded = true;
+      });
+    }
+  }
+
+  Future<void> _setTripleSpotView(bool value) async {
+    final db = context.read<AppDatabase>();
+    await db.setBoolPreference(kTripleSpotViewPref, value);
+    setState(() => _useTripleSpotView = value);
+  }
+
+  Future<void> _setCombinedView(bool value) async {
+    final db = context.read<AppDatabase>();
+    await db.setBoolPreference(kTripleSpotCombinedViewPref, value);
+    setState(() => _useCombinedView = value);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +82,10 @@ class PlottingScreen extends StatelessWidget {
           });
           return const SizedBox.shrink();
         }
+
+        // Check if this is an indoor round that supports triple spot
+        final isIndoor = provider.roundType?.isIndoor ?? false;
+        final supportsTripleSpot = isIndoor;
 
         return Scaffold(
           appBar: AppBar(
@@ -94,6 +149,31 @@ class PlottingScreen extends StatelessWidget {
 
                 const SizedBox(height: AppSpacing.md),
 
+                // Triple spot toggle for indoor rounds
+                if (supportsTripleSpot)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // View mode toggle (1 face vs 3 faces)
+                        TripleSpotToggle(
+                          isTripleSpot: _useTripleSpotView,
+                          onChanged: _setTripleSpotView,
+                        ),
+                        // Combined vs separate toggle (only when triple spot)
+                        if (_useTripleSpotView)
+                          _ViewModeToggle(
+                            isCombined: _useCombinedView,
+                            onChanged: _setCombinedView,
+                          ),
+                      ],
+                    ),
+                  ),
+
+                if (supportsTripleSpot)
+                  const SizedBox(height: AppSpacing.sm),
+
                 // Target face with rolling average overlay
                 Expanded(
                   child: Stack(
@@ -107,6 +187,31 @@ class PlottingScreen extends StatelessWidget {
                               final size = constraints.maxWidth < constraints.maxHeight
                                   ? constraints.maxWidth
                                   : constraints.maxHeight - 120; // Leave room for zoom
+
+                              // Use triple spot view for indoor rounds when enabled
+                              if (supportsTripleSpot && _useTripleSpotView) {
+                                if (_useCombinedView) {
+                                  // Combined view: all arrows on one tri-spot face
+                                  return CombinedTripleSpotView(
+                                    arrows: provider.allSessionArrows,
+                                    size: size.clamp(200.0, 350.0),
+                                  );
+                                } else {
+                                  // Separate view: 3 interactive faces
+                                  return InteractiveTripleSpotTarget(
+                                    arrows: provider.allSessionArrows,
+                                    size: size.clamp(200.0, 400.0),
+                                    enabled: !provider.isEndComplete,
+                                    onArrowPlotted: (x, y, faceIndex) async {
+                                      await _plotArrowWithFace(
+                                        context, provider, x, y, faceIndex,
+                                      );
+                                    },
+                                  );
+                                }
+                              }
+
+                              // Single face view (outdoor or user preference)
                               final isTriSpot = (provider.roundType?.faceCount ?? 1) == 3;
                               return InteractiveTargetFace(
                                 arrows: provider.allSessionArrows,
@@ -114,39 +219,9 @@ class PlottingScreen extends StatelessWidget {
                                 enabled: !provider.isEndComplete,
                                 isIndoor: provider.roundType?.isIndoor ?? false,
                                 triSpot: isTriSpot,
+                                lineCutterDialogEnabled: true,
                                 onArrowPlotted: (x, y) async {
-                                  // Check if shaft tagging is enabled
-                                  if (provider.shaftTaggingEnabled &&
-                                      provider.selectedQuiverId != null) {
-                                    // Show shaft selector bottom sheet
-                                    final equipmentProvider =
-                                        context.read<EquipmentProvider>();
-                                    final shafts = equipmentProvider
-                                        .getShaftsForQuiver(
-                                            provider.selectedQuiverId!);
-
-                                    await showModalBottomSheet(
-                                      context: context,
-                                      backgroundColor: Colors.transparent,
-                                      builder: (_) =>
-                                          ShaftSelectorBottomSheet(
-                                        shafts: shafts,
-                                        onShaftSelected: (shaftNumber) {
-                                          provider.plotArrow(
-                                            x: x,
-                                            y: y,
-                                            shaftNumber: shaftNumber,
-                                          );
-                                        },
-                                        onSkip: () {
-                                          provider.plotArrow(x: x, y: y);
-                                        },
-                                      ),
-                                    );
-                                  } else {
-                                    // No shaft tagging - plot directly
-                                    provider.plotArrow(x: x, y: y);
-                                  }
+                                  await _plotArrowWithFace(context, provider, x, y, 0);
                                 },
                               );
                             },

@@ -463,7 +463,7 @@ void main() {
 
       // Touch at center and drag slightly - arrow should stay inside
       await tester.dragFrom(center, const Offset(0, 30));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       expect(wasPlotted, isTrue);
       expect(plottedPosition, isNotNull);

@@ -112,11 +112,11 @@ class _TargetFacePainter extends CustomPainter {
       canvas.drawCircle(center, ringRadius, paint);
     }
 
-    // Draw ring lines
+    // Draw ring lines - thicker for crisp visibility on mobile screens
     final linePaint = Paint()
-      ..color = Colors.black.withOpacity(0.3)
+      ..color = Colors.black.withOpacity(0.5)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
+      ..strokeWidth = 2;
 
     for (final ring in rings) {
       canvas.drawCircle(center, ring.$1 * radius * ringScale, linePaint);
@@ -217,6 +217,9 @@ class InteractiveTargetFace extends StatefulWidget {
   final bool triSpot;
   final bool isLeftHanded;
 
+  /// Enable line cutter detection and in/out dialog
+  final bool lineCutterDialogEnabled;
+
   const InteractiveTargetFace({
     super.key,
     required this.arrows,
@@ -226,6 +229,7 @@ class InteractiveTargetFace extends StatefulWidget {
     this.isIndoor = false,
     this.triSpot = false,
     this.isLeftHanded = false,
+    this.lineCutterDialogEnabled = false,
   });
 
   @override
@@ -266,7 +270,7 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   // sqrt(42² + 42²) ≈ 59.4px ≈ 60px
   static const double _holdOffsetX = 42.0; // Horizontal component (sign flipped for lefties)
   static const double _holdOffsetY = 42.0; // Vertical component (always upward)
-  static const double _boundaryProximityThreshold = 0.025; // 2.5% of radius - wider detection zone
+  static const double _boundaryProximityThreshold = 0.01; // 1% of radius - ~6mm on 122cm target, tight for precision
   static const Duration _linecutterActivationDelay = Duration(milliseconds: 600); // Longer hold for intentional activation
 
   /// Cached zoom factor to prevent jumps during drag
@@ -644,9 +648,22 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
 
       final distance = math.sqrt(normalizedX * normalizedX + normalizedY * normalizedY);
       if (distance <= 1.0) {
-        widget.onArrowPlotted(normalizedX, normalizedY);
+        // Check if linecutter dialog is enabled and arrow is near boundary
+        if (widget.lineCutterDialogEnabled) {
+          final proximity = _checkBoundaryProximity(finalArrowPosition);
+          if (proximity.isNear && proximity.ring != null) {
+            // Show in/out dialog
+            _handleLineCutter(normalizedX, normalizedY, proximity.ring!);
+          } else {
+            widget.onArrowPlotted(normalizedX, normalizedY);
+          }
+        } else {
+          // No linecutter dialog - plot directly
+          widget.onArrowPlotted(normalizedX, normalizedY);
+        }
       }
 
+      // Clean up state after callback
       _cancelLinecutterTimer();
       setState(() {
         _touchPosition = null;
@@ -659,6 +676,68 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
         _nearestBoundaryRing = null;
       });
     }
+  }
+
+  /// Handle line cutter scenario with async dialog
+  Future<void> _handleLineCutter(double x, double y, int nearRing) async {
+    final higherScore = await _showLineCutterDialog(nearRing);
+
+    if (higherScore != null) {
+      // Adjust position slightly based on choice
+      // Move radially inward (higher score) or outward (lower score)
+      final adjustmentFactor = higherScore ? -0.015 : 0.015;
+      final currentDist = math.sqrt(x * x + y * y);
+      if (currentDist > 0) {
+        final scale = (currentDist + adjustmentFactor) / currentDist;
+        x *= scale;
+        y *= scale;
+      }
+    }
+
+    widget.onArrowPlotted(x, y);
+  }
+
+  /// Show dialog to ask if line cutter is in or out
+  Future<bool?> _showLineCutterDialog(int nearRing) async {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        title: Text(
+          'Line cutter',
+          style: TextStyle(
+            fontFamily: 'VT323',
+            fontSize: 24,
+            color: AppColors.gold,
+          ),
+        ),
+        content: Text(
+          'Arrow is on the $nearRing line.\nIn or out?',
+          style: TextStyle(
+            fontFamily: 'Share Tech Mono',
+            color: AppColors.textPrimary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'OUT (${nearRing - 1})',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.gold,
+              foregroundColor: AppColors.backgroundDark,
+            ),
+            child: Text('IN ($nearRing)'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
