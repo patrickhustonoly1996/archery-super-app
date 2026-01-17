@@ -6,37 +6,34 @@ Tracked issues from investigation sessions. Each section has enough detail to im
 
 ## Branches To Merge
 
-These branches have useful features that should be merged into main. They're from older sessions so expect merge conflicts - resolve carefully.
+**Status:** ✅ ALL MERGED (January 2026)
 
-### handicap-graph (KEEP)
+All feature branches have been merged into main:
+
+### handicap-graph ✅ MERGED
 **Branch:** `origin/claude/archery-handicap-graph-ySjH2`
-**What it adds:**
 - Time filters: 1m, 3m, 6m, 9m, 12m, 2y, 5y, custom date range
 - Milestone markers on graph (PBs, classifications)
 - New `Milestones` database table
 
-### volume-upload (KEEP)
+### volume-upload ✅ MERGED
 **Branch:** `origin/claude/arrow-volume-upload-NJ9nO`
-**What it adds:**
 - Dedicated upload screen with better UX
 - Column mapping for CSV imports
 - Paste data support
 - Preview before import
 
-### arrow-specs (KEEP)
+### arrow-specs ✅ MERGED
 **Branch:** `origin/claude/bow-equipment-specs-NadxK`
-**What it adds:**
 - Comprehensive arrow specifications for quivers
 - Equipment detail tracking
 
-### sessions-memory (KEEP)
+### sessions-memory ✅ MERGED
 **Branch:** `origin/claude/add-training-intro-screen-VkAap`
-**What it adds:**
 - Session memory (remembers last session type)
 - Favorites system
 - Custom session builder
-
-**Note:** When merging, keep schema version 6+ and add new tables/migrations incrementally.
+- BowTrainingIntroScreen for quick-start access
 
 ---
 
