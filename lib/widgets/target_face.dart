@@ -249,8 +249,14 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   OverlayEntry? _zoomOverlay;
 
   // Pinch-to-zoom state
+  // Baseline 1.0 = target fills screen (internally multiplied by 2x)
+  // Users can pinch OUT to zoom out (<1.0) for miss plotting (longbow)
+  // Users can pinch IN to zoom in (>1.0) for precision
   double _userZoomScale = 1.0;
   bool _isPinchZooming = false;
+
+  // Internal multiplier: 1.0 user scale = 2.0 actual scale (fills screen)
+  static const double _baselineMultiplier = 2.0;
 
   // Zoom window constants
   static const double _linecutterZoomFactor = 10.0; // High zoom for line-cutter precision
@@ -282,8 +288,8 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
         isIndoor: widget.isIndoor,
       );
     }
-    // Multiply by user's current pinch zoom so the window is useful when zoomed in
-    return baseZoom * _userZoomScale;
+    // Multiply by user's current pinch zoom (with baseline) so the window is useful when zoomed in
+    return baseZoom * _userZoomScale * _baselineMultiplier;
   }
 
   /// Calculate distance from arrow position to nearest ring boundary
@@ -567,9 +573,11 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
 
     if (_isPinchZooming && details.pointerCount >= 2) {
       // Pinch-to-zoom: update scale (dampen sensitivity - use 30% of gesture scale)
+      // User scale: 0.5 (zoomed out for miss area) to 5.0 (zoomed in)
+      // 1.0 = baseline = target fills screen
       final dampedScale = 1.0 + (details.scale - 1.0) * 0.3;
       setState(() {
-        _userZoomScale = (_userZoomScale * dampedScale).clamp(1.0, 10.0);
+        _userZoomScale = (_userZoomScale * dampedScale).clamp(0.5, 5.0);
       });
     } else if (_isHolding && details.pointerCount == 1) {
       // Arrow plotting: update position
@@ -664,7 +672,8 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
         onScaleUpdate: _onScaleUpdate,
         onScaleEnd: _onScaleEnd,
         child: Transform.scale(
-          scale: _userZoomScale,
+          // Apply baseline multiplier: user's 1.0 = actual 2.0 (fills screen)
+          scale: _userZoomScale * _baselineMultiplier,
           child: Stack(
             clipBehavior: Clip.none,
             children: [
