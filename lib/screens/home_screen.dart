@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../providers/session_provider.dart';
 import '../providers/bow_training_provider.dart';
 import '../providers/breath_training_provider.dart';
+import '../providers/equipment_provider.dart';
 import '../services/auth_service.dart';
 import '../widgets/pixel_bow_icon.dart';
 import '../widgets/connectivity_indicator.dart';
@@ -78,6 +80,12 @@ class _HomeScreenState extends State<HomeScreen>
           _resumeBreathTraining();
         },
       ),
+    _MenuItem(
+      label: 'QUICK START',
+      sublabel: 'Fast session',
+      pixelIcon: PixelIconType.lightning,
+      onTap: () => _showQuickStartSheet(context),
+    ),
     _MenuItem(
       label: 'SCORE',
       sublabel: 'New session',
@@ -443,7 +451,7 @@ class _HomeScreenState extends State<HomeScreen>
 // DATA MODEL
 // =============================================================================
 
-enum PixelIconType { resume, target, scroll, chart, bow, lungs, video, radar, gear, exit }
+enum PixelIconType { resume, target, scroll, chart, bow, lungs, video, radar, gear, exit, lightning }
 
 class _MenuItem {
   final String label;
@@ -489,7 +497,7 @@ class _TopBar extends StatelessWidget {
               ),
             ),
             child: Text(
-              'v1.0.10',
+              'v1.2.0',
               style: TextStyle(
                 fontFamily: AppFonts.pixel,
                 fontSize: 6,
@@ -931,6 +939,8 @@ class _PixelMenuIconPainter extends CustomPainter {
         _drawGear(canvas, p, paint, dimPaint);
       case PixelIconType.exit:
         _drawExit(canvas, p, paint, dimPaint);
+      case PixelIconType.lightning:
+        _drawLightning(canvas, p, paint, dimPaint);
     }
   }
 
@@ -1306,6 +1316,34 @@ class _PixelMenuIconPainter extends CustomPainter {
     _px(canvas, 9, 4, p, paint);
     _px(canvas, 9, 6, p, paint);
     _px(canvas, 8, 7, p, paint);
+  }
+
+  // Lightning bolt for quick start
+  void _drawLightning(Canvas canvas, double p, Paint paint, Paint dimPaint) {
+    // Lightning bolt shape
+    _px(canvas, 7, 1, p, paint);
+    _px(canvas, 6, 2, p, paint);
+    _px(canvas, 7, 2, p, paint);
+    _px(canvas, 5, 3, p, paint);
+    _px(canvas, 6, 3, p, paint);
+    _px(canvas, 4, 4, p, paint);
+    _px(canvas, 5, 4, p, paint);
+    _px(canvas, 3, 5, p, paint);
+    _px(canvas, 4, 5, p, paint);
+    // Middle bar (wider part)
+    _px(canvas, 4, 6, p, paint);
+    _px(canvas, 5, 6, p, paint);
+    _px(canvas, 6, 6, p, paint);
+    _px(canvas, 7, 6, p, paint);
+    _px(canvas, 8, 6, p, paint);
+    // Bottom part
+    _px(canvas, 6, 7, p, paint);
+    _px(canvas, 7, 7, p, paint);
+    _px(canvas, 5, 8, p, paint);
+    _px(canvas, 6, 8, p, paint);
+    _px(canvas, 4, 9, p, paint);
+    _px(canvas, 5, 9, p, paint);
+    _px(canvas, 4, 10, p, paint);
   }
 
   void _px(Canvas canvas, int x, int y, double p, Paint paint) {
