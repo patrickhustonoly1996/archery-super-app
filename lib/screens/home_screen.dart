@@ -489,7 +489,7 @@ class _TopBar extends StatelessWidget {
               ),
             ),
             child: Text(
-              'v1.0.6',
+              'v1.0.7',
               style: TextStyle(
                 fontFamily: AppFonts.pixel,
                 fontSize: 6,
@@ -755,12 +755,12 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
                 const SizedBox(width: 8),
                 // Inline title
                 Text(
-                  'ARCHERY',
+                  'ARCHERY SUPER APP',
                   style: TextStyle(
                     fontFamily: AppFonts.pixel,
                     fontSize: 12,
                     color: AppColors.gold,
-                    letterSpacing: 2,
+                    letterSpacing: 1,
                     shadows: [
                       Shadow(
                         color: AppColors.gold.withValues(alpha: 0.3),
@@ -1655,6 +1655,7 @@ class _RetroSheetItem extends StatelessWidget {
     );
   }
 }
+
 
 
 

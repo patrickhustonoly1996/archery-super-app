@@ -21,16 +21,16 @@ import 'utils/error_handler.dart';
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } catch (e) {
+  // Initialize Firebase in background - don't block app startup
+  // AuthGate handles offline/unauthenticated state gracefully
+  Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  ).catchError((e) {
     debugPrint('Firebase init error: $e');
-  }
+  });
 
   runApp(const ArcherySuperApp());
 }
@@ -43,114 +43,20 @@ class ArcherySuperApp extends StatefulWidget {
 }
 
 class _ArcherySuperAppState extends State<ArcherySuperApp> {
-  AppDatabase? _database;
-  String? _initError;
-  bool _isInitializing = true;
-  String _status = 'Starting...';
-
-  @override
-  void initState() {
-    super.initState();
-    _initDatabase();
-  }
-
-  Future<void> _initDatabase() async {
-    try {
-      setState(() => _status = 'Opening database...');
-      _database = AppDatabase();
-
-      // Add timeout for web - WASM can hang
-      setState(() => _status = 'Loading data...');
-      await _database!.getAllRoundTypes().timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Database timed out - WASM may have failed to load');
-        },
-      );
-
-      if (mounted) {
-        setState(() => _isInitializing = false);
-      }
-    } catch (e) {
-      debugPrint('Database init error: $e');
-      if (mounted) {
-        setState(() {
-          _initError = e.toString();
-          _isInitializing = false;
-        });
-      }
-    }
-  }
+  // Database created immediately - no blocking initialization
+  // Drift/WASM connections are lazy; actual connection opens on first query
+  late final AppDatabase _database = AppDatabase();
 
   @override
   void dispose() {
-    _database?.close();
+    _database.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Show error if database failed
-    if (_initError != null) {
-      return MaterialApp(
-        theme: AppTheme.darkTheme,
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          body: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 16),
-                  const Text('Failed to initialize database',
-                      style: TextStyle(fontSize: 18)),
-                  const SizedBox(height: 8),
-                  Text(_initError!,
-                      style: const TextStyle(color: Colors.grey, fontSize: 12),
-                      textAlign: TextAlign.center),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _initError = null;
-                        _isInitializing = true;
-                      });
-                      _initDatabase();
-                    },
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    // Show loading while initializing
-    if (_isInitializing || _database == null) {
-      return MaterialApp(
-        theme: AppTheme.darkTheme,
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CircularProgressIndicator(color: AppColors.gold),
-                const SizedBox(height: 16),
-                Text(_status, style: const TextStyle(color: Colors.grey)),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
     return Provider<AppDatabase>.value(
-      value: _database!,
+      value: _database,
       child: MultiProvider(
         providers: [
           ChangeNotifierProvider(
@@ -202,26 +108,47 @@ class _AuthGateState extends State<AuthGate> {
   bool _hasReceivedData = false;
   User? _cachedUser;
   bool _hasTriggeredSync = false;
+  bool _firebaseReady = false;
 
   @override
   void initState() {
     super.initState();
-    // Check cached auth state immediately (works offline)
-    _cachedUser = FirebaseAuth.instance.currentUser;
+    _checkAuthState();
+  }
 
-    // Only set timeout if no cached user - need to wait for stream
-    if (_cachedUser == null) {
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted && !_hasReceivedData) {
-          setState(() => _timedOut = true);
-        }
-      });
+  Future<void> _checkAuthState() async {
+    // Try to get cached user - Firebase might not be initialized yet
+    try {
+      _cachedUser = FirebaseAuth.instance.currentUser;
+      _firebaseReady = true;
+    } catch (e) {
+      // Firebase not ready yet - that's fine, we'll check connectivity
+      debugPrint('Firebase not ready: $e');
+      _firebaseReady = false;
     }
 
-    // Trigger background sync if user is already logged in
+    // If we have a cached user, we're done - go straight to home
     if (_cachedUser != null) {
       _triggerBackgroundSync();
+      if (mounted) setState(() {});
+      return;
     }
+
+    // No cached user - check connectivity to decide how long to wait
+    // If offline, go straight to login (no point waiting for Firebase)
+    final connectivity = context.read<ConnectivityProvider>();
+    if (connectivity.isOffline) {
+      if (mounted) setState(() => _timedOut = true);
+      return;
+    }
+
+    // Online but no cached user - wait briefly for Firebase stream
+    // Reduced from 3s to 1.5s for faster UX
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted && !_hasReceivedData) {
+        setState(() => _timedOut = true);
+      }
+    });
   }
 
   /// Trigger cloud restore (if local empty) then backup
@@ -274,6 +201,12 @@ class _AuthGateState extends State<AuthGate> {
     // If we have a cached user, go straight to home (offline-first)
     if (_cachedUser != null) {
       return const HomeScreen();
+    }
+
+    // If Firebase isn't ready or timed out, show login immediately
+    // No point waiting for a stream that can't connect
+    if (!_firebaseReady || _timedOut) {
+      return const LoginScreen();
     }
 
     return StreamBuilder<User?>(

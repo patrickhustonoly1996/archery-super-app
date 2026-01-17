@@ -325,12 +325,20 @@ void main() {
 
         expect(sessionProvider.isSessionComplete, isTrue);
 
-        // Build session complete screen
+        // Build session complete screen with required providers
+        final equipmentProvider = EquipmentProvider(db);
         await tester.pumpWidget(
           Provider<AppDatabase>.value(
             value: db,
-            child: ChangeNotifierProvider<SessionProvider>.value(
-              value: sessionProvider,
+            child: MultiProvider(
+              providers: [
+                ChangeNotifierProvider<SessionProvider>.value(
+                  value: sessionProvider,
+                ),
+                ChangeNotifierProvider<EquipmentProvider>.value(
+                  value: equipmentProvider,
+                ),
+              ],
               child: MaterialApp(
                 theme: AppTheme.darkTheme,
                 home: const SessionCompleteScreen(),
