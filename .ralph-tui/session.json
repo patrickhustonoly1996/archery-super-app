@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "sessionId": "8b8c835f-c3fd-4b88-a8c7-29dae67a2c9f",
+  "sessionId": "dc46ae88-84c4-46be-a838-5cc1afd831ff",
   "status": "running",
-  "startedAt": "2026-01-17T09:06:22.614Z",
-  "updatedAt": "2026-01-17T09:16:04.513Z",
-  "currentIteration": 1,
+  "startedAt": "2026-01-17T09:30:03.140Z",
+  "updatedAt": "2026-01-17T09:30:08.957Z",
+  "currentIteration": 0,
   "maxIterations": 0,
-  "tasksCompleted": 1,
+  "tasksCompleted": 0,
   "isPaused": false,
   "agentPlugin": "claude",
   "model": "opus",
@@ -73,7 +73,7 @@
         "id": "US-010",
         "title": "Extract Shared Widgets",
         "status": "completed",
-        "completedInSession": true
+        "completedInSession": false
       },
       {
         "id": "US-011",
@@ -101,20 +101,11 @@
       }
     ]
   },
-  "iterations": [
-    {
-      "iteration": 1,
-      "status": "interrupted",
-      "taskId": "US-010",
-      "taskTitle": "Extract Shared Widgets",
-      "taskCompleted": true,
-      "durationMs": 579098,
-      "startedAt": "2026-01-17T09:06:25.350Z",
-      "endedAt": "2026-01-17T09:16:04.448Z"
-    }
-  ],
+  "iterations": [],
   "skippedTaskIds": [],
   "cwd": "C:\\Users\\patri\\Desktop\\archery_super_app_v1",
-  "activeTaskIds": [],
+  "activeTaskIds": [
+    "US-011"
+  ],
   "subagentPanelVisible": false
 }
