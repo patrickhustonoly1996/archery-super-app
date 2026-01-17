@@ -39,21 +39,21 @@ class ScorecardConstants {
   /// Original location: scorecard_widget.dart
   static const double arrowColumnWidth = 28.0;
 
-  /// Width of the end total column
+  /// Width of the 10+X count column
   /// Original location: scorecard_widget.dart
-  static const double totalColumnWidth = 36.0;
+  static const double tensColumnWidth = 28.0;
 
-  /// Width of the running total column
+  /// Width of the X count column
   /// Original location: scorecard_widget.dart
-  static const double runningTotalWidth = 44.0;
+  static const double xColumnWidth = 24.0;
 
   /// Height of each row in the scorecard
   /// Original location: scorecard_widget.dart
   static const double rowHeight = 32.0;
 
-  /// Spacing between ends in the scorecard
+  /// Border width for scorecard dividers
   /// Original location: scorecard_widget.dart
-  static const double endSpacing = 2.0;
+  static const double borderWidth = 0.5;
 }
 
 /// Touch and accessibility constants

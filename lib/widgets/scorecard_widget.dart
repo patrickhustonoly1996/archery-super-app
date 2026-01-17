@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../db/database.dart';
+import '../config/app_constants.dart';
 
 /// Official scorecard display showing ends with E/T and R/T
 class ScorecardWidget extends StatelessWidget {
@@ -62,7 +63,7 @@ class ScorecardWidget extends StatelessWidget {
         children: [
           // End # column
           SizedBox(
-            width: 32,
+            width: ScorecardConstants.endColumnWidth,
             child: Text(
               'End',
               style: TextStyle(
@@ -76,7 +77,7 @@ class ScorecardWidget extends StatelessWidget {
           // Arrow score columns
           ...List.generate(arrowsPerEnd, (i) =>
             SizedBox(
-              width: 28,
+              width: ScorecardConstants.arrowColumnWidth,
               child: Center(
                 child: Text(
                   '${i + 1}',
@@ -120,7 +121,7 @@ class ScorecardWidget extends StatelessWidget {
 
           // 10+X column
           SizedBox(
-            width: 28,
+            width: ScorecardConstants.tensColumnWidth,
             child: Center(
               child: Text(
                 '10+X',
@@ -134,7 +135,7 @@ class ScorecardWidget extends StatelessWidget {
 
           // X column
           SizedBox(
-            width: 24,
+            width: ScorecardConstants.xColumnWidth,
             child: Center(
               child: Text(
                 'X',
@@ -165,7 +166,7 @@ class ScorecardWidget extends StatelessWidget {
         border: Border(
           bottom: BorderSide(
             color: AppColors.surfaceLight.withValues(alpha: 0.3),
-            width: 0.5,
+            width: ScorecardConstants.borderWidth,
           ),
         ),
         color: isComplete ? Colors.transparent : AppColors.surfaceLight.withValues(alpha: 0.1),
@@ -191,7 +192,7 @@ class ScorecardWidget extends StatelessWidget {
             final arrow = hasArrow ? arrows[i] : null;
 
             return SizedBox(
-              width: 28,
+              width: ScorecardConstants.arrowColumnWidth,
               child: Center(
                 child: hasArrow
                     ? Text(
@@ -215,7 +216,7 @@ class ScorecardWidget extends StatelessWidget {
 
           // End total
           SizedBox(
-            width: 32,
+            width: ScorecardConstants.endColumnWidth,
             child: Center(
               child: Text(
                 arrows.isNotEmpty ? endTotal.toString() : '',
@@ -244,7 +245,7 @@ class ScorecardWidget extends StatelessWidget {
 
           // 10+X count
           SizedBox(
-            width: 28,
+            width: ScorecardConstants.tensColumnWidth,
             child: Center(
               child: Text(
                 cumulative10s > 0 ? cumulative10s.toString() : '',
@@ -258,7 +259,7 @@ class ScorecardWidget extends StatelessWidget {
 
           // X count
           SizedBox(
-            width: 24,
+            width: ScorecardConstants.xColumnWidth,
             child: Center(
               child: Text(
                 cumulativeXs > 0 ? cumulativeXs.toString() : '',
