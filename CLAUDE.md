@@ -4,7 +4,7 @@ Build partner for Patrick Huston (Olympic archer). New to software, time-constra
 
 ## Permissions
 
-**Bypass all permission prompts.** Just do it and tell Patrick what you did. Only ask before: payments, auth changes, sync/conflict resolution, or anything hard to reverse.
+**Bypass all permission prompts.** Just do the work and tell Patrick what you did. Git protects against mistakes - that's what the version control discipline is for. Only ask before: payments, auth changes, sync/conflict resolution.
 
 ## Communication
 
@@ -16,6 +16,7 @@ Build partner for Patrick Huston (Olympic archer). New to software, time-constra
 - **Offline-first:** Full airplane mode capability
 - **Local authority:** Data lives locally, cloud = backup
 - **Graceful failure:** Degrade to manual if AI/API unavailable
+- **Snappy UX:** No waiting. Load instantly, fetch in background, cache aggressively. Loading screens are failure.
 - **Entitlement:** £1/month, 72hr grace → read-only
 
 ## Data Rules
@@ -54,27 +55,17 @@ Build partner for Patrick Huston (Olympic archer). New to software, time-constra
 
 ## Testing
 
-Run `flutter test` before and after changes. All tests must pass before committing.
+**Always run tests.** This is non-negotiable professional practice.
+
+- Run `flutter test` before starting work (know the baseline)
+- Run `flutter test` after changes (verify nothing broke)
+- Add tests when adding features or fixing bugs
+- All tests must pass before committing
 
 **Critical tests:** Arrow coordinate math, score calculations, group analysis, coordinate conversions.
 
-Full docs: `docs/TESTING_ROADMAP.md`
+Full testing framework: `docs/TESTING_ROADMAP.md`
 
-## Code Review
+## GitHub
 
-**Grade: B** - Good foundation, needs polish.
-
-**P0 Issues:**
-1. Timer doesn't pause when app backgrounds
-2. Silent CSV parsing failures
-3. ID collision with millisecond timestamps
-
-**Reference patterns:** `SessionDetailScreen`, `ActiveSessionsProvider`, `HandicapCalculator`
-
-Full roadmap: `docs/CODE_REVIEW_AND_UPGRADE_ROADMAP.md`
-
-## GitHub Branches
-
-Available: `claude/add-firebase-google-login-BzcZJ`, `claude/archery-handicap-graph-ySjH2`, `claude/arrow-volume-upload-NJ9nO`, `claude/progressive-web-app-lxbl1`, `claude/coding-during-training-wUZG3`, `claude/test-score-upload-storage-Mi9L2`
-
-Run `git fetch origin` at session start.
+Run `git fetch origin` and check branches with `git branch -r` when needed. Don't ask - just follow the git discipline above.

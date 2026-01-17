@@ -210,30 +210,46 @@ class _RadarChartPainter extends CustomPainter {
     fillPath.close();
     strokePath.close();
 
-    // Draw fill
+    // Draw fill with gradient-like effect
     if (dataset.showFill) {
       final fillPaint = Paint()
-        ..color = dataset.color.withValues(alpha: 0.15)
+        ..color = dataset.color.withValues(alpha: 0.2)
         ..style = PaintingStyle.fill;
 
       canvas.drawPath(fillPath, fillPaint);
     }
 
-    // Draw stroke
+    // Draw outer glow stroke
+    final glowPaint = Paint()
+      ..color = dataset.color.withValues(alpha: 0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 6
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    canvas.drawPath(strokePath, glowPaint);
+
+    // Draw main stroke
     final strokePaint = Paint()
       ..color = dataset.color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
 
     canvas.drawPath(strokePath, strokePaint);
 
-    // Draw data points
+    // Draw glowing data points
+    final pointGlowPaint = Paint()
+      ..color = dataset.color.withValues(alpha: 0.5)
+      ..style = PaintingStyle.fill;
     final pointPaint = Paint()
       ..color = dataset.color
       ..style = PaintingStyle.fill;
 
     for (final point in dataPoints) {
-      canvas.drawCircle(point, 4, pointPaint);
+      canvas.drawCircle(point, 8, pointGlowPaint); // Outer glow
+      canvas.drawCircle(point, 4, pointPaint); // Core
     }
   }
 

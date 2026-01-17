@@ -40,6 +40,11 @@ class AppColors {
   static const cyan = Color(0x8000E5FF); // Indoor indicator
   static const magenta = Color(0x80FF00FF); // Outdoor indicator
 
+  // Neon accents (full brightness for charts)
+  static const neonCyan = Color(0xFF00E5FF); // Practice scores, data highlights
+  static const neonMagenta = Color(0xFFFF00FF); // Accent highlights
+  static const neonPink = Color(0xFFFF1493); // Alternative accent
+
   // Target face ring colors (WA standard)
   static const ringX = Color(0xFFFFD700); // Gold center
   static const ring10 = Color(0xFFFFD700);

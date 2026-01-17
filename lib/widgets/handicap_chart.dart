@@ -148,7 +148,7 @@ class HandicapChart extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.md),
                 _LegendItem(
-                  color: AppColors.textSecondary,
+                  color: AppColors.neonCyan,
                   label: 'Practice',
                 ),
               ],
@@ -495,21 +495,31 @@ class _HandicapChartPainter extends CustomPainter {
       }
     }
 
-    // Draw connecting lines
+    // Draw connecting line with subtle glow
     if (points.length > 1) {
-      final linePaint = Paint()
-        ..color = AppColors.textMuted.withValues(alpha: 0.3)
-        ..strokeWidth = 1
-        ..style = PaintingStyle.stroke;
-
       final path = Path()..moveTo(points[0].dx, points[0].dy);
       for (int i = 1; i < points.length; i++) {
         path.lineTo(points[i].dx, points[i].dy);
       }
+
+      // Glow layer
+      final glowPaint = Paint()
+        ..color = AppColors.gold.withValues(alpha: 0.15)
+        ..strokeWidth = 4
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(path, glowPaint);
+
+      // Main line
+      final linePaint = Paint()
+        ..color = AppColors.gold.withValues(alpha: 0.5)
+        ..strokeWidth = 1.5
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
       canvas.drawPath(path, linePaint);
     }
 
-    // Draw area under the line
+    // Draw area under the line with gradient effect
     if (points.length > 1) {
       final areaPath = Path()
         ..moveTo(points[0].dx, size.height)
@@ -523,28 +533,36 @@ class _HandicapChartPainter extends CustomPainter {
       areaPath.close();
 
       final areaPaint = Paint()
-        ..color = AppColors.gold.withValues(alpha: 0.05)
+        ..color = AppColors.gold.withValues(alpha: 0.08)
         ..style = PaintingStyle.fill;
 
       canvas.drawPath(areaPath, areaPaint);
     }
 
-    // Draw practice score points
+    // Draw practice score points with neon cyan glow
+    final practiceGlowPaint = Paint()
+      ..color = AppColors.neonCyan.withValues(alpha: 0.4)
+      ..style = PaintingStyle.fill;
     final practicePaint = Paint()
-      ..color = AppColors.textSecondary
+      ..color = AppColors.neonCyan
       ..style = PaintingStyle.fill;
 
     for (final point in practicePoints) {
-      canvas.drawCircle(point, 3, practicePaint);
+      canvas.drawCircle(point, 6, practiceGlowPaint); // Glow
+      canvas.drawCircle(point, 3, practicePaint); // Core
     }
 
-    // Draw competition score points (on top)
+    // Draw competition score points with gold glow (on top)
+    final competitionGlowPaint = Paint()
+      ..color = AppColors.gold.withValues(alpha: 0.4)
+      ..style = PaintingStyle.fill;
     final competitionPaint = Paint()
       ..color = AppColors.gold
       ..style = PaintingStyle.fill;
 
     for (final point in competitionPoints) {
-      canvas.drawCircle(point, 4, competitionPaint);
+      canvas.drawCircle(point, 8, competitionGlowPaint); // Glow
+      canvas.drawCircle(point, 4, competitionPaint); // Core
     }
 
     // Draw handicap labels at top and bottom

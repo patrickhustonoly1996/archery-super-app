@@ -136,7 +136,7 @@ class _VolumeChartState extends State<VolumeChart> {
                 ),
                 const SizedBox(width: AppSpacing.md),
                 _LegendItem(
-                  color: AppColors.textSecondary,
+                  color: AppColors.neonCyan,
                   label: 'Imported',
                 ),
               ],
@@ -520,19 +520,29 @@ class _VolumeChartPainter extends CustomPainter {
       }
     }
 
-    // Draw connecting lines - higher contrast for red light glasses
+    // Draw connecting line with glow effect
     if (points.length > 1) {
-      final linePaint = Paint()
-        ..color = AppColors.gold.withAlpha(180)
-        ..strokeWidth = 2.5
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round;
-
       final path = Path()..moveTo(points[0].dx, points[0].dy);
       for (int i = 1; i < points.length; i++) {
         path.lineTo(points[i].dx, points[i].dy);
       }
+
+      // Glow layer
+      final glowPaint = Paint()
+        ..color = AppColors.gold.withValues(alpha: 0.2)
+        ..strokeWidth = 6
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      canvas.drawPath(path, glowPaint);
+
+      // Main line
+      final linePaint = Paint()
+        ..color = AppColors.gold.withValues(alpha: 0.7)
+        ..strokeWidth = 2.5
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
       canvas.drawPath(path, linePaint);
     }
 
@@ -550,28 +560,36 @@ class _VolumeChartPainter extends CustomPainter {
       areaPath.close();
 
       final areaPaint = Paint()
-        ..color = AppColors.gold.withAlpha(25)
+        ..color = AppColors.gold.withValues(alpha: 0.1)
         ..style = PaintingStyle.fill;
 
       canvas.drawPath(areaPath, areaPaint);
     }
 
-    // Draw imported score points
+    // Draw imported score points with neon cyan glow
+    final importedGlowPaint = Paint()
+      ..color = AppColors.neonCyan.withValues(alpha: 0.4)
+      ..style = PaintingStyle.fill;
     final importedPaint = Paint()
-      ..color = AppColors.textSecondary
+      ..color = AppColors.neonCyan
       ..style = PaintingStyle.fill;
 
     for (final point in importedPoints) {
-      canvas.drawCircle(point, 5, importedPaint);
+      canvas.drawCircle(point, 8, importedGlowPaint); // Glow
+      canvas.drawCircle(point, 4, importedPaint); // Core
     }
 
-    // Draw plotted session points (on top)
+    // Draw plotted session points with gold glow (on top)
+    final plottedGlowPaint = Paint()
+      ..color = AppColors.gold.withValues(alpha: 0.4)
+      ..style = PaintingStyle.fill;
     final plottedPaint = Paint()
       ..color = AppColors.gold
       ..style = PaintingStyle.fill;
 
     for (final point in plottedPoints) {
-      canvas.drawCircle(point, 6, plottedPaint);
+      canvas.drawCircle(point, 10, plottedGlowPaint); // Glow
+      canvas.drawCircle(point, 5, plottedPaint); // Core
     }
 
     // Draw score labels at top and bottom
