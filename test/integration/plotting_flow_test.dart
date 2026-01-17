@@ -634,8 +634,8 @@ void main() {
         ));
         await tester.pumpAndSettle();
 
-        // Verify target face is displayed
-        expect(find.byType(InteractiveTargetFace), findsOneWidget);
+        // Verify target faces are displayed (WA 18m uses trispot = 3 faces)
+        expect(find.byType(InteractiveTargetFace), findsNWidgets(3));
 
         // Verify arrows are displayed on the target
         expect(sessionProvider.allSessionArrows.length, equals(1));

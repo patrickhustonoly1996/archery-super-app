@@ -35,7 +35,7 @@ void main() {
         expect(importedScores.isEmpty, isTrue);
       });
 
-      testWidgets('renders nothing when no sessions or imported scores', (tester) async {
+      testWidgets('shows sample preview when no sessions or imported scores', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -48,9 +48,10 @@ void main() {
           ),
         );
 
-        // Widget should render as SizedBox.shrink() for empty data
+        // Widget should show sample preview with SAMPLE label for empty data
         expect(find.byType(VolumeChart), findsOneWidget);
-        expect(find.byType(Card), findsNothing);
+        expect(find.byType(Card), findsOneWidget);
+        expect(find.text('SAMPLE'), findsOneWidget);
       });
     });
 

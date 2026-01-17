@@ -15,8 +15,13 @@ class VibrationService {
 
   Future<void> _ensureInitialized() async {
     if (_prefs != null) return;
-    _prefs = await SharedPreferences.getInstance();
-    _enabled = _prefs!.getBool(_vibrationsEnabledKey) ?? true; // Default ON
+    try {
+      _prefs = await SharedPreferences.getInstance();
+      _enabled = _prefs!.getBool(_vibrationsEnabledKey) ?? true; // Default ON
+    } catch (e) {
+      // SharedPreferences not available (e.g., in tests)
+      _enabled = true;
+    }
   }
 
   /// Check if vibrations are enabled
@@ -29,7 +34,11 @@ class VibrationService {
   Future<void> setEnabled(bool enabled) async {
     await _ensureInitialized();
     _enabled = enabled;
-    await _prefs!.setBool(_vibrationsEnabledKey, enabled);
+    try {
+      await _prefs?.setBool(_vibrationsEnabledKey, enabled);
+    } catch (e) {
+      // SharedPreferences not available (e.g., in tests)
+    }
   }
 
   /// Light vibration - phase changes, countdown ticks

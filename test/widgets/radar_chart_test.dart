@@ -172,16 +172,22 @@ void main() {
     });
 
     group('Empty States', () {
-      testWidgets('shows "No data" for empty datasets', (tester) async {
+      testWidgets('shows sample preview for empty datasets', (tester) async {
         await tester.pumpWidget(createRadarChart(datasets: []));
-        expect(find.text('No data'), findsOneWidget);
+        // Widget shows sample preview with SAMPLE label for empty data
+        expect(find.text('SAMPLE'), findsOneWidget);
+        // At least one CustomPaint for the radar chart (MaterialApp may add others)
+        expect(find.byType(CustomPaint), findsWidgets);
       });
 
-      testWidgets('shows "No data" for empty points', (tester) async {
+      testWidgets('shows sample preview for empty points', (tester) async {
         await tester.pumpWidget(createRadarChart(
           datasets: [const RadarChartData(points: [])],
         ));
-        expect(find.text('No data'), findsOneWidget);
+        // Widget shows sample preview with SAMPLE label for empty data
+        expect(find.text('SAMPLE'), findsOneWidget);
+        // At least one CustomPaint for the radar chart (MaterialApp may add others)
+        expect(find.byType(CustomPaint), findsWidgets);
       });
     });
 
