@@ -134,17 +134,20 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
-        children: [
-          Text(
-            'Summary',
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _buildStatRow('Total arrows', totalArrows.toString()),
-          _buildStatRow('Tracked with shaft IDs', trackedArrows.toString()),
-          _buildStatRow('Average score', avgScore.toStringAsFixed(2)),
-          _buildStatRow('Active shafts', '${_results!.where((r) => r.arrowCount > 0).length}'),
-        ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Summary',
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _buildStatRow('Total arrows', totalArrows.toString()),
+            _buildStatRow('Tracked with shaft IDs', trackedArrows.toString()),
+            _buildStatRow('Average score', avgScore.toStringAsFixed(2)),
+            _buildStatRow('Active shafts', '${_results!.where((r) => r.arrowCount > 0).length}'),
+          ],
+        ),
       ),
     );
   }
@@ -154,20 +157,18 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
       color: AppColors.gold.withOpacity(0.1),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.info_outline, color: AppColors.gold),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  warning,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
+        child: Row(
+          children: [
+            const Icon(Icons.info_outline, color: AppColors.gold),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                warning,
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -177,31 +178,29 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
       color: AppColors.error.withOpacity(0.1),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(Icons.warning_outlined, color: AppColors.error),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Retirement Candidates',
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      'Shafts ${candidates.map((s) => s.number).join(', ')} show significantly worse performance',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.warning_outlined, color: AppColors.error),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Retirement Candidates',
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    'Shafts ${candidates.map((s) => s.number).join(', ')} show significantly worse performance',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -226,8 +225,10 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
-        children: [
-          Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
             children: [
               // Shaft number
               Container(
@@ -317,8 +318,9 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
                 );
               }).toList(),
             ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

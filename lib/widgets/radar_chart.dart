@@ -54,16 +54,7 @@ class RadarChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (datasets.isEmpty || datasets.first.points.isEmpty) {
-      return SizedBox(
-        width: size,
-        height: size,
-        child: Center(
-          child: Text(
-            'No data',
-            style: TextStyle(color: AppColors.textMuted),
-          ),
-        ),
-      );
+      return _buildSamplePreview(context);
     }
 
     return SizedBox(
@@ -80,6 +71,84 @@ class RadarChart extends StatelessWidget {
         ),
         size: Size(size, size),
       ),
+    );
+  }
+
+  /// Build a sample preview radar chart when no real data exists
+  Widget _buildSamplePreview(BuildContext context) {
+    // Generate realistic sample performance data for an intermediate archer
+    final samplePoints = [
+      const RadarDataPoint(label: 'Score', value: 0.45, displayValue: '45%'),
+      const RadarDataPoint(label: 'Volume', value: 0.60, displayValue: '60%'),
+      const RadarDataPoint(label: 'Frequency', value: 0.57, displayValue: '57%'),
+      const RadarDataPoint(label: 'Bow Fitness', value: 0.40, displayValue: '40%'),
+      const RadarDataPoint(label: 'Form', value: 0.65, displayValue: '65%'),
+      const RadarDataPoint(label: 'Stability', value: 0.55, displayValue: '55%'),
+      const RadarDataPoint(label: 'Breath Hold', value: 0.25, displayValue: '25%'),
+      const RadarDataPoint(label: 'Exhale', value: 0.30, displayValue: '30%'),
+    ];
+
+    final sampleDatasets = [
+      RadarChartData(
+        label: 'Sample',
+        points: samplePoints,
+        color: AppColors.textMuted.withValues(alpha: 0.6),
+        showFill: true,
+      ),
+    ];
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // SAMPLE badge
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 2,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.textMuted.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            'SAMPLE',
+            style: TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Sample chart with reduced opacity
+        Opacity(
+          opacity: 0.6,
+          child: SizedBox(
+            width: size,
+            height: size,
+            child: CustomPaint(
+              painter: _RadarChartPainter(
+                datasets: sampleDatasets,
+                gridLevels: gridLevels,
+                showLabels: showLabels,
+                showValues: false,
+                gridColor: gridColor,
+                labelColor: labelColor.withValues(alpha: 0.6),
+              ),
+              size: Size(size, size),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Your profile will appear here',
+          style: TextStyle(
+            color: AppColors.textMuted,
+            fontSize: 12,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
     );
   }
 }

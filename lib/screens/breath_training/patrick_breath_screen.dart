@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../db/database.dart';
 import '../../utils/unique_id.dart';
 import '../../services/beep_service.dart';
 import '../../services/breath_training_service.dart';
+import '../../services/vibration_service.dart';
 import '../../widgets/breathing_visualizer.dart';
 import '../../widgets/breathing_reminder.dart';
 import '../../providers/breath_training_provider.dart';
@@ -39,7 +39,9 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
 
   final _service = BreathTrainingService();
   final _beepService = BeepService();
+  final _vibration = VibrationService();
   bool _beepsEnabled = false;
+  bool _vibrationsEnabled = true; // Default ON
 
   Timer? _timer;
   PatrickState _state = PatrickState.idle;
@@ -69,10 +71,12 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
   Future<void> _loadSettings() async {
     final best = await _service.getPatrickBestExhale();
     final beepsEnabled = await _service.getBeepsEnabled();
+    final vibrationsEnabled = await _vibration.isEnabled();
     if (mounted) {
       setState(() {
         _bestEver = best;
         _beepsEnabled = beepsEnabled;
+        _vibrationsEnabled = vibrationsEnabled;
       });
     }
     if (beepsEnabled) {
@@ -87,7 +91,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
   }
 
   void _startWarmup() {
-    HapticFeedback.mediumImpact();
+    _vibration.medium();
     _timer?.cancel();
 
     setState(() {
@@ -127,11 +131,10 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
       _phaseSecondsRemaining--;
 
       if (_phaseSecondsRemaining <= 0) {
-        HapticFeedback.lightImpact();
-
         if (_breathPhase == BreathPhase.inhale) {
           _breathPhase = BreathPhase.exhale;
           _phaseSecondsRemaining = _exhaleSeconds;
+          _vibration.exhale();
           // Two beeps for exhale
           if (_beepsEnabled) {
             _beepService.playExhaleBeep();
@@ -144,9 +147,11 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
             _timer?.cancel();
             _state = PatrickState.idle;
             _breathPhase = BreathPhase.idle;
+            _vibration.double();
           } else {
             _breathPhase = BreathPhase.inhale;
             _phaseSecondsRemaining = _inhaleSeconds;
+            _vibration.inhale();
             // One beep for inhale
             if (_beepsEnabled) {
               _beepService.playInhaleBeep();
@@ -159,7 +164,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
   }
 
   void _startExhale() {
-    HapticFeedback.mediumImpact();
+    _vibration.medium();
     _timer?.cancel();
 
     setState(() {
@@ -177,7 +182,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
   }
 
   void _stopExhale() async {
-    HapticFeedback.heavyImpact();
+    _vibration.heavy();
     _timer?.cancel();
 
     // Save exhale time
@@ -230,11 +235,10 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
       _phaseSecondsRemaining--;
 
       if (_phaseSecondsRemaining <= 0) {
-        HapticFeedback.lightImpact();
-
         if (_breathPhase == BreathPhase.inhale) {
           _breathPhase = BreathPhase.exhale;
           _phaseSecondsRemaining = _exhaleSeconds;
+          _vibration.exhale();
           // Two beeps for exhale
           if (_beepsEnabled) {
             _beepService.playExhaleBeep();
@@ -248,9 +252,11 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
             _state = PatrickState.idle;
             _breathPhase = BreathPhase.idle;
             _isNewRecord = false; // Reset for potential next round
+            _vibration.double();
           } else {
             _breathPhase = BreathPhase.inhale;
             _phaseSecondsRemaining = _inhaleSeconds;
+            _vibration.inhale();
             // One beep for inhale
             if (_beepsEnabled) {
               _beepService.playInhaleBeep();

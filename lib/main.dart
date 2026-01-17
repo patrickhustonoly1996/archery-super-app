@@ -17,7 +17,7 @@ import 'providers/connectivity_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/firestore_sync_service.dart';
-import 'utils/error_handler.dart';
+import 'widgets/splash_branding.dart';
 
 /// Global scaffold messenger key for showing snackbars from anywhere in the app
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
@@ -106,20 +106,37 @@ class AuthGate extends StatefulWidget {
   State<AuthGate> createState() => _AuthGateState();
 }
 
-class _AuthGateState extends State<AuthGate> {
+class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
   static const String _wasLoggedInKey = 'was_logged_in';
+  static const Duration _syncDebounce = Duration(seconds: 30); // Don't sync more often than this
 
   bool _timedOut = false;
   bool _hasReceivedData = false;
   User? _cachedUser;
-  bool _hasTriggeredSync = false;
   bool _firebaseReady = false;
   bool _wasLoggedIn = false; // Local flag for offline resilience
+  DateTime? _lastSyncAttempt;
+  bool _isSyncing = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _checkAuthState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Sync when app comes to foreground (e.g., user switches back to app)
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _wasLoggedIn) {
+      _triggerBackgroundSync();
+    }
   }
 
   Future<void> _checkAuthState() async {
@@ -200,46 +217,78 @@ class _AuthGateState extends State<AuthGate> {
     });
   }
 
-  /// Trigger cloud restore (if local empty) then backup
-  /// This ensures data is never lost across devices/browser clears
+  /// Trigger bidirectional sync with cloud
+  /// Merges local and cloud data so both have the same complete dataset
+  /// Non-blocking, debounced, and skipped when offline
   void _triggerBackgroundSync() {
-    if (_hasTriggeredSync) return;
-    _hasTriggeredSync = true;
+    // Debounce: don't sync too frequently
+    if (_lastSyncAttempt != null &&
+        DateTime.now().difference(_lastSyncAttempt!) < _syncDebounce) {
+      debugPrint('Skipping sync: debounce active');
+      return;
+    }
+
+    // Don't start another sync if one is already running
+    if (_isSyncing) {
+      debugPrint('Skipping sync: already syncing');
+      return;
+    }
+
+    _lastSyncAttempt = DateTime.now();
 
     // Run sync in background without blocking UI
     Future.microtask(() async {
+      if (!mounted) return;
+
       try {
         final db = context.read<AppDatabase>();
+        final connectivityProvider = context.read<ConnectivityProvider>();
         final syncService = FirestoreSyncService();
 
-        // First try to restore from cloud if local is empty
-        // This handles the case where user clears browser data or logs in on new device
-        try {
-          final result = await syncService.restoreAllData(db);
-          if (result.totalRestored > 0) {
-            debugPrint('Cloud restore completed: ${result.message}');
-          }
-        } catch (e) {
-          debugPrint('Cloud restore error: $e');
-          // Show error for restore failures (user may have lost data)
-          scaffoldMessengerKey.currentState?.showSnackBar(
-            SnackBar(
-              content: Text('Cloud restore failed: $e'),
-              backgroundColor: Colors.red.shade900,
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 5),
-            ),
-          );
+        // Only sync if we're online
+        if (!connectivityProvider.isOnline) {
+          debugPrint('Skipping sync: device is offline');
+          return;
         }
 
-        // Then backup any local data to cloud
-        await ErrorHandler.runBackground(
-          () => syncService.backupAllData(db),
-          errorMessage: 'Cloud backup failed',
-          onRetry: _triggerBackgroundSync,
-        );
+        // Only sync if authenticated
+        if (!syncService.isAuthenticated) {
+          debugPrint('Skipping sync: not authenticated');
+          return;
+        }
+
+        _isSyncing = true;
+        connectivityProvider.setSyncing(true);
+
+        try {
+          final result = await syncService.syncAllData(db);
+
+          // If we downloaded data, refresh relevant providers
+          if (result.downloaded > 0 && mounted) {
+            debugPrint('Sync downloaded ${result.downloaded} items, refreshing providers');
+            // Refresh equipment and sessions providers so UI shows new data
+            context.read<EquipmentProvider>().loadEquipment();
+            context.read<ActiveSessionsProvider>().loadSessions();
+          }
+
+          if (result.totalSynced > 0) {
+            debugPrint('Sync completed: ${result.message} (↓${result.downloaded} ↑${result.uploaded})');
+          } else {
+            debugPrint('Sync completed: already in sync');
+          }
+        } catch (e) {
+          debugPrint('Sync error: $e');
+          // Don't show error snackbar for routine sync failures
+          // The user can retry by reopening the app
+        } finally {
+          _isSyncing = false;
+          if (mounted) {
+            connectivityProvider.setSyncing(false);
+          }
+        }
       } catch (e) {
         // Firebase not initialized (tests) or other initialization error
+        _isSyncing = false;
         debugPrint('Background sync skipped: $e');
       }
     });

@@ -103,12 +103,6 @@ class _BowTrainingHomeScreenState extends State<BowTrainingHomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Progress indicator
-                  if (_userProgress != null) ...[
-                    _ProgressCard(progress: _userProgress!),
-                    const SizedBox(height: AppSpacing.lg),
-                  ],
-
                   // Preset Training Blocks section
                   _SectionHeader(title: 'Preset Training Blocks'),
                   const SizedBox(height: AppSpacing.sm),

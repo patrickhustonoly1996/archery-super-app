@@ -31,8 +31,8 @@ class ShaftAnalysisResult {
 
   /// Get recommendation text
   String get recommendation {
-    if (arrowCount < 10) {
-      return 'Need more shots for reliable analysis (minimum 10)';
+    if (arrowCount < 3) {
+      return 'Need more shots for analysis (minimum 3)';
     }
 
     if (shouldRetire) {
@@ -56,7 +56,7 @@ class ShaftAnalysisResult {
 
   /// Get color code for UI (green, yellow, red)
   String get performanceColor {
-    if (arrowCount < 10) return 'gray';
+    if (arrowCount < 3) return 'gray';
     if (shouldRetire) return 'red';
     if (avgScore > 8.5) return 'green';
     if (avgScore < 7.0) return 'yellow';
@@ -131,7 +131,8 @@ class ShaftAnalysis {
         : allArrows.map((a) => a.score).reduce((a, b) => a + b) / allArrows.length;
 
     // Retirement recommendation (significantly worse than average)
-    final shouldRetire = arrows.length >= 20 &&
+    // Requires 10+ shots for statistical confidence before suggesting retirement
+    final shouldRetire = arrows.length >= 10 &&
                         avgScore < (overallAvgScore - 1.5) &&
                         outlierCount > arrows.length * 0.3;
 
@@ -202,7 +203,8 @@ class ShaftAnalysis {
     double shaftAvgX,
     double shaftAvgY,
   ) {
-    if (shaftArrows.length < 5 || allArrows.length < 20) return 0;
+    // Allow overlap analysis with as few as 3 shots per shaft
+    if (shaftArrows.length < 3 || allArrows.length < 6) return 0;
 
     // Calculate distance from shaft center to overall center
     final overallAvgX = allArrows.map((a) => a.xMm).reduce((a, b) => a + b) / allArrows.length;
@@ -242,7 +244,7 @@ class ShaftAnalysis {
   /// Get warning about potential overlap issues
   static String? getOverlapWarning(List<ShaftAnalysisResult> results) {
     final highOverlap = results.where((r) =>
-      r.arrowCount >= 10 && r.overlapLikelihood > 0.7
+      r.arrowCount >= 6 && r.overlapLikelihood > 0.7
     ).toList();
 
     if (highOverlap.isEmpty) return null;

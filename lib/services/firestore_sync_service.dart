@@ -4,8 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../db/database.dart';
 
-/// Service to sync local database data to Firestore for cloud backup
-/// Ensures data is never lost even if browser cache is cleared
+/// Service to sync local database data bidirectionally with Firestore
+/// Ensures the same data appears on all devices when logged in
 class FirestoreSyncService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -21,408 +21,178 @@ class FirestoreSyncService {
   }
 
   // ============================================================================
-  // SYNC IMPORTED SCORES
+  // BIDIRECTIONAL SYNC - The main sync method
   // ============================================================================
 
-  /// Backup imported scores to Firestore
-  Future<void> backupImportedScores(List<ImportedScore> scores) async {
-    if (_userId == null || scores.isEmpty) return;
-
-    final batch = _firestore.batch();
-    final scoresRef = _userDoc.collection('imported_scores');
-
-    // Use a chunked approach for large lists
-    for (final score in scores) {
-      batch.set(scoresRef.doc(score.id), {
-        'id': score.id,
-        'date': score.date.toIso8601String(),
-        'roundName': score.roundName,
-        'score': score.score,
-        'xCount': score.xCount,
-        'location': score.location,
-        'notes': score.notes,
-        'sessionType': score.sessionType,
-        'source': score.source,
-        'importedAt': score.importedAt.toIso8601String(),
-      });
-    }
-
-    // Update metadata
-    batch.set(_userDoc.collection('metadata').doc('imported_scores'), {
-      'lastUpdated': FieldValue.serverTimestamp(),
-      'count': scores.length,
-    });
-
-    await batch.commit();
-  }
-
-  /// Restore imported scores from Firestore
-  Future<List<Map<String, dynamic>>> restoreImportedScores() async {
-    if (_userId == null) return [];
-
-    try {
-      final snapshot = await _userDoc.collection('imported_scores').get();
-      return snapshot.docs.map((d) => d.data()).toList();
-    } catch (e) {
-      debugPrint('Error restoring imported scores: $e');
-      return [];
-    }
-  }
-
-  // ============================================================================
-  // SYNC SESSIONS (Plotted scores)
-  // ============================================================================
-
-  /// Backup a completed session to Firestore
-  Future<void> backupSession(Session session, List<End> ends, List<Arrow> arrows) async {
-    if (_userId == null) return;
-
-    final sessionData = {
-      'id': session.id,
-      'roundTypeId': session.roundTypeId,
-      'sessionType': session.sessionType,
-      'location': session.location,
-      'notes': session.notes,
-      'startedAt': session.startedAt.toIso8601String(),
-      'completedAt': session.completedAt?.toIso8601String(),
-      'totalScore': session.totalScore,
-      'totalXs': session.totalXs,
-      'bowId': session.bowId,
-      'quiverId': session.quiverId,
-      'shaftTaggingEnabled': session.shaftTaggingEnabled,
-      'ends': ends.map((e) => {
-        'id': e.id,
-        'endNumber': e.endNumber,
-        'endScore': e.endScore,
-        'endXs': e.endXs,
-        'status': e.status,
-        'committedAt': e.committedAt?.toIso8601String(),
-        'createdAt': e.createdAt.toIso8601String(),
-      }).toList(),
-      'arrows': arrows.map((a) => {
-        'id': a.id,
-        'endId': a.endId,
-        'faceIndex': a.faceIndex,
-        'x': a.x,
-        'y': a.y,
-        'score': a.score,
-        'isX': a.isX,
-        'sequence': a.sequence,
-        'shaftNumber': a.shaftNumber,
-        'createdAt': a.createdAt.toIso8601String(),
-      }).toList(),
-      'lastUpdated': FieldValue.serverTimestamp(),
-    };
-
-    await _userDoc.collection('sessions').doc(session.id).set(sessionData);
-  }
-
-  /// Get all backed up sessions
-  Future<List<Map<String, dynamic>>> restoreSessions() async {
-    if (_userId == null) return [];
-
-    try {
-      final snapshot = await _userDoc.collection('sessions').get();
-      return snapshot.docs.map((d) => d.data()).toList();
-    } catch (e) {
-      debugPrint('Error restoring sessions: $e');
-      return [];
-    }
-  }
-
-  // ============================================================================
-  // SYNC EQUIPMENT
-  // ============================================================================
-
-  /// Backup equipment (bows, quivers, shafts) to Firestore
-  Future<void> backupEquipment({
-    required List<Bow> bows,
-    required List<Quiver> quivers,
-    required List<Shaft> shafts,
-  }) async {
-    if (_userId == null) return;
-
-    await _userDoc.collection('data').doc('equipment').set({
-      'bows': bows.map((b) => {
-        'id': b.id,
-        'name': b.name,
-        'bowType': b.bowType,
-        'settings': b.settings,
-        'isDefault': b.isDefault,
-        'createdAt': b.createdAt.toIso8601String(),
-        'updatedAt': b.updatedAt.toIso8601String(),
-      }).toList(),
-      'quivers': quivers.map((q) => {
-        'id': q.id,
-        'bowId': q.bowId,
-        'name': q.name,
-        'shaftCount': q.shaftCount,
-        'isDefault': q.isDefault,
-        'createdAt': q.createdAt.toIso8601String(),
-        'updatedAt': q.updatedAt.toIso8601String(),
-      }).toList(),
-      'shafts': shafts.map((s) => {
-        'id': s.id,
-        'quiverId': s.quiverId,
-        'number': s.number,
-        'diameter': s.diameter,
-        'notes': s.notes,
-        'createdAt': s.createdAt.toIso8601String(),
-        'retiredAt': s.retiredAt?.toIso8601String(),
-      }).toList(),
-      'lastUpdated': FieldValue.serverTimestamp(),
-    });
-  }
-
-  /// Restore equipment from Firestore
-  Future<Map<String, dynamic>?> restoreEquipment() async {
-    if (_userId == null) return null;
-
-    try {
-      final doc = await _userDoc.collection('data').doc('equipment').get();
-      return doc.data();
-    } catch (e) {
-      debugPrint('Error restoring equipment: $e');
-      return null;
-    }
-  }
-
-  // ============================================================================
-  // SYNC VOLUME ENTRIES (Arrow count tracking)
-  // ============================================================================
-
-  /// Backup volume entries to Firestore
-  Future<void> backupVolumeEntries(List<VolumeEntry> entries) async {
-    if (_userId == null || entries.isEmpty) return;
-
-    await _userDoc.collection('data').doc('volume_entries').set({
-      'entries': entries.map((e) => {
-        'id': e.id,
-        'date': e.date.toIso8601String(),
-        'arrowCount': e.arrowCount,
-        'notes': e.notes,
-        'createdAt': e.createdAt.toIso8601String(),
-        'updatedAt': e.updatedAt.toIso8601String(),
-      }).toList(),
-      'lastUpdated': FieldValue.serverTimestamp(),
-      'count': entries.length,
-    });
-  }
-
-  /// Restore volume entries from Firestore
-  Future<List<Map<String, dynamic>>> restoreVolumeEntries() async {
-    if (_userId == null) return [];
-
-    try {
-      final doc = await _userDoc.collection('data').doc('volume_entries').get();
-      if (!doc.exists) return [];
-      final data = doc.data();
-      return (data?['entries'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
-    } catch (e) {
-      debugPrint('Error restoring volume entries: $e');
-      return [];
-    }
-  }
-
-  // ============================================================================
-  // SYNC OLY TRAINING LOGS (Bow training sessions)
-  // ============================================================================
-
-  /// Backup OLY training logs to Firestore
-  Future<void> backupOlyTrainingLogs(List<OlyTrainingLog> logs) async {
-    if (_userId == null || logs.isEmpty) return;
-
-    await _userDoc.collection('data').doc('oly_training').set({
-      'logs': logs.map((l) => {
-        'id': l.id,
-        'sessionTemplateId': l.sessionTemplateId,
-        'sessionVersion': l.sessionVersion,
-        'sessionName': l.sessionName,
-        'plannedDurationSeconds': l.plannedDurationSeconds,
-        'actualDurationSeconds': l.actualDurationSeconds,
-        'plannedExercises': l.plannedExercises,
-        'completedExercises': l.completedExercises,
-        'totalHoldSeconds': l.totalHoldSeconds,
-        'totalRestSeconds': l.totalRestSeconds,
-        'feedbackShaking': l.feedbackShaking,
-        'feedbackStructure': l.feedbackStructure,
-        'feedbackRest': l.feedbackRest,
-        'progressionSuggestion': l.progressionSuggestion,
-        'suggestedNextVersion': l.suggestedNextVersion,
-        'notes': l.notes,
-        'startedAt': l.startedAt.toIso8601String(),
-        'completedAt': l.completedAt.toIso8601String(),
-      }).toList(),
-      'lastUpdated': FieldValue.serverTimestamp(),
-      'count': logs.length,
-    });
-  }
-
-  /// Restore OLY training logs from Firestore
-  Future<List<Map<String, dynamic>>> restoreOlyTrainingLogs() async {
-    if (_userId == null) return [];
-
-    try {
-      final doc = await _userDoc.collection('data').doc('oly_training').get();
-      if (!doc.exists) return [];
-      final data = doc.data();
-      return (data?['logs'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
-    } catch (e) {
-      debugPrint('Error restoring OLY training logs: $e');
-      return [];
-    }
-  }
-
-  // ============================================================================
-  // FULL SYNC OPERATIONS
-  // ============================================================================
-
-  /// Backup all user data to Firestore
-  Future<void> backupAllData(AppDatabase db) async {
+  /// Sync all data bidirectionally between local DB and cloud
+  /// Uses ID-based merge: records are matched by ID, newer wins by timestamp
+  Future<SyncResult> syncAllData(AppDatabase db) async {
     if (_userId == null) {
-      debugPrint('Cannot backup: user not authenticated');
-      return;
+      debugPrint('Cannot sync: user not authenticated');
+      return SyncResult(success: false, message: 'Not authenticated');
     }
 
     try {
-      debugPrint('Starting full backup for user: $_userId');
+      debugPrint('Starting bidirectional sync for user: $_userId');
+      int downloaded = 0;
+      int uploaded = 0;
 
-      // Backup imported scores
-      final importedScores = await db.getAllImportedScores();
-      if (importedScores.isNotEmpty) {
-        await backupImportedScores(importedScores);
-        debugPrint('Backed up ${importedScores.length} imported scores');
-      }
+      // Sync imported scores
+      final scoresResult = await _syncImportedScores(db);
+      downloaded += scoresResult.downloaded;
+      uploaded += scoresResult.uploaded;
 
-      // Backup completed sessions with their ends and arrows
-      final sessions = await db.getCompletedSessions();
-      for (final session in sessions) {
-        final ends = await db.getEndsForSession(session.id);
-        final arrows = <Arrow>[];
-        for (final end in ends) {
-          final endArrows = await db.getArrowsForEnd(end.id);
-          arrows.addAll(endArrows);
-        }
-        await backupSession(session, ends, arrows);
-      }
-      debugPrint('Backed up ${sessions.length} sessions');
+      // Sync sessions (with ends and arrows)
+      final sessionsResult = await _syncSessions(db);
+      downloaded += sessionsResult.downloaded;
+      uploaded += sessionsResult.uploaded;
 
-      // Backup equipment
-      final bows = await db.getAllBows();
-      final quivers = await db.getAllQuivers();
-      // Get all shafts across all quivers
-      final allShafts = <Shaft>[];
-      for (final quiver in quivers) {
-        final shafts = await db.getAllShaftsForQuiver(quiver.id);
-        allShafts.addAll(shafts);
-      }
-      await backupEquipment(bows: bows, quivers: quivers, shafts: allShafts);
-      debugPrint('Backed up equipment: ${bows.length} bows, ${quivers.length} quivers, ${allShafts.length} shafts');
+      // Sync equipment
+      final equipmentResult = await _syncEquipment(db);
+      downloaded += equipmentResult.downloaded;
+      uploaded += equipmentResult.uploaded;
 
-      // Backup volume entries
-      final volumeEntries = await db.getAllVolumeEntries();
-      if (volumeEntries.isNotEmpty) {
-        await backupVolumeEntries(volumeEntries);
-        debugPrint('Backed up ${volumeEntries.length} volume entries');
-      }
+      // Sync volume entries
+      final volumeResult = await _syncVolumeEntries(db);
+      downloaded += volumeResult.downloaded;
+      uploaded += volumeResult.uploaded;
 
-      // Backup OLY training logs
-      final olyLogs = await db.getAllOlyTrainingLogs();
-      if (olyLogs.isNotEmpty) {
-        await backupOlyTrainingLogs(olyLogs);
-        debugPrint('Backed up ${olyLogs.length} OLY training logs');
-      }
+      // Sync OLY training logs
+      final olyResult = await _syncOlyTrainingLogs(db);
+      downloaded += olyResult.downloaded;
+      uploaded += olyResult.uploaded;
 
-      // Update last backup timestamp
-      await _userDoc.collection('metadata').doc('backup').set({
-        'lastBackup': FieldValue.serverTimestamp(),
-        'importedScoresCount': importedScores.length,
-        'sessionsCount': sessions.length,
-        'bowsCount': bows.length,
-      });
+      // Sync breath training logs
+      final breathResult = await _syncBreathTrainingLogs(db);
+      downloaded += breathResult.downloaded;
+      uploaded += breathResult.uploaded;
 
-      debugPrint('Full backup completed successfully');
+      // Sync milestones
+      final milestonesResult = await _syncMilestones(db);
+      downloaded += milestonesResult.downloaded;
+      uploaded += milestonesResult.uploaded;
+
+      // Update last sync timestamp
+      await _userDoc.collection('metadata').doc('sync').set({
+        'lastSync': FieldValue.serverTimestamp(),
+        'deviceId': _getDeviceId(),
+      }, SetOptions(merge: true));
+
+      debugPrint('Sync complete: downloaded=$downloaded, uploaded=$uploaded');
+
+      return SyncResult(
+        success: true,
+        message: 'Synced successfully',
+        downloaded: downloaded,
+        uploaded: uploaded,
+      );
     } catch (e) {
-      debugPrint('Error during full backup: $e');
-      rethrow;
+      debugPrint('Error during sync: $e');
+      return SyncResult(success: false, message: 'Sync failed: $e');
     }
   }
 
-  /// Check when last cloud backup occurred
-  Future<DateTime?> getLastBackupTime() async {
-    if (_userId == null) return null;
-
-    try {
-      final doc = await _userDoc.collection('metadata').doc('backup').get();
-      if (!doc.exists) return null;
-      final timestamp = doc.data()?['lastBackup'] as Timestamp?;
-      return timestamp?.toDate();
-    } catch (e) {
-      debugPrint('Error checking backup time: $e');
-      return null;
-    }
+  String _getDeviceId() {
+    // Simple device identifier for debugging
+    return '${DateTime.now().millisecondsSinceEpoch}';
   }
 
-  /// Check if cloud has data for restore
-  Future<bool> hasCloudData() async {
-    if (_userId == null) return false;
+  // ============================================================================
+  // IMPORTED SCORES SYNC
+  // ============================================================================
+
+  Future<_MergeResult> _syncImportedScores(AppDatabase db) async {
+    int downloaded = 0;
+    int uploaded = 0;
 
     try {
-      final doc = await _userDoc.collection('metadata').doc('backup').get();
-      return doc.exists;
-    } catch (e) {
-      return false;
-    }
-  }
+      // Get local scores
+      final localScores = await db.getAllImportedScores();
+      final localMap = {for (var s in localScores) s.id: s};
 
-  /// Restore all user data from Firestore to local database
-  /// Only restores if local database is empty to avoid duplicates
-  Future<RestoreResult> restoreAllData(AppDatabase db) async {
-    if (_userId == null) {
-      debugPrint('Cannot restore: user not authenticated');
-      return RestoreResult(success: false, message: 'Not authenticated');
-    }
+      // Get cloud scores
+      final cloudSnapshot = await _userDoc.collection('imported_scores').get();
+      final cloudMap = {for (var d in cloudSnapshot.docs) d.id: d.data()};
 
-    try {
-      debugPrint('Starting restore for user: $_userId');
-      int importedScoresRestored = 0;
-      int sessionsRestored = 0;
-      int volumeEntriesRestored = 0;
-      int olyLogsRestored = 0;
-
-      // Check if local DB has data - only restore if empty
-      final existingScores = await db.getAllImportedScores();
-      final existingSessions = await db.getCompletedSessions();
-
-      // Restore imported scores if local is empty
-      if (existingScores.isEmpty) {
-        final cloudScores = await restoreImportedScores();
-        for (final scoreData in cloudScores) {
+      // Find scores only in cloud -> download
+      for (final entry in cloudMap.entries) {
+        if (!localMap.containsKey(entry.key)) {
           try {
             await db.insertImportedScore(ImportedScoresCompanion.insert(
-              id: scoreData['id'] as String,
-              date: DateTime.parse(scoreData['date'] as String),
-              roundName: scoreData['roundName'] as String,
-              score: scoreData['score'] as int,
-              xCount: Value(scoreData['xCount'] as int?),
-              location: Value(scoreData['location'] as String?),
-              notes: Value(scoreData['notes'] as String?),
-              sessionType: Value(scoreData['sessionType'] as String? ?? 'competition'),
-              source: Value(scoreData['source'] as String? ?? 'manual'),
+              id: entry.value['id'] as String,
+              date: DateTime.parse(entry.value['date'] as String),
+              roundName: entry.value['roundName'] as String,
+              score: entry.value['score'] as int,
+              xCount: Value(entry.value['xCount'] as int?),
+              location: Value(entry.value['location'] as String?),
+              notes: Value(entry.value['notes'] as String?),
+              sessionType: Value(entry.value['sessionType'] as String? ?? 'competition'),
+              source: Value(entry.value['source'] as String? ?? 'manual'),
             ));
-            importedScoresRestored++;
+            downloaded++;
           } catch (e) {
-            debugPrint('Error restoring score ${scoreData['id']}: $e');
+            debugPrint('Error downloading score ${entry.key}: $e');
           }
         }
-        debugPrint('Restored $importedScoresRestored imported scores');
       }
 
-      // Restore sessions if local is empty
-      if (existingSessions.isEmpty) {
-        final cloudSessions = await restoreSessions();
-        for (final sessionData in cloudSessions) {
+      // Find scores only locally -> upload
+      final batch = _firestore.batch();
+      int batchCount = 0;
+      for (final score in localScores) {
+        if (!cloudMap.containsKey(score.id)) {
+          batch.set(_userDoc.collection('imported_scores').doc(score.id), {
+            'id': score.id,
+            'date': score.date.toIso8601String(),
+            'roundName': score.roundName,
+            'score': score.score,
+            'xCount': score.xCount,
+            'location': score.location,
+            'notes': score.notes,
+            'sessionType': score.sessionType,
+            'source': score.source,
+            'importedAt': score.importedAt.toIso8601String(),
+          });
+          batchCount++;
+          uploaded++;
+        }
+      }
+
+      if (batchCount > 0) {
+        await batch.commit();
+      }
+
+      debugPrint('Imported scores: downloaded=$downloaded, uploaded=$uploaded');
+    } catch (e) {
+      debugPrint('Error syncing imported scores: $e');
+    }
+
+    return _MergeResult(downloaded, uploaded);
+  }
+
+  // ============================================================================
+  // SESSIONS SYNC (with ends and arrows)
+  // ============================================================================
+
+  Future<_MergeResult> _syncSessions(AppDatabase db) async {
+    int downloaded = 0;
+    int uploaded = 0;
+
+    try {
+      // Get local completed sessions
+      final localSessions = await db.getCompletedSessions();
+      final localMap = {for (var s in localSessions) s.id: s};
+
+      // Get cloud sessions
+      final cloudSnapshot = await _userDoc.collection('sessions').get();
+      final cloudMap = {for (var d in cloudSnapshot.docs) d.id: d.data()};
+
+      // Download sessions only in cloud
+      for (final entry in cloudMap.entries) {
+        if (!localMap.containsKey(entry.key)) {
           try {
+            final sessionData = entry.value;
+
             // Insert session
             await db.insertSession(SessionsCompanion.insert(
               id: sessionData['id'] as String,
@@ -475,87 +245,714 @@ class FirestoreSyncService {
               ));
             }
 
-            sessionsRestored++;
+            downloaded++;
           } catch (e) {
-            debugPrint('Error restoring session ${sessionData['id']}: $e');
+            debugPrint('Error downloading session ${entry.key}: $e');
           }
         }
-        debugPrint('Restored $sessionsRestored sessions');
       }
 
-      // Restore volume entries
-      final existingVolume = await db.getAllVolumeEntries();
-      if (existingVolume.isEmpty) {
-        final cloudVolume = await restoreVolumeEntries();
-        for (final entry in cloudVolume) {
+      // Upload sessions only locally
+      for (final session in localSessions) {
+        if (!cloudMap.containsKey(session.id)) {
           try {
-            await db.insertVolumeEntry(VolumeEntriesCompanion.insert(
-              id: entry['id'] as String,
-              date: DateTime.parse(entry['date'] as String),
-              arrowCount: entry['arrowCount'] as int,
-              notes: Value(entry['notes'] as String?),
-            ));
-            volumeEntriesRestored++;
+            final ends = await db.getEndsForSession(session.id);
+            final arrows = <Arrow>[];
+            for (final end in ends) {
+              final endArrows = await db.getArrowsForEnd(end.id);
+              arrows.addAll(endArrows);
+            }
+
+            await _userDoc.collection('sessions').doc(session.id).set({
+              'id': session.id,
+              'roundTypeId': session.roundTypeId,
+              'sessionType': session.sessionType,
+              'location': session.location,
+              'notes': session.notes,
+              'startedAt': session.startedAt.toIso8601String(),
+              'completedAt': session.completedAt?.toIso8601String(),
+              'totalScore': session.totalScore,
+              'totalXs': session.totalXs,
+              'bowId': session.bowId,
+              'quiverId': session.quiverId,
+              'shaftTaggingEnabled': session.shaftTaggingEnabled,
+              'ends': ends.map((e) => {
+                'id': e.id,
+                'endNumber': e.endNumber,
+                'endScore': e.endScore,
+                'endXs': e.endXs,
+                'status': e.status,
+                'committedAt': e.committedAt?.toIso8601String(),
+                'createdAt': e.createdAt.toIso8601String(),
+              }).toList(),
+              'arrows': arrows.map((a) => {
+                'id': a.id,
+                'endId': a.endId,
+                'faceIndex': a.faceIndex,
+                'x': a.x,
+                'y': a.y,
+                'score': a.score,
+                'isX': a.isX,
+                'sequence': a.sequence,
+                'shaftNumber': a.shaftNumber,
+                'createdAt': a.createdAt.toIso8601String(),
+              }).toList(),
+              'lastUpdated': FieldValue.serverTimestamp(),
+            });
+            uploaded++;
           } catch (e) {
-            debugPrint('Error restoring volume entry: $e');
+            debugPrint('Error uploading session ${session.id}: $e');
           }
         }
-        debugPrint('Restored $volumeEntriesRestored volume entries');
       }
 
-      // Restore OLY training logs
-      final existingLogs = await db.getAllOlyTrainingLogs();
-      if (existingLogs.isEmpty) {
-        final cloudLogs = await restoreOlyTrainingLogs();
-        for (final logData in cloudLogs) {
-          try {
-            await db.insertOlyTrainingLog(OlyTrainingLogsCompanion.insert(
-              id: logData['id'] as String,
-              sessionTemplateId: Value(logData['sessionTemplateId'] as String?),
-              sessionVersion: logData['sessionVersion'] as String,
-              sessionName: logData['sessionName'] as String,
-              plannedDurationSeconds: logData['plannedDurationSeconds'] as int,
-              actualDurationSeconds: logData['actualDurationSeconds'] as int,
-              plannedExercises: logData['plannedExercises'] as int,
-              completedExercises: logData['completedExercises'] as int,
-              totalHoldSeconds: logData['totalHoldSeconds'] as int,
-              totalRestSeconds: logData['totalRestSeconds'] as int,
-              feedbackShaking: Value(logData['feedbackShaking'] as int?),
-              feedbackStructure: Value(logData['feedbackStructure'] as int?),
-              feedbackRest: Value(logData['feedbackRest'] as int?),
-              progressionSuggestion: Value(logData['progressionSuggestion'] as String?),
-              suggestedNextVersion: Value(logData['suggestedNextVersion'] as String?),
-              notes: Value(logData['notes'] as String?),
-              startedAt: DateTime.parse(logData['startedAt'] as String),
-              completedAt: DateTime.parse(logData['completedAt'] as String),
-            ));
-            olyLogsRestored++;
-          } catch (e) {
-            debugPrint('Error restoring OLY log: $e');
-          }
-        }
-        debugPrint('Restored $olyLogsRestored OLY training logs');
-      }
-
-      final totalRestored = importedScoresRestored + sessionsRestored + volumeEntriesRestored + olyLogsRestored;
-      debugPrint('Restore completed: $totalRestored total items');
-
-      return RestoreResult(
-        success: true,
-        message: 'Restored $totalRestored items from cloud',
-        importedScoresRestored: importedScoresRestored,
-        sessionsRestored: sessionsRestored,
-        volumeEntriesRestored: volumeEntriesRestored,
-        olyLogsRestored: olyLogsRestored,
-      );
+      debugPrint('Sessions: downloaded=$downloaded, uploaded=$uploaded');
     } catch (e) {
-      debugPrint('Error during restore: $e');
-      return RestoreResult(success: false, message: 'Restore failed: $e');
+      debugPrint('Error syncing sessions: $e');
     }
+
+    return _MergeResult(downloaded, uploaded);
+  }
+
+  // ============================================================================
+  // EQUIPMENT SYNC (bows, quivers, shafts)
+  // ============================================================================
+
+  Future<_MergeResult> _syncEquipment(AppDatabase db) async {
+    int downloaded = 0;
+    int uploaded = 0;
+
+    try {
+      // Get local equipment
+      final localBows = await db.getAllBows();
+      final localQuivers = await db.getAllQuivers();
+      final localShafts = <Shaft>[];
+      for (final quiver in localQuivers) {
+        localShafts.addAll(await db.getAllShaftsForQuiver(quiver.id));
+      }
+
+      // Get cloud equipment
+      final cloudDoc = await _userDoc.collection('data').doc('equipment').get();
+      final cloudData = cloudDoc.data();
+
+      final cloudBows = (cloudData?['bows'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+      final cloudQuivers = (cloudData?['quivers'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+      final cloudShafts = (cloudData?['shafts'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+
+      // Create maps for comparison
+      final localBowMap = {for (var b in localBows) b.id: b};
+      final localQuiverMap = {for (var q in localQuivers) q.id: q};
+      final localShaftMap = {for (var s in localShafts) s.id: s};
+
+      final cloudBowMap = {for (var b in cloudBows) b['id'] as String: b};
+      final cloudQuiverMap = {for (var q in cloudQuivers) q['id'] as String: q};
+      final cloudShaftMap = {for (var s in cloudShafts) s['id'] as String: s};
+
+      // Download bows only in cloud
+      for (final entry in cloudBowMap.entries) {
+        if (!localBowMap.containsKey(entry.key)) {
+          try {
+            final b = entry.value;
+            await db.insertBow(BowsCompanion.insert(
+              id: b['id'] as String,
+              name: b['name'] as String,
+              bowType: b['bowType'] as String,
+              settings: Value(b['settings'] as String?),
+              isDefault: Value(b['isDefault'] as bool? ?? false),
+            ));
+            downloaded++;
+          } catch (e) {
+            debugPrint('Error downloading bow ${entry.key}: $e');
+          }
+        }
+      }
+
+      // Download quivers only in cloud
+      for (final entry in cloudQuiverMap.entries) {
+        if (!localQuiverMap.containsKey(entry.key)) {
+          try {
+            final q = entry.value;
+            await db.insertQuiver(QuiversCompanion.insert(
+              id: q['id'] as String,
+              bowId: Value(q['bowId'] as String?),
+              name: q['name'] as String,
+              shaftCount: Value(q['shaftCount'] as int? ?? 12),
+              settings: Value(q['settings'] as String?),
+              isDefault: Value(q['isDefault'] as bool? ?? false),
+            ));
+            downloaded++;
+          } catch (e) {
+            debugPrint('Error downloading quiver ${entry.key}: $e');
+          }
+        }
+      }
+
+      // Download shafts only in cloud
+      for (final entry in cloudShaftMap.entries) {
+        if (!localShaftMap.containsKey(entry.key)) {
+          try {
+            final s = entry.value;
+            await db.insertShaft(ShaftsCompanion.insert(
+              id: s['id'] as String,
+              quiverId: s['quiverId'] as String,
+              number: s['number'] as int,
+              diameter: Value(s['diameter'] as String?),
+              spine: Value(s['spine'] as int?),
+              lengthInches: Value((s['lengthInches'] as num?)?.toDouble()),
+              pointWeight: Value(s['pointWeight'] as int?),
+              fletchingType: Value(s['fletchingType'] as String?),
+              fletchingColor: Value(s['fletchingColor'] as String?),
+              nockColor: Value(s['nockColor'] as String?),
+              notes: Value(s['notes'] as String?),
+              retiredAt: Value(s['retiredAt'] != null
+                  ? DateTime.parse(s['retiredAt'] as String)
+                  : null),
+            ));
+            downloaded++;
+          } catch (e) {
+            debugPrint('Error downloading shaft ${entry.key}: $e');
+          }
+        }
+      }
+
+      // Check if we need to upload (any local items not in cloud)
+      bool needsUpload = false;
+      for (final bow in localBows) {
+        if (!cloudBowMap.containsKey(bow.id)) {
+          needsUpload = true;
+          uploaded++;
+        }
+      }
+      for (final quiver in localQuivers) {
+        if (!cloudQuiverMap.containsKey(quiver.id)) {
+          needsUpload = true;
+          uploaded++;
+        }
+      }
+      for (final shaft in localShafts) {
+        if (!cloudShaftMap.containsKey(shaft.id)) {
+          needsUpload = true;
+          uploaded++;
+        }
+      }
+
+      // Upload full equipment set if needed
+      if (needsUpload) {
+        await _userDoc.collection('data').doc('equipment').set({
+          'bows': localBows.map((b) => {
+            'id': b.id,
+            'name': b.name,
+            'bowType': b.bowType,
+            'settings': b.settings,
+            'isDefault': b.isDefault,
+            'createdAt': b.createdAt.toIso8601String(),
+            'updatedAt': b.updatedAt.toIso8601String(),
+          }).toList(),
+          'quivers': localQuivers.map((q) => {
+            'id': q.id,
+            'bowId': q.bowId,
+            'name': q.name,
+            'shaftCount': q.shaftCount,
+            'settings': q.settings,
+            'isDefault': q.isDefault,
+            'createdAt': q.createdAt.toIso8601String(),
+            'updatedAt': q.updatedAt.toIso8601String(),
+          }).toList(),
+          'shafts': localShafts.map((s) => {
+            'id': s.id,
+            'quiverId': s.quiverId,
+            'number': s.number,
+            'diameter': s.diameter,
+            'spine': s.spine,
+            'lengthInches': s.lengthInches,
+            'pointWeight': s.pointWeight,
+            'fletchingType': s.fletchingType,
+            'fletchingColor': s.fletchingColor,
+            'nockColor': s.nockColor,
+            'notes': s.notes,
+            'createdAt': s.createdAt.toIso8601String(),
+            'retiredAt': s.retiredAt?.toIso8601String(),
+          }).toList(),
+          'lastUpdated': FieldValue.serverTimestamp(),
+        });
+      }
+
+      debugPrint('Equipment: downloaded=$downloaded, uploaded=$uploaded');
+    } catch (e) {
+      debugPrint('Error syncing equipment: $e');
+    }
+
+    return _MergeResult(downloaded, uploaded);
+  }
+
+  // ============================================================================
+  // VOLUME ENTRIES SYNC
+  // ============================================================================
+
+  Future<_MergeResult> _syncVolumeEntries(AppDatabase db) async {
+    int downloaded = 0;
+    int uploaded = 0;
+
+    try {
+      // Get local entries
+      final localEntries = await db.getAllVolumeEntries();
+      final localMap = {for (var e in localEntries) e.id: e};
+
+      // Get cloud entries
+      final cloudDoc = await _userDoc.collection('data').doc('volume_entries').get();
+      final cloudData = cloudDoc.data();
+      final cloudEntries = (cloudData?['entries'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+      final cloudMap = {for (var e in cloudEntries) e['id'] as String: e};
+
+      // Download entries only in cloud
+      for (final entry in cloudMap.entries) {
+        if (!localMap.containsKey(entry.key)) {
+          try {
+            final e = entry.value;
+            await db.insertVolumeEntry(VolumeEntriesCompanion.insert(
+              id: e['id'] as String,
+              date: DateTime.parse(e['date'] as String),
+              arrowCount: e['arrowCount'] as int,
+              title: Value(e['title'] as String?),
+              notes: Value(e['notes'] as String?),
+            ));
+            downloaded++;
+          } catch (e) {
+            debugPrint('Error downloading volume entry ${entry.key}: $e');
+          }
+        }
+      }
+
+      // Check for local-only entries to upload
+      bool needsUpload = false;
+      for (final entry in localEntries) {
+        if (!cloudMap.containsKey(entry.id)) {
+          needsUpload = true;
+          uploaded++;
+        }
+      }
+
+      // Upload if needed
+      if (needsUpload && localEntries.isNotEmpty) {
+        await _userDoc.collection('data').doc('volume_entries').set({
+          'entries': localEntries.map((e) => {
+            'id': e.id,
+            'date': e.date.toIso8601String(),
+            'arrowCount': e.arrowCount,
+            'title': e.title,
+            'notes': e.notes,
+            'createdAt': e.createdAt.toIso8601String(),
+            'updatedAt': e.updatedAt.toIso8601String(),
+          }).toList(),
+          'lastUpdated': FieldValue.serverTimestamp(),
+          'count': localEntries.length,
+        });
+      }
+
+      debugPrint('Volume entries: downloaded=$downloaded, uploaded=$uploaded');
+    } catch (e) {
+      debugPrint('Error syncing volume entries: $e');
+    }
+
+    return _MergeResult(downloaded, uploaded);
+  }
+
+  // ============================================================================
+  // OLY TRAINING LOGS SYNC
+  // ============================================================================
+
+  Future<_MergeResult> _syncOlyTrainingLogs(AppDatabase db) async {
+    int downloaded = 0;
+    int uploaded = 0;
+
+    try {
+      // Get local logs
+      final localLogs = await db.getAllOlyTrainingLogs();
+      final localMap = {for (var l in localLogs) l.id: l};
+
+      // Get cloud logs
+      final cloudDoc = await _userDoc.collection('data').doc('oly_training').get();
+      final cloudData = cloudDoc.data();
+      final cloudLogs = (cloudData?['logs'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+      final cloudMap = {for (var l in cloudLogs) l['id'] as String: l};
+
+      // Download logs only in cloud
+      for (final entry in cloudMap.entries) {
+        if (!localMap.containsKey(entry.key)) {
+          try {
+            final l = entry.value;
+            await db.insertOlyTrainingLog(OlyTrainingLogsCompanion.insert(
+              id: l['id'] as String,
+              sessionTemplateId: Value(l['sessionTemplateId'] as String?),
+              sessionVersion: l['sessionVersion'] as String,
+              sessionName: l['sessionName'] as String,
+              plannedDurationSeconds: l['plannedDurationSeconds'] as int,
+              actualDurationSeconds: l['actualDurationSeconds'] as int,
+              plannedExercises: l['plannedExercises'] as int,
+              completedExercises: l['completedExercises'] as int,
+              totalHoldSeconds: l['totalHoldSeconds'] as int,
+              totalRestSeconds: l['totalRestSeconds'] as int,
+              feedbackShaking: Value(l['feedbackShaking'] as int?),
+              feedbackStructure: Value(l['feedbackStructure'] as int?),
+              feedbackRest: Value(l['feedbackRest'] as int?),
+              progressionSuggestion: Value(l['progressionSuggestion'] as String?),
+              suggestedNextVersion: Value(l['suggestedNextVersion'] as String?),
+              notes: Value(l['notes'] as String?),
+              startedAt: DateTime.parse(l['startedAt'] as String),
+              completedAt: DateTime.parse(l['completedAt'] as String),
+            ));
+            downloaded++;
+          } catch (e) {
+            debugPrint('Error downloading OLY log ${entry.key}: $e');
+          }
+        }
+      }
+
+      // Check for local-only logs to upload
+      bool needsUpload = false;
+      for (final log in localLogs) {
+        if (!cloudMap.containsKey(log.id)) {
+          needsUpload = true;
+          uploaded++;
+        }
+      }
+
+      // Upload if needed
+      if (needsUpload && localLogs.isNotEmpty) {
+        await _userDoc.collection('data').doc('oly_training').set({
+          'logs': localLogs.map((l) => {
+            'id': l.id,
+            'sessionTemplateId': l.sessionTemplateId,
+            'sessionVersion': l.sessionVersion,
+            'sessionName': l.sessionName,
+            'plannedDurationSeconds': l.plannedDurationSeconds,
+            'actualDurationSeconds': l.actualDurationSeconds,
+            'plannedExercises': l.plannedExercises,
+            'completedExercises': l.completedExercises,
+            'totalHoldSeconds': l.totalHoldSeconds,
+            'totalRestSeconds': l.totalRestSeconds,
+            'feedbackShaking': l.feedbackShaking,
+            'feedbackStructure': l.feedbackStructure,
+            'feedbackRest': l.feedbackRest,
+            'progressionSuggestion': l.progressionSuggestion,
+            'suggestedNextVersion': l.suggestedNextVersion,
+            'notes': l.notes,
+            'startedAt': l.startedAt.toIso8601String(),
+            'completedAt': l.completedAt.toIso8601String(),
+          }).toList(),
+          'lastUpdated': FieldValue.serverTimestamp(),
+          'count': localLogs.length,
+        });
+      }
+
+      debugPrint('OLY training logs: downloaded=$downloaded, uploaded=$uploaded');
+    } catch (e) {
+      debugPrint('Error syncing OLY training logs: $e');
+    }
+
+    return _MergeResult(downloaded, uploaded);
+  }
+
+  // ============================================================================
+  // BREATH TRAINING LOGS SYNC
+  // ============================================================================
+
+  Future<_MergeResult> _syncBreathTrainingLogs(AppDatabase db) async {
+    int downloaded = 0;
+    int uploaded = 0;
+
+    try {
+      // Get local logs
+      final localLogs = await db.getAllBreathTrainingLogs();
+      final localMap = {for (var l in localLogs) l.id: l};
+
+      // Get cloud logs
+      final cloudDoc = await _userDoc.collection('data').doc('breath_training').get();
+      final cloudData = cloudDoc.data();
+      final cloudLogs = (cloudData?['logs'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+      final cloudMap = {for (var l in cloudLogs) l['id'] as String: l};
+
+      // Download logs only in cloud
+      for (final entry in cloudMap.entries) {
+        if (!localMap.containsKey(entry.key)) {
+          try {
+            final l = entry.value;
+            await db.insertBreathTrainingLog(BreathTrainingLogsCompanion.insert(
+              id: l['id'] as String,
+              sessionType: l['sessionType'] as String,
+              totalHoldSeconds: Value(l['totalHoldSeconds'] as int?),
+              bestHoldThisSession: Value(l['bestHoldThisSession'] as int?),
+              bestExhaleSeconds: Value(l['bestExhaleSeconds'] as int?),
+              rounds: Value(l['rounds'] as int?),
+              difficulty: Value(l['difficulty'] as String?),
+              durationMinutes: Value(l['durationMinutes'] as int?),
+              completedAt: DateTime.parse(l['completedAt'] as String),
+            ));
+            downloaded++;
+          } catch (e) {
+            debugPrint('Error downloading breath log ${entry.key}: $e');
+          }
+        }
+      }
+
+      // Check for local-only logs to upload
+      bool needsUpload = false;
+      for (final log in localLogs) {
+        if (!cloudMap.containsKey(log.id)) {
+          needsUpload = true;
+          uploaded++;
+        }
+      }
+
+      // Upload if needed
+      if (needsUpload && localLogs.isNotEmpty) {
+        await _userDoc.collection('data').doc('breath_training').set({
+          'logs': localLogs.map((l) => {
+            'id': l.id,
+            'sessionType': l.sessionType,
+            'totalHoldSeconds': l.totalHoldSeconds,
+            'bestHoldThisSession': l.bestHoldThisSession,
+            'bestExhaleSeconds': l.bestExhaleSeconds,
+            'rounds': l.rounds,
+            'difficulty': l.difficulty,
+            'durationMinutes': l.durationMinutes,
+            'completedAt': l.completedAt.toIso8601String(),
+            'createdAt': l.createdAt.toIso8601String(),
+          }).toList(),
+          'lastUpdated': FieldValue.serverTimestamp(),
+          'count': localLogs.length,
+        });
+      }
+
+      debugPrint('Breath training logs: downloaded=$downloaded, uploaded=$uploaded');
+    } catch (e) {
+      debugPrint('Error syncing breath training logs: $e');
+    }
+
+    return _MergeResult(downloaded, uploaded);
+  }
+
+  // ============================================================================
+  // MILESTONES SYNC
+  // ============================================================================
+
+  Future<_MergeResult> _syncMilestones(AppDatabase db) async {
+    int downloaded = 0;
+    int uploaded = 0;
+
+    try {
+      // Get local milestones
+      final localMilestones = await db.getAllMilestones();
+      final localMap = {for (var m in localMilestones) m.id: m};
+
+      // Get cloud milestones
+      final cloudDoc = await _userDoc.collection('data').doc('milestones').get();
+      final cloudData = cloudDoc.data();
+      final cloudMilestones = (cloudData?['milestones'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+      final cloudMap = {for (var m in cloudMilestones) m['id'] as String: m};
+
+      // Download milestones only in cloud
+      for (final entry in cloudMap.entries) {
+        if (!localMap.containsKey(entry.key)) {
+          try {
+            final m = entry.value;
+            await db.insertMilestone(MilestonesCompanion.insert(
+              id: m['id'] as String,
+              date: DateTime.parse(m['date'] as String),
+              title: m['title'] as String,
+              description: Value(m['description'] as String?),
+              color: Value(m['color'] as String? ?? '#FFD700'),
+            ));
+            downloaded++;
+          } catch (e) {
+            debugPrint('Error downloading milestone ${entry.key}: $e');
+          }
+        }
+      }
+
+      // Check for local-only milestones to upload
+      bool needsUpload = false;
+      for (final milestone in localMilestones) {
+        if (!cloudMap.containsKey(milestone.id)) {
+          needsUpload = true;
+          uploaded++;
+        }
+      }
+
+      // Upload if needed
+      if (needsUpload && localMilestones.isNotEmpty) {
+        await _userDoc.collection('data').doc('milestones').set({
+          'milestones': localMilestones.map((m) => {
+            'id': m.id,
+            'date': m.date.toIso8601String(),
+            'title': m.title,
+            'description': m.description,
+            'color': m.color,
+            'createdAt': m.createdAt.toIso8601String(),
+          }).toList(),
+          'lastUpdated': FieldValue.serverTimestamp(),
+          'count': localMilestones.length,
+        });
+      }
+
+      debugPrint('Milestones: downloaded=$downloaded, uploaded=$uploaded');
+    } catch (e) {
+      debugPrint('Error syncing milestones: $e');
+    }
+
+    return _MergeResult(downloaded, uploaded);
+  }
+
+  // ============================================================================
+  // LEGACY METHODS (kept for backwards compatibility)
+  // ============================================================================
+
+  /// Backup imported scores to Firestore
+  Future<void> backupImportedScores(List<ImportedScore> scores) async {
+    if (_userId == null || scores.isEmpty) return;
+
+    final batch = _firestore.batch();
+    final scoresRef = _userDoc.collection('imported_scores');
+
+    for (final score in scores) {
+      batch.set(scoresRef.doc(score.id), {
+        'id': score.id,
+        'date': score.date.toIso8601String(),
+        'roundName': score.roundName,
+        'score': score.score,
+        'xCount': score.xCount,
+        'location': score.location,
+        'notes': score.notes,
+        'sessionType': score.sessionType,
+        'source': score.source,
+        'importedAt': score.importedAt.toIso8601String(),
+      });
+    }
+
+    batch.set(_userDoc.collection('metadata').doc('imported_scores'), {
+      'lastUpdated': FieldValue.serverTimestamp(),
+      'count': scores.length,
+    });
+
+    await batch.commit();
+  }
+
+  /// Backup a completed session to Firestore
+  Future<void> backupSession(Session session, List<End> ends, List<Arrow> arrows) async {
+    if (_userId == null) return;
+
+    final sessionData = {
+      'id': session.id,
+      'roundTypeId': session.roundTypeId,
+      'sessionType': session.sessionType,
+      'location': session.location,
+      'notes': session.notes,
+      'startedAt': session.startedAt.toIso8601String(),
+      'completedAt': session.completedAt?.toIso8601String(),
+      'totalScore': session.totalScore,
+      'totalXs': session.totalXs,
+      'bowId': session.bowId,
+      'quiverId': session.quiverId,
+      'shaftTaggingEnabled': session.shaftTaggingEnabled,
+      'ends': ends.map((e) => {
+        'id': e.id,
+        'endNumber': e.endNumber,
+        'endScore': e.endScore,
+        'endXs': e.endXs,
+        'status': e.status,
+        'committedAt': e.committedAt?.toIso8601String(),
+        'createdAt': e.createdAt.toIso8601String(),
+      }).toList(),
+      'arrows': arrows.map((a) => {
+        'id': a.id,
+        'endId': a.endId,
+        'faceIndex': a.faceIndex,
+        'x': a.x,
+        'y': a.y,
+        'score': a.score,
+        'isX': a.isX,
+        'sequence': a.sequence,
+        'shaftNumber': a.shaftNumber,
+        'createdAt': a.createdAt.toIso8601String(),
+      }).toList(),
+      'lastUpdated': FieldValue.serverTimestamp(),
+    };
+
+    await _userDoc.collection('sessions').doc(session.id).set(sessionData);
+  }
+
+  /// Backup all data (calls the new sync method)
+  Future<void> backupAllData(AppDatabase db) async {
+    // Now just calls sync which handles bidirectional merge
+    await syncAllData(db);
+  }
+
+  /// Check when last cloud backup occurred
+  Future<DateTime?> getLastBackupTime() async {
+    if (_userId == null) return null;
+
+    try {
+      final doc = await _userDoc.collection('metadata').doc('sync').get();
+      if (!doc.exists) return null;
+      final timestamp = doc.data()?['lastSync'] as Timestamp?;
+      return timestamp?.toDate();
+    } catch (e) {
+      debugPrint('Error checking backup time: $e');
+      return null;
+    }
+  }
+
+  /// Check if cloud has data for restore
+  Future<bool> hasCloudData() async {
+    if (_userId == null) return false;
+
+    try {
+      final doc = await _userDoc.collection('metadata').doc('sync').get();
+      return doc.exists;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Legacy restore method - now just calls sync
+  Future<RestoreResult> restoreAllData(AppDatabase db) async {
+    final result = await syncAllData(db);
+    return RestoreResult(
+      success: result.success,
+      message: result.message,
+      importedScoresRestored: result.downloaded,
+      sessionsRestored: 0,
+      volumeEntriesRestored: 0,
+      olyLogsRestored: 0,
+    );
   }
 }
 
-/// Result of a restore operation
+/// Internal result for merge operations
+class _MergeResult {
+  final int downloaded;
+  final int uploaded;
+  _MergeResult(this.downloaded, this.uploaded);
+}
+
+/// Result of a sync operation
+class SyncResult {
+  final bool success;
+  final String message;
+  final int downloaded;
+  final int uploaded;
+
+  SyncResult({
+    required this.success,
+    required this.message,
+    this.downloaded = 0,
+    this.uploaded = 0,
+  });
+
+  int get totalSynced => downloaded + uploaded;
+}
+
+/// Result of a restore operation (legacy)
 class RestoreResult {
   final bool success;
   final String message;

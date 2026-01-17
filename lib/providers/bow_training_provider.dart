@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:drift/drift.dart';
 import '../db/database.dart';
 import '../services/firestore_sync_service.dart';
+import '../services/vibration_service.dart';
+import '../services/training_session_service.dart';
 import '../utils/unique_id.dart';
 import '../utils/error_handler.dart';
 
@@ -165,6 +166,8 @@ class CustomExercise {
 
 class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
   final AppDatabase _db;
+  final _vibration = VibrationService();
+  final _trainingSession = TrainingSessionService();
 
   BowTrainingProvider(this._db) {
     WidgetsBinding.instance.addObserver(this);
@@ -826,6 +829,7 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   void _startTimer() {
     _timer?.cancel();
+    _trainingSession.startSession();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       _tick();
     });
@@ -897,6 +901,7 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
           } else {
             // Session complete
             _timer?.cancel();
+            _trainingSession.endSession();
             _phase = TimerPhase.complete;
             _timerState = TimerState.stopped;
             _playCompleteSound();
@@ -953,6 +958,7 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
         } else {
           // Session complete
           _timer?.cancel();
+          _trainingSession.endSession();
           _phase = TimerPhase.complete;
           _timerState = TimerState.stopped;
           _completedExercises = _customTotalReps;
@@ -981,6 +987,7 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   void _resetState() {
     _timer?.cancel();
+    _trainingSession.endSession();
     _activeSession = null;
     _exercises = [];
     _currentExerciseIndex = 0;
@@ -1097,35 +1104,32 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
   // ===========================================================================
 
   void _playStartBeep() {
-    HapticFeedback.heavyImpact();
+    _vibration.heavy();
   }
 
   void _playHoldBeep() {
-    HapticFeedback.heavyImpact();
+    _vibration.heavy();
   }
 
   void _playRestBeep() {
-    HapticFeedback.mediumImpact();
+    _vibration.medium();
   }
 
   void _playExerciseCompleteBeep() {
-    HapticFeedback.heavyImpact();
-    Future.delayed(const Duration(milliseconds: 100), () {
-      HapticFeedback.heavyImpact();
-    });
+    _vibration.double();
   }
 
   void _playTickBeep() {
-    HapticFeedback.selectionClick();
+    _vibration.selection();
   }
 
   void _playCompleteSound() {
-    HapticFeedback.heavyImpact();
-    Future.delayed(const Duration(milliseconds: 100), () {
-      HapticFeedback.heavyImpact();
+    _vibration.heavy();
+    Future.delayed(const Duration(milliseconds: 150), () {
+      _vibration.heavy();
     });
-    Future.delayed(const Duration(milliseconds: 200), () {
-      HapticFeedback.heavyImpact();
+    Future.delayed(const Duration(milliseconds: 300), () {
+      _vibration.heavy();
     });
   }
 
@@ -1376,6 +1380,7 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
+    _trainingSession.endSession();
     super.dispose();
   }
 }

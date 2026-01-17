@@ -757,6 +757,15 @@ class AppDatabase extends _$AppDatabase {
   Future<void> setBoolPreference(String key, bool value) =>
       setPreference(key, value.toString());
 
+  Future<double> getDoublePreference(String key, {double defaultValue = 0.0}) async {
+    final value = await getPreference(key);
+    if (value == null) return defaultValue;
+    return double.tryParse(value) ?? defaultValue;
+  }
+
+  Future<void> setDoublePreference(String key, double value) =>
+      setPreference(key, value.toString());
+
   // ===========================================================================
   // BOWS
   // ===========================================================================
@@ -989,6 +998,91 @@ class AppDatabase extends _$AppDatabase {
   Future<bool> isDuplicateVolumeEntry(DateTime date) async {
     final existing = await getVolumeEntryForDate(date);
     return existing != null;
+  }
+
+  /// Add arrows from a session to the daily volume count.
+  /// Called when a session is completed to auto-track volume.
+  Future<void> addSessionArrowsToVolume(String sessionId) async {
+    // Get the session to find its date
+    final session = await getSession(sessionId);
+    if (session == null || session.completedAt == null) return;
+
+    // Count arrows in this session
+    final sessionEnds = await getEndsForSession(sessionId);
+    int arrowCount = 0;
+    for (final end in sessionEnds) {
+      final arrows = await getArrowsForEnd(end.id);
+      arrowCount += arrows.length;
+    }
+
+    if (arrowCount == 0) return;
+
+    // Get the session date (use completedAt for accuracy)
+    final sessionDate = session.completedAt!;
+    final dayStart = DateTime(sessionDate.year, sessionDate.month, sessionDate.day);
+
+    // Get existing volume for this date and add to it
+    final existing = await getVolumeEntryForDate(dayStart);
+    final newCount = (existing?.arrowCount ?? 0) + arrowCount;
+
+    await setVolumeForDate(
+      dayStart,
+      newCount,
+      title: existing?.title ?? 'Session arrows',
+      notes: existing?.notes,
+    );
+  }
+
+  /// Get most frequently used round types from recent sessions.
+  /// Returns round types ordered by usage frequency in past [days] days.
+  Future<List<RoundType>> getMostFrequentRecentRoundTypes({int days = 14, int limit = 5}) async {
+    final cutoff = DateTime.now().subtract(Duration(days: days));
+
+    // Get recent completed sessions
+    final recentSessions = await (select(sessions)
+          ..where((t) =>
+              t.completedAt.isNotNull() &
+              t.deletedAt.isNull() &
+              t.startedAt.isBiggerOrEqualValue(cutoff))
+          ..orderBy([(t) => OrderingTerm.desc(t.startedAt)]))
+        .get();
+
+    // Count round type usage
+    final usageCount = <String, int>{};
+    final lastUsed = <String, DateTime>{};
+
+    for (final session in recentSessions) {
+      usageCount[session.roundTypeId] = (usageCount[session.roundTypeId] ?? 0) + 1;
+      // Track most recent use
+      if (!lastUsed.containsKey(session.roundTypeId)) {
+        lastUsed[session.roundTypeId] = session.startedAt;
+      }
+    }
+
+    if (usageCount.isEmpty) {
+      // No recent sessions - return default indoor round
+      final defaultRound = await getRoundType('wa_indoor_40cm_18m');
+      return defaultRound != null ? [defaultRound] : [];
+    }
+
+    // Sort by frequency (descending), then by recency
+    final sortedIds = usageCount.keys.toList()
+      ..sort((a, b) {
+        final countCompare = usageCount[b]!.compareTo(usageCount[a]!);
+        if (countCompare != 0) return countCompare;
+        return lastUsed[b]!.compareTo(lastUsed[a]!);
+      });
+
+    // Get the round types
+    final result = <RoundType>[];
+    for (final id in sortedIds.take(limit)) {
+      final roundType = await getRoundType(id);
+      if (roundType != null) {
+        result.add(roundType);
+      }
+    }
+
+    return result;
   }
 
   // ===========================================================================

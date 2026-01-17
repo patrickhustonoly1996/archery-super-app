@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/bow_training_provider.dart';
+import '../services/vibration_service.dart';
 import '../db/database.dart';
 
 /// Introduction screen for bow training with quick-start options
@@ -17,6 +17,8 @@ class BowTrainingIntroScreen extends StatefulWidget {
 }
 
 class _BowTrainingIntroScreenState extends State<BowTrainingIntroScreen> {
+  final _vibration = VibrationService();
+
   // Quick start settings (initialized from saved preferences)
   int? _selectedDuration;
   double? _selectedWorkRatio;
@@ -524,6 +526,8 @@ class MaxHoldTestScreen extends StatefulWidget {
 }
 
 class _MaxHoldTestScreenState extends State<MaxHoldTestScreen> {
+  final _vibration = VibrationService();
+
   _TestPhase _phase = _TestPhase.instructions;
   Timer? _timer;
   int _elapsedSeconds = 0;
@@ -548,7 +552,7 @@ class _MaxHoldTestScreenState extends State<MaxHoldTestScreen> {
           if (_elapsedSeconds <= 0) {
             _phase = _TestPhase.holding;
             _elapsedSeconds = 0;
-            HapticFeedback.heavyImpact();
+            _vibration.heavy();
           }
         });
       } else if (_phase == _TestPhase.holding) {
@@ -561,7 +565,7 @@ class _MaxHoldTestScreenState extends State<MaxHoldTestScreen> {
 
   void _stopHold() {
     _timer?.cancel();
-    HapticFeedback.heavyImpact();
+    _vibration.heavy();
     setState(() {
       _maxHoldResult = _elapsedSeconds;
       _phase = _TestPhase.result;

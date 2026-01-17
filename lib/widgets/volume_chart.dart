@@ -74,7 +74,7 @@ class _VolumeChartState extends State<VolumeChart> {
     allScores.sort((a, b) => a.date.compareTo(b.date));
 
     if (allScores.isEmpty) {
-      return const SizedBox.shrink();
+      return _buildSamplePreview(context);
     }
 
     // Filter by selected time period
@@ -275,6 +275,130 @@ class _VolumeChartState extends State<VolumeChart> {
                  s.date.isBefore(_customRange!.end.add(const Duration(days: 1)));
         }).toList();
     }
+  }
+
+  /// Build a sample preview chart when no real data exists
+  Widget _buildSamplePreview(BuildContext context) {
+    // Generate realistic sample score progression data
+    final now = DateTime.now();
+    final sampleScores = <_ScorePoint>[
+      _ScorePoint(date: now.subtract(const Duration(days: 75)), score: 580, percentage: 80.5, isPlotted: true),
+      _ScorePoint(date: now.subtract(const Duration(days: 65)), score: 562, percentage: 78.0, isPlotted: false),
+      _ScorePoint(date: now.subtract(const Duration(days: 55)), score: 595, percentage: 82.6, isPlotted: true),
+      _ScorePoint(date: now.subtract(const Duration(days: 45)), score: 610, percentage: 84.7, isPlotted: true),
+      _ScorePoint(date: now.subtract(const Duration(days: 38)), score: 588, percentage: 81.6, isPlotted: false),
+      _ScorePoint(date: now.subtract(const Duration(days: 30)), score: 625, percentage: 86.8, isPlotted: true),
+      _ScorePoint(date: now.subtract(const Duration(days: 22)), score: 618, percentage: 85.8, isPlotted: true),
+      _ScorePoint(date: now.subtract(const Duration(days: 15)), score: 642, percentage: 89.1, isPlotted: false),
+      _ScorePoint(date: now.subtract(const Duration(days: 8)), score: 655, percentage: 91.0, isPlotted: true),
+      _ScorePoint(date: now.subtract(const Duration(days: 2)), score: 668, percentage: 92.8, isPlotted: true),
+    ];
+
+    String formatDate(DateTime d) => '${d.day}/${d.month}/${d.year % 100}';
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Score Trend',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: AppColors.gold,
+                      ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.textMuted.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'SAMPLE',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textMuted,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+
+            // Sample period selector (non-interactive)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [TimePeriod.threeMonths].map((period) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.gold.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        period.label,
+                        style: TextStyle(
+                          color: AppColors.textMuted,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            // Sample chart with reduced opacity
+            Opacity(
+              opacity: 0.6,
+              child: SizedBox(
+                height: 160,
+                child: CustomPaint(
+                  painter: _VolumeChartPainter(scores: sampleScores),
+                  child: Container(),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+
+            // Date range
+            Center(
+              child: Text(
+                '${formatDate(sampleScores.first.date)} - ${formatDate(sampleScores.last.date)}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textMuted,
+                    ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+
+            // Helpful message instead of legend
+            Center(
+              child: Text(
+                'Your score trend will appear here',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textMuted,
+                      fontStyle: FontStyle.italic,
+                    ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

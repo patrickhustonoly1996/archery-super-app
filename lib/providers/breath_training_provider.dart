@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
+import '../services/vibration_service.dart';
 import '../widgets/breathing_visualizer.dart';
 
 /// Types of breath training sessions
@@ -31,6 +31,8 @@ enum BreathDifficulty {
 /// Central provider for breath training session state
 /// Supports all three breath training types with pause/resume
 class BreathTrainingProvider extends ChangeNotifier {
+  final _vibration = VibrationService();
+
   // Common constants
   static const int inhaleSeconds = 4;
   static const int exhaleSeconds = 6;
@@ -214,7 +216,7 @@ class BreathTrainingProvider extends ChangeNotifier {
     _totalHoldTime = 0;
     _tickCount = 0;
     _startTimer();
-    HapticFeedback.mediumImpact();
+    _vibration.medium();
     notifyListeners();
   }
 
@@ -229,7 +231,7 @@ class BreathTrainingProvider extends ChangeNotifier {
     _elapsedPacedSeconds = 0;
     _tickCount = 0;
     _startTimer();
-    HapticFeedback.mediumImpact();
+    _vibration.medium();
     notifyListeners();
   }
 
@@ -242,7 +244,7 @@ class BreathTrainingProvider extends ChangeNotifier {
     _phaseProgress = 0.0;
     _tickCount = 0;
     _startTimer();
-    HapticFeedback.mediumImpact();
+    _vibration.medium();
     notifyListeners();
   }
 
@@ -251,7 +253,7 @@ class BreathTrainingProvider extends ChangeNotifier {
     _timer?.cancel();
     _state = BreathSessionState.idle;
     _breathPhase = BreathPhase.idle;
-    HapticFeedback.lightImpact();
+    _vibration.light();
     notifyListeners();
   }
 
@@ -274,7 +276,7 @@ class BreathTrainingProvider extends ChangeNotifier {
   void endPatrickBreath() {
     _timer?.cancel();
     _state = BreathSessionState.complete;
-    HapticFeedback.heavyImpact();
+    _vibration.heavy();
     notifyListeners();
   }
 
@@ -358,14 +360,14 @@ class BreathTrainingProvider extends ChangeNotifier {
     switch (_state) {
       case BreathSessionState.pacedBreathing:
         if (_phaseSecondsRemaining <= 0) {
-          HapticFeedback.lightImpact();
+          _vibration.light();
           if (_breathPhase == BreathPhase.inhale) {
             _breathPhase = BreathPhase.exhale;
             _phaseSecondsRemaining = exhaleSeconds;
           } else {
             _pacedBreathCount++;
             if (_pacedBreathCount >= pacedBreathsPerCycle) {
-              HapticFeedback.mediumImpact();
+              _vibration.medium();
               _state = BreathSessionState.holding;
               _breathPhase = BreathPhase.hold;
               _phaseSecondsRemaining = currentHoldTarget;
@@ -382,7 +384,7 @@ class BreathTrainingProvider extends ChangeNotifier {
       case BreathSessionState.holding:
         _totalHoldTime++;
         if (_phaseSecondsRemaining <= 0) {
-          HapticFeedback.heavyImpact();
+          _vibration.heavy();
           _currentRound++;
           if (_currentRound >= _totalRounds) {
             _state = BreathSessionState.complete;
@@ -399,7 +401,7 @@ class BreathTrainingProvider extends ChangeNotifier {
 
       case BreathSessionState.recovery:
         if (_phaseSecondsRemaining <= 0) {
-          HapticFeedback.lightImpact();
+          _vibration.light();
           if (_breathPhase == BreathPhase.inhale) {
             _breathPhase = BreathPhase.exhale;
             _phaseSecondsRemaining = exhaleSeconds;
@@ -433,13 +435,13 @@ class BreathTrainingProvider extends ChangeNotifier {
     if (_elapsedPacedSeconds >= _totalPacedSeconds) {
       _state = BreathSessionState.complete;
       _timer?.cancel();
-      HapticFeedback.heavyImpact();
+      _vibration.heavy();
       notifyListeners();
       return;
     }
 
     if (_phaseSecondsRemaining <= 0) {
-      HapticFeedback.lightImpact();
+      _vibration.light();
       if (_breathPhase == BreathPhase.inhale) {
         _breathPhase = BreathPhase.exhale;
         _phaseSecondsRemaining = exhaleSeconds;

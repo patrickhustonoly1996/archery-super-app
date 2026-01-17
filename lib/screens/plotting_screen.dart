@@ -7,7 +7,8 @@ import '../providers/connectivity_provider.dart';
 import '../widgets/target_face.dart';
 import '../widgets/triple_spot_target.dart';
 import '../widgets/group_centre_widget.dart';
-import '../widgets/scorecard_widget.dart';
+import '../widgets/full_scorecard_widget.dart';
+import 'scorecard_view_screen.dart';
 import '../widgets/shaft_selector_bottom_sheet.dart';
 import '../widgets/offline_indicator.dart';
 import '../utils/undo_manager.dart';
@@ -24,6 +25,10 @@ const String kTripleSpotCombinedViewPref = 'indoor_triple_spot_combined';
 /// Preference key for compound scoring mode (smaller inner 10/X ring)
 const String kCompoundScoringPref = 'compound_scoring_mode';
 
+/// Preference key for group centre confidence multiplier
+/// 1.0 = ~68% (1 SD), 2.0 = ~95% (2 SD)
+const String kGroupCentreConfidencePref = 'group_centre_confidence';
+
 class PlottingScreen extends StatefulWidget {
   const PlottingScreen({super.key});
 
@@ -38,9 +43,15 @@ class _PlottingScreenState extends State<PlottingScreen> {
   bool _useCombinedView = false;
   // Compound scoring mode - smaller inner 10/X ring
   bool _compoundScoring = false;
+  // Group centre confidence multiplier (1.0 = 68%, 2.0 = 95%)
+  double _confidenceMultiplier = 1.0;
   // Selected face for plotting (0, 1, or 2)
   int _selectedFaceIndex = 0;
   bool _prefsLoaded = false;
+
+  // Pending arrow position for fixed zoom window (normalized -1 to +1)
+  double? _pendingArrowX;
+  double? _pendingArrowY;
 
   @override
   void initState() {
@@ -53,11 +64,13 @@ class _PlottingScreenState extends State<PlottingScreen> {
     final tripleSpot = await db.getBoolPreference(kTripleSpotViewPref, defaultValue: true);
     final combined = await db.getBoolPreference(kTripleSpotCombinedViewPref, defaultValue: false);
     final compound = await db.getBoolPreference(kCompoundScoringPref, defaultValue: false);
+    final confidence = await db.getDoublePreference(kGroupCentreConfidencePref, defaultValue: 1.0);
     if (mounted) {
       setState(() {
         _useTripleSpotView = tripleSpot;
         _useCombinedView = combined;
         _compoundScoring = compound;
+        _confidenceMultiplier = confidence;
         _prefsLoaded = true;
       });
     }
@@ -79,6 +92,14 @@ class _PlottingScreenState extends State<PlottingScreen> {
     final db = context.read<AppDatabase>();
     await db.setBoolPreference(kCompoundScoringPref, value);
     setState(() => _compoundScoring = value);
+  }
+
+  Future<void> _toggleConfidenceMultiplier() async {
+    final db = context.read<AppDatabase>();
+    // Cycle between 1.0 (67%) and 2.0 (95%)
+    final newValue = _confidenceMultiplier == 1.0 ? 2.0 : 1.0;
+    await db.setDoublePreference(kGroupCentreConfidencePref, newValue);
+    setState(() => _confidenceMultiplier = newValue);
   }
 
   @override
@@ -192,19 +213,22 @@ class _PlottingScreenState extends State<PlottingScreen> {
                 if (supportsTripleSpot)
                   const SizedBox(height: AppSpacing.sm),
 
-                // Target face with rolling average overlay
+                // Target face with rolling average overlay and fixed zoom window
                 Expanded(
                   child: Stack(
                     children: [
-                      // Main target - uses synchronous getter for immediate updates
+                      // Main target - fills available space naturally
                       Center(
                         child: Padding(
-                          padding: const EdgeInsets.all(AppSpacing.lg),
+                          padding: const EdgeInsets.all(AppSpacing.md),
                           child: LayoutBuilder(
                             builder: (context, constraints) {
-                              final size = constraints.maxWidth < constraints.maxHeight
+                              // Use the smaller dimension, leave some space for zoom window
+                              final availableSize = constraints.maxWidth < constraints.maxHeight
                                   ? constraints.maxWidth
-                                  : constraints.maxHeight - 120; // Leave room for zoom
+                                  : constraints.maxHeight;
+                              // Target fills most of available space (no arbitrary clamp)
+                              final size = availableSize - AppSpacing.md * 2;
 
                               // Use triple spot view for indoor rounds when enabled
                               if (supportsTripleSpot && _useTripleSpotView) {
@@ -212,14 +236,14 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                   // Combined view: all arrows on one tri-spot face
                                   return CombinedTripleSpotView(
                                     arrows: provider.allSessionArrows,
-                                    size: size.clamp(200.0, 350.0),
+                                    size: size,
                                     compoundScoring: _compoundScoring,
                                   );
                                 } else {
                                   // Separate view: 3 interactive faces
                                   return InteractiveTripleSpotTarget(
                                     arrows: provider.allSessionArrows,
-                                    size: size.clamp(200.0, 400.0),
+                                    size: size,
                                     enabled: !provider.isEndComplete,
                                     compoundScoring: _compoundScoring,
                                     onArrowPlotted: (x, y, faceIndex) async {
@@ -235,7 +259,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
                               final isTriSpot = (provider.roundType?.faceCount ?? 1) == 3;
                               return InteractiveTargetFace(
                                 arrows: provider.allSessionArrows,
-                                size: size.clamp(200.0, 400.0),
+                                size: size,
                                 enabled: !provider.isEndComplete,
                                 isIndoor: provider.roundType?.isIndoor ?? false,
                                 triSpot: isTriSpot,
@@ -244,70 +268,110 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                 onArrowPlotted: (x, y) async {
                                   await _plotArrowWithFace(context, provider, x, y, 0);
                                 },
+                                onPendingArrowChanged: (x, y) {
+                                  setState(() {
+                                    _pendingArrowX = x;
+                                    _pendingArrowY = y;
+                                  });
+                                },
                               );
                             },
                           ),
                         ),
                       ),
 
+                      // Fixed zoom window at 12 o'clock (top center)
+                      if (_pendingArrowX != null && _pendingArrowY != null)
+                        Positioned(
+                          top: AppSpacing.md,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: FixedZoomWindow(
+                              targetX: _pendingArrowX!,
+                              targetY: _pendingArrowY!,
+                              zoomLevel: 4.0,
+                              size: 120,
+                              triSpot: (provider.roundType?.faceCount ?? 1) == 3,
+                              compoundScoring: _compoundScoring,
+                            ),
+                          ),
+                        ),
+
                       // Rolling 12-arrow group centre (top-left)
                       Positioned(
                         top: AppSpacing.md,
                         left: AppSpacing.md,
-                        child: FutureBuilder(
-                          // Key forces rebuild when arrows change
-                          key: ValueKey('last12_${provider.ends.length}_${provider.arrowsInCurrentEnd}'),
-                          future: provider.getLastNArrows(12),
-                          builder: (context, snapshot) {
-                            final arrows = snapshot.data ?? [];
-                            return GroupCentreWidget(
-                              arrows: arrows,
-                              label: 'Last 12',
-                              size: 80,
-                            );
-                          },
+                        child: GestureDetector(
+                          onTap: _toggleConfidenceMultiplier,
+                          child: FutureBuilder(
+                            // Key forces rebuild when arrows or confidence change
+                            key: ValueKey('last12_${provider.ends.length}_${provider.arrowsInCurrentEnd}_$_confidenceMultiplier'),
+                            future: provider.getLastNArrows(12),
+                            builder: (context, snapshot) {
+                              final arrows = snapshot.data ?? [];
+                              final confLabel = _confidenceMultiplier == 1.0 ? '67%' : '95%';
+                              return GroupCentreWidget(
+                                arrows: arrows,
+                                label: 'Last 12 ($confLabel)',
+                                size: 80,
+                                confidenceMultiplier: _confidenceMultiplier,
+                              );
+                            },
+                          ),
                         ),
                       ),
 
-                      // Current half group centre (top-right)
+                      // This round group centre (top-right)
                       Positioned(
                         top: AppSpacing.md,
                         right: AppSpacing.md,
-                        child: FutureBuilder(
-                          // Key forces rebuild when arrows or end changes
-                          key: ValueKey('half_${provider.currentEndNumber}_${provider.arrowsInCurrentEnd}'),
-                          future: provider.getCurrentHalfArrows(),
-                          builder: (context, snapshot) {
-                            final halfArrows = snapshot.data ?? [];
-                            final halfPoint = (provider.totalEnds / 2).ceil();
-                            final isSecondHalf = provider.currentEndNumber > halfPoint;
-                            return GroupCentreWidget(
-                              arrows: halfArrows,
-                              label: isSecondHalf ? 'Half 2' : 'Half 1',
-                              size: 80,
-                            );
-                          },
+                        child: GestureDetector(
+                          onTap: _toggleConfidenceMultiplier,
+                          child: Builder(
+                            // Key forces rebuild when arrows or confidence change
+                            key: ValueKey('round_${provider.ends.length}_${provider.arrowsInCurrentEnd}_$_confidenceMultiplier'),
+                            builder: (context) {
+                              // Use synchronous allSessionArrows for all arrows in this round
+                              final allArrows = provider.allSessionArrows;
+                              final confLabel = _confidenceMultiplier == 1.0 ? '67%' : '95%';
+                              return GroupCentreWidget(
+                                arrows: allArrows,
+                                label: 'This Round ($confLabel)',
+                                size: 80,
+                                confidenceMultiplier: _confidenceMultiplier,
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
 
-                // Official scorecard
-                FutureBuilder(
-                  future: provider.getAllCompletedEndArrows(),
-                  builder: (context, snapshot) {
-                    final completedArrows = snapshot.data ?? [];
-                    return ScorecardWidget(
-                      completedEnds: provider.ends,
-                      completedEndArrows: completedArrows,
-                      currentEndArrows: provider.currentEndArrows,
-                      currentEndNumber: provider.currentEndNumber,
-                      arrowsPerEnd: provider.arrowsPerEnd,
-                      totalEnds: provider.totalEnds,
-                      roundName: provider.roundType?.name ?? '',
-                    );
-                  },
+                // Official scorecard (scrollable, with fixed height)
+                GestureDetector(
+                  onTap: () => _showFullScorecard(context, provider),
+                  child: Container(
+                    constraints: const BoxConstraints(maxHeight: 180),
+                    child: FutureBuilder(
+                      future: provider.getAllCompletedEndArrows(),
+                      builder: (context, snapshot) {
+                        final completedArrows = snapshot.data ?? [];
+                        return FullScorecardWidget(
+                          completedEnds: provider.ends,
+                          completedEndArrows: completedArrows,
+                          currentEndArrows: provider.currentEndArrows,
+                          currentEndNumber: provider.currentEndNumber,
+                          arrowsPerEnd: provider.arrowsPerEnd,
+                          totalEnds: provider.totalEnds,
+                          roundName: provider.roundType?.name ?? '',
+                          maxScore: provider.roundType?.maxScore,
+                          roundType: provider.roundType,
+                        );
+                      },
+                    ),
+                  ),
                 ),
 
                 // Action buttons
@@ -358,6 +422,18 @@ class _PlottingScreenState extends State<PlottingScreen> {
       // No shaft tagging - plot directly
       await provider.plotArrow(x: x, y: y, faceIndex: faceIndex);
     }
+  }
+
+  void _showFullScorecard(BuildContext context, SessionProvider provider) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ScorecardViewScreen(
+          sessionId: provider.currentSession!.id,
+          isLive: true,
+        ),
+      ),
+    );
   }
 
   void _showAbandonDialog(BuildContext context, SessionProvider provider) {

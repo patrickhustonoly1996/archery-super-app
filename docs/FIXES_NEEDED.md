@@ -349,8 +349,10 @@ All 1373 tests now pass.
 
 ## P2: Kit Details Auto-Prompt on Top 20% Score
 
-**Status:** Not started
+**Status:** ✅ FIXED (January 2026)
 **Problem:** When an archer achieves a score in their top 20% historically, prompt them to save their current kit configuration - that setup is clearly working well.
+
+**Implementation:** `lib/utils/statistics.dart` (percentile calc), `lib/models/kit_snapshot.dart`, `KitSnapshots` table in database, session complete prompt.
 
 **Trigger Logic:**
 ```dart
@@ -399,8 +401,10 @@ if (currentScore >= threshold) {
 
 ## P2: Kit Tuning Framework
 
-**Status:** Not started
+**Status:** ✅ FIXED (January 2026)
 **Problem:** Need structured way to log and track bow tuning - different process for compound vs recurve.
+
+**Implementation:** `TuningSessions` table, `lib/models/tuning_session.dart`, `lib/screens/tuning_checklist_screen.dart`, `lib/screens/tuning_history_screen.dart`, `lib/utils/tuning_suggestions.dart`.
 
 **Bow Type Split:**
 - **Recurve:** Paper tune, bare shaft, walk-back, nock point, tiller, brace height, centershot, plunger
@@ -454,8 +458,10 @@ if (currentScore >= threshold) {
 
 ## P2: Arrow Shaft Tracking & Analysis
 
-**Status:** Not started
+**Status:** ✅ FIXED (January 2026)
 **Problem:** Need to track individual arrow performance. Two parts:
+
+**Implementation:** Shafts table expanded (spine, lengthInches, pointWeight, fletchingType, fletchingColor, nockColor), shaftId FK on Arrows, `lib/screens/shaft_detail_screen.dart`, `lib/utils/shaft_analysis.dart`, `lib/screens/shaft_analysis_screen.dart`, shaft picker in plotting screen.
 1. **Specs** (in kit details): spine, length, point weight, fletching - lives with quiver/shaft
 2. **Shot tracking** (in scoring): which numbered arrow made each shot - analyze grouping by arrow
 
@@ -562,3 +568,4 @@ Use ring notation, not mm:
 ---
 
 *Last updated: January 2026*
+*Kit features verified complete: 2026-01-17*

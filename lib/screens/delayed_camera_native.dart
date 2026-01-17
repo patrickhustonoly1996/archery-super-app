@@ -144,9 +144,9 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
         return;
       }
 
-      // Prefer back camera
+      // Prefer front (selfie) camera
       final camera = _cameras!.firstWhere(
-        (c) => c.lensDirection == CameraLensDirection.back,
+        (c) => c.lensDirection == CameraLensDirection.front,
         orElse: () => _cameras!.first,
       );
 

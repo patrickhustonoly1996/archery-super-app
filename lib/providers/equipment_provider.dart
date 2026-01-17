@@ -17,8 +17,14 @@ class EquipmentProvider extends ChangeNotifier {
   List<Quiver> _quivers = [];
   final Map<String, List<Shaft>> _shaftsByQuiver = {};
 
+  // Cached defaults
+  Bow? _defaultBow;
+  Quiver? _defaultQuiver;
+
   List<Bow> get bows => _bows;
   List<Quiver> get quivers => _quivers;
+  Bow? get defaultBow => _defaultBow;
+  Quiver? get defaultQuiver => _defaultQuiver;
 
   List<Shaft> getShaftsForQuiver(String quiverId) {
     return _shaftsByQuiver[quiverId] ?? [];
@@ -28,6 +34,10 @@ class EquipmentProvider extends ChangeNotifier {
   Future<void> loadEquipment() async {
     _bows = await _db.getAllBows();
     _quivers = await _db.getAllQuivers();
+
+    // Load defaults
+    _defaultBow = await _db.getDefaultBow();
+    _defaultQuiver = await _db.getDefaultQuiver();
 
     // Load shafts for each quiver
     _shaftsByQuiver.clear();

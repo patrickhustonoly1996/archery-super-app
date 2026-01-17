@@ -145,53 +145,56 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: AppColors.surfaceLight),
                     ),
+                    clipBehavior: Clip.antiAlias,
                     child: Row(
                       children: [
                         Expanded(
-                          child: GestureDetector(
-                            onTap: () => setState(() {
-                              _isSignUp = false;
-                              _errorMessage = null;
-                            }),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              decoration: BoxDecoration(
-                                color: !_isSignUp ? AppColors.gold : Colors.transparent,
-                                borderRadius: BorderRadius.circular(7),
-                              ),
-                              child: Text(
-                                'SIGN IN',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontFamily: AppFonts.main,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: !_isSignUp ? AppColors.backgroundDark : AppColors.textSecondary,
+                          child: Material(
+                            color: !_isSignUp ? AppColors.gold : Colors.transparent,
+                            child: InkWell(
+                              onTap: () => setState(() {
+                                _isSignUp = false;
+                                _errorMessage = null;
+                              }),
+                              splashColor: AppColors.gold.withOpacity(0.3),
+                              highlightColor: AppColors.gold.withOpacity(0.1),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                child: Text(
+                                  'SIGN IN',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontFamily: AppFonts.main,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: !_isSignUp ? AppColors.backgroundDark : AppColors.textSecondary,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
                         Expanded(
-                          child: GestureDetector(
-                            onTap: () => setState(() {
-                              _isSignUp = true;
-                              _errorMessage = null;
-                            }),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              decoration: BoxDecoration(
-                                color: _isSignUp ? AppColors.gold : Colors.transparent,
-                                borderRadius: BorderRadius.circular(7),
-                              ),
-                              child: Text(
-                                'CREATE ACCOUNT',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontFamily: AppFonts.main,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: _isSignUp ? AppColors.backgroundDark : AppColors.textSecondary,
+                          child: Material(
+                            color: _isSignUp ? AppColors.gold : Colors.transparent,
+                            child: InkWell(
+                              onTap: () => setState(() {
+                                _isSignUp = true;
+                                _errorMessage = null;
+                              }),
+                              splashColor: AppColors.gold.withOpacity(0.3),
+                              highlightColor: AppColors.gold.withOpacity(0.1),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                child: Text(
+                                  'CREATE ACCOUNT',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontFamily: AppFonts.main,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: _isSignUp ? AppColors.backgroundDark : AppColors.textSecondary,
+                                  ),
                                 ),
                               ),
                             ),
@@ -278,36 +281,44 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
                   if (!_isSignUp) ...[
                     const SizedBox(height: AppSpacing.xl),
                     Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
                       decoration: BoxDecoration(
                         border: Border.all(color: AppColors.gold.withOpacity(0.3)),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Column(
-                        children: [
-                          Text(
-                            'New to Archery Super App?',
-                            style: TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 14,
+                      clipBehavior: Clip.antiAlias,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => setState(() {
+                            _isSignUp = true;
+                            _errorMessage = null;
+                          }),
+                          splashColor: AppColors.gold.withOpacity(0.2),
+                          highlightColor: AppColors.gold.withOpacity(0.1),
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppSpacing.md),
+                            child: Column(
+                              children: [
+                                Text(
+                                  'New to Archery Super App?',
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Create your free account',
+                                  style: TextStyle(
+                                    color: AppColors.gold,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          GestureDetector(
-                            onTap: () => setState(() {
-                              _isSignUp = true;
-                              _errorMessage = null;
-                            }),
-                            child: Text(
-                              'Create your free account',
-                              style: TextStyle(
-                                color: AppColors.gold,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ],

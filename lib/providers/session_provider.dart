@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
 import '../db/database.dart';
@@ -412,18 +410,18 @@ class SessionProvider extends ChangeNotifier {
 
     final allArrows = <Arrow>[];
 
-    // Get arrows from completed ends (newest first)
+    // Current end arrows are the MOST RECENT - process them first
+    for (int i = _currentEndArrows.length - 1; i >= 0 && allArrows.length < count; i--) {
+      allArrows.add(_currentEndArrows[i]);
+    }
+
+    // Then get arrows from completed ends (newest first)
     for (int i = _ends.length - 1; i >= 0 && allArrows.length < count; i--) {
       final endArrows = await _db.getArrowsForEnd(_ends[i].id);
       // Add arrows in reverse (most recent first)
       for (int j = endArrows.length - 1; j >= 0 && allArrows.length < count; j--) {
         allArrows.add(endArrows[j]);
       }
-    }
-
-    // Add current end arrows if needed
-    for (int i = _currentEndArrows.length - 1; i >= 0 && allArrows.length < count; i--) {
-      allArrows.add(_currentEndArrows[i]);
     }
 
     return allArrows.reversed.toList(); // Return in chronological order

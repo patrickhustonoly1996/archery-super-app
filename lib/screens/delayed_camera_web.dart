@@ -179,10 +179,9 @@ class _WebCameraScreenState extends State<_WebCameraScreen> {
   }
 
   JSObject _createVideoConstraints() {
-    // Try to use back camera (environment facing)
-    // On mobile, this is preferred for form review
+    // Use front (selfie) camera by default
     final jsObject = <String, dynamic>{
-      'facingMode': {'ideal': 'environment'},
+      'facingMode': {'ideal': 'user'},
       'width': {'ideal': 1280},
       'height': {'ideal': 720},
     }.jsify();

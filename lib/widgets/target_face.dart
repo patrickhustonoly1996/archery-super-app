@@ -1,12 +1,9 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../theme/app_theme.dart';
 import '../db/database.dart';
-import '../utils/smart_zoom.dart';
 
 /// Renders an archery target face with plotted arrows
 class TargetFace extends StatelessWidget {
@@ -225,6 +222,10 @@ class _ArrowMarker extends StatelessWidget {
 }
 
 /// Interactive target face for plotting arrows with touch-hold-drag
+///
+/// Architecture: The target fills available space naturally (no Transform.scale).
+/// Touch coordinates map directly to normalized coords (-1 to +1).
+/// Pinch-to-zoom is handled via InteractiveViewer for proper viewport semantics.
 class InteractiveTargetFace extends StatefulWidget {
   final List<Arrow> arrows;
   final double size;
@@ -238,6 +239,9 @@ class InteractiveTargetFace extends StatefulWidget {
   /// Enable line cutter detection and in/out dialog
   final bool lineCutterDialogEnabled;
 
+  /// Callback for pending arrow position (for external zoom window)
+  final Function(double? x, double? y)? onPendingArrowChanged;
+
   const InteractiveTargetFace({
     super.key,
     required this.arrows,
@@ -249,6 +253,7 @@ class InteractiveTargetFace extends StatefulWidget {
     this.isLeftHanded = false,
     this.lineCutterDialogEnabled = false,
     this.compoundScoring = false,
+    this.onPendingArrowChanged,
   });
 
   @override
@@ -256,82 +261,45 @@ class InteractiveTargetFace extends StatefulWidget {
 }
 
 class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
-  // Touch state
+  // Touch state - coordinates in WIDGET space (not transformed)
   Offset? _touchPosition;
-  Offset? _arrowPosition;
+  Offset? _arrowPosition; // Where arrow will be placed (offset from touch)
   bool _isHolding = false;
 
-  // Linecutter state
-  bool _isLinecutterMode = false;
-  bool _isNearBoundary = false;
-  Timer? _linecutterActivationTimer;
-  double? _nearestBoundaryDistance;
-  int? _nearestBoundaryRing;
+  // Finger offset constants (in widget pixels)
+  // Offset from touch point so user can see where arrow lands
+  static const double _holdOffsetX = 50.0; // Horizontal (sign flipped for lefties)
+  static const double _holdOffsetY = 50.0; // Vertical (always upward)
 
-  // Overlay for zoom window
-  OverlayEntry? _zoomOverlay;
+  // Linecutter detection threshold
+  static const double _boundaryProximityThreshold = 0.015; // 1.5% of radius
 
-  // Pinch-to-zoom state
-  // Baseline 1.0 = target fills screen (internally multiplied by 2x)
-  // Users can pinch OUT to zoom out (<1.0) for miss plotting (longbow)
-  // Users can pinch IN to zoom in (>1.0) for precision
-  double _userZoomScale = 1.0;
-  bool _isPinchZooming = false;
-
-  // Internal multiplier: 1.0 user scale = 2.0 actual scale (fills screen)
-  static const double _baselineMultiplier = 2.0;
-
-  // Zoom window constants
-  static const double _linecutterZoomFactor = 10.0; // High zoom for line-cutter precision
-  static const double _zoomWindowSize = 150.0;      // Larger window for precision
-  static const double _linecutterWindowSize = 180.0; // Even larger for linecutter
-  // Diagonal offset: 60px total distance at ~45° angle
-  // sqrt(42² + 42²) ≈ 59.4px ≈ 60px
-  static const double _holdOffsetX = 42.0; // Horizontal component (sign flipped for lefties)
-  static const double _holdOffsetY = 42.0; // Vertical component (always upward)
-  static const double _boundaryProximityThreshold = 0.01; // 1% of radius - ~6mm on 122cm target, tight for precision
-  static const Duration _linecutterActivationDelay = Duration(milliseconds: 600); // Longer hold for intentional activation
-
-  /// Cached zoom factor to prevent jumps during drag
-  double? _cachedZoomFactor;
-
-  /// Get the current zoom factor based on mode and smart zoom calculation
-  /// This is RELATIVE to the user's current pinch zoom level
-  double get _zoomFactor {
-    double baseZoom;
-    if (_isLinecutterMode) {
-      baseZoom = _linecutterZoomFactor;
-    } else if (_isHolding && _cachedZoomFactor != null) {
-      // Use cached zoom if we're in the middle of a drag to prevent jumping
-      baseZoom = _cachedZoomFactor!;
-    } else {
-      // Smart zoom calculates optimal zoom (minimum 2x) based on arrow grouping
-      baseZoom = SmartZoom.calculateZoomFactor(
-        widget.arrows,
-        isIndoor: widget.isIndoor,
-      );
-    }
-    // Multiply by user's current pinch zoom (with baseline) so the window is useful when zoomed in
-    return baseZoom * _userZoomScale * _baselineMultiplier;
+  /// Convert widget-space pixel position to normalized coordinates (-1 to +1)
+  /// This is the DIRECT path - no transform reversal needed
+  (double, double) _widgetToNormalized(Offset widgetPosition) {
+    final center = widget.size / 2;
+    final radius = widget.size / 2;
+    final normalizedX = (widgetPosition.dx - center) / radius;
+    final normalizedY = (widgetPosition.dy - center) / radius;
+    return (normalizedX, normalizedY);
   }
 
-  /// Calculate distance from arrow position to nearest ring boundary
-  /// Returns a record with (isNear, distance, ringNumber)
-  ({bool isNear, double? distance, int? ring}) _checkBoundaryProximity(Offset arrowPosition) {
-    // Convert widget coordinates to normalized (-1 to 1)
-    final center = Offset(widget.size / 2, widget.size / 2);
-    final radius = widget.size / 2;
+  /// Calculate arrow position with finger offset applied
+  Offset _calculateArrowPosition(Offset touchPosition) {
+    final xOffset = widget.isLeftHanded ? _holdOffsetX : -_holdOffsetX;
+    return Offset(
+      touchPosition.dx + xOffset,
+      touchPosition.dy - _holdOffsetY,
+    );
+  }
 
-    final normalizedX = (arrowPosition.dx - center.dx) / radius;
-    final normalizedY = (arrowPosition.dy - center.dy) / radius;
+  /// Check if normalized position is near a ring boundary
+  ({bool isNear, int? ring}) _checkBoundaryProximity(double normX, double normY) {
+    final distanceFromCenter = math.sqrt(normX * normX + normY * normY);
 
-    // Calculate distance from center
-    final distanceFromCenter = math.sqrt(normalizedX * normalizedX + normalizedY * normalizedY);
-
-    // Define all ring boundaries to check
     final ringBoundaries = [
-      (TargetRings.x, 10),      // X ring
-      (TargetRings.ring10, 10), // 10 ring
+      (TargetRings.x, 10),
+      (TargetRings.ring10, 10),
       (TargetRings.ring9, 9),
       (TargetRings.ring8, 8),
       (TargetRings.ring7, 7),
@@ -343,367 +311,91 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
       (TargetRings.ring1, 1),
     ];
 
-    // Find nearest boundary
     double minDistance = double.infinity;
     int? nearestRing;
 
     for (final (boundary, ringNumber) in ringBoundaries) {
-      final distanceToBoundary = (distanceFromCenter - boundary).abs();
-      if (distanceToBoundary < minDistance) {
-        minDistance = distanceToBoundary;
+      final dist = (distanceFromCenter - boundary).abs();
+      if (dist < minDistance) {
+        minDistance = dist;
         nearestRing = ringNumber;
       }
     }
 
-    // Check if within threshold
-    final isNear = minDistance <= _boundaryProximityThreshold;
-
     return (
-      isNear: isNear,
-      distance: isNear ? minDistance : null,
-      ring: isNear ? nearestRing : null,
+      isNear: minDistance <= _boundaryProximityThreshold,
+      ring: minDistance <= _boundaryProximityThreshold ? nearestRing : null,
     );
-  }
-
-  void _cancelLinecutterTimer() {
-    _linecutterActivationTimer?.cancel();
-    _linecutterActivationTimer = null;
   }
 
   void _onPanStart(DragStartDetails details) {
     if (!widget.enabled) return;
 
-    // Cache the zoom factor at start of drag to prevent jumping
-    _cachedZoomFactor = SmartZoom.calculateZoomFactor(
-      widget.arrows,
-      isIndoor: widget.isIndoor,
-    );
+    final arrowPos = _calculateArrowPosition(details.localPosition);
 
     setState(() {
       _touchPosition = details.localPosition;
-      // Apply diagonal offset: up-left for right-handers, up-right for left-handers
-      // This keeps the arrow visible without your palm/arm blocking it
-      final xOffset = widget.isLeftHanded ? _holdOffsetX : -_holdOffsetX;
-      _arrowPosition = Offset(
-        details.localPosition.dx + xOffset,
-        details.localPosition.dy - _holdOffsetY,
-      );
+      _arrowPosition = arrowPos;
       _isHolding = true;
     });
 
-    // Show zoom overlay immediately (not in post-frame callback to avoid delay)
-    _showZoomOverlay();
+    // Notify parent of pending arrow position (for fixed zoom window)
+    final (normX, normY) = _widgetToNormalized(arrowPos);
+    widget.onPendingArrowChanged?.call(normX, normY);
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
     if (!widget.enabled || !_isHolding) return;
 
+    final arrowPos = _calculateArrowPosition(details.localPosition);
+
     setState(() {
       _touchPosition = details.localPosition;
-      // Arrow position is where the actual impact will be (diagonal from thumb)
-      final xOffset = widget.isLeftHanded ? _holdOffsetX : -_holdOffsetX;
-      _arrowPosition = Offset(
-        details.localPosition.dx + xOffset,
-        details.localPosition.dy - _holdOffsetY,
-      );
-
-      // Check boundary proximity for linecutter mode
-      final proximity = _checkBoundaryProximity(_arrowPosition!);
-
-      if (proximity.isNear && !_isLinecutterMode) {
-        // Near a boundary - start timer to activate linecutter mode
-        _isNearBoundary = true;
-        _nearestBoundaryDistance = proximity.distance;
-        _nearestBoundaryRing = proximity.ring;
-
-        // Start timer if not already running
-        _linecutterActivationTimer ??= Timer(_linecutterActivationDelay, () {
-          // Timer completed - activate linecutter mode if still near boundary
-          if (_isNearBoundary && !_isLinecutterMode) {
-            setState(() {
-              _isLinecutterMode = true;
-            });
-            // Haptic feedback for mode activation
-            HapticFeedback.mediumImpact();
-          }
-        });
-      } else if (!proximity.isNear) {
-        // Moved away from boundary - cancel timer and exit mode
-        _isNearBoundary = false;
-        _nearestBoundaryDistance = null;
-        _nearestBoundaryRing = null;
-
-        // Cancel timer if running
-        _cancelLinecutterTimer();
-
-        // Exit linecutter mode if active
-        if (_isLinecutterMode) {
-          _isLinecutterMode = false;
-        }
-      }
-      // else: already in linecutter mode and still near boundary, just update tracking
-      else if (_isLinecutterMode && proximity.isNear) {
-        // Update nearest boundary info even while in linecutter mode
-        _nearestBoundaryDistance = proximity.distance;
-        _nearestBoundaryRing = proximity.ring;
-      }
+      _arrowPosition = arrowPos;
     });
 
-    // Update zoom overlay position
-    _updateZoomOverlay();
+    // Notify parent of pending arrow position
+    final (normX, normY) = _widgetToNormalized(arrowPos);
+    widget.onPendingArrowChanged?.call(normX, normY);
   }
 
   void _onPanEnd(DragEndDetails details) {
     if (!widget.enabled || !_isHolding || _arrowPosition == null) return;
 
-    // Capture arrow position before clearing state
     final finalArrowPosition = _arrowPosition!;
+    final (normalizedX, normalizedY) = _widgetToNormalized(finalArrowPosition);
 
-    // Remove zoom overlay first
-    _removeZoomOverlay();
+    // Clear pending arrow
+    widget.onPendingArrowChanged?.call(null, null);
 
-    // Convert widget coordinates to normalized (-1 to 1)
-    final center = Offset(widget.size / 2, widget.size / 2);
-    final radius = widget.size / 2;
-
-    final normalizedX = (finalArrowPosition.dx - center.dx) / radius;
-    final normalizedY = (finalArrowPosition.dy - center.dy) / radius;
-
-    // Clamp to target bounds
+    // Check if within target bounds
     final distance = math.sqrt(normalizedX * normalizedX + normalizedY * normalizedY);
     if (distance <= 1.0) {
-      widget.onArrowPlotted(normalizedX, normalizedY);
+      // Check for linecutter dialog
+      if (widget.lineCutterDialogEnabled) {
+        final proximity = _checkBoundaryProximity(normalizedX, normalizedY);
+        if (proximity.isNear && proximity.ring != null) {
+          _handleLineCutter(normalizedX, normalizedY, proximity.ring!);
+        } else {
+          widget.onArrowPlotted(normalizedX, normalizedY);
+        }
+      } else {
+        widget.onArrowPlotted(normalizedX, normalizedY);
+      }
     }
 
-    // Reset all state
-    _cancelLinecutterTimer();
+    // Reset state
     setState(() {
       _touchPosition = null;
       _arrowPosition = null;
       _isHolding = false;
-      _cachedZoomFactor = null;
-
-      // Reset linecutter state
-      _isLinecutterMode = false;
-      _isNearBoundary = false;
-      _nearestBoundaryDistance = null;
-      _nearestBoundaryRing = null;
     });
   }
 
-  @override
-  void dispose() {
-    _cancelLinecutterTimer();
-    _removeZoomOverlay();
-    super.dispose();
-  }
-
-  void _showZoomOverlay() {
-    _removeZoomOverlay();
-
-    final overlay = Overlay.of(context);
-    final renderBox = context.findRenderObject() as RenderBox;
-    final targetPosition = renderBox.localToGlobal(Offset.zero);
-
-    _zoomOverlay = OverlayEntry(
-      builder: (context) {
-        if (_arrowPosition == null || _touchPosition == null) {
-          return const SizedBox.shrink();
-        }
-
-        // Calculate screen position for zoom window
-        final screenTouchX = targetPosition.dx + _touchPosition!.dx;
-        final screenTouchY = targetPosition.dy + _touchPosition!.dy;
-
-        // Position zoom window above and to the left of touch
-        // But keep it on screen
-        final screenSize = MediaQuery.of(context).size;
-        double zoomX = screenTouchX - _zoomWindowSize - 20;
-        double zoomY = screenTouchY - _zoomWindowSize - 20;
-
-        // Keep on screen
-        if (zoomX < 10) zoomX = screenTouchX + 40;
-        if (zoomY < 10) zoomY = 10;
-        if (zoomX + _zoomWindowSize > screenSize.width - 10) {
-          zoomX = screenSize.width - _zoomWindowSize - 10;
-        }
-
-        // Use larger window in linecutter mode
-        final currentWindowSize = _isLinecutterMode ? _linecutterWindowSize : _zoomWindowSize;
-
-        return Positioned(
-          left: zoomX,
-          top: zoomY,
-          child: _ZoomWindow(
-            targetSize: widget.size,
-            arrowPosition: _arrowPosition!,
-            arrows: widget.arrows,
-            zoomFactor: _zoomFactor,
-            windowSize: currentWindowSize,
-            isLinecutterMode: _isLinecutterMode,
-            isNearBoundary: _isNearBoundary,
-            nearestRing: _nearestBoundaryRing,
-            triSpot: widget.triSpot,
-          ),
-        );
-      },
-    );
-
-    overlay.insert(_zoomOverlay!);
-  }
-
-  void _updateZoomOverlay() {
-    _zoomOverlay?.markNeedsBuild();
-  }
-
-  void _removeZoomOverlay() {
-    _zoomOverlay?.remove();
-    _zoomOverlay = null;
-  }
-
-  // Handle scale gesture (used for both 1-finger plotting and 2-finger zoom)
-  void _onScaleStart(ScaleStartDetails details) {
-    if (!widget.enabled) return;
-
-    if (details.pointerCount >= 2) {
-      // 2+ fingers: start pinch-to-zoom
-      setState(() {
-        _isPinchZooming = true;
-      });
-    } else {
-      // 1 finger: start arrow plotting
-      _cachedZoomFactor = SmartZoom.calculateZoomFactor(
-        widget.arrows,
-        isIndoor: widget.isIndoor,
-      );
-
-      setState(() {
-        _touchPosition = details.localFocalPoint;
-        final xOffset = widget.isLeftHanded ? _holdOffsetX : -_holdOffsetX;
-        _arrowPosition = Offset(
-          details.localFocalPoint.dx + xOffset,
-          details.localFocalPoint.dy - _holdOffsetY,
-        );
-        _isHolding = true;
-      });
-
-      _showZoomOverlay();
-    }
-  }
-
-  void _onScaleUpdate(ScaleUpdateDetails details) {
-    if (!widget.enabled) return;
-
-    if (_isPinchZooming && details.pointerCount >= 2) {
-      // Pinch-to-zoom: update scale (dampen sensitivity - use 30% of gesture scale)
-      // User scale: 0.5 (zoomed out for miss area) to 5.0 (zoomed in)
-      // 1.0 = baseline = target fills screen
-      final dampedScale = 1.0 + (details.scale - 1.0) * 0.3;
-      setState(() {
-        _userZoomScale = (_userZoomScale * dampedScale).clamp(0.5, 5.0);
-      });
-    } else if (_isHolding && details.pointerCount == 1) {
-      // Arrow plotting: update position
-      setState(() {
-        _touchPosition = details.localFocalPoint;
-        final xOffset = widget.isLeftHanded ? _holdOffsetX : -_holdOffsetX;
-        _arrowPosition = Offset(
-          details.localFocalPoint.dx + xOffset,
-          details.localFocalPoint.dy - _holdOffsetY,
-        );
-
-        // Check boundary proximity for linecutter mode
-        final proximity = _checkBoundaryProximity(_arrowPosition!);
-
-        if (proximity.isNear && !_isLinecutterMode) {
-          // Near a boundary - start timer to activate linecutter mode
-          _isNearBoundary = true;
-          _nearestBoundaryDistance = proximity.distance;
-          _nearestBoundaryRing = proximity.ring;
-
-          // Start timer if not already running
-          _linecutterActivationTimer ??= Timer(_linecutterActivationDelay, () {
-            if (_isNearBoundary && !_isLinecutterMode) {
-              setState(() {
-                _isLinecutterMode = true;
-              });
-              HapticFeedback.mediumImpact();
-            }
-          });
-        } else if (!proximity.isNear) {
-          _isNearBoundary = false;
-          _nearestBoundaryDistance = null;
-          _nearestBoundaryRing = null;
-          _cancelLinecutterTimer();
-          if (_isLinecutterMode) {
-            _isLinecutterMode = false;
-          }
-        } else if (_isLinecutterMode && proximity.isNear) {
-          _nearestBoundaryDistance = proximity.distance;
-          _nearestBoundaryRing = proximity.ring;
-        }
-      });
-
-      _updateZoomOverlay();
-    }
-  }
-
-  void _onScaleEnd(ScaleEndDetails details) {
-    if (_isPinchZooming) {
-      // End pinch-to-zoom
-      setState(() {
-        _isPinchZooming = false;
-      });
-    } else if (_isHolding && _arrowPosition != null) {
-      // End arrow plotting - place arrow
-      final finalArrowPosition = _arrowPosition!;
-      _removeZoomOverlay();
-
-      final center = Offset(widget.size / 2, widget.size / 2);
-      final radius = widget.size / 2;
-
-      final normalizedX = (finalArrowPosition.dx - center.dx) / radius;
-      final normalizedY = (finalArrowPosition.dy - center.dy) / radius;
-
-      final distance = math.sqrt(normalizedX * normalizedX + normalizedY * normalizedY);
-      if (distance <= 1.0) {
-        // Check if linecutter dialog is enabled and arrow is near boundary
-        if (widget.lineCutterDialogEnabled) {
-          final proximity = _checkBoundaryProximity(finalArrowPosition);
-          if (proximity.isNear && proximity.ring != null) {
-            // Show in/out dialog
-            _handleLineCutter(normalizedX, normalizedY, proximity.ring!);
-          } else {
-            widget.onArrowPlotted(normalizedX, normalizedY);
-          }
-        } else {
-          // No linecutter dialog - plot directly
-          widget.onArrowPlotted(normalizedX, normalizedY);
-        }
-      }
-
-      // Clean up state after callback
-      _cancelLinecutterTimer();
-      setState(() {
-        _touchPosition = null;
-        _arrowPosition = null;
-        _isHolding = false;
-        _cachedZoomFactor = null;
-        _isLinecutterMode = false;
-        _isNearBoundary = false;
-        _nearestBoundaryDistance = null;
-        _nearestBoundaryRing = null;
-      });
-    }
-  }
-
-  /// Handle line cutter scenario with async dialog
   Future<void> _handleLineCutter(double x, double y, int nearRing) async {
     final higherScore = await _showLineCutterDialog(nearRing);
 
     if (higherScore != null) {
-      // Adjust position slightly based on choice
-      // Move radially inward (higher score) or outward (lower score)
       final adjustmentFactor = higherScore ? -0.015 : 0.015;
       final currentDist = math.sqrt(x * x + y * y);
       if (currentDist > 0) {
@@ -716,7 +408,6 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
     widget.onArrowPlotted(x, y);
   }
 
-  /// Show dialog to ask if line cutter is in or out
   Future<bool?> _showLineCutterDialog(int nearRing) async {
     return showDialog<bool>(
       context: context,
@@ -761,62 +452,57 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
 
   @override
   Widget build(BuildContext context) {
+    // Calculate marker sizes proportionally
+    final previewSize = (widget.size * _ArrowMarker._markerFraction * 1.3).clamp(5.0, 12.0);
+    final halfPreview = previewSize / 2;
+
+    // Target fills available space naturally - NO Transform.scale
+    // Touch coordinates map directly to normalized coords
     return SizedBox(
       width: widget.size,
       height: widget.size,
       child: GestureDetector(
-        // Use scale gestures which handle both 1-finger drag and 2-finger pinch
-        onScaleStart: _onScaleStart,
-        onScaleUpdate: _onScaleUpdate,
-        onScaleEnd: _onScaleEnd,
-        child: Transform.scale(
-          // Apply baseline multiplier: user's 1.0 = actual 2.0 (fills screen)
-          scale: _userZoomScale * _baselineMultiplier,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Main target
-              TargetFace(
-                arrows: widget.arrows,
-                size: widget.size,
-                triSpot: widget.triSpot,
-                compoundScoring: widget.compoundScoring,
+        behavior: HitTestBehavior.opaque,
+        onPanStart: _onPanStart,
+        onPanUpdate: _onPanUpdate,
+        onPanEnd: _onPanEnd,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Main target - fills widget naturally
+            TargetFace(
+              arrows: widget.arrows,
+              size: widget.size,
+              triSpot: widget.triSpot,
+              compoundScoring: widget.compoundScoring,
+            ),
+
+            // Offset line from touch to arrow position
+            if (_isHolding && _touchPosition != null && _arrowPosition != null)
+              CustomPaint(
+                size: Size(widget.size, widget.size),
+                painter: _OffsetLinePainter(
+                  from: _touchPosition!,
+                  to: _arrowPosition!,
+                ),
               ),
 
-              // Offset line from touch to arrow
-              if (_isHolding && _touchPosition != null && _arrowPosition != null)
-                CustomPaint(
-                  size: Size(widget.size, widget.size),
-                  painter: _OffsetLinePainter(
-                    from: _touchPosition!,
-                    to: _arrowPosition!,
+            // Preview arrow marker at intended position
+            if (_isHolding && _arrowPosition != null)
+              Positioned(
+                left: _arrowPosition!.dx - halfPreview,
+                top: _arrowPosition!.dy - halfPreview,
+                child: Container(
+                  width: previewSize,
+                  height: previewSize,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.gold.withOpacity(0.8),
+                    border: Border.all(color: Colors.black, width: 1.5),
                   ),
                 ),
-
-              // Preview arrow position (proportional to target size)
-              if (_isHolding && _arrowPosition != null)
-                Builder(
-                  builder: (context) {
-                    // Preview marker slightly larger than arrow markers for visibility
-                    final previewSize = (widget.size * _ArrowMarker._markerFraction * 1.3).clamp(5.0, 12.0);
-                    final halfPreview = previewSize / 2;
-                    return Positioned(
-                      left: _arrowPosition!.dx - halfPreview,
-                      top: _arrowPosition!.dy - halfPreview,
-                      child: Container(
-                        width: previewSize,
-                        height: previewSize,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.gold.withOpacity(0.8),
-                          border: Border.all(color: Colors.black, width: 1.5),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );
@@ -845,144 +531,195 @@ class _OffsetLinePainter extends CustomPainter {
   }
 }
 
-class _ZoomWindow extends StatelessWidget {
-  final double targetSize;
-  final Offset arrowPosition;
-  final List<Arrow> arrows;
-  final double zoomFactor;
-  final double windowSize;
-  final bool isLinecutterMode;
-  final bool isNearBoundary;
-  final int? nearestRing;
+/// Fixed zoom window for displaying magnified view of arrow placement.
+/// Positioned at a fixed location (e.g., top of screen) by the parent widget.
+/// Uses normalized coordinates (-1 to +1) for the arrow position.
+class FixedZoomWindow extends StatelessWidget {
+  /// Normalized X coordinate (-1 to +1) of where the arrow will be placed
+  final double targetX;
+
+  /// Normalized Y coordinate (-1 to +1) of where the arrow will be placed
+  final double targetY;
+
+  /// Zoom magnification level (e.g., 3.0 = 3x zoom)
+  final double zoomLevel;
+
+  /// Size of the zoom window in pixels
+  final double size;
+
+  /// Whether to show crosshair overlay
+  final bool showCrosshair;
+
+  /// Whether this is a tri-spot (indoor) target
   final bool triSpot;
 
-  const _ZoomWindow({
-    required this.targetSize,
-    required this.arrowPosition,
-    required this.arrows,
-    required this.zoomFactor,
-    required this.windowSize,
-    this.isLinecutterMode = false,
-    this.isNearBoundary = false,
-    this.nearestRing,
+  /// Whether to use compound scoring (smaller X ring)
+  final bool compoundScoring;
+
+  const FixedZoomWindow({
+    super.key,
+    required this.targetX,
+    required this.targetY,
+    this.zoomLevel = 4.0,
+    this.size = 140,
+    this.showCrosshair = true,
     this.triSpot = false,
+    this.compoundScoring = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // Linecutter mode label - at TOP so finger doesn't cover it
-        if (isLinecutterMode)
-          Positioned(
-            top: -32,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.success,
-                borderRadius: BorderRadius.circular(6),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.5),
-                    blurRadius: 4,
-                    offset: const Offset(0, -2),
-                  ),
-                ],
-              ),
-              child: Text(
-                'Line cutter?',
-                style: TextStyle(
-                  color: AppColors.backgroundDark,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.gold, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.5),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
-
-        // Main zoom window - target rings with crosshair overlay
-        Container(
-          width: windowSize,
-          height: windowSize,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: isLinecutterMode ? AppColors.success : AppColors.gold,
-              width: isLinecutterMode ? 6 : 2,
-            ),
-            boxShadow: isLinecutterMode
-                ? [
-                    BoxShadow(
-                      color: AppColors.success.withOpacity(0.6),
-                      blurRadius: 12,
-                      spreadRadius: 2,
-                    ),
-                  ]
-                : null,
-            color: AppColors.backgroundDark,
-          ),
-          child: ClipOval(
-            child: Stack(
-              children: [
-                // Zoomed target rings (no arrows)
-                OverflowBox(
-                  alignment: Alignment.topLeft,
-                  maxWidth: targetSize * zoomFactor,
-                  maxHeight: targetSize * zoomFactor,
-                  child: Transform.translate(
-                    offset: Offset(
-                      -(arrowPosition.dx * zoomFactor) + (windowSize / 2),
-                      -(arrowPosition.dy * zoomFactor) + (windowSize / 2),
-                    ),
-                    child: Transform.scale(
-                      scale: zoomFactor,
-                      alignment: Alignment.topLeft,
-                      child: SizedBox(
-                        width: targetSize,
-                        height: targetSize,
-                        child: CustomPaint(
-                          size: Size(targetSize, targetSize),
-                          painter: _TargetFacePainter(triSpot: triSpot),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                // Crosshair overlay (centered on zoom window)
-                CustomPaint(
-                  size: Size(windowSize, windowSize),
-                  painter: _CrosshairPainter(),
-                ),
-              ],
-            ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: CustomPaint(
+          painter: _FixedZoomWindowPainter(
+            targetX: targetX,
+            targetY: targetY,
+            zoomLevel: zoomLevel,
+            showCrosshair: showCrosshair,
+            triSpot: triSpot,
+            compoundScoring: compoundScoring,
           ),
         ),
-      ],
+      ),
     );
   }
 }
 
-class _CrosshairPainter extends CustomPainter {
+/// Painter for the fixed zoom window - uses canvas transforms for proper rendering
+class _FixedZoomWindowPainter extends CustomPainter {
+  final double targetX;
+  final double targetY;
+  final double zoomLevel;
+  final bool showCrosshair;
+  final bool triSpot;
+  final bool compoundScoring;
+
+  _FixedZoomWindowPainter({
+    required this.targetX,
+    required this.targetY,
+    required this.zoomLevel,
+    required this.showCrosshair,
+    this.triSpot = false,
+    this.compoundScoring = false,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
+    final viewRadius = size.width / 2;
 
-    // Simple thin black crosshair
-    final crosshairPaint = Paint()
+    // The effective target radius when zoomed
+    final effectiveTargetRadius = viewRadius * zoomLevel;
+
+    // Save canvas state
+    canvas.save();
+
+    // Translate so the target position (targetX, targetY) is at center of view
+    // targetX/targetY are normalized -1 to 1
+    final offsetX = -targetX * effectiveTargetRadius;
+    final offsetY = -targetY * effectiveTargetRadius;
+
+    canvas.translate(center.dx + offsetX, center.dy + offsetY);
+
+    // Draw target rings at the zoomed scale
+    _drawRings(canvas, Offset.zero, effectiveTargetRadius);
+    _drawRingLines(canvas, Offset.zero, effectiveTargetRadius);
+
+    canvas.restore();
+
+    // Draw crosshair at center (the arrow position)
+    if (showCrosshair) {
+      _drawCrosshair(canvas, center, size);
+    }
+  }
+
+  void _drawRings(Canvas canvas, Offset center, double radius) {
+    // Get ring sizes based on compound scoring mode
+    final xSize = compoundScoring ? _TargetFacePainter.compoundXRing : TargetRings.x;
+    final ring10Size = compoundScoring ? _TargetFacePainter.compound10Ring : TargetRings.ring10;
+
+    final rings = triSpot
+        ? [
+            (TargetRings.ring6, AppColors.ring6),
+            (TargetRings.ring7, AppColors.ring7),
+            (TargetRings.ring8, AppColors.ring8),
+            (TargetRings.ring9, AppColors.ring9),
+            (ring10Size, AppColors.ring10),
+            (xSize, AppColors.ringX),
+          ]
+        : [
+            (TargetRings.ring1, AppColors.ring1),
+            (TargetRings.ring2, AppColors.ring2),
+            (TargetRings.ring3, AppColors.ring3),
+            (TargetRings.ring4, AppColors.ring4),
+            (TargetRings.ring5, AppColors.ring5),
+            (TargetRings.ring6, AppColors.ring6),
+            (TargetRings.ring7, AppColors.ring7),
+            (TargetRings.ring8, AppColors.ring8),
+            (TargetRings.ring9, AppColors.ring9),
+            (ring10Size, AppColors.ring10),
+            (xSize, AppColors.ringX),
+          ];
+
+    final ringScale = triSpot ? (1.0 / TargetRings.ring6) : 1.0;
+
+    for (int i = 0; i < rings.length - 1; i++) {
+      final ringRadius = rings[i].$1 * radius * ringScale;
+      final paint = Paint()
+        ..color = rings[i].$2
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(center, ringRadius, paint);
+    }
+
+    // Draw X ring
+    final xPaint = Paint()
+      ..color = AppColors.ringX
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, xSize * radius * ringScale, xPaint);
+  }
+
+  void _drawRingLines(Canvas canvas, Offset center, double radius) {
+    final xSize = compoundScoring ? _TargetFacePainter.compoundXRing : TargetRings.x;
+    final ring10Size = compoundScoring ? _TargetFacePainter.compound10Ring : TargetRings.ring10;
+
+    final rings = triSpot
+        ? [TargetRings.ring6, TargetRings.ring7, TargetRings.ring8, TargetRings.ring9, ring10Size, xSize]
+        : [TargetRings.ring1, TargetRings.ring2, TargetRings.ring3, TargetRings.ring4,
+           TargetRings.ring5, TargetRings.ring6, TargetRings.ring7, TargetRings.ring8,
+           TargetRings.ring9, ring10Size, xSize];
+
+    final ringScale = triSpot ? (1.0 / TargetRings.ring6) : 1.0;
+
+    final linePaint = Paint()
       ..color = Colors.black
-      ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+      ..strokeWidth = 1.5;
 
-    // Full lines through center (no gap)
-    // Vertical line
-    canvas.drawLine(
-      Offset(center.dx, 0),
-      Offset(center.dx, size.height),
-      crosshairPaint,
-    );
+    for (final ring in rings) {
+      canvas.drawCircle(center, ring * radius * ringScale, linePaint);
+    }
+  }
+
+  void _drawCrosshair(Canvas canvas, Offset center, Size size) {
+    final crosshairPaint = Paint()
+      ..color = AppColors.gold
+      ..strokeWidth = 1.5;
 
     // Horizontal line
     canvas.drawLine(
@@ -990,114 +727,27 @@ class _CrosshairPainter extends CustomPainter {
       Offset(size.width, center.dy),
       crosshairPaint,
     );
-  }
 
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// Painter that highlights the nearest ring boundary with a glowing effect
-class _BoundaryHighlightPainter extends CustomPainter {
-  final int ringNumber;
-  final double targetSize;
-
-  _BoundaryHighlightPainter({
-    required this.ringNumber,
-    required this.targetSize,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
-
-    // Get the boundary position for this ring
-    double ringBoundary;
-    if (ringNumber == 10) {
-      // Could be X or 10 boundary - use 10 ring
-      ringBoundary = TargetRings.ring10;
-    } else if (ringNumber >= 1 && ringNumber <= 9) {
-      // Standard rings
-      final ringBoundaries = [
-        0.0, // placeholder for index 0
-        TargetRings.ring1,
-        TargetRings.ring2,
-        TargetRings.ring3,
-        TargetRings.ring4,
-        TargetRings.ring5,
-        TargetRings.ring6,
-        TargetRings.ring7,
-        TargetRings.ring8,
-        TargetRings.ring9,
-      ];
-      ringBoundary = ringBoundaries[ringNumber];
-    } else {
-      return; // Invalid ring number
-    }
-
-    final ringRadiusPixels = ringBoundary * radius;
-
-    // Draw glowing highlight on the ring boundary
-    // Outer glow
-    final glowPaint = Paint()
-      ..color = AppColors.success.withOpacity(0.4)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 8
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-    canvas.drawCircle(center, ringRadiusPixels, glowPaint);
-
-    // Inner bright line
-    final highlightPaint = Paint()
-      ..color = AppColors.success
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-    canvas.drawCircle(center, ringRadiusPixels, highlightPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _BoundaryHighlightPainter oldDelegate) {
-    return ringNumber != oldDelegate.ringNumber ||
-        targetSize != oldDelegate.targetSize;
-  }
-}
-
-/// Simple small arrow marker for zoom window - just a colored dot
-class _ZoomWindowArrowMarker extends StatelessWidget {
-  final int score;
-  final double size;
-
-  const _ZoomWindowArrowMarker({
-    required this.score,
-    required this.size,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // Use contrasting color based on ring
-    Color markerColor;
-    if (score >= 9) {
-      markerColor = Colors.black; // Black on gold
-    } else if (score >= 7) {
-      markerColor = Colors.white; // White on red
-    } else if (score >= 5) {
-      markerColor = Colors.white; // White on blue
-    } else if (score >= 3) {
-      markerColor = Colors.white; // White on black
-    } else {
-      markerColor = Colors.black; // Black on white
-    }
-
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: markerColor,
-        border: Border.all(
-          color: markerColor == Colors.black ? Colors.white : Colors.black,
-          width: 0.3,
-        ),
-      ),
+    // Vertical line
+    canvas.drawLine(
+      Offset(center.dx, 0),
+      Offset(center.dx, size.height),
+      crosshairPaint,
     );
+
+    // Center dot
+    final dotPaint = Paint()
+      ..color = AppColors.gold
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, 3, dotPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _FixedZoomWindowPainter oldDelegate) {
+    return oldDelegate.targetX != targetX ||
+        oldDelegate.targetY != targetY ||
+        oldDelegate.zoomLevel != zoomLevel ||
+        oldDelegate.triSpot != triSpot ||
+        oldDelegate.compoundScoring != compoundScoring;
   }
 }

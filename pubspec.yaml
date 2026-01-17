@@ -52,6 +52,13 @@ dependencies:
   # Wake lock to keep screen on during training
   wakelock_plus: ^1.2.8
 
+  # PDF generation for scorecard export
+  pdf: ^3.11.1
+  printing: ^5.13.3
+
+  # Signature capture
+  signature: ^5.5.0
+
   # Firebase Authentication
   firebase_core: ^3.8.1
   firebase_auth: ^5.3.4
