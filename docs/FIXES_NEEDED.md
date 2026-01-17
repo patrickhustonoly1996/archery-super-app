@@ -167,35 +167,15 @@ Uses `onScaleStart/Update/End` with `details.pointerCount` to distinguish.
 
 ## P1: Plotting Flow Tests Missing Provider
 
-**Status:** Not started
-**Problem:** 10 tests failing in `test/integration/plotting_flow_test.dart` because `PlottingScreen` now uses `ConnectivityProvider` (for offline indicator) but the tests don't provide it.
+**Status:** ✅ FIXED (January 2026)
 
-**Root cause:** Widget tree fails to build when `Consumer<ConnectivityProvider>` can't find the provider, so the menu never renders and tests looking for "Abandon session" fail.
+**Problem:** Tests failing because `PlottingScreen` uses `ConnectivityProvider` but tests didn't provide it.
 
-**Fix:** Add `ConnectivityProvider` to the test widget setup:
-```dart
-await tester.pumpWidget(
-  Provider<AppDatabase>.value(
-    value: db,
-    child: ChangeNotifierProvider<SessionProvider>.value(
-      value: sessionProvider,
-      child: ChangeNotifierProvider(
-        create: (_) => ConnectivityProvider(),  // ADD THIS
-        child: ChangeNotifierProvider(
-          create: (context) => EquipmentProvider(context.read<AppDatabase>())..loadEquipment(),
-          child: MaterialApp(
-            theme: AppTheme.darkTheme,
-            home: const PlottingScreen(),
-          ),
-        ),
-      ),
-    ),
-  ),
-);
-```
+**Fix applied:** Added `MockConnectivityProvider` to test widget setup in:
+- `test/integration/plotting_flow_test.dart`
+- `test/mocks/mock_connectivity_provider.dart` (new mock class)
 
-**Files:**
-- `test/integration/plotting_flow_test.dart` - Add ConnectivityProvider to all test setups
+All 1373 tests now pass.
 
 ---
 
