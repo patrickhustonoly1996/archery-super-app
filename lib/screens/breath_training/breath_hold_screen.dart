@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../db/database.dart';
 import '../../utils/unique_id.dart';
+import '../../services/beep_service.dart';
 import '../../services/breath_training_service.dart';
+import '../../services/vibration_service.dart';
+import '../../services/training_session_service.dart';
 import '../../widgets/breathing_visualizer.dart';
 import '../../widgets/breathing_reminder.dart';
 import '../../providers/breath_training_provider.dart';
@@ -48,10 +50,15 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
   static const int _recoveryBreaths = 4;
 
   final _service = BreathTrainingService();
+  final _beepService = BeepService();
+  final _vibration = VibrationService();
+  final _trainingSession = TrainingSessionService();
 
   Timer? _timer;
   SessionState _state = SessionState.setup;
   BreathPhase _breathPhase = BreathPhase.idle;
+  bool _beepsEnabled = false;
+  bool _vibrationsEnabled = true; // Default ON
 
   // Settings - configured in setup
   int _baseHoldDuration = 15;
@@ -174,6 +181,7 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
   }
 
   void _endSession() {
+    _trainingSession.endSession();
     setState(() {
       _state = SessionState.idle;
       _breathPhase = BreathPhase.idle;
@@ -187,12 +195,19 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
     final holdDuration = await _service.getHoldDuration();
     final rounds = await _service.getHoldSessionRounds();
     final difficultyIndex = await _service.getDifficultyLevel();
+    final beepsEnabled = await _service.getBeepsEnabled();
+    final vibrationsEnabled = await _vibration.isEnabled();
     if (mounted) {
       setState(() {
         _baseHoldDuration = holdDuration;
         _totalRounds = rounds;
         _difficulty = DifficultyLevel.values[difficultyIndex];
+        _beepsEnabled = beepsEnabled;
+        _vibrationsEnabled = vibrationsEnabled;
       });
+    }
+    if (beepsEnabled) {
+      await _beepService.initialize();
     }
   }
 
@@ -200,11 +215,13 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
+    _trainingSession.endSession();
     super.dispose();
   }
 
   void _startSession() {
-    HapticFeedback.mediumImpact();
+    _vibration.medium();
+    _trainingSession.startSession();
     setState(() {
       _state = SessionState.prep;
       _breathPhase = BreathPhase.idle;
@@ -224,7 +241,7 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
     setState(() {
       _totalRounds += additionalRounds;
     });
-    HapticFeedback.mediumImpact();
+    _vibration.medium();
   }
 
   void _showExtendDialog() {
@@ -266,7 +283,8 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
 
   void _stopSession() {
     _timer?.cancel();
-    HapticFeedback.lightImpact();
+    _vibration.light();
+    _trainingSession.endSession();
     // Clear provider state
     context.read<BreathTrainingProvider>().reset();
     setState(() {
@@ -365,7 +383,8 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
 
   void _handlePrep() {
     if (_phaseSecondsRemaining <= 0) {
-      HapticFeedback.heavyImpact();
+      _vibration.inhale(); // Cue first inhale
+      if (_beepsEnabled) _beepService.playInhaleBeep();
       // Prep done - start paced breathing
       _state = SessionState.pacedBreathing;
       _breathPhase = BreathPhase.inhale;
@@ -403,9 +422,9 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
 
   void _handlePacedBreathing() {
     if (_phaseSecondsRemaining <= 0) {
-      HapticFeedback.lightImpact();
-
       if (_breathPhase == BreathPhase.inhale) {
+        _vibration.exhale(); // Cue exhale phase
+        if (_beepsEnabled) _beepService.playExhaleBeep();
         _breathPhase = BreathPhase.exhale;
         _phaseSecondsRemaining = _exhaleSeconds;
       } else {
@@ -413,12 +432,14 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
 
         if (_pacedBreathCount >= _pacedBreathsPerCycle) {
           // Move directly to holding after final exhale
-          HapticFeedback.mediumImpact();
+          _vibration.holdStart(); // Three quick buzzes + extended
           _state = SessionState.holding;
           _breathPhase = BreathPhase.hold;
           _phaseSecondsRemaining = _currentHoldTarget;
           _pacedBreathCount = 0;
         } else {
+          _vibration.inhale(); // Cue inhale phase
+          if (_beepsEnabled) _beepService.playInhaleBeep();
           _breathPhase = BreathPhase.inhale;
           _phaseSecondsRemaining = _inhaleSeconds;
         }
@@ -431,7 +452,7 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
     _totalHoldTime++;
 
     if (_phaseSecondsRemaining <= 0) {
-      HapticFeedback.heavyImpact();
+      _vibration.heavy();
 
       // Track best hold (this round's target was completed)
       if (_currentHoldTarget > _bestHoldThisSession) {
@@ -444,6 +465,8 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
         // Session complete - save to database
         _state = SessionState.complete;
         _timer?.cancel();
+        _trainingSession.endSession();
+        _vibration.double();
         _saveSessionToDatabase();
       } else {
         // Move to recovery breaths
@@ -478,9 +501,9 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
 
   void _handleRecovery() {
     if (_phaseSecondsRemaining <= 0) {
-      HapticFeedback.lightImpact();
-
       if (_breathPhase == BreathPhase.inhale) {
+        _vibration.exhale(); // Cue exhale phase
+        if (_beepsEnabled) _beepService.playExhaleBeep();
         _breathPhase = BreathPhase.exhale;
         _phaseSecondsRemaining = _exhaleSeconds;
       } else {
@@ -488,12 +511,14 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
 
         if (_pacedBreathCount >= _recoveryBreaths) {
           // Move directly to next hold (skip preparation breaths)
-          HapticFeedback.mediumImpact();
+          _vibration.holdStart(); // Three quick buzzes + extended
           _state = SessionState.holding;
           _breathPhase = BreathPhase.hold;
           _phaseSecondsRemaining = _currentHoldTarget;
           _pacedBreathCount = 0;
         } else {
+          _vibration.inhale(); // Cue inhale phase
+          if (_beepsEnabled) _beepService.playInhaleBeep();
           _breathPhase = BreathPhase.inhale;
           _phaseSecondsRemaining = _inhaleSeconds;
         }
@@ -859,6 +884,52 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
 
           const SizedBox(height: AppSpacing.xl),
 
+          // Feedback toggles
+          Text(
+            'Session Feedback',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppColors.gold,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceDark,
+              borderRadius: BorderRadius.circular(AppSpacing.sm),
+            ),
+            child: Column(
+              children: [
+                _FeedbackToggle(
+                  icon: Icons.vibration,
+                  label: 'Vibrations',
+                  subtitle: 'Haptic feedback for phase changes',
+                  value: _vibrationsEnabled,
+                  onChanged: (value) async {
+                    setState(() => _vibrationsEnabled = value);
+                    await _vibration.setEnabled(value);
+                  },
+                ),
+                const Divider(height: AppSpacing.lg),
+                _FeedbackToggle(
+                  icon: Icons.volume_up,
+                  label: 'Audio Beeps',
+                  subtitle: 'Sound cues for inhale/exhale',
+                  value: _beepsEnabled,
+                  onChanged: (value) async {
+                    setState(() => _beepsEnabled = value);
+                    await _service.setBeepsEnabled(value);
+                    if (value) {
+                      await _beepService.initialize();
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: AppSpacing.xl),
+
           // Summary
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
@@ -994,6 +1065,56 @@ class _StatItem extends StatelessWidget {
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 fontSize: 11,
               ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FeedbackToggle extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _FeedbackToggle({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: value ? AppColors.gold : AppColors.textMuted, size: 24),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+              Text(
+                subtitle,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textMuted,
+                    ),
+              ),
+            ],
+          ),
+        ),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeColor: AppColors.gold,
         ),
       ],
     );

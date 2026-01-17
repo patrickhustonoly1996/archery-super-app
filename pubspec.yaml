@@ -49,6 +49,9 @@ dependencies:
   # Network connectivity detection
   connectivity_plus: ^6.1.2
 
+  # Wake lock to keep screen on during training
+  wakelock_plus: ^1.2.8
+
   # Firebase Authentication
   firebase_core: ^3.8.1
   firebase_auth: ^5.3.4

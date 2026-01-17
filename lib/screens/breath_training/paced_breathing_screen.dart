@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../db/database.dart';
 import '../../utils/unique_id.dart';
 import '../../services/beep_service.dart';
 import '../../services/breath_training_service.dart';
+import '../../services/vibration_service.dart';
+import '../../services/training_session_service.dart';
 import '../../widgets/breathing_visualizer.dart';
 import '../../widgets/breathing_reminder.dart';
 
@@ -35,10 +36,13 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
 
   final _service = BreathTrainingService();
   final _beepService = BeepService();
+  final _vibration = VibrationService();
+  final _trainingSession = TrainingSessionService();
 
   Timer? _timer;
   PacedState _state = PacedState.setup;
   bool _beepsEnabled = false;
+  bool _vibrationsEnabled = true; // Default ON
   BreathPhase _phase = BreathPhase.idle;
   int _phaseSecondsRemaining = 0;
   double _phaseProgress = 0.0;
@@ -57,10 +61,12 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
 
   Future<void> _loadSettings() async {
     final beepsEnabled = await _service.getBeepsEnabled();
+    final vibrationsEnabled = await _vibration.isEnabled();
     final savedDuration = await _service.getPacedBreathingDuration();
     if (mounted) {
       setState(() {
         _beepsEnabled = beepsEnabled;
+        _vibrationsEnabled = vibrationsEnabled;
         _targetDurationMinutes = savedDuration;
         _targetDurationSeconds = savedDuration * 60;
       });
@@ -77,10 +83,12 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _trainingSession.endSession();
     super.dispose();
   }
 
   void _startSession() {
+    _trainingSession.startSession();
     setState(() {
       _state = PacedState.active;
       _phase = BreathPhase.inhale;
@@ -90,10 +98,8 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
       _totalSeconds = 0;
     });
 
-    // Haptic feedback on start
-    HapticFeedback.mediumImpact();
-
-    // Play inhale beep at start
+    // Vibration + audio for first inhale
+    _vibration.inhale(); // Two quick buzzes
     if (_beepsEnabled) {
       _beepService.playInhaleBeep();
     }
@@ -103,7 +109,8 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
 
   void _stopSession() {
     _timer?.cancel();
-    HapticFeedback.lightImpact();
+    _trainingSession.endSession();
+    _vibration.light();
     // Save to database if meaningful session (at least 1 minute)
     if (_totalSeconds >= 60) {
       _saveSessionToDatabase();
@@ -116,7 +123,8 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
 
   void _completeSession() {
     _timer?.cancel();
-    HapticFeedback.heavyImpact();
+    _trainingSession.endSession();
+    _vibration.double();
     _saveSessionToDatabase();
     setState(() {
       _state = PacedState.idle;
@@ -136,7 +144,7 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
       _targetDurationMinutes += additionalMinutes;
       _targetDurationSeconds = _targetDurationMinutes * 60;
     });
-    HapticFeedback.mediumImpact();
+    _vibration.medium();
   }
 
   Future<void> _saveSessionToDatabase() async {
@@ -182,12 +190,11 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
 
         if (_phaseSecondsRemaining <= 0) {
           // Phase complete - switch
-          HapticFeedback.lightImpact();
-
           if (_phase == BreathPhase.inhale) {
             _phase = BreathPhase.exhale;
             _phaseSecondsRemaining = _exhaleSeconds;
-            // Two beeps for exhale
+            _vibration.exhale(); // One longer buzz
+            // Audio beep for exhale
             if (_beepsEnabled) {
               _beepService.playExhaleBeep();
             }
@@ -195,6 +202,7 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
             _phase = BreathPhase.inhale;
             _phaseSecondsRemaining = _inhaleSeconds;
             _totalBreaths++;
+            _vibration.inhale(); // Two quick buzzes
             // One beep for inhale
             if (_beepsEnabled) {
               _beepService.playInhaleBeep();
@@ -476,6 +484,52 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
             ),
           ),
 
+          const SizedBox(height: AppSpacing.xl),
+
+          // Feedback toggles
+          Text(
+            'Session Feedback',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppColors.gold,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceDark,
+              borderRadius: BorderRadius.circular(AppSpacing.sm),
+            ),
+            child: Column(
+              children: [
+                _FeedbackToggle(
+                  icon: Icons.vibration,
+                  label: 'Vibrations',
+                  subtitle: 'Haptic feedback for phase changes',
+                  value: _vibrationsEnabled,
+                  onChanged: (value) async {
+                    setState(() => _vibrationsEnabled = value);
+                    await _vibration.setEnabled(value);
+                  },
+                ),
+                const Divider(height: AppSpacing.lg),
+                _FeedbackToggle(
+                  icon: Icons.volume_up,
+                  label: 'Audio Beeps',
+                  subtitle: 'Sound cues for inhale/exhale',
+                  value: _beepsEnabled,
+                  onChanged: (value) async {
+                    setState(() => _beepsEnabled = value);
+                    await _service.setBeepsEnabled(value);
+                    if (value) {
+                      await _beepService.initialize();
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+
           const SizedBox(height: AppSpacing.lg),
 
           // Summary
@@ -632,6 +686,56 @@ class _PatternItem extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+}
+
+class _FeedbackToggle extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _FeedbackToggle({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: value ? AppColors.gold : AppColors.textMuted, size: 24),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+              Text(
+                subtitle,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textMuted,
+                    ),
+              ),
+            ],
+          ),
+        ),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeColor: AppColors.gold,
         ),
       ],
     );

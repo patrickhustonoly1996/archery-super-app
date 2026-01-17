@@ -11,8 +11,8 @@ class BeepService {
   BeepService._internal();
 
   AudioPlayer? _player;
-  BytesSource? _singleBeepSource;
-  BytesSource? _doubleBeepSource;
+  BytesSource? _longBeepSource;   // Single longer beep for exhale
+  BytesSource? _doubleBeepSource; // Two quick beeps for inhale
   bool _initialized = false;
 
   /// Initialize the beep service and pre-generate the beep sounds.
@@ -23,25 +23,14 @@ class BeepService {
     await _player!.setVolume(0.3); // Gentle volume
 
     // Generate the beep audio data
-    _singleBeepSource = BytesSource(_generateBeepWav(beepCount: 1));
-    _doubleBeepSource = BytesSource(_generateBeepWav(beepCount: 2));
+    _longBeepSource = BytesSource(_generateBeepWav(beepCount: 1, durationMs: 250));   // Longer exhale beep
+    _doubleBeepSource = BytesSource(_generateBeepWav(beepCount: 2, durationMs: 120)); // Two quick inhale beeps
 
     _initialized = true;
   }
 
-  /// Play a single gentle beep (for inhale).
+  /// Play two gentle beeps (for inhale - matches vibration pattern).
   Future<void> playInhaleBeep() async {
-    if (!_initialized) await initialize();
-    try {
-      await _player!.stop();
-      await _player!.play(_singleBeepSource!);
-    } catch (e) {
-      // Silently fail - beeps are non-critical
-    }
-  }
-
-  /// Play two gentle beeps (for exhale).
-  Future<void> playExhaleBeep() async {
     if (!_initialized) await initialize();
     try {
       await _player!.stop();
@@ -51,12 +40,23 @@ class BeepService {
     }
   }
 
+  /// Play a single longer beep (for exhale - matches vibration pattern).
+  Future<void> playExhaleBeep() async {
+    if (!_initialized) await initialize();
+    try {
+      await _player!.stop();
+      await _player!.play(_longBeepSource!);
+    } catch (e) {
+      // Silently fail - beeps are non-critical
+    }
+  }
+
   /// Generate a WAV file with gentle sine wave beep(s).
   /// Uses a soft frequency (392Hz - G4 note) for a calm, pleasant tone.
-  Uint8List _generateBeepWav({required int beepCount}) {
+  Uint8List _generateBeepWav({required int beepCount, int durationMs = 120}) {
     const int sampleRate = 44100;
     const double frequency = 392.0; // G4 note - gentle and musical
-    const int beepDurationMs = 120; // Short, subtle beep
+    final int beepDurationMs = durationMs; // Configurable beep duration
     const int silenceDurationMs = 100; // Gap between beeps
     const double fadeMs = 20.0; // Fade in/out for softness
 
