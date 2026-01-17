@@ -301,6 +301,44 @@ class _PlottingScreenState extends State<PlottingScreen> {
     );
   }
 
+  /// Plot an arrow with face index support (for triple spot)
+  Future<void> _plotArrowWithFace(
+    BuildContext context,
+    SessionProvider provider,
+    double x,
+    double y,
+    int faceIndex,
+  ) async {
+    // Check if shaft tagging is enabled
+    if (provider.shaftTaggingEnabled && provider.selectedQuiverId != null) {
+      // Show shaft selector bottom sheet
+      final equipmentProvider = context.read<EquipmentProvider>();
+      final shafts = equipmentProvider.getShaftsForQuiver(provider.selectedQuiverId!);
+
+      await showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (_) => ShaftSelectorBottomSheet(
+          shafts: shafts,
+          onShaftSelected: (shaftNumber) {
+            provider.plotArrow(
+              x: x,
+              y: y,
+              faceIndex: faceIndex,
+              shaftNumber: shaftNumber,
+            );
+          },
+          onSkip: () {
+            provider.plotArrow(x: x, y: y, faceIndex: faceIndex);
+          },
+        ),
+      );
+    } else {
+      // No shaft tagging - plot directly
+      await provider.plotArrow(x: x, y: y, faceIndex: faceIndex);
+    }
+  }
+
   void _showAbandonDialog(BuildContext context, SessionProvider provider) {
     showDialog(
       context: context,
@@ -350,6 +388,70 @@ class _PlottingScreenState extends State<PlottingScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Toggle between combined and separate view modes
+class _ViewModeToggle extends StatelessWidget {
+  final bool isCombined;
+  final ValueChanged<bool> onChanged;
+
+  const _ViewModeToggle({
+    required this.isCombined,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.surfaceLight),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildOption(
+            icon: Icons.grid_view,
+            tooltip: 'Separate',
+            isSelected: !isCombined,
+            onTap: () => onChanged(false),
+          ),
+          Container(width: 1, height: 32, color: AppColors.surfaceLight),
+          _buildOption(
+            icon: Icons.circle_outlined,
+            tooltip: 'Combined',
+            isSelected: isCombined,
+            onTap: () => onChanged(true),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOption({
+    required IconData icon,
+    required String tooltip,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.gold.withOpacity(0.2) : Colors.transparent,
+          ),
+          child: Icon(
+            icon,
+            size: 18,
+            color: isSelected ? AppColors.gold : AppColors.textMuted,
+          ),
+        ),
       ),
     );
   }

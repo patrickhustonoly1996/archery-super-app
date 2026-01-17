@@ -30,6 +30,9 @@ class SessionProvider extends ChangeNotifier {
   String? _selectedQuiverId;
   bool _shaftTaggingEnabled = false;
 
+  // Optional override for arrows per end (for quick start)
+  int? _arrowsPerEndOverride;
+
   // Getters
   Session? get currentSession => _currentSession;
   RoundType? get roundType => _currentRoundType;
@@ -44,7 +47,7 @@ class SessionProvider extends ChangeNotifier {
   bool get shaftTaggingEnabled => _shaftTaggingEnabled;
 
   int get currentEndNumber => _activeEnd?.endNumber ?? 1;
-  int get arrowsPerEnd => _currentRoundType?.arrowsPerEnd ?? 3;
+  int get arrowsPerEnd => _arrowsPerEndOverride ?? _currentRoundType?.arrowsPerEnd ?? 3;
   int get totalEnds => _currentRoundType?.totalEnds ?? 10;
   int get faceCount => _currentRoundType?.faceCount ?? 1;
   bool get isTriSpot => faceCount == 3;
@@ -125,6 +128,9 @@ class SessionProvider extends ChangeNotifier {
     _selectedQuiverId = session.quiverId;
     _shaftTaggingEnabled = session.shaftTaggingEnabled;
 
+    // Clear arrows per end override (resumed sessions use standard rules)
+    _arrowsPerEndOverride = null;
+
     // Cache completed end arrows for synchronous access
     await _refreshCompletedEndArrowsCache();
 
@@ -149,6 +155,7 @@ class SessionProvider extends ChangeNotifier {
     String? bowId,
     String? quiverId,
     bool shaftTaggingEnabled = false,
+    int? arrowsPerEndOverride,
   }) async {
     final roundType = await _db.getRoundType(roundTypeId);
     if (roundType == null) {
@@ -179,6 +186,9 @@ class SessionProvider extends ChangeNotifier {
       _selectedBowId = bowId;
       _selectedQuiverId = quiverId;
       _shaftTaggingEnabled = shaftTaggingEnabled;
+
+      // Store arrows per end override (for quick start)
+      _arrowsPerEndOverride = arrowsPerEndOverride;
 
       await _createNewEnd();
       notifyListeners();
@@ -257,7 +267,7 @@ class SessionProvider extends ChangeNotifier {
   }
 
   /// Plot an arrow at the given normalized position (-1 to +1)
-  /// @deprecated Use plotArrowMm for new code - provides sub-mm precision
+  /// [faceIndex] specifies which face (0, 1, or 2) for triple spot mode
   Future<void> plotArrow({
     required double x,
     required double y,
@@ -321,6 +331,9 @@ class SessionProvider extends ChangeNotifier {
     await _db.completeSession(_currentSession!.id, totalScore, totalXs);
     _currentSession = await _db.getSession(_currentSession!.id);
 
+    // Add session arrows to daily volume tracking
+    await _db.addSessionArrowsToVolume(_currentSession!.id);
+
     // Trigger cloud backup in background
     _triggerCloudBackup();
 
@@ -357,6 +370,7 @@ class SessionProvider extends ChangeNotifier {
     _currentEndArrows = [];
     _completedEndArrows = [];
     _activeEnd = null;
+    _arrowsPerEndOverride = null;
     notifyListeners();
   }
 
