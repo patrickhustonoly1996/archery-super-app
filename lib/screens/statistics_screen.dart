@@ -65,13 +65,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.file_upload_outlined),
+            icon: const Icon(Icons.file_upload_outlined, semanticLabel: 'Bulk upload'),
             tooltip: 'Bulk Upload',
             onPressed: () => _navigateToUpload(),
           ),
           PopupMenuButton<int>(
             initialValue: _selectedDays,
-            icon: const Icon(Icons.filter_list),
+            icon: const Icon(Icons.filter_list, semanticLabel: 'Filter by days'),
             onSelected: (days) {
               setState(() => _selectedDays = days);
             },
@@ -93,7 +93,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         onPressed: () => _showAddVolumeDialog(),
         backgroundColor: AppColors.gold,
         foregroundColor: AppColors.backgroundDark,
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, semanticLabel: 'Add volume entry'),
       ),
     );
   }

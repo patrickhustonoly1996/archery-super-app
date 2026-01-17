@@ -388,7 +388,7 @@ class _CustomDatePickerSheet extends StatelessWidget {
                   Navigator.pop(context, range);
                 }
               },
-              icon: const Icon(Icons.calendar_today, size: 18),
+              icon: const Icon(Icons.calendar_today, size: 18, semanticLabel: 'Calendar'),
               label: const Text('Pick Custom Dates'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.textSecondary,

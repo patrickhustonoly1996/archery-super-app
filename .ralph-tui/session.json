@@ -3,10 +3,10 @@
   "sessionId": "dc46ae88-84c4-46be-a838-5cc1afd831ff",
   "status": "running",
   "startedAt": "2026-01-17T09:30:03.140Z",
-  "updatedAt": "2026-01-17T09:31:52.566Z",
-  "currentIteration": 1,
+  "updatedAt": "2026-01-17T09:38:04.931Z",
+  "currentIteration": 2,
   "maxIterations": 0,
-  "tasksCompleted": 1,
+  "tasksCompleted": 2,
   "isPaused": false,
   "agentPlugin": "claude",
   "model": "opus",
@@ -84,8 +84,8 @@
       {
         "id": "US-012",
         "title": "Extract Round Matching Logic",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-013",
@@ -111,12 +111,22 @@
       "durationMs": 102607,
       "startedAt": "2026-01-17T09:30:08.907Z",
       "endedAt": "2026-01-17T09:31:51.514Z"
+    },
+    {
+      "iteration": 2,
+      "status": "completed",
+      "taskId": "US-012",
+      "taskTitle": "Extract Round Matching Logic",
+      "taskCompleted": true,
+      "durationMs": 371333,
+      "startedAt": "2026-01-17T09:31:52.548Z",
+      "endedAt": "2026-01-17T09:38:03.881Z"
     }
   ],
   "skippedTaskIds": [],
   "cwd": "C:\\Users\\patri\\Desktop\\archery_super_app_v1",
   "activeTaskIds": [
-    "US-012"
+    "US-013"
   ],
   "subagentPanelVisible": false
 }

@@ -105,7 +105,7 @@ class _BowsTab extends StatelessWidget {
                   ),
                 ).then((_) => equipmentProvider.loadEquipment());
               },
-              icon: const Icon(Icons.add),
+              icon: const Icon(Icons.add, semanticLabel: 'Add'),
               label: const Text('Add Bow'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.gold,
@@ -265,7 +265,7 @@ class _QuiversTab extends StatelessWidget {
                   ),
                 ).then((_) => equipmentProvider.loadEquipment());
               },
-              icon: const Icon(Icons.add),
+              icon: const Icon(Icons.add, semanticLabel: 'Add'),
               label: const Text('Add Quiver'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.gold,

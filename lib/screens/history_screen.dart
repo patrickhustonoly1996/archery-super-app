@@ -187,7 +187,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.file_upload_outlined),
+            icon: const Icon(Icons.file_upload_outlined, semanticLabel: 'Import scores'),
             tooltip: 'Import Scores',
             onPressed: () async {
               await Navigator.of(context).push(

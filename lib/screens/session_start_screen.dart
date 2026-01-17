@@ -67,7 +67,7 @@ class _SessionStartScreenState extends State<SessionStartScreen> {
       appBar: AppBar(
         title: const Text('New Session'),
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: const Icon(Icons.close, semanticLabel: 'Close'),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [

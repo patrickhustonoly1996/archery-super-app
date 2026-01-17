@@ -85,7 +85,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.error_outline,
-                           size: 48, color: AppColors.error),
+                           size: 48, color: AppColors.error, semanticLabel: 'Error'),
                       const SizedBox(height: AppSpacing.md),
                       Text(_error!,
                            style: TextStyle(color: AppColors.error)),
@@ -142,30 +142,33 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                           ],
                           const SizedBox(height: AppSpacing.lg),
                           // Stats row
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              StatBox(
-                                label: 'Score',
-                                value: widget.session.totalScore.toString(),
-                                highlighted: true,
-                              ),
-                              if (widget.session.totalXs > 0)
+                          Semantics(
+                            label: 'Session statistics: Score ${widget.session.totalScore}${widget.session.totalXs > 0 ? ', ${widget.session.totalXs} Xs' : ''}${percentage != null ? ', $percentage percent' : ''}, ${_ends.length} ends',
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
                                 StatBox(
-                                  label: 'Xs',
-                                  value: widget.session.totalXs.toString(),
+                                  label: 'Score',
+                                  value: widget.session.totalScore.toString(),
                                   highlighted: true,
                                 ),
-                              if (percentage != null)
+                                if (widget.session.totalXs > 0)
+                                  StatBox(
+                                    label: 'Xs',
+                                    value: widget.session.totalXs.toString(),
+                                    highlighted: true,
+                                  ),
+                                if (percentage != null)
+                                  StatBox(
+                                    label: 'Percentage',
+                                    value: '$percentage%',
+                                  ),
                                 StatBox(
-                                  label: 'Percentage',
-                                  value: '$percentage%',
+                                  label: 'Ends',
+                                  value: _ends.length.toString(),
                                 ),
-                              StatBox(
-                                label: 'Ends',
-                                value: _ends.length.toString(),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),

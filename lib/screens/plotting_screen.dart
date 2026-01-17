@@ -36,7 +36,7 @@ class PlottingScreen extends StatelessWidget {
           appBar: AppBar(
             title: Text(provider.roundType?.name ?? 'Session'),
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
+              icon: const Icon(Icons.arrow_back, semanticLabel: 'Back'),
               tooltip: 'Leave session (progress saved)',
               onPressed: () {
                 // Simply navigate back - session persists in database
@@ -65,7 +65,7 @@ class PlottingScreen extends StatelessWidget {
               ),
               // Menu with abandon option
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert),
+                icon: const Icon(Icons.more_vert, semanticLabel: 'Session menu'),
                 onSelected: (value) {
                   if (value == 'abandon') {
                     _showAbandonDialog(context, provider);
@@ -76,7 +76,7 @@ class PlottingScreen extends StatelessWidget {
                     value: 'abandon',
                     child: Row(
                       children: [
-                        Icon(Icons.delete_outline, color: AppColors.error),
+                        Icon(Icons.delete_outline, color: AppColors.error, semanticLabel: 'Delete'),
                         SizedBox(width: AppSpacing.sm),
                         Text('Abandon session'),
                       ],
@@ -287,33 +287,36 @@ class _ScoreSummaryBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.md,
-      ),
-      color: AppColors.surfaceDark,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _ScoreItem(
-            label: 'Total',
-            value: provider.totalScore.toString(),
-            highlight: true,
-          ),
-          _ScoreItem(
-            label: 'Xs',
-            value: provider.totalXs.toString(),
-          ),
-          _ScoreItem(
-            label: 'This End',
-            value: provider.currentEndScore.toString(),
-          ),
-          _ScoreItem(
-            label: 'Arrows',
-            value: '${provider.arrowsInCurrentEnd}/${provider.arrowsPerEnd}',
-          ),
-        ],
+    return Semantics(
+      label: 'Score summary: Total ${provider.totalScore}, Xs ${provider.totalXs}, This end ${provider.currentEndScore}, ${provider.arrowsInCurrentEnd} of ${provider.arrowsPerEnd} arrows',
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
+        color: AppColors.surfaceDark,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _ScoreItem(
+              label: 'Total',
+              value: provider.totalScore.toString(),
+              highlight: true,
+            ),
+            _ScoreItem(
+              label: 'Xs',
+              value: provider.totalXs.toString(),
+            ),
+            _ScoreItem(
+              label: 'This End',
+              value: provider.currentEndScore.toString(),
+            ),
+            _ScoreItem(
+              label: 'Arrows',
+              value: '${provider.arrowsInCurrentEnd}/${provider.arrowsPerEnd}',
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -367,7 +370,7 @@ class _ActionButtons extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed:
                   provider.arrowsInCurrentEnd > 0 ? provider.undoLastArrow : null,
-              icon: const Icon(Icons.undo),
+              icon: const Icon(Icons.undo, semanticLabel: 'Undo'),
               label: const Text('Undo'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.textSecondary,
