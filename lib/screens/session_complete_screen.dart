@@ -2,11 +2,159 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/session_provider.dart';
+import '../providers/equipment_provider.dart';
 import '../widgets/stat_box.dart';
 import 'home_screen.dart';
 
-class SessionCompleteScreen extends StatelessWidget {
+class SessionCompleteScreen extends StatefulWidget {
   const SessionCompleteScreen({super.key});
+
+  @override
+  State<SessionCompleteScreen> createState() => _SessionCompleteScreenState();
+}
+
+class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
+  bool _hasCheckedTopPercentile = false;
+  bool? _isTopScore;
+  bool _snapshotSaved = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkTopPercentile();
+    });
+  }
+
+  Future<void> _checkTopPercentile() async {
+    if (_hasCheckedTopPercentile) return;
+    _hasCheckedTopPercentile = true;
+
+    final sessionProvider = context.read<SessionProvider>();
+    final equipmentProvider = context.read<EquipmentProvider>();
+    final session = sessionProvider.currentSession;
+    final roundType = sessionProvider.roundType;
+
+    if (session == null || roundType == null) return;
+
+    final isTop = await equipmentProvider.isTopPercentileScore(
+      sessionProvider.totalScore,
+      roundType.id,
+    );
+
+    if (mounted && isTop == true) {
+      setState(() => _isTopScore = true);
+      _showKitSnapshotPrompt();
+    }
+  }
+
+  void _showKitSnapshotPrompt() {
+    final sessionProvider = context.read<SessionProvider>();
+    final session = sessionProvider.currentSession;
+    final roundType = sessionProvider.roundType;
+
+    if (session == null || roundType == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceDark,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.gold.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.star,
+                    color: AppColors.gold,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(
+                    'Top 20% Score',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: AppColors.gold,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'This score is in your top 20% for ${roundType.name}. Save your current kit setup?',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Skip'),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      await _saveKitSnapshot();
+                    },
+                    child: const Text('Save Kit'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _saveKitSnapshot() async {
+    final sessionProvider = context.read<SessionProvider>();
+    final equipmentProvider = context.read<EquipmentProvider>();
+    final session = sessionProvider.currentSession;
+    final roundType = sessionProvider.roundType;
+
+    if (session == null || roundType == null) return;
+
+    await equipmentProvider.saveKitSnapshot(
+      sessionId: session.id,
+      bowId: session.bowId,
+      quiverId: session.quiverId,
+      score: sessionProvider.totalScore,
+      maxScore: roundType.maxScore,
+      roundName: roundType.name,
+      reason: 'top_20',
+    );
+
+    if (mounted) {
+      setState(() => _snapshotSaved = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Kit snapshot saved'),
+          backgroundColor: AppColors.surfaceLight,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

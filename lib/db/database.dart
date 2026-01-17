@@ -328,6 +328,48 @@ class BreathTrainingLogs extends Table {
 }
 
 // ============================================================================
+// KIT SNAPSHOTS & TUNING SYSTEM
+// ============================================================================
+
+/// Kit snapshots - captures equipment configuration at notable moments
+class KitSnapshots extends Table {
+  TextColumn get id => text()();
+  TextColumn get sessionId => text().nullable()(); // Link to scoring session
+  TextColumn get bowId => text().nullable()(); // Original bow (may be deleted)
+  TextColumn get quiverId => text().nullable()(); // Original quiver (may be deleted)
+  DateTimeColumn get snapshotDate => dateTime()();
+  IntColumn get score => integer().nullable()();
+  IntColumn get maxScore => integer().nullable()();
+  TextColumn get roundName => text().nullable()();
+  TextColumn get reason => text().nullable()(); // 'top_20', 'personal_best', 'manual'
+  TextColumn get bowName => text().nullable()(); // Snapshot of bow name
+  TextColumn get bowType => text().nullable()(); // Snapshot of bow type
+  TextColumn get bowSettings => text().nullable()(); // JSON snapshot of BowSpecifications
+  TextColumn get quiverName => text().nullable()(); // Snapshot of quiver name
+  TextColumn get arrowSettings => text().nullable()(); // JSON snapshot of ArrowSpecifications
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Tuning sessions - tracks bow tuning history
+class TuningSessions extends Table {
+  TextColumn get id => text()();
+  TextColumn get bowId => text().nullable().references(Bows, #id)();
+  DateTimeColumn get date => dateTime()();
+  TextColumn get bowType => text()(); // 'recurve', 'compound'
+  TextColumn get tuningType => text()(); // 'paper', 'bare_shaft', 'walk_back', 'french', etc.
+  TextColumn get results => text().nullable()(); // JSON with tuning results
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// ============================================================================
 // DATABASE
 // ============================================================================
 
@@ -354,6 +396,9 @@ class BreathTrainingLogs extends Table {
   Milestones,
   // Volume imports for raw data preservation
   VolumeImports,
+  // Kit Snapshots & Tuning System
+  KitSnapshots,
+  TuningSessions,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -362,7 +407,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration {
@@ -432,6 +477,11 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(sessions, sessions.deletedAt);
           await m.addColumn(bows, bows.deletedAt);
           await m.addColumn(quivers, quivers.deletedAt);
+        }
+        if (from <= 11) {
+          // Add kit snapshots and tuning sessions tables
+          await m.createTable(kitSnapshots);
+          await m.createTable(tuningSessions);
         }
       },
     );
@@ -1207,6 +1257,97 @@ class AppDatabase extends _$AppDatabase {
     }
     return best;
   }
+
+  // ===========================================================================
+  // KIT SNAPSHOTS
+  // ===========================================================================
+
+  Future<List<KitSnapshot>> getAllKitSnapshots() => (select(kitSnapshots)
+        ..orderBy([(t) => OrderingTerm.desc(t.snapshotDate)]))
+      .get();
+
+  Future<List<KitSnapshot>> getKitSnapshotsForBow(String bowId) =>
+      (select(kitSnapshots)
+            ..where((t) => t.bowId.equals(bowId))
+            ..orderBy([(t) => OrderingTerm.desc(t.snapshotDate)]))
+          .get();
+
+  Future<List<KitSnapshot>> getKitSnapshotsForSession(String sessionId) =>
+      (select(kitSnapshots)
+            ..where((t) => t.sessionId.equals(sessionId)))
+          .get();
+
+  Future<KitSnapshot?> getKitSnapshot(String id) =>
+      (select(kitSnapshots)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<int> insertKitSnapshot(KitSnapshotsCompanion snapshot) =>
+      into(kitSnapshots).insert(snapshot);
+
+  Future<bool> updateKitSnapshot(KitSnapshotsCompanion snapshot) =>
+      update(kitSnapshots).replace(snapshot);
+
+  Future<int> deleteKitSnapshot(String id) =>
+      (delete(kitSnapshots)..where((t) => t.id.equals(id))).go();
+
+  /// Get all completed session scores for percentile calculation
+  Future<List<int>> getAllCompletedSessionScores() async {
+    final completedSessions = await getCompletedSessions();
+    return completedSessions
+        .where((s) => s.totalScore > 0)
+        .map((s) => s.totalScore)
+        .toList();
+  }
+
+  /// Get completed session scores for a specific round type
+  Future<List<int>> getCompletedSessionScoresForRound(String roundTypeId) async {
+    final sessions = await (select(this.sessions)
+          ..where((t) =>
+              t.roundTypeId.equals(roundTypeId) &
+              t.completedAt.isNotNull() &
+              t.deletedAt.isNull() &
+              t.totalScore.isBiggerThanValue(0)))
+        .get();
+    return sessions.map((s) => s.totalScore).toList();
+  }
+
+  // ===========================================================================
+  // TUNING SESSIONS
+  // ===========================================================================
+
+  Future<List<TuningSession>> getAllTuningSessions() => (select(tuningSessions)
+        ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+      .get();
+
+  Future<List<TuningSession>> getTuningSessionsForBow(String bowId) =>
+      (select(tuningSessions)
+            ..where((t) => t.bowId.equals(bowId))
+            ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+          .get();
+
+  Future<List<TuningSession>> getTuningSessionsByType(String tuningType) =>
+      (select(tuningSessions)
+            ..where((t) => t.tuningType.equals(tuningType))
+            ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+          .get();
+
+  Future<TuningSession?> getTuningSession(String id) =>
+      (select(tuningSessions)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<int> insertTuningSession(TuningSessionsCompanion session) =>
+      into(tuningSessions).insert(session);
+
+  Future<bool> updateTuningSession(TuningSessionsCompanion session) =>
+      update(tuningSessions).replace(session);
+
+  Future<int> deleteTuningSession(String id) =>
+      (delete(tuningSessions)..where((t) => t.id.equals(id))).go();
+
+  /// Get recent tuning sessions (last N)
+  Future<List<TuningSession>> getRecentTuningSessions({int limit = 10}) =>
+      (select(tuningSessions)
+            ..orderBy([(t) => OrderingTerm.desc(t.date)])
+            ..limit(limit))
+          .get();
 }
 
 QueryExecutor _openConnection() {

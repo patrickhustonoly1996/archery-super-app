@@ -2,6 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
 import '../db/database.dart';
 import '../utils/unique_id.dart';
+import '../utils/statistics.dart';
+import '../models/bow_specifications.dart';
+import '../models/arrow_specifications.dart';
+import '../models/kit_snapshot.dart' as model;
 
 class EquipmentProvider extends ChangeNotifier {
   final AppDatabase _db;
@@ -208,5 +212,98 @@ class EquipmentProvider extends ChangeNotifier {
   Future<void> permanentlyDeleteQuiver(String quiverId) async {
     await _db.deleteQuiver(quiverId);
     await loadEquipment();
+  }
+
+  // ===========================================================================
+  // KIT SNAPSHOTS
+  // ===========================================================================
+
+  /// Check if a score is in the top 20% of historical scores for the same round
+  /// Returns null if not enough data (<5 sessions)
+  Future<bool?> isTopPercentileScore(int score, String roundTypeId) async {
+    final historicalScores = await _db.getCompletedSessionScoresForRound(roundTypeId);
+    return isTopPercentile(score, historicalScores, topPercent: 20);
+  }
+
+  /// Save a kit snapshot for a notable score
+  Future<void> saveKitSnapshot({
+    required String sessionId,
+    required String? bowId,
+    required String? quiverId,
+    required int score,
+    required int maxScore,
+    required String roundName,
+    required String reason,
+    String? notes,
+  }) async {
+    final bow = bowId != null ? await _db.getBow(bowId) : null;
+    final quiver = quiverId != null ? await _db.getQuiver(quiverId) : null;
+
+    final bowSpecs = bow?.settings != null
+        ? BowSpecifications.fromJson(bow!.settings)
+        : null;
+    final arrowSpecs = quiver?.settings != null
+        ? ArrowSpecifications.fromJson(quiver!.settings)
+        : null;
+
+    await _db.insertKitSnapshot(KitSnapshotsCompanion.insert(
+      id: UniqueId.generate(),
+      sessionId: Value(sessionId),
+      bowId: Value(bowId),
+      quiverId: Value(quiverId),
+      snapshotDate: DateTime.now(),
+      score: Value(score),
+      maxScore: Value(maxScore),
+      roundName: Value(roundName),
+      reason: Value(reason),
+      bowName: Value(bow?.name),
+      bowType: Value(bow?.bowType),
+      bowSettings: Value(bowSpecs?.toJson()),
+      quiverName: Value(quiver?.name),
+      arrowSettings: Value(arrowSpecs?.toJson()),
+      notes: Value(notes),
+    ));
+  }
+
+  /// Get all kit snapshots
+  Future<List<model.KitSnapshot>> getAllKitSnapshots() async {
+    final snapshots = await _db.getAllKitSnapshots();
+    return snapshots.map(_dbToModelKitSnapshot).toList();
+  }
+
+  /// Get kit snapshots for a specific bow
+  Future<List<model.KitSnapshot>> getKitSnapshotsForBow(String bowId) async {
+    final snapshots = await _db.getKitSnapshotsForBow(bowId);
+    return snapshots.map(_dbToModelKitSnapshot).toList();
+  }
+
+  /// Delete a kit snapshot
+  Future<void> deleteKitSnapshot(String id) async {
+    await _db.deleteKitSnapshot(id);
+  }
+
+  /// Convert database KitSnapshot to model KitSnapshot
+  model.KitSnapshot _dbToModelKitSnapshot(KitSnapshot db) {
+    return model.KitSnapshot(
+      id: db.id,
+      sessionId: db.sessionId,
+      bowId: db.bowId,
+      quiverId: db.quiverId,
+      snapshotDate: db.snapshotDate,
+      score: db.score,
+      maxScore: db.maxScore,
+      roundName: db.roundName,
+      reason: db.reason,
+      bowName: db.bowName,
+      bowType: db.bowType,
+      bowSpecs: db.bowSettings != null
+          ? BowSpecifications.fromJson(db.bowSettings)
+          : null,
+      quiverName: db.quiverName,
+      arrowSpecs: db.arrowSettings != null
+          ? ArrowSpecifications.fromJson(db.arrowSettings)
+          : null,
+      notes: db.notes,
+    );
   }
 }

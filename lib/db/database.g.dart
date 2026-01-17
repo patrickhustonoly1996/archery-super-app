@@ -10690,6 +10690,1436 @@ class VolumeImportsCompanion extends UpdateCompanion<VolumeImport> {
   }
 }
 
+class $KitSnapshotsTable extends KitSnapshots
+    with TableInfo<$KitSnapshotsTable, KitSnapshot> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $KitSnapshotsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sessionIdMeta = const VerificationMeta(
+    'sessionId',
+  );
+  @override
+  late final GeneratedColumn<String> sessionId = GeneratedColumn<String>(
+    'session_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _bowIdMeta = const VerificationMeta('bowId');
+  @override
+  late final GeneratedColumn<String> bowId = GeneratedColumn<String>(
+    'bow_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _quiverIdMeta = const VerificationMeta(
+    'quiverId',
+  );
+  @override
+  late final GeneratedColumn<String> quiverId = GeneratedColumn<String>(
+    'quiver_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _snapshotDateMeta = const VerificationMeta(
+    'snapshotDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> snapshotDate = GeneratedColumn<DateTime>(
+    'snapshot_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scoreMeta = const VerificationMeta('score');
+  @override
+  late final GeneratedColumn<int> score = GeneratedColumn<int>(
+    'score',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _maxScoreMeta = const VerificationMeta(
+    'maxScore',
+  );
+  @override
+  late final GeneratedColumn<int> maxScore = GeneratedColumn<int>(
+    'max_score',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _roundNameMeta = const VerificationMeta(
+    'roundName',
+  );
+  @override
+  late final GeneratedColumn<String> roundName = GeneratedColumn<String>(
+    'round_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+    'reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _bowNameMeta = const VerificationMeta(
+    'bowName',
+  );
+  @override
+  late final GeneratedColumn<String> bowName = GeneratedColumn<String>(
+    'bow_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _bowTypeMeta = const VerificationMeta(
+    'bowType',
+  );
+  @override
+  late final GeneratedColumn<String> bowType = GeneratedColumn<String>(
+    'bow_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _bowSettingsMeta = const VerificationMeta(
+    'bowSettings',
+  );
+  @override
+  late final GeneratedColumn<String> bowSettings = GeneratedColumn<String>(
+    'bow_settings',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _quiverNameMeta = const VerificationMeta(
+    'quiverName',
+  );
+  @override
+  late final GeneratedColumn<String> quiverName = GeneratedColumn<String>(
+    'quiver_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _arrowSettingsMeta = const VerificationMeta(
+    'arrowSettings',
+  );
+  @override
+  late final GeneratedColumn<String> arrowSettings = GeneratedColumn<String>(
+    'arrow_settings',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sessionId,
+    bowId,
+    quiverId,
+    snapshotDate,
+    score,
+    maxScore,
+    roundName,
+    reason,
+    bowName,
+    bowType,
+    bowSettings,
+    quiverName,
+    arrowSettings,
+    notes,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'kit_snapshots';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<KitSnapshot> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('session_id')) {
+      context.handle(
+        _sessionIdMeta,
+        sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta),
+      );
+    }
+    if (data.containsKey('bow_id')) {
+      context.handle(
+        _bowIdMeta,
+        bowId.isAcceptableOrUnknown(data['bow_id']!, _bowIdMeta),
+      );
+    }
+    if (data.containsKey('quiver_id')) {
+      context.handle(
+        _quiverIdMeta,
+        quiverId.isAcceptableOrUnknown(data['quiver_id']!, _quiverIdMeta),
+      );
+    }
+    if (data.containsKey('snapshot_date')) {
+      context.handle(
+        _snapshotDateMeta,
+        snapshotDate.isAcceptableOrUnknown(
+          data['snapshot_date']!,
+          _snapshotDateMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_snapshotDateMeta);
+    }
+    if (data.containsKey('score')) {
+      context.handle(
+        _scoreMeta,
+        score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
+      );
+    }
+    if (data.containsKey('max_score')) {
+      context.handle(
+        _maxScoreMeta,
+        maxScore.isAcceptableOrUnknown(data['max_score']!, _maxScoreMeta),
+      );
+    }
+    if (data.containsKey('round_name')) {
+      context.handle(
+        _roundNameMeta,
+        roundName.isAcceptableOrUnknown(data['round_name']!, _roundNameMeta),
+      );
+    }
+    if (data.containsKey('reason')) {
+      context.handle(
+        _reasonMeta,
+        reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
+      );
+    }
+    if (data.containsKey('bow_name')) {
+      context.handle(
+        _bowNameMeta,
+        bowName.isAcceptableOrUnknown(data['bow_name']!, _bowNameMeta),
+      );
+    }
+    if (data.containsKey('bow_type')) {
+      context.handle(
+        _bowTypeMeta,
+        bowType.isAcceptableOrUnknown(data['bow_type']!, _bowTypeMeta),
+      );
+    }
+    if (data.containsKey('bow_settings')) {
+      context.handle(
+        _bowSettingsMeta,
+        bowSettings.isAcceptableOrUnknown(
+          data['bow_settings']!,
+          _bowSettingsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('quiver_name')) {
+      context.handle(
+        _quiverNameMeta,
+        quiverName.isAcceptableOrUnknown(data['quiver_name']!, _quiverNameMeta),
+      );
+    }
+    if (data.containsKey('arrow_settings')) {
+      context.handle(
+        _arrowSettingsMeta,
+        arrowSettings.isAcceptableOrUnknown(
+          data['arrow_settings']!,
+          _arrowSettingsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  KitSnapshot map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return KitSnapshot(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      sessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_id'],
+      ),
+      bowId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bow_id'],
+      ),
+      quiverId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}quiver_id'],
+      ),
+      snapshotDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}snapshot_date'],
+      )!,
+      score: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}score'],
+      ),
+      maxScore: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}max_score'],
+      ),
+      roundName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}round_name'],
+      ),
+      reason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reason'],
+      ),
+      bowName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bow_name'],
+      ),
+      bowType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bow_type'],
+      ),
+      bowSettings: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bow_settings'],
+      ),
+      quiverName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}quiver_name'],
+      ),
+      arrowSettings: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}arrow_settings'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $KitSnapshotsTable createAlias(String alias) {
+    return $KitSnapshotsTable(attachedDatabase, alias);
+  }
+}
+
+class KitSnapshot extends DataClass implements Insertable<KitSnapshot> {
+  final String id;
+  final String? sessionId;
+  final String? bowId;
+  final String? quiverId;
+  final DateTime snapshotDate;
+  final int? score;
+  final int? maxScore;
+  final String? roundName;
+  final String? reason;
+  final String? bowName;
+  final String? bowType;
+  final String? bowSettings;
+  final String? quiverName;
+  final String? arrowSettings;
+  final String? notes;
+  final DateTime createdAt;
+  const KitSnapshot({
+    required this.id,
+    this.sessionId,
+    this.bowId,
+    this.quiverId,
+    required this.snapshotDate,
+    this.score,
+    this.maxScore,
+    this.roundName,
+    this.reason,
+    this.bowName,
+    this.bowType,
+    this.bowSettings,
+    this.quiverName,
+    this.arrowSettings,
+    this.notes,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || sessionId != null) {
+      map['session_id'] = Variable<String>(sessionId);
+    }
+    if (!nullToAbsent || bowId != null) {
+      map['bow_id'] = Variable<String>(bowId);
+    }
+    if (!nullToAbsent || quiverId != null) {
+      map['quiver_id'] = Variable<String>(quiverId);
+    }
+    map['snapshot_date'] = Variable<DateTime>(snapshotDate);
+    if (!nullToAbsent || score != null) {
+      map['score'] = Variable<int>(score);
+    }
+    if (!nullToAbsent || maxScore != null) {
+      map['max_score'] = Variable<int>(maxScore);
+    }
+    if (!nullToAbsent || roundName != null) {
+      map['round_name'] = Variable<String>(roundName);
+    }
+    if (!nullToAbsent || reason != null) {
+      map['reason'] = Variable<String>(reason);
+    }
+    if (!nullToAbsent || bowName != null) {
+      map['bow_name'] = Variable<String>(bowName);
+    }
+    if (!nullToAbsent || bowType != null) {
+      map['bow_type'] = Variable<String>(bowType);
+    }
+    if (!nullToAbsent || bowSettings != null) {
+      map['bow_settings'] = Variable<String>(bowSettings);
+    }
+    if (!nullToAbsent || quiverName != null) {
+      map['quiver_name'] = Variable<String>(quiverName);
+    }
+    if (!nullToAbsent || arrowSettings != null) {
+      map['arrow_settings'] = Variable<String>(arrowSettings);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  KitSnapshotsCompanion toCompanion(bool nullToAbsent) {
+    return KitSnapshotsCompanion(
+      id: Value(id),
+      sessionId: sessionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sessionId),
+      bowId: bowId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bowId),
+      quiverId: quiverId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(quiverId),
+      snapshotDate: Value(snapshotDate),
+      score: score == null && nullToAbsent
+          ? const Value.absent()
+          : Value(score),
+      maxScore: maxScore == null && nullToAbsent
+          ? const Value.absent()
+          : Value(maxScore),
+      roundName: roundName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(roundName),
+      reason: reason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reason),
+      bowName: bowName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bowName),
+      bowType: bowType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bowType),
+      bowSettings: bowSettings == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bowSettings),
+      quiverName: quiverName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(quiverName),
+      arrowSettings: arrowSettings == null && nullToAbsent
+          ? const Value.absent()
+          : Value(arrowSettings),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory KitSnapshot.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return KitSnapshot(
+      id: serializer.fromJson<String>(json['id']),
+      sessionId: serializer.fromJson<String?>(json['sessionId']),
+      bowId: serializer.fromJson<String?>(json['bowId']),
+      quiverId: serializer.fromJson<String?>(json['quiverId']),
+      snapshotDate: serializer.fromJson<DateTime>(json['snapshotDate']),
+      score: serializer.fromJson<int?>(json['score']),
+      maxScore: serializer.fromJson<int?>(json['maxScore']),
+      roundName: serializer.fromJson<String?>(json['roundName']),
+      reason: serializer.fromJson<String?>(json['reason']),
+      bowName: serializer.fromJson<String?>(json['bowName']),
+      bowType: serializer.fromJson<String?>(json['bowType']),
+      bowSettings: serializer.fromJson<String?>(json['bowSettings']),
+      quiverName: serializer.fromJson<String?>(json['quiverName']),
+      arrowSettings: serializer.fromJson<String?>(json['arrowSettings']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'sessionId': serializer.toJson<String?>(sessionId),
+      'bowId': serializer.toJson<String?>(bowId),
+      'quiverId': serializer.toJson<String?>(quiverId),
+      'snapshotDate': serializer.toJson<DateTime>(snapshotDate),
+      'score': serializer.toJson<int?>(score),
+      'maxScore': serializer.toJson<int?>(maxScore),
+      'roundName': serializer.toJson<String?>(roundName),
+      'reason': serializer.toJson<String?>(reason),
+      'bowName': serializer.toJson<String?>(bowName),
+      'bowType': serializer.toJson<String?>(bowType),
+      'bowSettings': serializer.toJson<String?>(bowSettings),
+      'quiverName': serializer.toJson<String?>(quiverName),
+      'arrowSettings': serializer.toJson<String?>(arrowSettings),
+      'notes': serializer.toJson<String?>(notes),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  KitSnapshot copyWith({
+    String? id,
+    Value<String?> sessionId = const Value.absent(),
+    Value<String?> bowId = const Value.absent(),
+    Value<String?> quiverId = const Value.absent(),
+    DateTime? snapshotDate,
+    Value<int?> score = const Value.absent(),
+    Value<int?> maxScore = const Value.absent(),
+    Value<String?> roundName = const Value.absent(),
+    Value<String?> reason = const Value.absent(),
+    Value<String?> bowName = const Value.absent(),
+    Value<String?> bowType = const Value.absent(),
+    Value<String?> bowSettings = const Value.absent(),
+    Value<String?> quiverName = const Value.absent(),
+    Value<String?> arrowSettings = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    DateTime? createdAt,
+  }) => KitSnapshot(
+    id: id ?? this.id,
+    sessionId: sessionId.present ? sessionId.value : this.sessionId,
+    bowId: bowId.present ? bowId.value : this.bowId,
+    quiverId: quiverId.present ? quiverId.value : this.quiverId,
+    snapshotDate: snapshotDate ?? this.snapshotDate,
+    score: score.present ? score.value : this.score,
+    maxScore: maxScore.present ? maxScore.value : this.maxScore,
+    roundName: roundName.present ? roundName.value : this.roundName,
+    reason: reason.present ? reason.value : this.reason,
+    bowName: bowName.present ? bowName.value : this.bowName,
+    bowType: bowType.present ? bowType.value : this.bowType,
+    bowSettings: bowSettings.present ? bowSettings.value : this.bowSettings,
+    quiverName: quiverName.present ? quiverName.value : this.quiverName,
+    arrowSettings: arrowSettings.present
+        ? arrowSettings.value
+        : this.arrowSettings,
+    notes: notes.present ? notes.value : this.notes,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  KitSnapshot copyWithCompanion(KitSnapshotsCompanion data) {
+    return KitSnapshot(
+      id: data.id.present ? data.id.value : this.id,
+      sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
+      bowId: data.bowId.present ? data.bowId.value : this.bowId,
+      quiverId: data.quiverId.present ? data.quiverId.value : this.quiverId,
+      snapshotDate: data.snapshotDate.present
+          ? data.snapshotDate.value
+          : this.snapshotDate,
+      score: data.score.present ? data.score.value : this.score,
+      maxScore: data.maxScore.present ? data.maxScore.value : this.maxScore,
+      roundName: data.roundName.present ? data.roundName.value : this.roundName,
+      reason: data.reason.present ? data.reason.value : this.reason,
+      bowName: data.bowName.present ? data.bowName.value : this.bowName,
+      bowType: data.bowType.present ? data.bowType.value : this.bowType,
+      bowSettings: data.bowSettings.present
+          ? data.bowSettings.value
+          : this.bowSettings,
+      quiverName: data.quiverName.present
+          ? data.quiverName.value
+          : this.quiverName,
+      arrowSettings: data.arrowSettings.present
+          ? data.arrowSettings.value
+          : this.arrowSettings,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('KitSnapshot(')
+          ..write('id: $id, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('bowId: $bowId, ')
+          ..write('quiverId: $quiverId, ')
+          ..write('snapshotDate: $snapshotDate, ')
+          ..write('score: $score, ')
+          ..write('maxScore: $maxScore, ')
+          ..write('roundName: $roundName, ')
+          ..write('reason: $reason, ')
+          ..write('bowName: $bowName, ')
+          ..write('bowType: $bowType, ')
+          ..write('bowSettings: $bowSettings, ')
+          ..write('quiverName: $quiverName, ')
+          ..write('arrowSettings: $arrowSettings, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    sessionId,
+    bowId,
+    quiverId,
+    snapshotDate,
+    score,
+    maxScore,
+    roundName,
+    reason,
+    bowName,
+    bowType,
+    bowSettings,
+    quiverName,
+    arrowSettings,
+    notes,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is KitSnapshot &&
+          other.id == this.id &&
+          other.sessionId == this.sessionId &&
+          other.bowId == this.bowId &&
+          other.quiverId == this.quiverId &&
+          other.snapshotDate == this.snapshotDate &&
+          other.score == this.score &&
+          other.maxScore == this.maxScore &&
+          other.roundName == this.roundName &&
+          other.reason == this.reason &&
+          other.bowName == this.bowName &&
+          other.bowType == this.bowType &&
+          other.bowSettings == this.bowSettings &&
+          other.quiverName == this.quiverName &&
+          other.arrowSettings == this.arrowSettings &&
+          other.notes == this.notes &&
+          other.createdAt == this.createdAt);
+}
+
+class KitSnapshotsCompanion extends UpdateCompanion<KitSnapshot> {
+  final Value<String> id;
+  final Value<String?> sessionId;
+  final Value<String?> bowId;
+  final Value<String?> quiverId;
+  final Value<DateTime> snapshotDate;
+  final Value<int?> score;
+  final Value<int?> maxScore;
+  final Value<String?> roundName;
+  final Value<String?> reason;
+  final Value<String?> bowName;
+  final Value<String?> bowType;
+  final Value<String?> bowSettings;
+  final Value<String?> quiverName;
+  final Value<String?> arrowSettings;
+  final Value<String?> notes;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const KitSnapshotsCompanion({
+    this.id = const Value.absent(),
+    this.sessionId = const Value.absent(),
+    this.bowId = const Value.absent(),
+    this.quiverId = const Value.absent(),
+    this.snapshotDate = const Value.absent(),
+    this.score = const Value.absent(),
+    this.maxScore = const Value.absent(),
+    this.roundName = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.bowName = const Value.absent(),
+    this.bowType = const Value.absent(),
+    this.bowSettings = const Value.absent(),
+    this.quiverName = const Value.absent(),
+    this.arrowSettings = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  KitSnapshotsCompanion.insert({
+    required String id,
+    this.sessionId = const Value.absent(),
+    this.bowId = const Value.absent(),
+    this.quiverId = const Value.absent(),
+    required DateTime snapshotDate,
+    this.score = const Value.absent(),
+    this.maxScore = const Value.absent(),
+    this.roundName = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.bowName = const Value.absent(),
+    this.bowType = const Value.absent(),
+    this.bowSettings = const Value.absent(),
+    this.quiverName = const Value.absent(),
+    this.arrowSettings = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       snapshotDate = Value(snapshotDate);
+  static Insertable<KitSnapshot> custom({
+    Expression<String>? id,
+    Expression<String>? sessionId,
+    Expression<String>? bowId,
+    Expression<String>? quiverId,
+    Expression<DateTime>? snapshotDate,
+    Expression<int>? score,
+    Expression<int>? maxScore,
+    Expression<String>? roundName,
+    Expression<String>? reason,
+    Expression<String>? bowName,
+    Expression<String>? bowType,
+    Expression<String>? bowSettings,
+    Expression<String>? quiverName,
+    Expression<String>? arrowSettings,
+    Expression<String>? notes,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sessionId != null) 'session_id': sessionId,
+      if (bowId != null) 'bow_id': bowId,
+      if (quiverId != null) 'quiver_id': quiverId,
+      if (snapshotDate != null) 'snapshot_date': snapshotDate,
+      if (score != null) 'score': score,
+      if (maxScore != null) 'max_score': maxScore,
+      if (roundName != null) 'round_name': roundName,
+      if (reason != null) 'reason': reason,
+      if (bowName != null) 'bow_name': bowName,
+      if (bowType != null) 'bow_type': bowType,
+      if (bowSettings != null) 'bow_settings': bowSettings,
+      if (quiverName != null) 'quiver_name': quiverName,
+      if (arrowSettings != null) 'arrow_settings': arrowSettings,
+      if (notes != null) 'notes': notes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  KitSnapshotsCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? sessionId,
+    Value<String?>? bowId,
+    Value<String?>? quiverId,
+    Value<DateTime>? snapshotDate,
+    Value<int?>? score,
+    Value<int?>? maxScore,
+    Value<String?>? roundName,
+    Value<String?>? reason,
+    Value<String?>? bowName,
+    Value<String?>? bowType,
+    Value<String?>? bowSettings,
+    Value<String?>? quiverName,
+    Value<String?>? arrowSettings,
+    Value<String?>? notes,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return KitSnapshotsCompanion(
+      id: id ?? this.id,
+      sessionId: sessionId ?? this.sessionId,
+      bowId: bowId ?? this.bowId,
+      quiverId: quiverId ?? this.quiverId,
+      snapshotDate: snapshotDate ?? this.snapshotDate,
+      score: score ?? this.score,
+      maxScore: maxScore ?? this.maxScore,
+      roundName: roundName ?? this.roundName,
+      reason: reason ?? this.reason,
+      bowName: bowName ?? this.bowName,
+      bowType: bowType ?? this.bowType,
+      bowSettings: bowSettings ?? this.bowSettings,
+      quiverName: quiverName ?? this.quiverName,
+      arrowSettings: arrowSettings ?? this.arrowSettings,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (sessionId.present) {
+      map['session_id'] = Variable<String>(sessionId.value);
+    }
+    if (bowId.present) {
+      map['bow_id'] = Variable<String>(bowId.value);
+    }
+    if (quiverId.present) {
+      map['quiver_id'] = Variable<String>(quiverId.value);
+    }
+    if (snapshotDate.present) {
+      map['snapshot_date'] = Variable<DateTime>(snapshotDate.value);
+    }
+    if (score.present) {
+      map['score'] = Variable<int>(score.value);
+    }
+    if (maxScore.present) {
+      map['max_score'] = Variable<int>(maxScore.value);
+    }
+    if (roundName.present) {
+      map['round_name'] = Variable<String>(roundName.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    if (bowName.present) {
+      map['bow_name'] = Variable<String>(bowName.value);
+    }
+    if (bowType.present) {
+      map['bow_type'] = Variable<String>(bowType.value);
+    }
+    if (bowSettings.present) {
+      map['bow_settings'] = Variable<String>(bowSettings.value);
+    }
+    if (quiverName.present) {
+      map['quiver_name'] = Variable<String>(quiverName.value);
+    }
+    if (arrowSettings.present) {
+      map['arrow_settings'] = Variable<String>(arrowSettings.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('KitSnapshotsCompanion(')
+          ..write('id: $id, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('bowId: $bowId, ')
+          ..write('quiverId: $quiverId, ')
+          ..write('snapshotDate: $snapshotDate, ')
+          ..write('score: $score, ')
+          ..write('maxScore: $maxScore, ')
+          ..write('roundName: $roundName, ')
+          ..write('reason: $reason, ')
+          ..write('bowName: $bowName, ')
+          ..write('bowType: $bowType, ')
+          ..write('bowSettings: $bowSettings, ')
+          ..write('quiverName: $quiverName, ')
+          ..write('arrowSettings: $arrowSettings, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TuningSessionsTable extends TuningSessions
+    with TableInfo<$TuningSessionsTable, TuningSession> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TuningSessionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bowIdMeta = const VerificationMeta('bowId');
+  @override
+  late final GeneratedColumn<String> bowId = GeneratedColumn<String>(
+    'bow_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES bows (id)',
+    ),
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bowTypeMeta = const VerificationMeta(
+    'bowType',
+  );
+  @override
+  late final GeneratedColumn<String> bowType = GeneratedColumn<String>(
+    'bow_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tuningTypeMeta = const VerificationMeta(
+    'tuningType',
+  );
+  @override
+  late final GeneratedColumn<String> tuningType = GeneratedColumn<String>(
+    'tuning_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _resultsMeta = const VerificationMeta(
+    'results',
+  );
+  @override
+  late final GeneratedColumn<String> results = GeneratedColumn<String>(
+    'results',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    bowId,
+    date,
+    bowType,
+    tuningType,
+    results,
+    notes,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'tuning_sessions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TuningSession> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('bow_id')) {
+      context.handle(
+        _bowIdMeta,
+        bowId.isAcceptableOrUnknown(data['bow_id']!, _bowIdMeta),
+      );
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('bow_type')) {
+      context.handle(
+        _bowTypeMeta,
+        bowType.isAcceptableOrUnknown(data['bow_type']!, _bowTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bowTypeMeta);
+    }
+    if (data.containsKey('tuning_type')) {
+      context.handle(
+        _tuningTypeMeta,
+        tuningType.isAcceptableOrUnknown(data['tuning_type']!, _tuningTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tuningTypeMeta);
+    }
+    if (data.containsKey('results')) {
+      context.handle(
+        _resultsMeta,
+        results.isAcceptableOrUnknown(data['results']!, _resultsMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TuningSession map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TuningSession(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      bowId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bow_id'],
+      ),
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+      bowType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bow_type'],
+      )!,
+      tuningType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tuning_type'],
+      )!,
+      results: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}results'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $TuningSessionsTable createAlias(String alias) {
+    return $TuningSessionsTable(attachedDatabase, alias);
+  }
+}
+
+class TuningSession extends DataClass implements Insertable<TuningSession> {
+  final String id;
+  final String? bowId;
+  final DateTime date;
+  final String bowType;
+  final String tuningType;
+  final String? results;
+  final String? notes;
+  final DateTime createdAt;
+  const TuningSession({
+    required this.id,
+    this.bowId,
+    required this.date,
+    required this.bowType,
+    required this.tuningType,
+    this.results,
+    this.notes,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || bowId != null) {
+      map['bow_id'] = Variable<String>(bowId);
+    }
+    map['date'] = Variable<DateTime>(date);
+    map['bow_type'] = Variable<String>(bowType);
+    map['tuning_type'] = Variable<String>(tuningType);
+    if (!nullToAbsent || results != null) {
+      map['results'] = Variable<String>(results);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  TuningSessionsCompanion toCompanion(bool nullToAbsent) {
+    return TuningSessionsCompanion(
+      id: Value(id),
+      bowId: bowId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bowId),
+      date: Value(date),
+      bowType: Value(bowType),
+      tuningType: Value(tuningType),
+      results: results == null && nullToAbsent
+          ? const Value.absent()
+          : Value(results),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory TuningSession.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TuningSession(
+      id: serializer.fromJson<String>(json['id']),
+      bowId: serializer.fromJson<String?>(json['bowId']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      bowType: serializer.fromJson<String>(json['bowType']),
+      tuningType: serializer.fromJson<String>(json['tuningType']),
+      results: serializer.fromJson<String?>(json['results']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'bowId': serializer.toJson<String?>(bowId),
+      'date': serializer.toJson<DateTime>(date),
+      'bowType': serializer.toJson<String>(bowType),
+      'tuningType': serializer.toJson<String>(tuningType),
+      'results': serializer.toJson<String?>(results),
+      'notes': serializer.toJson<String?>(notes),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  TuningSession copyWith({
+    String? id,
+    Value<String?> bowId = const Value.absent(),
+    DateTime? date,
+    String? bowType,
+    String? tuningType,
+    Value<String?> results = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    DateTime? createdAt,
+  }) => TuningSession(
+    id: id ?? this.id,
+    bowId: bowId.present ? bowId.value : this.bowId,
+    date: date ?? this.date,
+    bowType: bowType ?? this.bowType,
+    tuningType: tuningType ?? this.tuningType,
+    results: results.present ? results.value : this.results,
+    notes: notes.present ? notes.value : this.notes,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  TuningSession copyWithCompanion(TuningSessionsCompanion data) {
+    return TuningSession(
+      id: data.id.present ? data.id.value : this.id,
+      bowId: data.bowId.present ? data.bowId.value : this.bowId,
+      date: data.date.present ? data.date.value : this.date,
+      bowType: data.bowType.present ? data.bowType.value : this.bowType,
+      tuningType: data.tuningType.present
+          ? data.tuningType.value
+          : this.tuningType,
+      results: data.results.present ? data.results.value : this.results,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TuningSession(')
+          ..write('id: $id, ')
+          ..write('bowId: $bowId, ')
+          ..write('date: $date, ')
+          ..write('bowType: $bowType, ')
+          ..write('tuningType: $tuningType, ')
+          ..write('results: $results, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    bowId,
+    date,
+    bowType,
+    tuningType,
+    results,
+    notes,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TuningSession &&
+          other.id == this.id &&
+          other.bowId == this.bowId &&
+          other.date == this.date &&
+          other.bowType == this.bowType &&
+          other.tuningType == this.tuningType &&
+          other.results == this.results &&
+          other.notes == this.notes &&
+          other.createdAt == this.createdAt);
+}
+
+class TuningSessionsCompanion extends UpdateCompanion<TuningSession> {
+  final Value<String> id;
+  final Value<String?> bowId;
+  final Value<DateTime> date;
+  final Value<String> bowType;
+  final Value<String> tuningType;
+  final Value<String?> results;
+  final Value<String?> notes;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const TuningSessionsCompanion({
+    this.id = const Value.absent(),
+    this.bowId = const Value.absent(),
+    this.date = const Value.absent(),
+    this.bowType = const Value.absent(),
+    this.tuningType = const Value.absent(),
+    this.results = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TuningSessionsCompanion.insert({
+    required String id,
+    this.bowId = const Value.absent(),
+    required DateTime date,
+    required String bowType,
+    required String tuningType,
+    this.results = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       date = Value(date),
+       bowType = Value(bowType),
+       tuningType = Value(tuningType);
+  static Insertable<TuningSession> custom({
+    Expression<String>? id,
+    Expression<String>? bowId,
+    Expression<DateTime>? date,
+    Expression<String>? bowType,
+    Expression<String>? tuningType,
+    Expression<String>? results,
+    Expression<String>? notes,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (bowId != null) 'bow_id': bowId,
+      if (date != null) 'date': date,
+      if (bowType != null) 'bow_type': bowType,
+      if (tuningType != null) 'tuning_type': tuningType,
+      if (results != null) 'results': results,
+      if (notes != null) 'notes': notes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TuningSessionsCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? bowId,
+    Value<DateTime>? date,
+    Value<String>? bowType,
+    Value<String>? tuningType,
+    Value<String?>? results,
+    Value<String?>? notes,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return TuningSessionsCompanion(
+      id: id ?? this.id,
+      bowId: bowId ?? this.bowId,
+      date: date ?? this.date,
+      bowType: bowType ?? this.bowType,
+      tuningType: tuningType ?? this.tuningType,
+      results: results ?? this.results,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (bowId.present) {
+      map['bow_id'] = Variable<String>(bowId.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (bowType.present) {
+      map['bow_type'] = Variable<String>(bowType.value);
+    }
+    if (tuningType.present) {
+      map['tuning_type'] = Variable<String>(tuningType.value);
+    }
+    if (results.present) {
+      map['results'] = Variable<String>(results.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TuningSessionsCompanion(')
+          ..write('id: $id, ')
+          ..write('bowId: $bowId, ')
+          ..write('date: $date, ')
+          ..write('bowType: $bowType, ')
+          ..write('tuningType: $tuningType, ')
+          ..write('results: $results, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -10721,6 +12151,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $BreathTrainingLogsTable(this);
   late final $MilestonesTable milestones = $MilestonesTable(this);
   late final $VolumeImportsTable volumeImports = $VolumeImportsTable(this);
+  late final $KitSnapshotsTable kitSnapshots = $KitSnapshotsTable(this);
+  late final $TuningSessionsTable tuningSessions = $TuningSessionsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -10744,6 +12176,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     breathTrainingLogs,
     milestones,
     volumeImports,
+    kitSnapshots,
+    tuningSessions,
   ];
 }
 
@@ -11235,6 +12669,24 @@ final class $$BowsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$TuningSessionsTable, List<TuningSession>>
+  _tuningSessionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.tuningSessions,
+    aliasName: $_aliasNameGenerator(db.bows.id, db.tuningSessions.bowId),
+  );
+
+  $$TuningSessionsTableProcessedTableManager get tuningSessionsRefs {
+    final manager = $$TuningSessionsTableTableManager(
+      $_db,
+      $_db.tuningSessions,
+    ).filter((f) => f.bowId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_tuningSessionsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$BowsTableFilterComposer extends Composer<_$AppDatabase, $BowsTable> {
@@ -11326,6 +12778,31 @@ class $$BowsTableFilterComposer extends Composer<_$AppDatabase, $BowsTable> {
           }) => $$SessionsTableFilterComposer(
             $db: $db,
             $table: $db.sessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> tuningSessionsRefs(
+    Expression<bool> Function($$TuningSessionsTableFilterComposer f) f,
+  ) {
+    final $$TuningSessionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.tuningSessions,
+      getReferencedColumn: (t) => t.bowId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TuningSessionsTableFilterComposer(
+            $db: $db,
+            $table: $db.tuningSessions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -11467,6 +12944,31 @@ class $$BowsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> tuningSessionsRefs<T extends Object>(
+    Expression<T> Function($$TuningSessionsTableAnnotationComposer a) f,
+  ) {
+    final $$TuningSessionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.tuningSessions,
+      getReferencedColumn: (t) => t.bowId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TuningSessionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tuningSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$BowsTableTableManager
@@ -11482,7 +12984,11 @@ class $$BowsTableTableManager
           $$BowsTableUpdateCompanionBuilder,
           (Bow, $$BowsTableReferences),
           Bow,
-          PrefetchHooks Function({bool quiversRefs, bool sessionsRefs})
+          PrefetchHooks Function({
+            bool quiversRefs,
+            bool sessionsRefs,
+            bool tuningSessionsRefs,
+          })
         > {
   $$BowsTableTableManager(_$AppDatabase db, $BowsTable table)
     : super(
@@ -11545,44 +13051,72 @@ class $$BowsTableTableManager
                     (e.readTable(table), $$BowsTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({quiversRefs = false, sessionsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (quiversRefs) db.quivers,
-                if (sessionsRefs) db.sessions,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (quiversRefs)
-                    await $_getPrefetchedData<Bow, $BowsTable, Quiver>(
-                      currentTable: table,
-                      referencedTable: $$BowsTableReferences._quiversRefsTable(
-                        db,
-                      ),
-                      managerFromTypedResult: (p0) =>
-                          $$BowsTableReferences(db, table, p0).quiversRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.bowId == item.id),
-                      typedResults: items,
-                    ),
-                  if (sessionsRefs)
-                    await $_getPrefetchedData<Bow, $BowsTable, Session>(
-                      currentTable: table,
-                      referencedTable: $$BowsTableReferences._sessionsRefsTable(
-                        db,
-                      ),
-                      managerFromTypedResult: (p0) =>
-                          $$BowsTableReferences(db, table, p0).sessionsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.bowId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({
+                quiversRefs = false,
+                sessionsRefs = false,
+                tuningSessionsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (quiversRefs) db.quivers,
+                    if (sessionsRefs) db.sessions,
+                    if (tuningSessionsRefs) db.tuningSessions,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (quiversRefs)
+                        await $_getPrefetchedData<Bow, $BowsTable, Quiver>(
+                          currentTable: table,
+                          referencedTable: $$BowsTableReferences
+                              ._quiversRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$BowsTableReferences(db, table, p0).quiversRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bowId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (sessionsRefs)
+                        await $_getPrefetchedData<Bow, $BowsTable, Session>(
+                          currentTable: table,
+                          referencedTable: $$BowsTableReferences
+                              ._sessionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$BowsTableReferences(db, table, p0).sessionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bowId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (tuningSessionsRefs)
+                        await $_getPrefetchedData<
+                          Bow,
+                          $BowsTable,
+                          TuningSession
+                        >(
+                          currentTable: table,
+                          referencedTable: $$BowsTableReferences
+                              ._tuningSessionsRefsTable(db),
+                          managerFromTypedResult: (p0) => $$BowsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).tuningSessionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bowId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -11599,7 +13133,11 @@ typedef $$BowsTableProcessedTableManager =
       $$BowsTableUpdateCompanionBuilder,
       (Bow, $$BowsTableReferences),
       Bow,
-      PrefetchHooks Function({bool quiversRefs, bool sessionsRefs})
+      PrefetchHooks Function({
+        bool quiversRefs,
+        bool sessionsRefs,
+        bool tuningSessionsRefs,
+      })
     >;
 typedef $$QuiversTableCreateCompanionBuilder =
     QuiversCompanion Function({
@@ -17890,6 +19428,807 @@ typedef $$VolumeImportsTableProcessedTableManager =
       VolumeImport,
       PrefetchHooks Function()
     >;
+typedef $$KitSnapshotsTableCreateCompanionBuilder =
+    KitSnapshotsCompanion Function({
+      required String id,
+      Value<String?> sessionId,
+      Value<String?> bowId,
+      Value<String?> quiverId,
+      required DateTime snapshotDate,
+      Value<int?> score,
+      Value<int?> maxScore,
+      Value<String?> roundName,
+      Value<String?> reason,
+      Value<String?> bowName,
+      Value<String?> bowType,
+      Value<String?> bowSettings,
+      Value<String?> quiverName,
+      Value<String?> arrowSettings,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$KitSnapshotsTableUpdateCompanionBuilder =
+    KitSnapshotsCompanion Function({
+      Value<String> id,
+      Value<String?> sessionId,
+      Value<String?> bowId,
+      Value<String?> quiverId,
+      Value<DateTime> snapshotDate,
+      Value<int?> score,
+      Value<int?> maxScore,
+      Value<String?> roundName,
+      Value<String?> reason,
+      Value<String?> bowName,
+      Value<String?> bowType,
+      Value<String?> bowSettings,
+      Value<String?> quiverName,
+      Value<String?> arrowSettings,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$KitSnapshotsTableFilterComposer
+    extends Composer<_$AppDatabase, $KitSnapshotsTable> {
+  $$KitSnapshotsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sessionId => $composableBuilder(
+    column: $table.sessionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get bowId => $composableBuilder(
+    column: $table.bowId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get quiverId => $composableBuilder(
+    column: $table.quiverId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get snapshotDate => $composableBuilder(
+    column: $table.snapshotDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get maxScore => $composableBuilder(
+    column: $table.maxScore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get roundName => $composableBuilder(
+    column: $table.roundName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reason => $composableBuilder(
+    column: $table.reason,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get bowName => $composableBuilder(
+    column: $table.bowName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get bowType => $composableBuilder(
+    column: $table.bowType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get bowSettings => $composableBuilder(
+    column: $table.bowSettings,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get quiverName => $composableBuilder(
+    column: $table.quiverName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get arrowSettings => $composableBuilder(
+    column: $table.arrowSettings,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$KitSnapshotsTableOrderingComposer
+    extends Composer<_$AppDatabase, $KitSnapshotsTable> {
+  $$KitSnapshotsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sessionId => $composableBuilder(
+    column: $table.sessionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get bowId => $composableBuilder(
+    column: $table.bowId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get quiverId => $composableBuilder(
+    column: $table.quiverId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get snapshotDate => $composableBuilder(
+    column: $table.snapshotDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get maxScore => $composableBuilder(
+    column: $table.maxScore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get roundName => $composableBuilder(
+    column: $table.roundName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get reason => $composableBuilder(
+    column: $table.reason,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get bowName => $composableBuilder(
+    column: $table.bowName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get bowType => $composableBuilder(
+    column: $table.bowType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get bowSettings => $composableBuilder(
+    column: $table.bowSettings,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get quiverName => $composableBuilder(
+    column: $table.quiverName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get arrowSettings => $composableBuilder(
+    column: $table.arrowSettings,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$KitSnapshotsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $KitSnapshotsTable> {
+  $$KitSnapshotsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get sessionId =>
+      $composableBuilder(column: $table.sessionId, builder: (column) => column);
+
+  GeneratedColumn<String> get bowId =>
+      $composableBuilder(column: $table.bowId, builder: (column) => column);
+
+  GeneratedColumn<String> get quiverId =>
+      $composableBuilder(column: $table.quiverId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get snapshotDate => $composableBuilder(
+    column: $table.snapshotDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get score =>
+      $composableBuilder(column: $table.score, builder: (column) => column);
+
+  GeneratedColumn<int> get maxScore =>
+      $composableBuilder(column: $table.maxScore, builder: (column) => column);
+
+  GeneratedColumn<String> get roundName =>
+      $composableBuilder(column: $table.roundName, builder: (column) => column);
+
+  GeneratedColumn<String> get reason =>
+      $composableBuilder(column: $table.reason, builder: (column) => column);
+
+  GeneratedColumn<String> get bowName =>
+      $composableBuilder(column: $table.bowName, builder: (column) => column);
+
+  GeneratedColumn<String> get bowType =>
+      $composableBuilder(column: $table.bowType, builder: (column) => column);
+
+  GeneratedColumn<String> get bowSettings => $composableBuilder(
+    column: $table.bowSettings,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get quiverName => $composableBuilder(
+    column: $table.quiverName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get arrowSettings => $composableBuilder(
+    column: $table.arrowSettings,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$KitSnapshotsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $KitSnapshotsTable,
+          KitSnapshot,
+          $$KitSnapshotsTableFilterComposer,
+          $$KitSnapshotsTableOrderingComposer,
+          $$KitSnapshotsTableAnnotationComposer,
+          $$KitSnapshotsTableCreateCompanionBuilder,
+          $$KitSnapshotsTableUpdateCompanionBuilder,
+          (
+            KitSnapshot,
+            BaseReferences<_$AppDatabase, $KitSnapshotsTable, KitSnapshot>,
+          ),
+          KitSnapshot,
+          PrefetchHooks Function()
+        > {
+  $$KitSnapshotsTableTableManager(_$AppDatabase db, $KitSnapshotsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$KitSnapshotsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$KitSnapshotsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$KitSnapshotsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> sessionId = const Value.absent(),
+                Value<String?> bowId = const Value.absent(),
+                Value<String?> quiverId = const Value.absent(),
+                Value<DateTime> snapshotDate = const Value.absent(),
+                Value<int?> score = const Value.absent(),
+                Value<int?> maxScore = const Value.absent(),
+                Value<String?> roundName = const Value.absent(),
+                Value<String?> reason = const Value.absent(),
+                Value<String?> bowName = const Value.absent(),
+                Value<String?> bowType = const Value.absent(),
+                Value<String?> bowSettings = const Value.absent(),
+                Value<String?> quiverName = const Value.absent(),
+                Value<String?> arrowSettings = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => KitSnapshotsCompanion(
+                id: id,
+                sessionId: sessionId,
+                bowId: bowId,
+                quiverId: quiverId,
+                snapshotDate: snapshotDate,
+                score: score,
+                maxScore: maxScore,
+                roundName: roundName,
+                reason: reason,
+                bowName: bowName,
+                bowType: bowType,
+                bowSettings: bowSettings,
+                quiverName: quiverName,
+                arrowSettings: arrowSettings,
+                notes: notes,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> sessionId = const Value.absent(),
+                Value<String?> bowId = const Value.absent(),
+                Value<String?> quiverId = const Value.absent(),
+                required DateTime snapshotDate,
+                Value<int?> score = const Value.absent(),
+                Value<int?> maxScore = const Value.absent(),
+                Value<String?> roundName = const Value.absent(),
+                Value<String?> reason = const Value.absent(),
+                Value<String?> bowName = const Value.absent(),
+                Value<String?> bowType = const Value.absent(),
+                Value<String?> bowSettings = const Value.absent(),
+                Value<String?> quiverName = const Value.absent(),
+                Value<String?> arrowSettings = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => KitSnapshotsCompanion.insert(
+                id: id,
+                sessionId: sessionId,
+                bowId: bowId,
+                quiverId: quiverId,
+                snapshotDate: snapshotDate,
+                score: score,
+                maxScore: maxScore,
+                roundName: roundName,
+                reason: reason,
+                bowName: bowName,
+                bowType: bowType,
+                bowSettings: bowSettings,
+                quiverName: quiverName,
+                arrowSettings: arrowSettings,
+                notes: notes,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$KitSnapshotsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $KitSnapshotsTable,
+      KitSnapshot,
+      $$KitSnapshotsTableFilterComposer,
+      $$KitSnapshotsTableOrderingComposer,
+      $$KitSnapshotsTableAnnotationComposer,
+      $$KitSnapshotsTableCreateCompanionBuilder,
+      $$KitSnapshotsTableUpdateCompanionBuilder,
+      (
+        KitSnapshot,
+        BaseReferences<_$AppDatabase, $KitSnapshotsTable, KitSnapshot>,
+      ),
+      KitSnapshot,
+      PrefetchHooks Function()
+    >;
+typedef $$TuningSessionsTableCreateCompanionBuilder =
+    TuningSessionsCompanion Function({
+      required String id,
+      Value<String?> bowId,
+      required DateTime date,
+      required String bowType,
+      required String tuningType,
+      Value<String?> results,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$TuningSessionsTableUpdateCompanionBuilder =
+    TuningSessionsCompanion Function({
+      Value<String> id,
+      Value<String?> bowId,
+      Value<DateTime> date,
+      Value<String> bowType,
+      Value<String> tuningType,
+      Value<String?> results,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+final class $$TuningSessionsTableReferences
+    extends BaseReferences<_$AppDatabase, $TuningSessionsTable, TuningSession> {
+  $$TuningSessionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $BowsTable _bowIdTable(_$AppDatabase db) => db.bows.createAlias(
+    $_aliasNameGenerator(db.tuningSessions.bowId, db.bows.id),
+  );
+
+  $$BowsTableProcessedTableManager? get bowId {
+    final $_column = $_itemColumn<String>('bow_id');
+    if ($_column == null) return null;
+    final manager = $$BowsTableTableManager(
+      $_db,
+      $_db.bows,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_bowIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$TuningSessionsTableFilterComposer
+    extends Composer<_$AppDatabase, $TuningSessionsTable> {
+  $$TuningSessionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get bowType => $composableBuilder(
+    column: $table.bowType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tuningType => $composableBuilder(
+    column: $table.tuningType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get results => $composableBuilder(
+    column: $table.results,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$BowsTableFilterComposer get bowId {
+    final $$BowsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableFilterComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TuningSessionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $TuningSessionsTable> {
+  $$TuningSessionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get bowType => $composableBuilder(
+    column: $table.bowType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tuningType => $composableBuilder(
+    column: $table.tuningType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get results => $composableBuilder(
+    column: $table.results,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$BowsTableOrderingComposer get bowId {
+    final $$BowsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableOrderingComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TuningSessionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TuningSessionsTable> {
+  $$TuningSessionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<String> get bowType =>
+      $composableBuilder(column: $table.bowType, builder: (column) => column);
+
+  GeneratedColumn<String> get tuningType => $composableBuilder(
+    column: $table.tuningType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get results =>
+      $composableBuilder(column: $table.results, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$BowsTableAnnotationComposer get bowId {
+    final $$BowsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TuningSessionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TuningSessionsTable,
+          TuningSession,
+          $$TuningSessionsTableFilterComposer,
+          $$TuningSessionsTableOrderingComposer,
+          $$TuningSessionsTableAnnotationComposer,
+          $$TuningSessionsTableCreateCompanionBuilder,
+          $$TuningSessionsTableUpdateCompanionBuilder,
+          (TuningSession, $$TuningSessionsTableReferences),
+          TuningSession,
+          PrefetchHooks Function({bool bowId})
+        > {
+  $$TuningSessionsTableTableManager(
+    _$AppDatabase db,
+    $TuningSessionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TuningSessionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TuningSessionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TuningSessionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> bowId = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<String> bowType = const Value.absent(),
+                Value<String> tuningType = const Value.absent(),
+                Value<String?> results = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TuningSessionsCompanion(
+                id: id,
+                bowId: bowId,
+                date: date,
+                bowType: bowType,
+                tuningType: tuningType,
+                results: results,
+                notes: notes,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> bowId = const Value.absent(),
+                required DateTime date,
+                required String bowType,
+                required String tuningType,
+                Value<String?> results = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TuningSessionsCompanion.insert(
+                id: id,
+                bowId: bowId,
+                date: date,
+                bowType: bowType,
+                tuningType: tuningType,
+                results: results,
+                notes: notes,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$TuningSessionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({bowId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (bowId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.bowId,
+                                referencedTable: $$TuningSessionsTableReferences
+                                    ._bowIdTable(db),
+                                referencedColumn:
+                                    $$TuningSessionsTableReferences
+                                        ._bowIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$TuningSessionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TuningSessionsTable,
+      TuningSession,
+      $$TuningSessionsTableFilterComposer,
+      $$TuningSessionsTableOrderingComposer,
+      $$TuningSessionsTableAnnotationComposer,
+      $$TuningSessionsTableCreateCompanionBuilder,
+      $$TuningSessionsTableUpdateCompanionBuilder,
+      (TuningSession, $$TuningSessionsTableReferences),
+      TuningSession,
+      PrefetchHooks Function({bool bowId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -17928,4 +20267,8 @@ class $AppDatabaseManager {
       $$MilestonesTableTableManager(_db, _db.milestones);
   $$VolumeImportsTableTableManager get volumeImports =>
       $$VolumeImportsTableTableManager(_db, _db.volumeImports);
+  $$KitSnapshotsTableTableManager get kitSnapshots =>
+      $$KitSnapshotsTableTableManager(_db, _db.kitSnapshots);
+  $$TuningSessionsTableTableManager get tuningSessions =>
+      $$TuningSessionsTableTableManager(_db, _db.tuningSessions);
 }
