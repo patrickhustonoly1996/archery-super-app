@@ -1632,7 +1632,7 @@ class _RetroSheetItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
         margin: const EdgeInsets.only(bottom: 6),
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.surfaceLight),

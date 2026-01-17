@@ -230,7 +230,7 @@ class _LevelSectionState extends State<_LevelSection> {
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.sm,
-              vertical: AppSpacing.sm,
+              vertical: AppSpacing.md,
             ),
             child: Row(
               children: [

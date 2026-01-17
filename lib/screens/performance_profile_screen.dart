@@ -658,7 +658,7 @@ class _TargetChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
+          vertical: AppSpacing.md,
         ),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.gold.withValues(alpha: 0.15) : AppColors.surfaceLight,
