@@ -396,7 +396,7 @@ class _TuningChecklistScreenState extends State<TuningChecklistScreen> {
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: AppColors.surfaceDark,
-              border: Border.all(color: AppColors.neonCyan.withOpacity(0.3), width: 1),
+              border: Border.all(color: AppColors.neonCyan.withValues(alpha: 0.3), width: 1),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

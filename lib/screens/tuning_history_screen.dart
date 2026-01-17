@@ -164,7 +164,7 @@ class _TuningHistoryScreenState extends State<TuningHistoryScreen> {
                       vertical: AppSpacing.xs,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.gold.withOpacity(0.2),
+                      color: AppColors.gold.withValues(alpha: 0.2),
                       border: Border.all(color: AppColors.gold, width: 1),
                     ),
                     child: Text(
@@ -424,8 +424,8 @@ class _TuningHistoryScreenState extends State<TuningHistoryScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: items.map((entry) {
-        final item = entry.key as String;
-        final checked = entry.value as bool;
+        final item = entry.key;
+        final checked = entry.value;
         return Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.xs),
           child: Row(
