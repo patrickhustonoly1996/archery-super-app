@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -21,16 +22,17 @@ import 'utils/error_handler.dart';
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
+/// Global Firebase init future - AuthGate awaits this with timeout
+late final Future<FirebaseApp> firebaseInitFuture;
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase in background - don't block app startup
-  // AuthGate handles offline/unauthenticated state gracefully
-  Firebase.initializeApp(
+  // Start Firebase initialization (don't await - let app render while it loads)
+  // AuthGate will await this with a timeout for offline resilience
+  firebaseInitFuture = Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-  ).catchError((e) {
-    debugPrint('Firebase init error: $e');
-  });
+  );
 
   runApp(const ArcherySuperApp());
 }
@@ -117,13 +119,20 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   Future<void> _checkAuthState() async {
-    // Try to get cached user - Firebase might not be initialized yet
+    // Wait for Firebase to initialize with a timeout
+    // This handles offline scenarios where init might hang
     try {
+      await firebaseInitFuture.timeout(
+        const Duration(milliseconds: 500),
+        onTimeout: () {
+          throw TimeoutException('Firebase init timed out');
+        },
+      );
       _cachedUser = FirebaseAuth.instance.currentUser;
       _firebaseReady = true;
     } catch (e) {
-      // Firebase not ready yet - that's fine, we'll check connectivity
-      debugPrint('Firebase not ready: $e');
+      // Firebase didn't initialize in time (likely offline or slow network)
+      debugPrint('Firebase init failed/timed out: $e');
       _firebaseReady = false;
     }
 
@@ -134,16 +143,15 @@ class _AuthGateState extends State<AuthGate> {
       return;
     }
 
-    // No cached user - check connectivity to decide how long to wait
-    // If offline, go straight to login (no point waiting for Firebase)
-    final connectivity = context.read<ConnectivityProvider>();
-    if (connectivity.isOffline) {
+    // No cached user - if Firebase isn't ready, go straight to login
+    // (can't authenticate without Firebase anyway)
+    if (!_firebaseReady) {
       if (mounted) setState(() => _timedOut = true);
       return;
     }
 
-    // Online but no cached user - wait briefly for Firebase stream
-    // Reduced from 3s to 1.5s for faster UX
+    // Firebase is ready but no cached user - wait briefly for auth stream
+    // (handles fresh login completion)
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted && !_hasReceivedData) {
         setState(() => _timedOut = true);

@@ -59,6 +59,30 @@ img.Image generateFavicon(int size) {
     }
   }
 
+  // Subtle gold glow - only on larger icons (64px+)
+  if (size >= 64) {
+    final centerX = size / 2;
+    final centerY = size / 2;
+    final glowRadius = size * 0.4;
+
+    for (int py = 0; py < size; py++) {
+      for (int px = 0; px < size; px++) {
+        final dx = px - centerX;
+        final dy = py - centerY;
+        final dist = (dx * dx + dy * dy);
+        final maxDistSq = glowRadius * glowRadius;
+
+        if (dist < maxDistSq) {
+          final intensity = (1 - dist / maxDistSq);
+          final glowAlpha = (intensity * intensity * 12).round().clamp(0, 255);
+          if (glowAlpha > 2) {
+            image.setPixel(px, py, img.ColorRgba8(goldR, goldG, goldB, glowAlpha));
+          }
+        }
+      }
+    }
+  }
+
   // Pixel arrow pointing right - matches PixelBowIcon exactly
   // Arrow shaft (thick, 2 pixels high)
   for (int x = 1; x <= 11; x++) {

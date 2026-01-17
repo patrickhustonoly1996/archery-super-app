@@ -12,6 +12,7 @@ import 'bow_detail_screen.dart';
 import 'quiver_form_screen.dart';
 import 'quiver_detail_screen.dart';
 import 'shaft_management_screen.dart';
+import 'tuning_history_screen.dart';
 
 class EquipmentScreen extends StatefulWidget {
   const EquipmentScreen({super.key});
@@ -27,7 +28,7 @@ class _EquipmentScreenState extends State<EquipmentScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -49,6 +50,7 @@ class _EquipmentScreenState extends State<EquipmentScreen>
           tabs: const [
             Tab(text: 'Bows'),
             Tab(text: 'Quivers'),
+            Tab(text: 'Tuning'),
           ],
         ),
       ),
@@ -57,6 +59,7 @@ class _EquipmentScreenState extends State<EquipmentScreen>
         children: const [
           _BowsTab(),
           _QuiversTab(),
+          TuningHistoryScreen(),
         ],
       ),
     );

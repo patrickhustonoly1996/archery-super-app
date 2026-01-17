@@ -1,3 +1,4 @@
+defaultAgent = "claude"
 defaultTracker = "json"
 maxIterations = 0
 iterationDelay = 1000

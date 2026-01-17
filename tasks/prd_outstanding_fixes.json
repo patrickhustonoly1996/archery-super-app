@@ -1,325 +1,71 @@
 {
-  "id": "prd-outstanding-fixes-2026-01",
-  "title": "Archery Super App - Outstanding Fixes & Features",
-  "version": "1.0",
-  "date": "2026-01-17",
-  "status": "approved",
-  "features": [
+  "name": "Outstanding Fixes & Features",
+  "branchName": "outstanding-fixes",
+  "userStories": [
     {
-      "id": "kit-auto-prompt",
+      "id": "US-001",
       "title": "Kit Details Auto-Prompt on Top 20% Score",
-      "priority": "P2",
-      "status": "ready",
-      "description": "When an archer achieves a score in their top 20% historically, prompt to save current kit configuration.",
-      "trigger_logic": {
-        "condition": "current_score >= 80th_percentile",
-        "minimum_sessions": 5,
-        "timing": "after_session_complete"
-      },
-      "deliverables": [
-        {
-          "file": "lib/utils/statistics.dart",
-          "description": "Percentile calculation utility",
-          "status": "pending"
-        },
-        {
-          "file": "lib/models/kit_snapshot.dart",
-          "description": "KitSnapshot model",
-          "status": "pending"
-        },
-        {
-          "file": "lib/db/database.dart",
-          "description": "Database migration - KitSnapshots table",
-          "table_schema": {
-            "name": "KitSnapshots",
-            "columns": [
-              {"name": "id", "type": "integer", "primary_key": true},
-              {"name": "bowId", "type": "integer", "nullable": true},
-              {"name": "quiverId", "type": "integer", "nullable": true},
-              {"name": "snapshotDate", "type": "datetime"},
-              {"name": "sessionId", "type": "integer", "nullable": true},
-              {"name": "score", "type": "integer", "nullable": true},
-              {"name": "settings", "type": "text", "description": "JSON blob of kit settings"}
-            ]
-          },
-          "status": "pending"
-        },
-        {
-          "file": "lib/providers/equipment_provider.dart",
-          "description": "Kit snapshot save/load methods",
-          "status": "pending"
-        },
-        {
-          "file": "lib/screens/session_complete_screen.dart",
-          "description": "Bottom sheet prompt for saving kit",
-          "status": "pending"
-        }
-      ],
-      "acceptance_criteria": [
+      "description": "When an archer achieves a score in their top 20% historically, prompt to save current kit configuration. Trigger after session complete when current_score >= 80th percentile and user has at least 5 sessions.",
+      "acceptanceCriteria": [
+        "Add percentile calculation utility to lib/utils/statistics.dart",
+        "Create KitSnapshot model in lib/models/kit_snapshot.dart",
+        "Add KitSnapshots table to database (id, bowId, quiverId, snapshotDate, sessionId, score, settings JSON)",
+        "Add kit snapshot save/load methods to equipment_provider.dart",
+        "Show bottom sheet prompt on session_complete_screen.dart when score is top 20%",
         "Percentile calculation handles edge cases (empty list, single item)",
         "Prompt only shows when score is top 20%",
         "Prompt does not show with <5 historical sessions",
         "Kit snapshot saves current bow and quiver settings",
         "Kit snapshots viewable from equipment screen"
-      ]
+      ],
+      "priority": 1,
+      "passes": true,
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
     },
     {
-      "id": "kit-tuning-framework",
+      "id": "US-002",
       "title": "Kit Tuning Framework",
-      "priority": "P2",
-      "status": "ready",
-      "description": "Structured way to log and track bow tuning with different checklists for recurve vs compound.",
-      "checklists": {
-        "recurve": [
-          "Brace height",
-          "Nock point",
-          "Tiller",
-          "Centershot",
-          "Plunger tension",
-          "Paper tune",
-          "Bare shaft",
-          "Walk-back"
-        ],
-        "compound": [
-          "Cam timing",
-          "Yoke tuning",
-          "Rest position",
-          "Peep height",
-          "Paper tune",
-          "Bare shaft",
-          "French tune"
-        ]
-      },
-      "deliverables": [
-        {
-          "file": "lib/db/database.dart",
-          "description": "Database migration - TuningSessions table",
-          "table_schema": {
-            "name": "TuningSessions",
-            "columns": [
-              {"name": "id", "type": "integer", "primary_key": true},
-              {"name": "bowId", "type": "integer"},
-              {"name": "date", "type": "datetime"},
-              {"name": "bowType", "type": "text"},
-              {"name": "tuningType", "type": "text"},
-              {"name": "results", "type": "text", "description": "JSON blob of tuning results"},
-              {"name": "notes", "type": "text", "nullable": true}
-            ]
-          },
-          "status": "pending"
-        },
-        {
-          "file": "lib/models/tuning_session.dart",
-          "description": "TuningSession data model",
-          "status": "pending"
-        },
-        {
-          "file": "lib/screens/tuning_checklist_screen.dart",
-          "description": "Main checklist UI with bow type detection",
-          "status": "pending"
-        },
-        {
-          "file": "lib/screens/tuning_history_screen.dart",
-          "description": "Timeline of tuning sessions",
-          "status": "pending"
-        },
-        {
-          "file": "lib/utils/tuning_suggestions.dart",
-          "description": "Auto-suggestions from tear patterns",
-          "status": "pending"
-        }
-      ],
-      "paper_tune_logger": {
-        "tear_directions": ["up", "down", "left", "right", "clean"],
-        "tear_sizes": ["small", "medium", "large"],
-        "features": [
-          "Capture tear direction and size",
-          "Suggest fixes based on tear pattern",
-          "Store history of attempts"
-        ]
-      },
-      "acceptance_criteria": [
+      "description": "Structured way to log and track bow tuning with different checklists for recurve vs compound. Recurve: brace height, nock point, tiller, centershot, plunger tension, paper tune, bare shaft, walk-back. Compound: cam timing, yoke tuning, rest position, peep height, paper tune, bare shaft, French tune.",
+      "acceptanceCriteria": [
+        "Add TuningSessions table to database (id, bowId, date, bowType, tuningType, results JSON, notes)",
+        "Create TuningSession model in lib/models/tuning_session.dart",
+        "Create tuning_checklist_screen.dart with bow type detection showing correct checklist",
+        "Create tuning_history_screen.dart showing timeline of tuning sessions",
+        "Create tuning_suggestions.dart utility for auto-suggestions from tear patterns",
+        "Paper tune logger captures tear direction (up/down/left/right/clean) and size (small/medium/large)",
         "Correct checklist shown based on bow type",
         "Paper tune results logged with suggestions",
         "Tuning history displays timeline",
         "Tuning data persists across sessions"
-      ]
+      ],
+      "priority": 2,
+      "passes": false,
+      "dependsOn": []
     },
     {
-      "id": "arrow-shaft-tracking",
+      "id": "US-003",
       "title": "Arrow Shaft Tracking & Analysis",
-      "priority": "P2",
-      "status": "ready",
-      "description": "Track individual arrow performance for both specs and shot tracking.",
-      "deliverables": [
-        {
-          "file": "lib/db/database.dart",
-          "description": "Database migration - Expand Shafts table, add shaftId to Arrows",
-          "schema_changes": {
-            "shafts_table_additions": [
-              {"name": "spine", "type": "integer", "nullable": true},
-              {"name": "lengthInches", "type": "real", "nullable": true},
-              {"name": "pointWeight", "type": "integer", "nullable": true, "description": "grains"},
-              {"name": "fletchingType", "type": "text", "nullable": true},
-              {"name": "fletchingColor", "type": "text", "nullable": true},
-              {"name": "nockColor", "type": "text", "nullable": true}
-            ],
-            "arrows_table_additions": [
-              {"name": "shaftId", "type": "integer", "nullable": true, "references": "Shafts.id"}
-            ]
-          },
-          "status": "pending"
-        },
-        {
-          "file": "lib/screens/shaft_detail_screen.dart",
-          "description": "Spec entry form with batch mode",
-          "status": "pending"
-        },
-        {
-          "file": "lib/screens/plotting_screen.dart",
-          "description": "Arrow number picker (1-12 chips) modification",
-          "status": "pending"
-        },
-        {
-          "file": "lib/utils/shaft_analysis.dart",
-          "description": "Per-arrow analysis utilities",
-          "analysis_features": [
-            "Average position deviation",
-            "Group spread per arrow",
-            "Score distribution",
-            "Outlier detection",
-            "Overlap likelihood calculation"
-          ],
-          "status": "pending"
-        },
-        {
-          "file": "lib/screens/shaft_analysis_screen.dart",
-          "description": "Results UI with recommendations",
-          "status": "pending"
-        }
-      ],
-      "acceptance_criteria": [
+      "description": "Track individual arrow performance for both specs and shot tracking. Expand Shafts table with spine, length, point weight, fletching type/color, nock color. Add shaftId to Arrows table.",
+      "acceptanceCriteria": [
+        "Expand Shafts table with spine, lengthInches, pointWeight, fletchingType, fletchingColor, nockColor",
+        "Add shaftId foreign key to Arrows table",
+        "Create shaft_detail_screen.dart with spec entry form and batch mode",
+        "Modify plotting_screen.dart with arrow number picker (1-12 chips)",
+        "Create shaft_analysis.dart utility with per-arrow analysis (avg position deviation, group spread, score distribution, outlier detection, overlap likelihood)",
+        "Create shaft_analysis_screen.dart with results UI and recommendations",
         "Arrow specs can be entered individually or batch",
         "Shaft picker appears during plotting (optional use)",
         "Analysis shows per-arrow performance",
         "Outliers identified with retirement suggestions",
         "Overlap risk warning displays when appropriate"
-      ]
+      ],
+      "priority": 2,
+      "passes": false,
+      "dependsOn": []
     }
   ],
-  "investigation_required": [
-    {
-      "id": "menu-scrolling",
-      "title": "Menu Scrolling Issue",
-      "priority": "P1",
-      "status": "needs_investigation",
-      "file": "lib/screens/home_screen.dart",
-      "question": "What specific scrolling issue? Janky? Doesn't scroll? Wrong scroll physics?"
-    },
-    {
-      "id": "arrows-not-dropping",
-      "title": "Arrows Not Dropping",
-      "priority": "P1",
-      "status": "needs_investigation",
-      "files": ["lib/screens/plotting_screen.dart", "lib/widgets/target_face.dart"],
-      "question": "Is it touch detection? Visual feedback? Database not saving?"
-    },
-    {
-      "id": "volume-input-saves",
-      "title": "Volume Input Interface Saves",
-      "priority": "P1",
-      "status": "needs_investigation",
-      "files": ["lib/screens/volume_import_screen.dart", "lib/db/database.dart"],
-      "question": "What's not saving? Manual entry? CSV import? Both?"
-    },
-    {
-      "id": "inter-device-sync",
-      "title": "Inter-Device Data Push",
-      "priority": "P1",
-      "status": "needs_investigation",
-      "file": "lib/services/firestore_sync_service.dart",
-      "requirements": [
-        "Push local data to Firestore",
-        "Pull remote data to local",
-        "Conflict resolution strategy needed",
-        "User authentication linkage"
-      ]
-    },
-    {
-      "id": "selfie-camera",
-      "title": "Selfie Camera",
-      "priority": "P1",
-      "status": "needs_investigation",
-      "files": ["lib/screens/delayed_camera_native.dart", "lib/screens/delayed_camera_web.dart"],
-      "question": "Camera switching? Front camera not available? Mirror mode?"
-    },
-    {
-      "id": "breathing-cues-visibility",
-      "title": "Breathing Cues Visibility",
-      "priority": "P1",
-      "status": "needs_investigation",
-      "files": ["lib/screens/breath_training/*.dart"],
-      "question": "Text too small? Low contrast? Need larger visual indicator?"
-    },
-    {
-      "id": "haptic-feedback",
-      "title": "Haptic Feedback / Beeps",
-      "priority": "P1",
-      "status": "needs_investigation",
-      "files": ["lib/services/beep_service.dart", "lib/providers/bow_training_provider.dart"],
-      "question": "Not triggering? Wrong timing? Web vs native differences?"
-    },
-    {
-      "id": "exhale-test-structure",
-      "title": "Exhale Test Structure Edit",
-      "priority": "P1",
-      "status": "needs_investigation",
-      "files": ["lib/screens/breath_training/breath_hold_screen.dart"],
-      "question": "What structure changes needed? Different phases? Timing adjustments?"
-    },
-    {
-      "id": "equipment-log-details",
-      "title": "Equipment Log Details",
-      "priority": "P1",
-      "status": "needs_investigation",
-      "files": ["lib/screens/equipment_screen.dart", "lib/screens/bow_form_screen.dart"],
-      "question": "What details missing? Arrow counts? Maintenance logs? Usage history?"
-    }
-  ],
-  "backlog": [
-    {
-      "id": "clicks-per-ring",
-      "title": "Clicks-Per-Ring Training",
-      "description": "User-defined exercise to learn sight adjustment ratios"
-    },
-    {
-      "id": "252-scheme-tracker",
-      "title": "252 Scheme Tracker",
-      "description": "Club progression system tracking 36-arrow imperial rounds"
-    },
-    {
-      "id": "group-visualization",
-      "title": "Group Visualization",
-      "description": "Spread ellipse, arrow trails by end, ring notation sizing"
-    },
-    {
-      "id": "score-sanity-checks",
-      "title": "Score Sanity Checks",
-      "description": "Flag perfect scores, huge handicap jumps for verification"
-    }
-  ],
-  "implementation_order": [
-    "kit-auto-prompt",
-    "arrow-shaft-tracking",
-    "kit-tuning-framework"
-  ],
-  "technical_notes": {
-    "offline_first": "All features must work without network. Database changes use local SQLite (Drift). Sync features handle offline gracefully.",
-    "design_compliance": {
-      "colors": "Dark base + Gold (#FFD700) primary",
-      "fonts": "Monospace only (VT323, Share Tech Mono)",
-      "grid": "8px",
-      "animation": "Minimal"
-    }
+  "metadata": {
+    "updatedAt": "2026-01-17T11:58:50.505Z"
   }
 }
