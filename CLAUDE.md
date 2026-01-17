@@ -55,16 +55,7 @@ Build partner for Patrick Huston (Olympic archer). New to software, time-constra
 
 ## Testing
 
-**Always run tests.** This is non-negotiable professional practice.
-
-- Run `flutter test` before starting work (know the baseline)
-- Run `flutter test` after changes (verify nothing broke)
-- Add tests when adding features or fixing bugs
-- All tests must pass before committing
-
-**Critical tests:** Arrow coordinate math, score calculations, group analysis, coordinate conversions.
-
-Full testing framework: `docs/TESTING_ROADMAP.md`
+Run `flutter test` at session start (baseline), run relevant tests during iteration, run full suite before committing. All tests must pass before commit. Add tests for new features/fixes. Details: `docs/TESTING_ROADMAP.md`
 
 ## GitHub
 
