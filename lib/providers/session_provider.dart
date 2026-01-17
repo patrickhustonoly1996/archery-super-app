@@ -223,6 +223,14 @@ class SessionProvider extends ChangeNotifier {
     final arrowId =
         '${_activeEnd!.id}_arrow_${_currentEndArrows.length + 1}';
 
+    // Resolve shaftId from shaftNumber if quiver is selected
+    String? shaftId;
+    if (shaftNumber != null && _selectedQuiverId != null) {
+      final shafts = await _db.getShaftsForQuiver(_selectedQuiverId!);
+      final shaft = shafts.where((s) => s.number == shaftNumber).firstOrNull;
+      shaftId = shaft?.id;
+    }
+
     await _db.insertArrow(ArrowsCompanion.insert(
       id: arrowId,
       endId: _activeEnd!.id,
@@ -235,6 +243,7 @@ class SessionProvider extends ChangeNotifier {
       isX: Value(result.isX),
       sequence: _currentEndArrows.length + 1,
       shaftNumber: Value(shaftNumber),
+      shaftId: Value(shaftId),
     ));
 
     // Reload current end arrows

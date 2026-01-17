@@ -166,6 +166,62 @@ class EquipmentProvider extends ChangeNotifier {
     await loadEquipment();
   }
 
+  /// Update shaft specifications
+  Future<void> updateShaftSpecs({
+    required String shaftId,
+    int? spine,
+    double? lengthInches,
+    int? pointWeight,
+    String? fletchingType,
+    String? fletchingColor,
+    String? nockColor,
+    String? notes,
+  }) async {
+    final shaft = await _db.getShaft(shaftId);
+    if (shaft == null) return;
+
+    await _db.updateShaft(ShaftsCompanion(
+      id: Value(shaftId),
+      spine: Value(spine),
+      lengthInches: Value(lengthInches),
+      pointWeight: Value(pointWeight),
+      fletchingType: Value(fletchingType),
+      fletchingColor: Value(fletchingColor),
+      nockColor: Value(nockColor),
+      notes: Value(notes),
+    ));
+
+    await loadEquipment();
+  }
+
+  /// Batch update shaft specifications for multiple shafts
+  Future<void> batchUpdateShaftSpecs({
+    required List<String> shaftIds,
+    int? spine,
+    double? lengthInches,
+    int? pointWeight,
+    String? fletchingType,
+    String? fletchingColor,
+    String? nockColor,
+  }) async {
+    for (final shaftId in shaftIds) {
+      final shaft = await _db.getShaft(shaftId);
+      if (shaft == null) continue;
+
+      await _db.updateShaft(ShaftsCompanion(
+        id: Value(shaftId),
+        spine: Value(spine),
+        lengthInches: Value(lengthInches),
+        pointWeight: Value(pointWeight),
+        fletchingType: Value(fletchingType),
+        fletchingColor: Value(fletchingColor),
+        nockColor: Value(nockColor),
+      ));
+    }
+
+    await loadEquipment();
+  }
+
   /// Set default bow
   Future<void> setDefaultBow(String bowId) async {
     await _db.setDefaultBow(bowId);

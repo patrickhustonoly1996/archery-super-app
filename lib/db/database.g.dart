@@ -3019,6 +3019,785 @@ class EndsCompanion extends UpdateCompanion<End> {
   }
 }
 
+class $ShaftsTable extends Shafts with TableInfo<$ShaftsTable, Shaft> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ShaftsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _quiverIdMeta = const VerificationMeta(
+    'quiverId',
+  );
+  @override
+  late final GeneratedColumn<String> quiverId = GeneratedColumn<String>(
+    'quiver_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES quivers (id)',
+    ),
+  );
+  static const VerificationMeta _numberMeta = const VerificationMeta('number');
+  @override
+  late final GeneratedColumn<int> number = GeneratedColumn<int>(
+    'number',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _diameterMeta = const VerificationMeta(
+    'diameter',
+  );
+  @override
+  late final GeneratedColumn<String> diameter = GeneratedColumn<String>(
+    'diameter',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _spineMeta = const VerificationMeta('spine');
+  @override
+  late final GeneratedColumn<int> spine = GeneratedColumn<int>(
+    'spine',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lengthInchesMeta = const VerificationMeta(
+    'lengthInches',
+  );
+  @override
+  late final GeneratedColumn<double> lengthInches = GeneratedColumn<double>(
+    'length_inches',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _pointWeightMeta = const VerificationMeta(
+    'pointWeight',
+  );
+  @override
+  late final GeneratedColumn<int> pointWeight = GeneratedColumn<int>(
+    'point_weight',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _fletchingTypeMeta = const VerificationMeta(
+    'fletchingType',
+  );
+  @override
+  late final GeneratedColumn<String> fletchingType = GeneratedColumn<String>(
+    'fletching_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _fletchingColorMeta = const VerificationMeta(
+    'fletchingColor',
+  );
+  @override
+  late final GeneratedColumn<String> fletchingColor = GeneratedColumn<String>(
+    'fletching_color',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nockColorMeta = const VerificationMeta(
+    'nockColor',
+  );
+  @override
+  late final GeneratedColumn<String> nockColor = GeneratedColumn<String>(
+    'nock_color',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _retiredAtMeta = const VerificationMeta(
+    'retiredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> retiredAt = GeneratedColumn<DateTime>(
+    'retired_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    quiverId,
+    number,
+    diameter,
+    spine,
+    lengthInches,
+    pointWeight,
+    fletchingType,
+    fletchingColor,
+    nockColor,
+    notes,
+    createdAt,
+    retiredAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'shafts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Shaft> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('quiver_id')) {
+      context.handle(
+        _quiverIdMeta,
+        quiverId.isAcceptableOrUnknown(data['quiver_id']!, _quiverIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_quiverIdMeta);
+    }
+    if (data.containsKey('number')) {
+      context.handle(
+        _numberMeta,
+        number.isAcceptableOrUnknown(data['number']!, _numberMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_numberMeta);
+    }
+    if (data.containsKey('diameter')) {
+      context.handle(
+        _diameterMeta,
+        diameter.isAcceptableOrUnknown(data['diameter']!, _diameterMeta),
+      );
+    }
+    if (data.containsKey('spine')) {
+      context.handle(
+        _spineMeta,
+        spine.isAcceptableOrUnknown(data['spine']!, _spineMeta),
+      );
+    }
+    if (data.containsKey('length_inches')) {
+      context.handle(
+        _lengthInchesMeta,
+        lengthInches.isAcceptableOrUnknown(
+          data['length_inches']!,
+          _lengthInchesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('point_weight')) {
+      context.handle(
+        _pointWeightMeta,
+        pointWeight.isAcceptableOrUnknown(
+          data['point_weight']!,
+          _pointWeightMeta,
+        ),
+      );
+    }
+    if (data.containsKey('fletching_type')) {
+      context.handle(
+        _fletchingTypeMeta,
+        fletchingType.isAcceptableOrUnknown(
+          data['fletching_type']!,
+          _fletchingTypeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('fletching_color')) {
+      context.handle(
+        _fletchingColorMeta,
+        fletchingColor.isAcceptableOrUnknown(
+          data['fletching_color']!,
+          _fletchingColorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('nock_color')) {
+      context.handle(
+        _nockColorMeta,
+        nockColor.isAcceptableOrUnknown(data['nock_color']!, _nockColorMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('retired_at')) {
+      context.handle(
+        _retiredAtMeta,
+        retiredAt.isAcceptableOrUnknown(data['retired_at']!, _retiredAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Shaft map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Shaft(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      quiverId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}quiver_id'],
+      )!,
+      number: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}number'],
+      )!,
+      diameter: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}diameter'],
+      ),
+      spine: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}spine'],
+      ),
+      lengthInches: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}length_inches'],
+      ),
+      pointWeight: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}point_weight'],
+      ),
+      fletchingType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}fletching_type'],
+      ),
+      fletchingColor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}fletching_color'],
+      ),
+      nockColor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nock_color'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      retiredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}retired_at'],
+      ),
+    );
+  }
+
+  @override
+  $ShaftsTable createAlias(String alias) {
+    return $ShaftsTable(attachedDatabase, alias);
+  }
+}
+
+class Shaft extends DataClass implements Insertable<Shaft> {
+  final String id;
+  final String quiverId;
+  final int number;
+  final String? diameter;
+  final int? spine;
+  final double? lengthInches;
+  final int? pointWeight;
+  final String? fletchingType;
+  final String? fletchingColor;
+  final String? nockColor;
+  final String? notes;
+  final DateTime createdAt;
+  final DateTime? retiredAt;
+  const Shaft({
+    required this.id,
+    required this.quiverId,
+    required this.number,
+    this.diameter,
+    this.spine,
+    this.lengthInches,
+    this.pointWeight,
+    this.fletchingType,
+    this.fletchingColor,
+    this.nockColor,
+    this.notes,
+    required this.createdAt,
+    this.retiredAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['quiver_id'] = Variable<String>(quiverId);
+    map['number'] = Variable<int>(number);
+    if (!nullToAbsent || diameter != null) {
+      map['diameter'] = Variable<String>(diameter);
+    }
+    if (!nullToAbsent || spine != null) {
+      map['spine'] = Variable<int>(spine);
+    }
+    if (!nullToAbsent || lengthInches != null) {
+      map['length_inches'] = Variable<double>(lengthInches);
+    }
+    if (!nullToAbsent || pointWeight != null) {
+      map['point_weight'] = Variable<int>(pointWeight);
+    }
+    if (!nullToAbsent || fletchingType != null) {
+      map['fletching_type'] = Variable<String>(fletchingType);
+    }
+    if (!nullToAbsent || fletchingColor != null) {
+      map['fletching_color'] = Variable<String>(fletchingColor);
+    }
+    if (!nullToAbsent || nockColor != null) {
+      map['nock_color'] = Variable<String>(nockColor);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || retiredAt != null) {
+      map['retired_at'] = Variable<DateTime>(retiredAt);
+    }
+    return map;
+  }
+
+  ShaftsCompanion toCompanion(bool nullToAbsent) {
+    return ShaftsCompanion(
+      id: Value(id),
+      quiverId: Value(quiverId),
+      number: Value(number),
+      diameter: diameter == null && nullToAbsent
+          ? const Value.absent()
+          : Value(diameter),
+      spine: spine == null && nullToAbsent
+          ? const Value.absent()
+          : Value(spine),
+      lengthInches: lengthInches == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lengthInches),
+      pointWeight: pointWeight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pointWeight),
+      fletchingType: fletchingType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fletchingType),
+      fletchingColor: fletchingColor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fletchingColor),
+      nockColor: nockColor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nockColor),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      createdAt: Value(createdAt),
+      retiredAt: retiredAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retiredAt),
+    );
+  }
+
+  factory Shaft.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Shaft(
+      id: serializer.fromJson<String>(json['id']),
+      quiverId: serializer.fromJson<String>(json['quiverId']),
+      number: serializer.fromJson<int>(json['number']),
+      diameter: serializer.fromJson<String?>(json['diameter']),
+      spine: serializer.fromJson<int?>(json['spine']),
+      lengthInches: serializer.fromJson<double?>(json['lengthInches']),
+      pointWeight: serializer.fromJson<int?>(json['pointWeight']),
+      fletchingType: serializer.fromJson<String?>(json['fletchingType']),
+      fletchingColor: serializer.fromJson<String?>(json['fletchingColor']),
+      nockColor: serializer.fromJson<String?>(json['nockColor']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      retiredAt: serializer.fromJson<DateTime?>(json['retiredAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'quiverId': serializer.toJson<String>(quiverId),
+      'number': serializer.toJson<int>(number),
+      'diameter': serializer.toJson<String?>(diameter),
+      'spine': serializer.toJson<int?>(spine),
+      'lengthInches': serializer.toJson<double?>(lengthInches),
+      'pointWeight': serializer.toJson<int?>(pointWeight),
+      'fletchingType': serializer.toJson<String?>(fletchingType),
+      'fletchingColor': serializer.toJson<String?>(fletchingColor),
+      'nockColor': serializer.toJson<String?>(nockColor),
+      'notes': serializer.toJson<String?>(notes),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'retiredAt': serializer.toJson<DateTime?>(retiredAt),
+    };
+  }
+
+  Shaft copyWith({
+    String? id,
+    String? quiverId,
+    int? number,
+    Value<String?> diameter = const Value.absent(),
+    Value<int?> spine = const Value.absent(),
+    Value<double?> lengthInches = const Value.absent(),
+    Value<int?> pointWeight = const Value.absent(),
+    Value<String?> fletchingType = const Value.absent(),
+    Value<String?> fletchingColor = const Value.absent(),
+    Value<String?> nockColor = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    DateTime? createdAt,
+    Value<DateTime?> retiredAt = const Value.absent(),
+  }) => Shaft(
+    id: id ?? this.id,
+    quiverId: quiverId ?? this.quiverId,
+    number: number ?? this.number,
+    diameter: diameter.present ? diameter.value : this.diameter,
+    spine: spine.present ? spine.value : this.spine,
+    lengthInches: lengthInches.present ? lengthInches.value : this.lengthInches,
+    pointWeight: pointWeight.present ? pointWeight.value : this.pointWeight,
+    fletchingType: fletchingType.present
+        ? fletchingType.value
+        : this.fletchingType,
+    fletchingColor: fletchingColor.present
+        ? fletchingColor.value
+        : this.fletchingColor,
+    nockColor: nockColor.present ? nockColor.value : this.nockColor,
+    notes: notes.present ? notes.value : this.notes,
+    createdAt: createdAt ?? this.createdAt,
+    retiredAt: retiredAt.present ? retiredAt.value : this.retiredAt,
+  );
+  Shaft copyWithCompanion(ShaftsCompanion data) {
+    return Shaft(
+      id: data.id.present ? data.id.value : this.id,
+      quiverId: data.quiverId.present ? data.quiverId.value : this.quiverId,
+      number: data.number.present ? data.number.value : this.number,
+      diameter: data.diameter.present ? data.diameter.value : this.diameter,
+      spine: data.spine.present ? data.spine.value : this.spine,
+      lengthInches: data.lengthInches.present
+          ? data.lengthInches.value
+          : this.lengthInches,
+      pointWeight: data.pointWeight.present
+          ? data.pointWeight.value
+          : this.pointWeight,
+      fletchingType: data.fletchingType.present
+          ? data.fletchingType.value
+          : this.fletchingType,
+      fletchingColor: data.fletchingColor.present
+          ? data.fletchingColor.value
+          : this.fletchingColor,
+      nockColor: data.nockColor.present ? data.nockColor.value : this.nockColor,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      retiredAt: data.retiredAt.present ? data.retiredAt.value : this.retiredAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Shaft(')
+          ..write('id: $id, ')
+          ..write('quiverId: $quiverId, ')
+          ..write('number: $number, ')
+          ..write('diameter: $diameter, ')
+          ..write('spine: $spine, ')
+          ..write('lengthInches: $lengthInches, ')
+          ..write('pointWeight: $pointWeight, ')
+          ..write('fletchingType: $fletchingType, ')
+          ..write('fletchingColor: $fletchingColor, ')
+          ..write('nockColor: $nockColor, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('retiredAt: $retiredAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    quiverId,
+    number,
+    diameter,
+    spine,
+    lengthInches,
+    pointWeight,
+    fletchingType,
+    fletchingColor,
+    nockColor,
+    notes,
+    createdAt,
+    retiredAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Shaft &&
+          other.id == this.id &&
+          other.quiverId == this.quiverId &&
+          other.number == this.number &&
+          other.diameter == this.diameter &&
+          other.spine == this.spine &&
+          other.lengthInches == this.lengthInches &&
+          other.pointWeight == this.pointWeight &&
+          other.fletchingType == this.fletchingType &&
+          other.fletchingColor == this.fletchingColor &&
+          other.nockColor == this.nockColor &&
+          other.notes == this.notes &&
+          other.createdAt == this.createdAt &&
+          other.retiredAt == this.retiredAt);
+}
+
+class ShaftsCompanion extends UpdateCompanion<Shaft> {
+  final Value<String> id;
+  final Value<String> quiverId;
+  final Value<int> number;
+  final Value<String?> diameter;
+  final Value<int?> spine;
+  final Value<double?> lengthInches;
+  final Value<int?> pointWeight;
+  final Value<String?> fletchingType;
+  final Value<String?> fletchingColor;
+  final Value<String?> nockColor;
+  final Value<String?> notes;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> retiredAt;
+  final Value<int> rowid;
+  const ShaftsCompanion({
+    this.id = const Value.absent(),
+    this.quiverId = const Value.absent(),
+    this.number = const Value.absent(),
+    this.diameter = const Value.absent(),
+    this.spine = const Value.absent(),
+    this.lengthInches = const Value.absent(),
+    this.pointWeight = const Value.absent(),
+    this.fletchingType = const Value.absent(),
+    this.fletchingColor = const Value.absent(),
+    this.nockColor = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.retiredAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ShaftsCompanion.insert({
+    required String id,
+    required String quiverId,
+    required int number,
+    this.diameter = const Value.absent(),
+    this.spine = const Value.absent(),
+    this.lengthInches = const Value.absent(),
+    this.pointWeight = const Value.absent(),
+    this.fletchingType = const Value.absent(),
+    this.fletchingColor = const Value.absent(),
+    this.nockColor = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.retiredAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       quiverId = Value(quiverId),
+       number = Value(number);
+  static Insertable<Shaft> custom({
+    Expression<String>? id,
+    Expression<String>? quiverId,
+    Expression<int>? number,
+    Expression<String>? diameter,
+    Expression<int>? spine,
+    Expression<double>? lengthInches,
+    Expression<int>? pointWeight,
+    Expression<String>? fletchingType,
+    Expression<String>? fletchingColor,
+    Expression<String>? nockColor,
+    Expression<String>? notes,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? retiredAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (quiverId != null) 'quiver_id': quiverId,
+      if (number != null) 'number': number,
+      if (diameter != null) 'diameter': diameter,
+      if (spine != null) 'spine': spine,
+      if (lengthInches != null) 'length_inches': lengthInches,
+      if (pointWeight != null) 'point_weight': pointWeight,
+      if (fletchingType != null) 'fletching_type': fletchingType,
+      if (fletchingColor != null) 'fletching_color': fletchingColor,
+      if (nockColor != null) 'nock_color': nockColor,
+      if (notes != null) 'notes': notes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (retiredAt != null) 'retired_at': retiredAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ShaftsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? quiverId,
+    Value<int>? number,
+    Value<String?>? diameter,
+    Value<int?>? spine,
+    Value<double?>? lengthInches,
+    Value<int?>? pointWeight,
+    Value<String?>? fletchingType,
+    Value<String?>? fletchingColor,
+    Value<String?>? nockColor,
+    Value<String?>? notes,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? retiredAt,
+    Value<int>? rowid,
+  }) {
+    return ShaftsCompanion(
+      id: id ?? this.id,
+      quiverId: quiverId ?? this.quiverId,
+      number: number ?? this.number,
+      diameter: diameter ?? this.diameter,
+      spine: spine ?? this.spine,
+      lengthInches: lengthInches ?? this.lengthInches,
+      pointWeight: pointWeight ?? this.pointWeight,
+      fletchingType: fletchingType ?? this.fletchingType,
+      fletchingColor: fletchingColor ?? this.fletchingColor,
+      nockColor: nockColor ?? this.nockColor,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      retiredAt: retiredAt ?? this.retiredAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (quiverId.present) {
+      map['quiver_id'] = Variable<String>(quiverId.value);
+    }
+    if (number.present) {
+      map['number'] = Variable<int>(number.value);
+    }
+    if (diameter.present) {
+      map['diameter'] = Variable<String>(diameter.value);
+    }
+    if (spine.present) {
+      map['spine'] = Variable<int>(spine.value);
+    }
+    if (lengthInches.present) {
+      map['length_inches'] = Variable<double>(lengthInches.value);
+    }
+    if (pointWeight.present) {
+      map['point_weight'] = Variable<int>(pointWeight.value);
+    }
+    if (fletchingType.present) {
+      map['fletching_type'] = Variable<String>(fletchingType.value);
+    }
+    if (fletchingColor.present) {
+      map['fletching_color'] = Variable<String>(fletchingColor.value);
+    }
+    if (nockColor.present) {
+      map['nock_color'] = Variable<String>(nockColor.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (retiredAt.present) {
+      map['retired_at'] = Variable<DateTime>(retiredAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ShaftsCompanion(')
+          ..write('id: $id, ')
+          ..write('quiverId: $quiverId, ')
+          ..write('number: $number, ')
+          ..write('diameter: $diameter, ')
+          ..write('spine: $spine, ')
+          ..write('lengthInches: $lengthInches, ')
+          ..write('pointWeight: $pointWeight, ')
+          ..write('fletchingType: $fletchingType, ')
+          ..write('fletchingColor: $fletchingColor, ')
+          ..write('nockColor: $nockColor, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('retiredAt: $retiredAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -3139,6 +3918,20 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _shaftIdMeta = const VerificationMeta(
+    'shaftId',
+  );
+  @override
+  late final GeneratedColumn<String> shaftId = GeneratedColumn<String>(
+    'shaft_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES shafts (id)',
+    ),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -3164,6 +3957,7 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
     isX,
     sequence,
     shaftNumber,
+    shaftId,
     createdAt,
   ];
   @override
@@ -3250,6 +4044,12 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
         ),
       );
     }
+    if (data.containsKey('shaft_id')) {
+      context.handle(
+        _shaftIdMeta,
+        shaftId.isAcceptableOrUnknown(data['shaft_id']!, _shaftIdMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -3309,6 +4109,10 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
         DriftSqlType.int,
         data['${effectivePrefix}shaft_number'],
       ),
+      shaftId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}shaft_id'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -3334,6 +4138,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
   final bool isX;
   final int sequence;
   final int? shaftNumber;
+  final String? shaftId;
   final DateTime createdAt;
   const Arrow({
     required this.id,
@@ -3347,6 +4152,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     required this.isX,
     required this.sequence,
     this.shaftNumber,
+    this.shaftId,
     required this.createdAt,
   });
   @override
@@ -3364,6 +4170,9 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     map['sequence'] = Variable<int>(sequence);
     if (!nullToAbsent || shaftNumber != null) {
       map['shaft_number'] = Variable<int>(shaftNumber);
+    }
+    if (!nullToAbsent || shaftId != null) {
+      map['shaft_id'] = Variable<String>(shaftId);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
@@ -3384,6 +4193,9 @@ class Arrow extends DataClass implements Insertable<Arrow> {
       shaftNumber: shaftNumber == null && nullToAbsent
           ? const Value.absent()
           : Value(shaftNumber),
+      shaftId: shaftId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(shaftId),
       createdAt: Value(createdAt),
     );
   }
@@ -3405,6 +4217,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
       isX: serializer.fromJson<bool>(json['isX']),
       sequence: serializer.fromJson<int>(json['sequence']),
       shaftNumber: serializer.fromJson<int?>(json['shaftNumber']),
+      shaftId: serializer.fromJson<String?>(json['shaftId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -3423,6 +4236,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
       'isX': serializer.toJson<bool>(isX),
       'sequence': serializer.toJson<int>(sequence),
       'shaftNumber': serializer.toJson<int?>(shaftNumber),
+      'shaftId': serializer.toJson<String?>(shaftId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -3439,6 +4253,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     bool? isX,
     int? sequence,
     Value<int?> shaftNumber = const Value.absent(),
+    Value<String?> shaftId = const Value.absent(),
     DateTime? createdAt,
   }) => Arrow(
     id: id ?? this.id,
@@ -3452,6 +4267,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     isX: isX ?? this.isX,
     sequence: sequence ?? this.sequence,
     shaftNumber: shaftNumber.present ? shaftNumber.value : this.shaftNumber,
+    shaftId: shaftId.present ? shaftId.value : this.shaftId,
     createdAt: createdAt ?? this.createdAt,
   );
   Arrow copyWithCompanion(ArrowsCompanion data) {
@@ -3469,6 +4285,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
       shaftNumber: data.shaftNumber.present
           ? data.shaftNumber.value
           : this.shaftNumber,
+      shaftId: data.shaftId.present ? data.shaftId.value : this.shaftId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -3487,6 +4304,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
           ..write('isX: $isX, ')
           ..write('sequence: $sequence, ')
           ..write('shaftNumber: $shaftNumber, ')
+          ..write('shaftId: $shaftId, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -3505,6 +4323,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     isX,
     sequence,
     shaftNumber,
+    shaftId,
     createdAt,
   );
   @override
@@ -3522,6 +4341,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
           other.isX == this.isX &&
           other.sequence == this.sequence &&
           other.shaftNumber == this.shaftNumber &&
+          other.shaftId == this.shaftId &&
           other.createdAt == this.createdAt);
 }
 
@@ -3537,6 +4357,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
   final Value<bool> isX;
   final Value<int> sequence;
   final Value<int?> shaftNumber;
+  final Value<String?> shaftId;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const ArrowsCompanion({
@@ -3551,6 +4372,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     this.isX = const Value.absent(),
     this.sequence = const Value.absent(),
     this.shaftNumber = const Value.absent(),
+    this.shaftId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -3566,6 +4388,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     this.isX = const Value.absent(),
     required int sequence,
     this.shaftNumber = const Value.absent(),
+    this.shaftId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -3586,6 +4409,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     Expression<bool>? isX,
     Expression<int>? sequence,
     Expression<int>? shaftNumber,
+    Expression<String>? shaftId,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -3601,6 +4425,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
       if (isX != null) 'is_x': isX,
       if (sequence != null) 'sequence': sequence,
       if (shaftNumber != null) 'shaft_number': shaftNumber,
+      if (shaftId != null) 'shaft_id': shaftId,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -3618,6 +4443,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     Value<bool>? isX,
     Value<int>? sequence,
     Value<int?>? shaftNumber,
+    Value<String?>? shaftId,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -3633,6 +4459,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
       isX: isX ?? this.isX,
       sequence: sequence ?? this.sequence,
       shaftNumber: shaftNumber ?? this.shaftNumber,
+      shaftId: shaftId ?? this.shaftId,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -3674,6 +4501,9 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     if (shaftNumber.present) {
       map['shaft_number'] = Variable<int>(shaftNumber.value);
     }
+    if (shaftId.present) {
+      map['shaft_id'] = Variable<String>(shaftId.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -3697,6 +4527,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
           ..write('isX: $isX, ')
           ..write('sequence: $sequence, ')
           ..write('shaftNumber: $shaftNumber, ')
+          ..write('shaftId: $shaftId, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -4508,462 +5339,6 @@ class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
     return (StringBuffer('UserPreferencesCompanion(')
           ..write('key: $key, ')
           ..write('value: $value, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $ShaftsTable extends Shafts with TableInfo<$ShaftsTable, Shaft> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $ShaftsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _quiverIdMeta = const VerificationMeta(
-    'quiverId',
-  );
-  @override
-  late final GeneratedColumn<String> quiverId = GeneratedColumn<String>(
-    'quiver_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES quivers (id)',
-    ),
-  );
-  static const VerificationMeta _numberMeta = const VerificationMeta('number');
-  @override
-  late final GeneratedColumn<int> number = GeneratedColumn<int>(
-    'number',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _diameterMeta = const VerificationMeta(
-    'diameter',
-  );
-  @override
-  late final GeneratedColumn<String> diameter = GeneratedColumn<String>(
-    'diameter',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
-  @override
-  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
-    'notes',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
-  );
-  static const VerificationMeta _retiredAtMeta = const VerificationMeta(
-    'retiredAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> retiredAt = GeneratedColumn<DateTime>(
-    'retired_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    quiverId,
-    number,
-    diameter,
-    notes,
-    createdAt,
-    retiredAt,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'shafts';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<Shaft> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('quiver_id')) {
-      context.handle(
-        _quiverIdMeta,
-        quiverId.isAcceptableOrUnknown(data['quiver_id']!, _quiverIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_quiverIdMeta);
-    }
-    if (data.containsKey('number')) {
-      context.handle(
-        _numberMeta,
-        number.isAcceptableOrUnknown(data['number']!, _numberMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_numberMeta);
-    }
-    if (data.containsKey('diameter')) {
-      context.handle(
-        _diameterMeta,
-        diameter.isAcceptableOrUnknown(data['diameter']!, _diameterMeta),
-      );
-    }
-    if (data.containsKey('notes')) {
-      context.handle(
-        _notesMeta,
-        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    }
-    if (data.containsKey('retired_at')) {
-      context.handle(
-        _retiredAtMeta,
-        retiredAt.isAcceptableOrUnknown(data['retired_at']!, _retiredAtMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  Shaft map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Shaft(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}id'],
-      )!,
-      quiverId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}quiver_id'],
-      )!,
-      number: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}number'],
-      )!,
-      diameter: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}diameter'],
-      ),
-      notes: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}notes'],
-      ),
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      retiredAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}retired_at'],
-      ),
-    );
-  }
-
-  @override
-  $ShaftsTable createAlias(String alias) {
-    return $ShaftsTable(attachedDatabase, alias);
-  }
-}
-
-class Shaft extends DataClass implements Insertable<Shaft> {
-  final String id;
-  final String quiverId;
-  final int number;
-  final String? diameter;
-  final String? notes;
-  final DateTime createdAt;
-  final DateTime? retiredAt;
-  const Shaft({
-    required this.id,
-    required this.quiverId,
-    required this.number,
-    this.diameter,
-    this.notes,
-    required this.createdAt,
-    this.retiredAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['quiver_id'] = Variable<String>(quiverId);
-    map['number'] = Variable<int>(number);
-    if (!nullToAbsent || diameter != null) {
-      map['diameter'] = Variable<String>(diameter);
-    }
-    if (!nullToAbsent || notes != null) {
-      map['notes'] = Variable<String>(notes);
-    }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    if (!nullToAbsent || retiredAt != null) {
-      map['retired_at'] = Variable<DateTime>(retiredAt);
-    }
-    return map;
-  }
-
-  ShaftsCompanion toCompanion(bool nullToAbsent) {
-    return ShaftsCompanion(
-      id: Value(id),
-      quiverId: Value(quiverId),
-      number: Value(number),
-      diameter: diameter == null && nullToAbsent
-          ? const Value.absent()
-          : Value(diameter),
-      notes: notes == null && nullToAbsent
-          ? const Value.absent()
-          : Value(notes),
-      createdAt: Value(createdAt),
-      retiredAt: retiredAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(retiredAt),
-    );
-  }
-
-  factory Shaft.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Shaft(
-      id: serializer.fromJson<String>(json['id']),
-      quiverId: serializer.fromJson<String>(json['quiverId']),
-      number: serializer.fromJson<int>(json['number']),
-      diameter: serializer.fromJson<String?>(json['diameter']),
-      notes: serializer.fromJson<String?>(json['notes']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      retiredAt: serializer.fromJson<DateTime?>(json['retiredAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'quiverId': serializer.toJson<String>(quiverId),
-      'number': serializer.toJson<int>(number),
-      'diameter': serializer.toJson<String?>(diameter),
-      'notes': serializer.toJson<String?>(notes),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-      'retiredAt': serializer.toJson<DateTime?>(retiredAt),
-    };
-  }
-
-  Shaft copyWith({
-    String? id,
-    String? quiverId,
-    int? number,
-    Value<String?> diameter = const Value.absent(),
-    Value<String?> notes = const Value.absent(),
-    DateTime? createdAt,
-    Value<DateTime?> retiredAt = const Value.absent(),
-  }) => Shaft(
-    id: id ?? this.id,
-    quiverId: quiverId ?? this.quiverId,
-    number: number ?? this.number,
-    diameter: diameter.present ? diameter.value : this.diameter,
-    notes: notes.present ? notes.value : this.notes,
-    createdAt: createdAt ?? this.createdAt,
-    retiredAt: retiredAt.present ? retiredAt.value : this.retiredAt,
-  );
-  Shaft copyWithCompanion(ShaftsCompanion data) {
-    return Shaft(
-      id: data.id.present ? data.id.value : this.id,
-      quiverId: data.quiverId.present ? data.quiverId.value : this.quiverId,
-      number: data.number.present ? data.number.value : this.number,
-      diameter: data.diameter.present ? data.diameter.value : this.diameter,
-      notes: data.notes.present ? data.notes.value : this.notes,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      retiredAt: data.retiredAt.present ? data.retiredAt.value : this.retiredAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('Shaft(')
-          ..write('id: $id, ')
-          ..write('quiverId: $quiverId, ')
-          ..write('number: $number, ')
-          ..write('diameter: $diameter, ')
-          ..write('notes: $notes, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('retiredAt: $retiredAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(id, quiverId, number, diameter, notes, createdAt, retiredAt);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is Shaft &&
-          other.id == this.id &&
-          other.quiverId == this.quiverId &&
-          other.number == this.number &&
-          other.diameter == this.diameter &&
-          other.notes == this.notes &&
-          other.createdAt == this.createdAt &&
-          other.retiredAt == this.retiredAt);
-}
-
-class ShaftsCompanion extends UpdateCompanion<Shaft> {
-  final Value<String> id;
-  final Value<String> quiverId;
-  final Value<int> number;
-  final Value<String?> diameter;
-  final Value<String?> notes;
-  final Value<DateTime> createdAt;
-  final Value<DateTime?> retiredAt;
-  final Value<int> rowid;
-  const ShaftsCompanion({
-    this.id = const Value.absent(),
-    this.quiverId = const Value.absent(),
-    this.number = const Value.absent(),
-    this.diameter = const Value.absent(),
-    this.notes = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.retiredAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  ShaftsCompanion.insert({
-    required String id,
-    required String quiverId,
-    required int number,
-    this.diameter = const Value.absent(),
-    this.notes = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.retiredAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       quiverId = Value(quiverId),
-       number = Value(number);
-  static Insertable<Shaft> custom({
-    Expression<String>? id,
-    Expression<String>? quiverId,
-    Expression<int>? number,
-    Expression<String>? diameter,
-    Expression<String>? notes,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? retiredAt,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (quiverId != null) 'quiver_id': quiverId,
-      if (number != null) 'number': number,
-      if (diameter != null) 'diameter': diameter,
-      if (notes != null) 'notes': notes,
-      if (createdAt != null) 'created_at': createdAt,
-      if (retiredAt != null) 'retired_at': retiredAt,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  ShaftsCompanion copyWith({
-    Value<String>? id,
-    Value<String>? quiverId,
-    Value<int>? number,
-    Value<String?>? diameter,
-    Value<String?>? notes,
-    Value<DateTime>? createdAt,
-    Value<DateTime?>? retiredAt,
-    Value<int>? rowid,
-  }) {
-    return ShaftsCompanion(
-      id: id ?? this.id,
-      quiverId: quiverId ?? this.quiverId,
-      number: number ?? this.number,
-      diameter: diameter ?? this.diameter,
-      notes: notes ?? this.notes,
-      createdAt: createdAt ?? this.createdAt,
-      retiredAt: retiredAt ?? this.retiredAt,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (quiverId.present) {
-      map['quiver_id'] = Variable<String>(quiverId.value);
-    }
-    if (number.present) {
-      map['number'] = Variable<int>(number.value);
-    }
-    if (diameter.present) {
-      map['diameter'] = Variable<String>(diameter.value);
-    }
-    if (notes.present) {
-      map['notes'] = Variable<String>(notes.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (retiredAt.present) {
-      map['retired_at'] = Variable<DateTime>(retiredAt.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ShaftsCompanion(')
-          ..write('id: $id, ')
-          ..write('quiverId: $quiverId, ')
-          ..write('number: $number, ')
-          ..write('diameter: $diameter, ')
-          ..write('notes: $notes, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('retiredAt: $retiredAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -12128,12 +12503,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $QuiversTable quivers = $QuiversTable(this);
   late final $SessionsTable sessions = $SessionsTable(this);
   late final $EndsTable ends = $EndsTable(this);
+  late final $ShaftsTable shafts = $ShaftsTable(this);
   late final $ArrowsTable arrows = $ArrowsTable(this);
   late final $ImportedScoresTable importedScores = $ImportedScoresTable(this);
   late final $UserPreferencesTable userPreferences = $UserPreferencesTable(
     this,
   );
-  late final $ShaftsTable shafts = $ShaftsTable(this);
   late final $VolumeEntriesTable volumeEntries = $VolumeEntriesTable(this);
   late final $OlyExerciseTypesTable olyExerciseTypes = $OlyExerciseTypesTable(
     this,
@@ -12163,10 +12538,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     quivers,
     sessions,
     ends,
+    shafts,
     arrows,
     importedScores,
     userPreferences,
-    shafts,
     volumeEntries,
     olyExerciseTypes,
     olySessionTemplates,
@@ -14923,6 +15298,563 @@ typedef $$EndsTableProcessedTableManager =
       End,
       PrefetchHooks Function({bool sessionId, bool arrowsRefs})
     >;
+typedef $$ShaftsTableCreateCompanionBuilder =
+    ShaftsCompanion Function({
+      required String id,
+      required String quiverId,
+      required int number,
+      Value<String?> diameter,
+      Value<int?> spine,
+      Value<double?> lengthInches,
+      Value<int?> pointWeight,
+      Value<String?> fletchingType,
+      Value<String?> fletchingColor,
+      Value<String?> nockColor,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime?> retiredAt,
+      Value<int> rowid,
+    });
+typedef $$ShaftsTableUpdateCompanionBuilder =
+    ShaftsCompanion Function({
+      Value<String> id,
+      Value<String> quiverId,
+      Value<int> number,
+      Value<String?> diameter,
+      Value<int?> spine,
+      Value<double?> lengthInches,
+      Value<int?> pointWeight,
+      Value<String?> fletchingType,
+      Value<String?> fletchingColor,
+      Value<String?> nockColor,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime?> retiredAt,
+      Value<int> rowid,
+    });
+
+final class $$ShaftsTableReferences
+    extends BaseReferences<_$AppDatabase, $ShaftsTable, Shaft> {
+  $$ShaftsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $QuiversTable _quiverIdTable(_$AppDatabase db) => db.quivers
+      .createAlias($_aliasNameGenerator(db.shafts.quiverId, db.quivers.id));
+
+  $$QuiversTableProcessedTableManager get quiverId {
+    final $_column = $_itemColumn<String>('quiver_id')!;
+
+    final manager = $$QuiversTableTableManager(
+      $_db,
+      $_db.quivers,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_quiverIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$ArrowsTable, List<Arrow>> _arrowsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.arrows,
+    aliasName: $_aliasNameGenerator(db.shafts.id, db.arrows.shaftId),
+  );
+
+  $$ArrowsTableProcessedTableManager get arrowsRefs {
+    final manager = $$ArrowsTableTableManager(
+      $_db,
+      $_db.arrows,
+    ).filter((f) => f.shaftId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_arrowsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$ShaftsTableFilterComposer
+    extends Composer<_$AppDatabase, $ShaftsTable> {
+  $$ShaftsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get number => $composableBuilder(
+    column: $table.number,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get diameter => $composableBuilder(
+    column: $table.diameter,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get spine => $composableBuilder(
+    column: $table.spine,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get lengthInches => $composableBuilder(
+    column: $table.lengthInches,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get pointWeight => $composableBuilder(
+    column: $table.pointWeight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fletchingType => $composableBuilder(
+    column: $table.fletchingType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fletchingColor => $composableBuilder(
+    column: $table.fletchingColor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nockColor => $composableBuilder(
+    column: $table.nockColor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get retiredAt => $composableBuilder(
+    column: $table.retiredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$QuiversTableFilterComposer get quiverId {
+    final $$QuiversTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.quiverId,
+      referencedTable: $db.quivers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$QuiversTableFilterComposer(
+            $db: $db,
+            $table: $db.quivers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> arrowsRefs(
+    Expression<bool> Function($$ArrowsTableFilterComposer f) f,
+  ) {
+    final $$ArrowsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.arrows,
+      getReferencedColumn: (t) => t.shaftId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ArrowsTableFilterComposer(
+            $db: $db,
+            $table: $db.arrows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$ShaftsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ShaftsTable> {
+  $$ShaftsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get number => $composableBuilder(
+    column: $table.number,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get diameter => $composableBuilder(
+    column: $table.diameter,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get spine => $composableBuilder(
+    column: $table.spine,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get lengthInches => $composableBuilder(
+    column: $table.lengthInches,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get pointWeight => $composableBuilder(
+    column: $table.pointWeight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fletchingType => $composableBuilder(
+    column: $table.fletchingType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fletchingColor => $composableBuilder(
+    column: $table.fletchingColor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nockColor => $composableBuilder(
+    column: $table.nockColor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get retiredAt => $composableBuilder(
+    column: $table.retiredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$QuiversTableOrderingComposer get quiverId {
+    final $$QuiversTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.quiverId,
+      referencedTable: $db.quivers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$QuiversTableOrderingComposer(
+            $db: $db,
+            $table: $db.quivers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ShaftsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ShaftsTable> {
+  $$ShaftsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get number =>
+      $composableBuilder(column: $table.number, builder: (column) => column);
+
+  GeneratedColumn<String> get diameter =>
+      $composableBuilder(column: $table.diameter, builder: (column) => column);
+
+  GeneratedColumn<int> get spine =>
+      $composableBuilder(column: $table.spine, builder: (column) => column);
+
+  GeneratedColumn<double> get lengthInches => $composableBuilder(
+    column: $table.lengthInches,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get pointWeight => $composableBuilder(
+    column: $table.pointWeight,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get fletchingType => $composableBuilder(
+    column: $table.fletchingType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get fletchingColor => $composableBuilder(
+    column: $table.fletchingColor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get nockColor =>
+      $composableBuilder(column: $table.nockColor, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get retiredAt =>
+      $composableBuilder(column: $table.retiredAt, builder: (column) => column);
+
+  $$QuiversTableAnnotationComposer get quiverId {
+    final $$QuiversTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.quiverId,
+      referencedTable: $db.quivers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$QuiversTableAnnotationComposer(
+            $db: $db,
+            $table: $db.quivers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> arrowsRefs<T extends Object>(
+    Expression<T> Function($$ArrowsTableAnnotationComposer a) f,
+  ) {
+    final $$ArrowsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.arrows,
+      getReferencedColumn: (t) => t.shaftId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ArrowsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.arrows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$ShaftsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ShaftsTable,
+          Shaft,
+          $$ShaftsTableFilterComposer,
+          $$ShaftsTableOrderingComposer,
+          $$ShaftsTableAnnotationComposer,
+          $$ShaftsTableCreateCompanionBuilder,
+          $$ShaftsTableUpdateCompanionBuilder,
+          (Shaft, $$ShaftsTableReferences),
+          Shaft,
+          PrefetchHooks Function({bool quiverId, bool arrowsRefs})
+        > {
+  $$ShaftsTableTableManager(_$AppDatabase db, $ShaftsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ShaftsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ShaftsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ShaftsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> quiverId = const Value.absent(),
+                Value<int> number = const Value.absent(),
+                Value<String?> diameter = const Value.absent(),
+                Value<int?> spine = const Value.absent(),
+                Value<double?> lengthInches = const Value.absent(),
+                Value<int?> pointWeight = const Value.absent(),
+                Value<String?> fletchingType = const Value.absent(),
+                Value<String?> fletchingColor = const Value.absent(),
+                Value<String?> nockColor = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> retiredAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ShaftsCompanion(
+                id: id,
+                quiverId: quiverId,
+                number: number,
+                diameter: diameter,
+                spine: spine,
+                lengthInches: lengthInches,
+                pointWeight: pointWeight,
+                fletchingType: fletchingType,
+                fletchingColor: fletchingColor,
+                nockColor: nockColor,
+                notes: notes,
+                createdAt: createdAt,
+                retiredAt: retiredAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String quiverId,
+                required int number,
+                Value<String?> diameter = const Value.absent(),
+                Value<int?> spine = const Value.absent(),
+                Value<double?> lengthInches = const Value.absent(),
+                Value<int?> pointWeight = const Value.absent(),
+                Value<String?> fletchingType = const Value.absent(),
+                Value<String?> fletchingColor = const Value.absent(),
+                Value<String?> nockColor = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> retiredAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ShaftsCompanion.insert(
+                id: id,
+                quiverId: quiverId,
+                number: number,
+                diameter: diameter,
+                spine: spine,
+                lengthInches: lengthInches,
+                pointWeight: pointWeight,
+                fletchingType: fletchingType,
+                fletchingColor: fletchingColor,
+                nockColor: nockColor,
+                notes: notes,
+                createdAt: createdAt,
+                retiredAt: retiredAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) =>
+                    (e.readTable(table), $$ShaftsTableReferences(db, table, e)),
+              )
+              .toList(),
+          prefetchHooksCallback: ({quiverId = false, arrowsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (arrowsRefs) db.arrows],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (quiverId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.quiverId,
+                                referencedTable: $$ShaftsTableReferences
+                                    ._quiverIdTable(db),
+                                referencedColumn: $$ShaftsTableReferences
+                                    ._quiverIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (arrowsRefs)
+                    await $_getPrefetchedData<Shaft, $ShaftsTable, Arrow>(
+                      currentTable: table,
+                      referencedTable: $$ShaftsTableReferences._arrowsRefsTable(
+                        db,
+                      ),
+                      managerFromTypedResult: (p0) =>
+                          $$ShaftsTableReferences(db, table, p0).arrowsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.shaftId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ShaftsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ShaftsTable,
+      Shaft,
+      $$ShaftsTableFilterComposer,
+      $$ShaftsTableOrderingComposer,
+      $$ShaftsTableAnnotationComposer,
+      $$ShaftsTableCreateCompanionBuilder,
+      $$ShaftsTableUpdateCompanionBuilder,
+      (Shaft, $$ShaftsTableReferences),
+      Shaft,
+      PrefetchHooks Function({bool quiverId, bool arrowsRefs})
+    >;
 typedef $$ArrowsTableCreateCompanionBuilder =
     ArrowsCompanion Function({
       required String id,
@@ -14936,6 +15868,7 @@ typedef $$ArrowsTableCreateCompanionBuilder =
       Value<bool> isX,
       required int sequence,
       Value<int?> shaftNumber,
+      Value<String?> shaftId,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -14952,6 +15885,7 @@ typedef $$ArrowsTableUpdateCompanionBuilder =
       Value<bool> isX,
       Value<int> sequence,
       Value<int?> shaftNumber,
+      Value<String?> shaftId,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -14971,6 +15905,24 @@ final class $$ArrowsTableReferences
       $_db.ends,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_endIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $ShaftsTable _shaftIdTable(_$AppDatabase db) => db.shafts.createAlias(
+    $_aliasNameGenerator(db.arrows.shaftId, db.shafts.id),
+  );
+
+  $$ShaftsTableProcessedTableManager? get shaftId {
+    final $_column = $_itemColumn<String>('shaft_id');
+    if ($_column == null) return null;
+    final manager = $$ShaftsTableTableManager(
+      $_db,
+      $_db.shafts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_shaftIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -15056,6 +16008,29 @@ class $$ArrowsTableFilterComposer
           }) => $$EndsTableFilterComposer(
             $db: $db,
             $table: $db.ends,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ShaftsTableFilterComposer get shaftId {
+    final $$ShaftsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.shaftId,
+      referencedTable: $db.shafts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ShaftsTableFilterComposer(
+            $db: $db,
+            $table: $db.shafts,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -15152,6 +16127,29 @@ class $$ArrowsTableOrderingComposer
     );
     return composer;
   }
+
+  $$ShaftsTableOrderingComposer get shaftId {
+    final $$ShaftsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.shaftId,
+      referencedTable: $db.shafts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ShaftsTableOrderingComposer(
+            $db: $db,
+            $table: $db.shafts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ArrowsTableAnnotationComposer
@@ -15220,6 +16218,29 @@ class $$ArrowsTableAnnotationComposer
     );
     return composer;
   }
+
+  $$ShaftsTableAnnotationComposer get shaftId {
+    final $$ShaftsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.shaftId,
+      referencedTable: $db.shafts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ShaftsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.shafts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ArrowsTableTableManager
@@ -15235,7 +16256,7 @@ class $$ArrowsTableTableManager
           $$ArrowsTableUpdateCompanionBuilder,
           (Arrow, $$ArrowsTableReferences),
           Arrow,
-          PrefetchHooks Function({bool endId})
+          PrefetchHooks Function({bool endId, bool shaftId})
         > {
   $$ArrowsTableTableManager(_$AppDatabase db, $ArrowsTable table)
     : super(
@@ -15261,6 +16282,7 @@ class $$ArrowsTableTableManager
                 Value<bool> isX = const Value.absent(),
                 Value<int> sequence = const Value.absent(),
                 Value<int?> shaftNumber = const Value.absent(),
+                Value<String?> shaftId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ArrowsCompanion(
@@ -15275,6 +16297,7 @@ class $$ArrowsTableTableManager
                 isX: isX,
                 sequence: sequence,
                 shaftNumber: shaftNumber,
+                shaftId: shaftId,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -15291,6 +16314,7 @@ class $$ArrowsTableTableManager
                 Value<bool> isX = const Value.absent(),
                 required int sequence,
                 Value<int?> shaftNumber = const Value.absent(),
+                Value<String?> shaftId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ArrowsCompanion.insert(
@@ -15305,6 +16329,7 @@ class $$ArrowsTableTableManager
                 isX: isX,
                 sequence: sequence,
                 shaftNumber: shaftNumber,
+                shaftId: shaftId,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -15314,7 +16339,7 @@ class $$ArrowsTableTableManager
                     (e.readTable(table), $$ArrowsTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({endId = false}) {
+          prefetchHooksCallback: ({endId = false, shaftId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -15347,6 +16372,19 @@ class $$ArrowsTableTableManager
                               )
                               as T;
                     }
+                    if (shaftId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.shaftId,
+                                referencedTable: $$ArrowsTableReferences
+                                    ._shaftIdTable(db),
+                                referencedColumn: $$ArrowsTableReferences
+                                    ._shaftIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
 
                     return state;
                   },
@@ -15371,7 +16409,7 @@ typedef $$ArrowsTableProcessedTableManager =
       $$ArrowsTableUpdateCompanionBuilder,
       (Arrow, $$ArrowsTableReferences),
       Arrow,
-      PrefetchHooks Function({bool endId})
+      PrefetchHooks Function({bool endId, bool shaftId})
     >;
 typedef $$ImportedScoresTableCreateCompanionBuilder =
     ImportedScoresCompanion Function({
@@ -15822,359 +16860,6 @@ typedef $$UserPreferencesTableProcessedTableManager =
       ),
       UserPreference,
       PrefetchHooks Function()
-    >;
-typedef $$ShaftsTableCreateCompanionBuilder =
-    ShaftsCompanion Function({
-      required String id,
-      required String quiverId,
-      required int number,
-      Value<String?> diameter,
-      Value<String?> notes,
-      Value<DateTime> createdAt,
-      Value<DateTime?> retiredAt,
-      Value<int> rowid,
-    });
-typedef $$ShaftsTableUpdateCompanionBuilder =
-    ShaftsCompanion Function({
-      Value<String> id,
-      Value<String> quiverId,
-      Value<int> number,
-      Value<String?> diameter,
-      Value<String?> notes,
-      Value<DateTime> createdAt,
-      Value<DateTime?> retiredAt,
-      Value<int> rowid,
-    });
-
-final class $$ShaftsTableReferences
-    extends BaseReferences<_$AppDatabase, $ShaftsTable, Shaft> {
-  $$ShaftsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $QuiversTable _quiverIdTable(_$AppDatabase db) => db.quivers
-      .createAlias($_aliasNameGenerator(db.shafts.quiverId, db.quivers.id));
-
-  $$QuiversTableProcessedTableManager get quiverId {
-    final $_column = $_itemColumn<String>('quiver_id')!;
-
-    final manager = $$QuiversTableTableManager(
-      $_db,
-      $_db.quivers,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_quiverIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
-
-class $$ShaftsTableFilterComposer
-    extends Composer<_$AppDatabase, $ShaftsTable> {
-  $$ShaftsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get number => $composableBuilder(
-    column: $table.number,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get diameter => $composableBuilder(
-    column: $table.diameter,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get notes => $composableBuilder(
-    column: $table.notes,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get retiredAt => $composableBuilder(
-    column: $table.retiredAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  $$QuiversTableFilterComposer get quiverId {
-    final $$QuiversTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.quiverId,
-      referencedTable: $db.quivers,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$QuiversTableFilterComposer(
-            $db: $db,
-            $table: $db.quivers,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$ShaftsTableOrderingComposer
-    extends Composer<_$AppDatabase, $ShaftsTable> {
-  $$ShaftsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get number => $composableBuilder(
-    column: $table.number,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get diameter => $composableBuilder(
-    column: $table.diameter,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get notes => $composableBuilder(
-    column: $table.notes,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get retiredAt => $composableBuilder(
-    column: $table.retiredAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $$QuiversTableOrderingComposer get quiverId {
-    final $$QuiversTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.quiverId,
-      referencedTable: $db.quivers,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$QuiversTableOrderingComposer(
-            $db: $db,
-            $table: $db.quivers,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$ShaftsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $ShaftsTable> {
-  $$ShaftsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<int> get number =>
-      $composableBuilder(column: $table.number, builder: (column) => column);
-
-  GeneratedColumn<String> get diameter =>
-      $composableBuilder(column: $table.diameter, builder: (column) => column);
-
-  GeneratedColumn<String> get notes =>
-      $composableBuilder(column: $table.notes, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get retiredAt =>
-      $composableBuilder(column: $table.retiredAt, builder: (column) => column);
-
-  $$QuiversTableAnnotationComposer get quiverId {
-    final $$QuiversTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.quiverId,
-      referencedTable: $db.quivers,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$QuiversTableAnnotationComposer(
-            $db: $db,
-            $table: $db.quivers,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$ShaftsTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $ShaftsTable,
-          Shaft,
-          $$ShaftsTableFilterComposer,
-          $$ShaftsTableOrderingComposer,
-          $$ShaftsTableAnnotationComposer,
-          $$ShaftsTableCreateCompanionBuilder,
-          $$ShaftsTableUpdateCompanionBuilder,
-          (Shaft, $$ShaftsTableReferences),
-          Shaft,
-          PrefetchHooks Function({bool quiverId})
-        > {
-  $$ShaftsTableTableManager(_$AppDatabase db, $ShaftsTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$ShaftsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$ShaftsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$ShaftsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> id = const Value.absent(),
-                Value<String> quiverId = const Value.absent(),
-                Value<int> number = const Value.absent(),
-                Value<String?> diameter = const Value.absent(),
-                Value<String?> notes = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime?> retiredAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => ShaftsCompanion(
-                id: id,
-                quiverId: quiverId,
-                number: number,
-                diameter: diameter,
-                notes: notes,
-                createdAt: createdAt,
-                retiredAt: retiredAt,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String id,
-                required String quiverId,
-                required int number,
-                Value<String?> diameter = const Value.absent(),
-                Value<String?> notes = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime?> retiredAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => ShaftsCompanion.insert(
-                id: id,
-                quiverId: quiverId,
-                number: number,
-                diameter: diameter,
-                notes: notes,
-                createdAt: createdAt,
-                retiredAt: retiredAt,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) =>
-                    (e.readTable(table), $$ShaftsTableReferences(db, table, e)),
-              )
-              .toList(),
-          prefetchHooksCallback: ({quiverId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (quiverId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.quiverId,
-                                referencedTable: $$ShaftsTableReferences
-                                    ._quiverIdTable(db),
-                                referencedColumn: $$ShaftsTableReferences
-                                    ._quiverIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
-        ),
-      );
-}
-
-typedef $$ShaftsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $ShaftsTable,
-      Shaft,
-      $$ShaftsTableFilterComposer,
-      $$ShaftsTableOrderingComposer,
-      $$ShaftsTableAnnotationComposer,
-      $$ShaftsTableCreateCompanionBuilder,
-      $$ShaftsTableUpdateCompanionBuilder,
-      (Shaft, $$ShaftsTableReferences),
-      Shaft,
-      PrefetchHooks Function({bool quiverId})
     >;
 typedef $$VolumeEntriesTableCreateCompanionBuilder =
     VolumeEntriesCompanion Function({
@@ -20241,14 +20926,14 @@ class $AppDatabaseManager {
   $$SessionsTableTableManager get sessions =>
       $$SessionsTableTableManager(_db, _db.sessions);
   $$EndsTableTableManager get ends => $$EndsTableTableManager(_db, _db.ends);
+  $$ShaftsTableTableManager get shafts =>
+      $$ShaftsTableTableManager(_db, _db.shafts);
   $$ArrowsTableTableManager get arrows =>
       $$ArrowsTableTableManager(_db, _db.arrows);
   $$ImportedScoresTableTableManager get importedScores =>
       $$ImportedScoresTableTableManager(_db, _db.importedScores);
   $$UserPreferencesTableTableManager get userPreferences =>
       $$UserPreferencesTableTableManager(_db, _db.userPreferences);
-  $$ShaftsTableTableManager get shafts =>
-      $$ShaftsTableTableManager(_db, _db.shafts);
   $$VolumeEntriesTableTableManager get volumeEntries =>
       $$VolumeEntriesTableTableManager(_db, _db.volumeEntries);
   $$OlyExerciseTypesTableTableManager get olyExerciseTypes =>

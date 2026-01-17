@@ -80,7 +80,8 @@ class Arrows extends Table {
   IntColumn get score => integer()();
   BoolColumn get isX => boolean().withDefault(const Constant(false))();
   IntColumn get sequence => integer()(); // order shot within end
-  IntColumn get shaftNumber => integer().nullable()(); // optional shaft ID
+  IntColumn get shaftNumber => integer().nullable()(); // Legacy: arrow number for display
+  TextColumn get shaftId => text().nullable().references(Shafts, #id)(); // FK to Shafts table
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
@@ -152,6 +153,12 @@ class Shafts extends Table {
   TextColumn get quiverId => text().references(Quivers, #id)();
   IntColumn get number => integer()(); // 1-12 (or up to shaftCount)
   TextColumn get diameter => text().nullable()(); // e.g., "1816", "2314"
+  IntColumn get spine => integer().nullable()(); // Static spine (e.g., 500, 600)
+  RealColumn get lengthInches => real().nullable()(); // Arrow length in inches
+  IntColumn get pointWeight => integer().nullable()(); // Point weight in grains
+  TextColumn get fletchingType => text().nullable()(); // e.g., "vanes", "feathers"
+  TextColumn get fletchingColor => text().nullable()(); // e.g., "blue", "red/white"
+  TextColumn get nockColor => text().nullable()(); // e.g., "blue", "green"
   TextColumn get notes => text().nullable()(); // "Bent nock", "Replaced 2024-01"
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get retiredAt => dateTime().nullable()(); // soft delete
@@ -407,7 +414,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration {
@@ -482,6 +489,17 @@ class AppDatabase extends _$AppDatabase {
           // Add kit snapshots and tuning sessions tables
           await m.createTable(kitSnapshots);
           await m.createTable(tuningSessions);
+        }
+        if (from <= 12) {
+          // Add shaft specification columns
+          await m.addColumn(shafts, shafts.spine);
+          await m.addColumn(shafts, shafts.lengthInches);
+          await m.addColumn(shafts, shafts.pointWeight);
+          await m.addColumn(shafts, shafts.fletchingType);
+          await m.addColumn(shafts, shafts.fletchingColor);
+          await m.addColumn(shafts, shafts.nockColor);
+          // Add shaftId foreign key to arrows
+          await m.addColumn(arrows, arrows.shaftId);
         }
       },
     );
