@@ -1,12 +1,11 @@
 import 'dart:convert';
-import 'package:flutter/material.dart' hide Column;
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide Column;
 import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
 import '../db/database.dart';
 import '../models/tuning_session.dart';
-import '../models/bow_specifications.dart';
 import '../utils/tuning_suggestions.dart';
 import '../utils/unique_id.dart';
 
@@ -101,7 +100,7 @@ class _TuningChecklistScreenState extends State<TuningChecklistScreen> {
             ),
             const SizedBox(height: AppSpacing.sm),
             DropdownButtonFormField<Bow?>(
-              value: _selectedBow,
+              initialValue: _selectedBow,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 filled: true,
