@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/session_provider.dart';
+import '../widgets/stat_box.dart';
 import 'home_screen.dart';
 
 class SessionCompleteScreen extends StatelessWidget {
@@ -92,19 +93,25 @@ class SessionCompleteScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _StatBox(
+                      StatBox(
                         label: 'Xs',
                         value: provider.totalXs.toString(),
+                        highlighted: true,
+                        showBackground: true,
                       ),
                       const SizedBox(width: AppSpacing.lg),
-                      _StatBox(
+                      StatBox(
                         label: 'Percentage',
                         value: '$percentage%',
+                        highlighted: true,
+                        showBackground: true,
                       ),
                       const SizedBox(width: AppSpacing.lg),
-                      _StatBox(
+                      StatBox(
                         label: 'Ends',
                         value: provider.ends.length.toString(),
+                        highlighted: true,
+                        showBackground: true,
                       ),
                     ],
                   ),
@@ -182,41 +189,3 @@ class SessionCompleteScreen extends StatelessWidget {
   }
 }
 
-class _StatBox extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _StatBox({
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.md,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceDark,
-        borderRadius: BorderRadius.circular(AppSpacing.sm),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: AppColors.gold,
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ],
-      ),
-    );
-  }
-}

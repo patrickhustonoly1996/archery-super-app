@@ -2,7 +2,7 @@ defaultTracker = "json"
 maxIterations = 0
 iterationDelay = 1000
 outputDir = ".ralph-output"
-subagentTracingDetail = "minimal"
+subagentTracingDetail = "moderate"
 
 [[agents]]
 name = "claude"

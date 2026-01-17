@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'pixel_bow_icon.dart';
 
-/// App logo - clean typography with the pixelated logo asset
+/// App logo - clean typography with the pixel arrow icon
 class AppLogo extends StatelessWidget {
   final double size;
   final bool showSubtitle;
@@ -17,12 +18,8 @@ class AppLogo extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Pixelated logo image
-        Image.asset(
-          'assets/images/logo.png',
-          width: 64 * size,
-          height: 64 * size,
-        ),
+        // Pixel arrow icon
+        PixelBowIcon(size: 64 * size),
         SizedBox(height: 12 * size),
         // Clean typography
         Text(
@@ -68,11 +65,7 @@ class AppLogoCompact extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset(
-          'assets/images/logo.png',
-          width: 28,
-          height: 28,
-        ),
+        PixelBowIcon(size: 28),
         const SizedBox(width: 8),
         const Text(
           'Archery',

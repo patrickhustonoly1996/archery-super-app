@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "sessionId": "c065dd1a-0899-48d3-a089-4a9189a1ba21",
-  "status": "running",
-  "startedAt": "2026-01-17T00:08:37.405Z",
-  "updatedAt": "2026-01-17T00:08:45.523Z",
+  "sessionId": "8b8c835f-c3fd-4b88-a8c7-29dae67a2c9f",
+  "status": "interrupted",
+  "startedAt": "2026-01-17T09:06:22.614Z",
+  "updatedAt": "2026-01-17T09:12:42.668Z",
   "currentIteration": 0,
   "maxIterations": 0,
   "tasksCompleted": 0,
@@ -60,13 +60,13 @@
       {
         "id": "US-008",
         "title": "Offline Indicator",
-        "status": "open",
+        "status": "completed",
         "completedInSession": false
       },
       {
         "id": "US-009",
         "title": "Extract Constants",
-        "status": "open",
+        "status": "completed",
         "completedInSession": false
       },
       {
@@ -105,7 +105,8 @@
   "skippedTaskIds": [],
   "cwd": "C:\\Users\\patri\\Desktop\\archery_super_app_v1",
   "activeTaskIds": [
-    "US-008"
+    "US-010"
   ],
-  "subagentPanelVisible": false
+  "subagentPanelVisible": false,
+  "endedAt": "2026-01-17T09:12:42.668Z"
 }

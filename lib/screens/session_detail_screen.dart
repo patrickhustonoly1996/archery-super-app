@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../db/database.dart';
 import '../theme/app_theme.dart';
+import '../widgets/stat_box.dart';
 
 class SessionDetailScreen extends StatefulWidget {
   final Session session;
@@ -144,23 +145,23 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              _StatBox(
+                              StatBox(
                                 label: 'Score',
                                 value: widget.session.totalScore.toString(),
-                                isGold: true,
+                                highlighted: true,
                               ),
                               if (widget.session.totalXs > 0)
-                                _StatBox(
+                                StatBox(
                                   label: 'Xs',
                                   value: widget.session.totalXs.toString(),
-                                  isGold: true,
+                                  highlighted: true,
                                 ),
                               if (percentage != null)
-                                _StatBox(
+                                StatBox(
                                   label: 'Percentage',
                                   value: '$percentage%',
                                 ),
-                              _StatBox(
+                              StatBox(
                                 label: 'Ends',
                                 value: _ends.length.toString(),
                               ),
@@ -219,37 +220,6 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
   }
 }
 
-class _StatBox extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool isGold;
-
-  const _StatBox({
-    required this.label,
-    required this.value,
-    this.isGold = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: isGold ? AppColors.gold : AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-      ],
-    );
-  }
-}
 
 class _EndCard extends StatelessWidget {
   final End end;

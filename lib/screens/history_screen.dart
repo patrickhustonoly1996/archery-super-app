@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../widgets/handicap_chart.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/offline_indicator.dart';
+import '../widgets/filter_chip.dart';
 import '../utils/handicap_calculator.dart';
 import '../providers/connectivity_provider.dart';
 import 'session_detail_screen.dart';
@@ -333,7 +334,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         // Venue type row
         Row(
           children: [
-            _FilterChip(
+            AppFilterChip(
               label: 'Indoor',
               count: indoorCount,
               isSelected: _showIndoor,
@@ -341,7 +342,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               onTap: () => setState(() => _showIndoor = !_showIndoor),
             ),
             const SizedBox(width: AppSpacing.sm),
-            _FilterChip(
+            AppFilterChip(
               label: 'Outdoor',
               count: outdoorCount,
               isSelected: _showOutdoor,
@@ -354,7 +355,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         // Session type row
         Row(
           children: [
-            _FilterChip(
+            AppFilterChip(
               label: 'Competition',
               count: compCount,
               isSelected: _showCompetition,
@@ -362,7 +363,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               onTap: () => setState(() => _showCompetition = !_showCompetition),
             ),
             const SizedBox(width: AppSpacing.sm),
-            _FilterChip(
+            AppFilterChip(
               label: 'Practice',
               count: practiceCount,
               isSelected: _showPractice,
@@ -376,63 +377,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 }
 
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final int count;
-  final bool isSelected;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    required this.count,
-    required this.isSelected,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: AppSpacing.xs,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.15) : AppColors.surfaceLight,
-          borderRadius: BorderRadius.circular(AppSpacing.sm),
-          border: Border.all(
-            color: isSelected ? color.withOpacity(0.5) : Colors.transparent,
-            width: 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: isSelected ? color : AppColors.textMuted,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              '$label ($count)',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isSelected ? color : AppColors.textMuted,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 
 class _UnifiedScoreTile extends StatelessWidget {
