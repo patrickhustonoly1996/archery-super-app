@@ -6,6 +6,7 @@ import '../providers/bow_training_provider.dart';
 import '../providers/breath_training_provider.dart';
 import '../services/auth_service.dart';
 import '../widgets/pixel_bow_icon.dart';
+import '../widgets/connectivity_indicator.dart';
 import 'session_start_screen.dart';
 import 'plotting_screen.dart';
 import 'history_screen.dart';
@@ -611,18 +612,30 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
                 // Main content - use Align to position from top
                 Align(
                   alignment: Alignment.topCenter,
-                  child: Padding(
-                    padding: EdgeInsets.only(top: verticalPadding),
-                    child: progress < 0.85
-                        ? _buildExpandedLayout(
-                            iconSize: iconSize,
-                            titleSize: titleSize,
-                            spacing: spacing,
-                            subtitleOpacity: subtitleOpacity,
-                            decorationOpacity: decorationOpacity,
-                            glow: glow,
-                          )
-                        : _buildCollapsedLayout(glow: glow),
+                  child: Stack(
+                    children: [
+                      // Main logo content
+                      Padding(
+                        padding: EdgeInsets.only(top: verticalPadding),
+                        child: progress < 0.85
+                            ? _buildExpandedLayout(
+                                iconSize: iconSize,
+                                titleSize: titleSize,
+                                spacing: spacing,
+                                subtitleOpacity: subtitleOpacity,
+                                decorationOpacity: decorationOpacity,
+                                glow: glow,
+                              )
+                            : _buildCollapsedLayout(glow: glow),
+                      ),
+                      // Connectivity indicator (always top-right in expanded mode)
+                      if (progress < 0.85)
+                        Positioned(
+                          top: 8,
+                          right: 16,
+                          child: const ConnectivityIndicator(),
+                        ),
+                    ],
                   ),
                 ),
               ],
@@ -717,40 +730,52 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
   }
 
   Widget _buildCollapsedLayout({required double glow}) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Compact icon
-        Container(
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.gold.withValues(alpha: glow * 0.5),
-                blurRadius: 8,
-                spreadRadius: 1,
-              ),
-            ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          // Compact icon + title
+          Expanded(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Compact icon
+                Container(
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.gold.withValues(alpha: glow * 0.5),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: const PixelBowIcon(size: 20),
+                ),
+                const SizedBox(width: 8),
+                // Inline title
+                Text(
+                  'ARCHERY',
+                  style: TextStyle(
+                    fontFamily: AppFonts.pixel,
+                    fontSize: 12,
+                    color: AppColors.gold,
+                    letterSpacing: 2,
+                    shadows: [
+                      Shadow(
+                        color: AppColors.gold.withValues(alpha: 0.3),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: const PixelBowIcon(size: 20),
-        ),
-        const SizedBox(width: 8),
-        // Inline title
-        Text(
-          'ARCHERY',
-          style: TextStyle(
-            fontFamily: AppFonts.pixel,
-            fontSize: 12,
-            color: AppColors.gold,
-            letterSpacing: 2,
-            shadows: [
-              Shadow(
-                color: AppColors.gold.withValues(alpha: 0.3),
-                blurRadius: 4,
-              ),
-            ],
-          ),
-        ),
-      ],
+          // Connectivity indicator (right side)
+          const ConnectivityIndicator(),
+        ],
+      ),
     );
   }
 }
