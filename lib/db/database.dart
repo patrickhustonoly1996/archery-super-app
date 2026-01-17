@@ -45,6 +45,7 @@ class Sessions extends Table {
   TextColumn get bowId => text().nullable().references(Bows, #id)();
   TextColumn get quiverId => text().nullable().references(Quivers, #id)();
   BoolColumn get shaftTaggingEnabled => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get deletedAt => dateTime().nullable()(); // soft delete for undo
 
   @override
   Set<Column> get primaryKey => {id};
@@ -123,6 +124,7 @@ class Bows extends Table {
   BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()(); // soft delete for undo
 
   @override
   Set<Column> get primaryKey => {id};
@@ -138,6 +140,7 @@ class Quivers extends Table {
   BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()(); // soft delete for undo
 
   @override
   Set<Column> get primaryKey => {id};
@@ -304,6 +307,27 @@ class UserTrainingProgress extends Table {
 }
 
 // ============================================================================
+// BREATH TRAINING SYSTEM
+// ============================================================================
+
+/// Breath training session logs
+class BreathTrainingLogs extends Table {
+  TextColumn get id => text()();
+  TextColumn get sessionType => text()(); // 'breathHold', 'pacedBreathing', 'patrickBreath'
+  IntColumn get totalHoldSeconds => integer().nullable()(); // For breath hold sessions
+  IntColumn get bestHoldThisSession => integer().nullable()(); // Best single hold
+  IntColumn get bestExhaleSeconds => integer().nullable()(); // For Patrick breath
+  IntColumn get rounds => integer().nullable()(); // Number of rounds completed
+  TextColumn get difficulty => text().nullable()(); // 'beginner', 'intermediate', 'advanced'
+  IntColumn get durationMinutes => integer().nullable()(); // For paced breathing
+  DateTimeColumn get completedAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// ============================================================================
 // DATABASE
 // ============================================================================
 
@@ -324,6 +348,8 @@ class UserTrainingProgress extends Table {
   OlySessionExercises,
   OlyTrainingLogs,
   UserTrainingProgress,
+  // Breath Training System
+  BreathTrainingLogs,
   // Milestones for handicap graph
   Milestones,
   // Volume imports for raw data preservation
@@ -336,7 +362,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration {
@@ -397,6 +423,16 @@ class AppDatabase extends _$AppDatabase {
           // Add arrow specifications to quivers
           await m.addColumn(quivers, quivers.settings);
         }
+        if (from <= 9) {
+          // Add breath training logs table
+          await m.createTable(breathTrainingLogs);
+        }
+        if (from <= 10) {
+          // Add soft delete columns for undo functionality
+          await m.addColumn(sessions, sessions.deletedAt);
+          await m.addColumn(bows, bows.deletedAt);
+          await m.addColumn(quivers, quivers.deletedAt);
+        }
       },
     );
   }
@@ -426,10 +462,13 @@ class AppDatabase extends _$AppDatabase {
   // ===========================================================================
 
   Future<List<Session>> getAllSessions() =>
-      (select(sessions)..orderBy([(t) => OrderingTerm.desc(t.startedAt)])).get();
+      (select(sessions)
+            ..where((t) => t.deletedAt.isNull())
+            ..orderBy([(t) => OrderingTerm.desc(t.startedAt)]))
+          .get();
 
   Future<List<Session>> getCompletedSessions() => (select(sessions)
-        ..where((t) => t.completedAt.isNotNull())
+        ..where((t) => t.completedAt.isNotNull() & t.deletedAt.isNull())
         ..orderBy([(t) => OrderingTerm.desc(t.startedAt)]))
       .get();
 
@@ -437,15 +476,20 @@ class AppDatabase extends _$AppDatabase {
       (select(sessions)
             ..where((t) =>
                 t.startedAt.isBiggerOrEqualValue(start) &
-                t.startedAt.isSmallerOrEqualValue(end))
+                t.startedAt.isSmallerOrEqualValue(end) &
+                t.deletedAt.isNull())
             ..orderBy([(t) => OrderingTerm.desc(t.startedAt)]))
           .get();
 
   Future<Session?> getSession(String id) =>
-      (select(sessions)..where((t) => t.id.equals(id))).getSingleOrNull();
+      (select(sessions)
+            ..where((t) => t.id.equals(id) & t.deletedAt.isNull()))
+          .getSingleOrNull();
 
   Future<Session?> getIncompleteSession() =>
-      (select(sessions)..where((t) => t.completedAt.isNull())).getSingleOrNull();
+      (select(sessions)
+            ..where((t) => t.completedAt.isNull() & t.deletedAt.isNull()))
+          .getSingleOrNull();
 
   Future<int> insertSession(SessionsCompanion session) =>
       into(sessions).insert(session);
@@ -462,6 +506,17 @@ class AppDatabase extends _$AppDatabase {
         ),
       );
 
+  /// Soft delete session (for undo support)
+  Future<int> softDeleteSession(String sessionId) =>
+      (update(sessions)..where((t) => t.id.equals(sessionId)))
+          .write(SessionsCompanion(deletedAt: Value(DateTime.now())));
+
+  /// Restore soft-deleted session (undo)
+  Future<int> restoreSession(String sessionId) =>
+      (update(sessions)..where((t) => t.id.equals(sessionId)))
+          .write(const SessionsCompanion(deletedAt: Value(null)));
+
+  /// Permanently delete session (after undo window expires)
   Future<int> deleteSession(String sessionId) async {
     return transaction(() async {
       // Get end IDs for batch delete
@@ -477,6 +532,22 @@ class AppDatabase extends _$AppDatabase {
       // Delete session
       return (delete(sessions)..where((t) => t.id.equals(sessionId))).go();
     });
+  }
+
+  /// Purge soft-deleted sessions older than the given timestamp
+  Future<int> purgeSoftDeletedSessions(DateTime before) async {
+    final toDelete = await (select(sessions)
+          ..where((t) =>
+              t.deletedAt.isNotNull() &
+              t.deletedAt.isSmallerThanValue(before)))
+        .get();
+
+    int count = 0;
+    for (final session in toDelete) {
+      await deleteSession(session.id);
+      count++;
+    }
+    return count;
   }
 
   // ===========================================================================
@@ -623,13 +694,20 @@ class AppDatabase extends _$AppDatabase {
   // ===========================================================================
 
   Future<List<Bow>> getAllBows() =>
-      (select(bows)..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
+      (select(bows)
+            ..where((t) => t.deletedAt.isNull())
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
 
   Future<Bow?> getBow(String id) =>
-      (select(bows)..where((t) => t.id.equals(id))).getSingleOrNull();
+      (select(bows)
+            ..where((t) => t.id.equals(id) & t.deletedAt.isNull()))
+          .getSingleOrNull();
 
   Future<Bow?> getDefaultBow() =>
-      (select(bows)..where((t) => t.isDefault.equals(true))).getSingleOrNull();
+      (select(bows)
+            ..where((t) => t.isDefault.equals(true) & t.deletedAt.isNull()))
+          .getSingleOrNull();
 
   Future<int> insertBow(BowsCompanion bow) => into(bows).insert(bow);
 
@@ -643,21 +721,59 @@ class AppDatabase extends _$AppDatabase {
         .write(const BowsCompanion(isDefault: Value(true)));
   }
 
+  /// Soft delete bow (for undo support)
+  Future<int> softDeleteBow(String bowId) =>
+      (update(bows)..where((t) => t.id.equals(bowId)))
+          .write(BowsCompanion(deletedAt: Value(DateTime.now())));
+
+  /// Restore soft-deleted bow (undo)
+  Future<int> restoreBow(String bowId) =>
+      (update(bows)..where((t) => t.id.equals(bowId)))
+          .write(const BowsCompanion(deletedAt: Value(null)));
+
+  /// Permanently delete bow
+  Future<int> deleteBow(String bowId) =>
+      (delete(bows)..where((t) => t.id.equals(bowId))).go();
+
+  /// Purge soft-deleted bows older than the given timestamp
+  Future<int> purgeSoftDeletedBows(DateTime before) async {
+    final toDelete = await (select(bows)
+          ..where((t) =>
+              t.deletedAt.isNotNull() &
+              t.deletedAt.isSmallerThanValue(before)))
+        .get();
+
+    int count = 0;
+    for (final bow in toDelete) {
+      await deleteBow(bow.id);
+      count++;
+    }
+    return count;
+  }
+
   // ===========================================================================
   // QUIVERS
   // ===========================================================================
 
   Future<List<Quiver>> getAllQuivers() =>
-      (select(quivers)..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
+      (select(quivers)
+            ..where((t) => t.deletedAt.isNull())
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
 
   Future<List<Quiver>> getQuiversForBow(String bowId) =>
-      (select(quivers)..where((t) => t.bowId.equals(bowId))).get();
+      (select(quivers)
+            ..where((t) => t.bowId.equals(bowId) & t.deletedAt.isNull()))
+          .get();
 
   Future<Quiver?> getQuiver(String id) =>
-      (select(quivers)..where((t) => t.id.equals(id))).getSingleOrNull();
+      (select(quivers)
+            ..where((t) => t.id.equals(id) & t.deletedAt.isNull()))
+          .getSingleOrNull();
 
   Future<Quiver?> getDefaultQuiver() =>
-      (select(quivers)..where((t) => t.isDefault.equals(true)))
+      (select(quivers)
+            ..where((t) => t.isDefault.equals(true) & t.deletedAt.isNull()))
           .getSingleOrNull();
 
   Future<int> insertQuiver(QuiversCompanion quiver) =>
@@ -671,6 +787,36 @@ class AppDatabase extends _$AppDatabase {
         .write(const QuiversCompanion(isDefault: Value(false)));
     return (update(quivers)..where((t) => t.id.equals(quiverId)))
         .write(const QuiversCompanion(isDefault: Value(true)));
+  }
+
+  /// Soft delete quiver (for undo support)
+  Future<int> softDeleteQuiver(String quiverId) =>
+      (update(quivers)..where((t) => t.id.equals(quiverId)))
+          .write(QuiversCompanion(deletedAt: Value(DateTime.now())));
+
+  /// Restore soft-deleted quiver (undo)
+  Future<int> restoreQuiver(String quiverId) =>
+      (update(quivers)..where((t) => t.id.equals(quiverId)))
+          .write(const QuiversCompanion(deletedAt: Value(null)));
+
+  /// Permanently delete quiver
+  Future<int> deleteQuiver(String quiverId) =>
+      (delete(quivers)..where((t) => t.id.equals(quiverId))).go();
+
+  /// Purge soft-deleted quivers older than the given timestamp
+  Future<int> purgeSoftDeletedQuivers(DateTime before) async {
+    final toDelete = await (select(quivers)
+          ..where((t) =>
+              t.deletedAt.isNotNull() &
+              t.deletedAt.isSmallerThanValue(before)))
+        .get();
+
+    int count = 0;
+    for (final quiver in toDelete) {
+      await deleteQuiver(quiver.id);
+      count++;
+    }
+    return count;
   }
 
   // ===========================================================================
@@ -976,6 +1122,65 @@ class AppDatabase extends _$AppDatabase {
       (update(volumeImports)..where((t) => t.id.equals(id))).write(
         VolumeImportsCompanion(importedCount: Value(importedCount)),
       );
+
+  // ===========================================================================
+  // BREATH TRAINING LOGS
+  // ===========================================================================
+
+  Future<List<BreathTrainingLog>> getAllBreathTrainingLogs() =>
+      (select(breathTrainingLogs)..orderBy([(t) => OrderingTerm.desc(t.completedAt)])).get();
+
+  Future<List<BreathTrainingLog>> getBreathTrainingLogsSince(DateTime since) =>
+      (select(breathTrainingLogs)
+            ..where((t) => t.completedAt.isBiggerOrEqualValue(since))
+            ..orderBy([(t) => OrderingTerm.desc(t.completedAt)]))
+          .get();
+
+  Future<BreathTrainingLog?> getBreathTrainingLog(String id) =>
+      (select(breathTrainingLogs)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<int> insertBreathTrainingLog(BreathTrainingLogsCompanion log) =>
+      into(breathTrainingLogs).insert(log);
+
+  /// Get best breath hold in seconds since a date
+  Future<int?> getBestBreathHold({DateTime? since}) async {
+    final query = select(breathTrainingLogs)
+      ..where((t) => t.sessionType.equals('breathHold'));
+    if (since != null) {
+      query.where((t) => t.completedAt.isBiggerOrEqualValue(since));
+    }
+    final logs = await query.get();
+    if (logs.isEmpty) return null;
+
+    int? best;
+    for (final log in logs) {
+      final hold = log.bestHoldThisSession;
+      if (hold != null && (best == null || hold > best)) {
+        best = hold;
+      }
+    }
+    return best;
+  }
+
+  /// Get best exhale time in seconds since a date
+  Future<int?> getBestExhaleTime({DateTime? since}) async {
+    final query = select(breathTrainingLogs)
+      ..where((t) => t.sessionType.equals('patrickBreath'));
+    if (since != null) {
+      query.where((t) => t.completedAt.isBiggerOrEqualValue(since));
+    }
+    final logs = await query.get();
+    if (logs.isEmpty) return null;
+
+    int? best;
+    for (final log in logs) {
+      final exhale = log.bestExhaleSeconds;
+      if (exhale != null && (best == null || exhale > best)) {
+        best = exhale;
+      }
+    }
+    return best;
+  }
 }
 
 QueryExecutor _openConnection() {

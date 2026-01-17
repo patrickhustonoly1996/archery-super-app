@@ -253,15 +253,15 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   bool _isPinchZooming = false;
 
   // Zoom window constants
-  static const double _linecutterZoomFactor = 6.0;
-  static const double _zoomWindowSize = 120.0;
-  static const double _linecutterWindowSize = 160.0; // Larger window for precision
+  static const double _linecutterZoomFactor = 10.0; // High zoom for line-cutter precision
+  static const double _zoomWindowSize = 150.0;      // Larger window for precision
+  static const double _linecutterWindowSize = 180.0; // Even larger for linecutter
   // Diagonal offset: 60px total distance at ~45° angle
   // sqrt(42² + 42²) ≈ 59.4px ≈ 60px
   static const double _holdOffsetX = 42.0; // Horizontal component (sign flipped for lefties)
   static const double _holdOffsetY = 42.0; // Vertical component (always upward)
-  static const double _boundaryProximityThreshold = 0.015; // 1.5% of radius - tighter detection zone
-  static const Duration _linecutterActivationDelay = Duration(milliseconds: 400); // Delay before activation
+  static const double _boundaryProximityThreshold = 0.025; // 2.5% of radius - wider detection zone
+  static const Duration _linecutterActivationDelay = Duration(milliseconds: 600); // Longer hold for intentional activation
 
   /// Cached zoom factor to prevent jumps during drag
   double? _cachedZoomFactor;
@@ -569,7 +569,7 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
       // Pinch-to-zoom: update scale (dampen sensitivity - use 30% of gesture scale)
       final dampedScale = 1.0 + (details.scale - 1.0) * 0.3;
       setState(() {
-        _userZoomScale = (_userZoomScale * dampedScale).clamp(1.0, 6.0);
+        _userZoomScale = (_userZoomScale * dampedScale).clamp(1.0, 10.0);
       });
     } else if (_isHolding && details.pointerCount == 1) {
       // Arrow plotting: update position
@@ -794,7 +794,7 @@ class _ZoomWindow extends StatelessWidget {
             ),
           ),
 
-        // Main zoom window - just crosshair, nothing else
+        // Main zoom window - target rings with crosshair overlay
         Container(
           width: windowSize,
           height: windowSize,
@@ -816,9 +816,38 @@ class _ZoomWindow extends StatelessWidget {
             color: AppColors.backgroundDark,
           ),
           child: ClipOval(
-            child: CustomPaint(
-              size: Size(windowSize, windowSize),
-              painter: _CrosshairPainter(),
+            child: Stack(
+              children: [
+                // Zoomed target rings (no arrows)
+                OverflowBox(
+                  alignment: Alignment.topLeft,
+                  maxWidth: targetSize * zoomFactor,
+                  maxHeight: targetSize * zoomFactor,
+                  child: Transform.translate(
+                    offset: Offset(
+                      -(arrowPosition.dx * zoomFactor) + (windowSize / 2),
+                      -(arrowPosition.dy * zoomFactor) + (windowSize / 2),
+                    ),
+                    child: Transform.scale(
+                      scale: zoomFactor,
+                      alignment: Alignment.topLeft,
+                      child: SizedBox(
+                        width: targetSize,
+                        height: targetSize,
+                        child: CustomPaint(
+                          size: Size(targetSize, targetSize),
+                          painter: _TargetFacePainter(triSpot: triSpot),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                // Crosshair overlay (centered on zoom window)
+                CustomPaint(
+                  size: Size(windowSize, windowSize),
+                  painter: _CrosshairPainter(),
+                ),
+              ],
             ),
           ),
         ),

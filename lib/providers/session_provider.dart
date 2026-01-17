@@ -337,11 +337,11 @@ class SessionProvider extends ChangeNotifier {
     });
   }
 
-  /// Abandon current session
+  /// Abandon current session (soft delete for undo support)
   Future<void> abandonSession() async {
     if (_currentSession == null) return;
 
-    await _db.deleteSession(_currentSession!.id);
+    await _db.softDeleteSession(_currentSession!.id);
     _currentSession = null;
     _currentRoundType = null;
     _ends = [];

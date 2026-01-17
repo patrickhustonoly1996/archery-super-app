@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
+import '../../db/database.dart';
+import '../../utils/unique_id.dart';
 import '../../services/breath_training_service.dart';
 import '../../widgets/breathing_visualizer.dart';
 import '../../widgets/breathing_reminder.dart';
@@ -64,6 +67,7 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
   int _phaseSecondsRemaining = 0;
   double _phaseProgress = 0.0;
   int _totalHoldTime = 0;
+  int _bestHoldThisSession = 0; // Track best individual hold
 
   // Tick counter for smooth animation
   int _tickCount = 0;
@@ -208,6 +212,7 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
       _phaseSecondsRemaining = _prepCountdownSeconds;
       _phaseProgress = 0.0;
       _totalHoldTime = 0;
+      _bestHoldThisSession = 0;
       _tickCount = 0;
     });
     _timer = Timer.periodic(const Duration(milliseconds: 100), _tick);
@@ -380,12 +385,19 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
 
     if (_phaseSecondsRemaining <= 0) {
       HapticFeedback.heavyImpact();
+
+      // Track best hold (this round's target was completed)
+      if (_currentHoldTarget > _bestHoldThisSession) {
+        _bestHoldThisSession = _currentHoldTarget;
+      }
+
       _currentRound++;
 
       if (_currentRound >= _totalRounds) {
-        // Session complete
+        // Session complete - save to database
         _state = SessionState.complete;
         _timer?.cancel();
+        _saveSessionToDatabase();
       } else {
         // Move to recovery breaths
         _state = SessionState.recovery;
@@ -394,6 +406,26 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
         _pacedBreathCount = 0;
       }
       _phaseProgress = 0.0;
+    }
+  }
+
+  Future<void> _saveSessionToDatabase() async {
+    try {
+      final db = Provider.of<AppDatabase>(context, listen: false);
+      await db.insertBreathTrainingLog(
+        BreathTrainingLogsCompanion.insert(
+          id: UniqueId.generate(),
+          sessionType: 'breathHold',
+          totalHoldSeconds: Value(_totalHoldTime),
+          bestHoldThisSession: Value(_bestHoldThisSession),
+          rounds: Value(_currentRound),
+          difficulty: Value(_difficulty.name),
+          completedAt: DateTime.now(),
+        ),
+      );
+      debugPrint('Breath hold session saved: ${_totalHoldTime}s total, ${_bestHoldThisSession}s best');
+    } catch (e) {
+      debugPrint('Error saving breath hold session: $e');
     }
   }
 

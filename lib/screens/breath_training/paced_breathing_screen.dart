@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
+import '../../db/database.dart';
+import '../../utils/unique_id.dart';
 import '../../services/beep_service.dart';
 import '../../services/breath_training_service.dart';
 import '../../widgets/breathing_visualizer.dart';
@@ -78,10 +82,32 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
   void _stopSession() {
     _timer?.cancel();
     HapticFeedback.lightImpact();
+    // Save to database if meaningful session (at least 1 minute)
+    if (_totalSeconds >= 60) {
+      _saveSessionToDatabase();
+    }
     setState(() {
       _isRunning = false;
       _phase = BreathPhase.idle;
     });
+  }
+
+  Future<void> _saveSessionToDatabase() async {
+    try {
+      final db = Provider.of<AppDatabase>(context, listen: false);
+      await db.insertBreathTrainingLog(
+        BreathTrainingLogsCompanion.insert(
+          id: UniqueId.generate(),
+          sessionType: 'pacedBreathing',
+          durationMinutes: Value(_totalSeconds ~/ 60),
+          rounds: Value(_totalBreaths),
+          completedAt: DateTime.now(),
+        ),
+      );
+      debugPrint('Paced breathing session saved: ${_totalSeconds ~/ 60} min, $_totalBreaths breaths');
+    } catch (e) {
+      debugPrint('Error saving paced breathing session: $e');
+    }
   }
 
   void _tick(Timer timer) {

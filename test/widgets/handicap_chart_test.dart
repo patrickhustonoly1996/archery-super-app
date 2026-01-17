@@ -47,7 +47,7 @@ void main() {
     });
 
     group('Empty State', () {
-      testWidgets('empty data renders nothing', (tester) async {
+      testWidgets('empty data renders sample preview', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -60,12 +60,14 @@ void main() {
           ),
         );
 
-        // Widget should render as SizedBox.shrink() for empty data
+        // Widget should render sample preview for empty data
         expect(find.byType(HandicapChart), findsOneWidget);
-        expect(find.byType(Card), findsNothing);
+        expect(find.byType(Card), findsOneWidget);
+        expect(find.text('SAMPLE'), findsOneWidget);
+        expect(find.text('Your handicap progression will appear here'), findsOneWidget);
       });
 
-      testWidgets('sessions without matching round type render nothing', (tester) async {
+      testWidgets('sessions without matching round type render sample preview', (tester) async {
         final session = createFakeSession(
           id: 's1',
           roundTypeId: 'unknown_round',
@@ -85,7 +87,9 @@ void main() {
           ),
         );
 
-        expect(find.byType(Card), findsNothing);
+        // Should show sample preview when no valid handicaps
+        expect(find.byType(Card), findsOneWidget);
+        expect(find.text('SAMPLE'), findsOneWidget);
       });
 
       testWidgets('very low scores get max handicap', (tester) async {
@@ -611,8 +615,9 @@ void main() {
           ),
         );
 
-        // Should not render for unknown round
-        expect(find.byType(Card), findsNothing);
+        // Should show sample preview for unknown round
+        expect(find.byType(Card), findsOneWidget);
+        expect(find.text('SAMPLE'), findsOneWidget);
       });
 
       testWidgets('fuzzy matching works with variations', (tester) async {

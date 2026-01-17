@@ -173,4 +173,40 @@ class EquipmentProvider extends ChangeNotifier {
     await _db.setDefaultQuiver(quiverId);
     await loadEquipment();
   }
+
+  /// Soft delete bow (for undo support)
+  Future<void> deleteBow(String bowId) async {
+    await _db.softDeleteBow(bowId);
+    await loadEquipment();
+  }
+
+  /// Restore soft-deleted bow
+  Future<void> restoreBow(String bowId) async {
+    await _db.restoreBow(bowId);
+    await loadEquipment();
+  }
+
+  /// Permanently delete bow
+  Future<void> permanentlyDeleteBow(String bowId) async {
+    await _db.deleteBow(bowId);
+    await loadEquipment();
+  }
+
+  /// Soft delete quiver (for undo support)
+  Future<void> deleteQuiver(String quiverId) async {
+    await _db.softDeleteQuiver(quiverId);
+    await loadEquipment();
+  }
+
+  /// Restore soft-deleted quiver
+  Future<void> restoreQuiver(String quiverId) async {
+    await _db.restoreQuiver(quiverId);
+    await loadEquipment();
+  }
+
+  /// Permanently delete quiver
+  Future<void> permanentlyDeleteQuiver(String quiverId) async {
+    await _db.deleteQuiver(quiverId);
+    await loadEquipment();
+  }
 }

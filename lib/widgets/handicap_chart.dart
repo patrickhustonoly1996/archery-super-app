@@ -40,7 +40,7 @@ class HandicapChart extends StatelessWidget {
           handicap: handicap,
           score: session.totalScore,
           roundName: roundType.name,
-          isPlotted: true,
+          isCompetition: session.sessionType == 'competition',
         ));
       }
     }
@@ -62,7 +62,7 @@ class HandicapChart extends StatelessWidget {
           handicap: handicap,
           score: score.score,
           roundName: score.roundName,
-          isPlotted: false,
+          isCompetition: score.sessionType == 'competition',
         ));
       }
     }
@@ -71,7 +71,7 @@ class HandicapChart extends StatelessWidget {
     allHandicaps.sort((a, b) => a.date.compareTo(b.date));
 
     if (allHandicaps.isEmpty) {
-      return const SizedBox.shrink();
+      return _buildSamplePreview(context);
     }
 
     // Take last 30 for the chart
@@ -144,12 +144,12 @@ class HandicapChart extends StatelessWidget {
               children: [
                 _LegendItem(
                   color: AppColors.gold,
-                  label: 'Plotted',
+                  label: 'Competition',
                 ),
                 const SizedBox(width: AppSpacing.md),
                 _LegendItem(
                   color: AppColors.textSecondary,
-                  label: 'Imported',
+                  label: 'Practice',
                 ),
               ],
             ),
@@ -252,6 +252,104 @@ class HandicapChart extends StatelessWidget {
 
     return null;
   }
+
+  /// Build a sample preview chart when no real data exists
+  Widget _buildSamplePreview(BuildContext context) {
+    // Generate realistic sample handicap progression data
+    // Shows improvement over time (handicap decreasing)
+    final now = DateTime.now();
+    final sampleHandicaps = <_HandicapPoint>[
+      _HandicapPoint(date: now.subtract(const Duration(days: 180)), handicap: 58, score: 580, roundName: 'WA 720 70m', isCompetition: false),
+      _HandicapPoint(date: now.subtract(const Duration(days: 160)), handicap: 55, score: 595, roundName: 'Portsmouth', isCompetition: true),
+      _HandicapPoint(date: now.subtract(const Duration(days: 140)), handicap: 52, score: 610, roundName: 'WA 720 70m', isCompetition: true),
+      _HandicapPoint(date: now.subtract(const Duration(days: 120)), handicap: 54, score: 600, roundName: 'York', isCompetition: false),
+      _HandicapPoint(date: now.subtract(const Duration(days: 100)), handicap: 49, score: 625, roundName: 'WA 720 70m', isCompetition: true),
+      _HandicapPoint(date: now.subtract(const Duration(days: 80)), handicap: 47, score: 635, roundName: 'Portsmouth', isCompetition: true),
+      _HandicapPoint(date: now.subtract(const Duration(days: 60)), handicap: 45, score: 645, roundName: 'WA 18m', isCompetition: false),
+      _HandicapPoint(date: now.subtract(const Duration(days: 40)), handicap: 43, score: 655, roundName: 'WA 720 70m', isCompetition: true),
+      _HandicapPoint(date: now.subtract(const Duration(days: 20)), handicap: 41, score: 665, roundName: 'Portsmouth', isCompetition: true),
+      _HandicapPoint(date: now, handicap: 38, score: 680, roundName: 'WA 720 70m', isCompetition: true),
+    ];
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Handicap Progression',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: AppColors.gold,
+                      ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.textMuted.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'SAMPLE',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textMuted,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+
+            // Stats row with sample values
+            Row(
+              children: [
+                _StatBadge(label: 'Current', value: 'HC ${sampleHandicaps.last.handicap}'),
+                const SizedBox(width: AppSpacing.sm),
+                _StatBadge(label: 'Average', value: 'HC 48'),
+                const SizedBox(width: AppSpacing.sm),
+                _StatBadge(label: 'Best', value: 'HC ${sampleHandicaps.last.handicap}', isHighlight: true),
+              ],
+            ),
+
+            const SizedBox(height: AppSpacing.md),
+
+            // Sample chart with reduced opacity
+            Opacity(
+              opacity: 0.6,
+              child: SizedBox(
+                height: 120,
+                child: CustomPaint(
+                  painter: _HandicapChartPainter(handicaps: sampleHandicaps),
+                  child: Container(),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: AppSpacing.sm),
+
+            // Helpful message instead of legend
+            Center(
+              child: Text(
+                'Your handicap progression will appear here',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textMuted,
+                      fontStyle: FontStyle.italic,
+                    ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _StatBadge extends StatelessWidget {
@@ -339,14 +437,14 @@ class _HandicapPoint {
   final int handicap;
   final int score;
   final String roundName;
-  final bool isPlotted;
+  final bool isCompetition;
 
   _HandicapPoint({
     required this.date,
     required this.handicap,
     required this.score,
     required this.roundName,
-    required this.isPlotted,
+    required this.isCompetition,
   });
 }
 
@@ -375,7 +473,7 @@ class _HandicapChartPainter extends CustomPainter {
 
     // Calculate positions
     final points = <Offset>[];
-    final plottedPoints = <Offset>[];
+    final competitionPoints = <Offset>[];
     final importedPoints = <Offset>[];
 
     for (int i = 0; i < handicaps.length; i++) {
@@ -390,8 +488,8 @@ class _HandicapChartPainter extends CustomPainter {
       final point = Offset(x, y);
       points.add(point);
 
-      if (handicaps[i].isPlotted) {
-        plottedPoints.add(point);
+      if (handicaps[i].isCompetition) {
+        competitionPoints.add(point);
       } else {
         importedPoints.add(point);
       }
@@ -445,7 +543,7 @@ class _HandicapChartPainter extends CustomPainter {
       ..color = AppColors.gold
       ..style = PaintingStyle.fill;
 
-    for (final point in plottedPoints) {
+    for (final point in competitionPoints) {
       canvas.drawCircle(point, 4, plottedPaint);
     }
 

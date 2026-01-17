@@ -7,6 +7,8 @@ import '../widgets/target_face.dart';
 import '../widgets/group_centre_widget.dart';
 import '../widgets/scorecard_widget.dart';
 import '../widgets/shaft_selector_bottom_sheet.dart';
+import '../utils/undo_manager.dart';
+import '../db/database.dart';
 import 'session_complete_screen.dart';
 import 'home_screen.dart';
 
@@ -222,7 +224,7 @@ class PlottingScreen extends StatelessWidget {
         backgroundColor: AppColors.surfaceDark,
         title: const Text('Abandon Session?'),
         content: const Text(
-          'This will delete all arrows from this session. This cannot be undone.',
+          'All arrows from this session will be deleted.',
         ),
         actions: [
           TextButton(
@@ -231,12 +233,31 @@ class PlottingScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () async {
+              final sessionId = provider.currentSession?.id;
+              final db = context.read<AppDatabase>();
+
               await provider.abandonSession();
+
               if (context.mounted) {
+                Navigator.of(context).pop(); // Close dialog
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const HomeScreen()),
                   (route) => false,
                 );
+
+                // Show undo snackbar
+                if (sessionId != null) {
+                  UndoManager.showUndoSnackbar(
+                    context: context,
+                    message: 'Session deleted',
+                    onUndo: () async {
+                      await db.restoreSession(sessionId);
+                    },
+                    onExpired: () async {
+                      await db.deleteSession(sessionId);
+                    },
+                  );
+                }
               }
             },
             child: Text(

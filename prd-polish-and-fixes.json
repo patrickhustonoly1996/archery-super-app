@@ -1,378 +1,246 @@
 {
-  "prd": {
-    "title": "Polish & Fixes Completion",
-    "author": "Patrick Huston",
-    "date": "2026-01-16",
-    "status": "ready_for_development",
-    "estimated_sessions": 3
-  },
-  "sessions": [
+  "name": "Polish & Fixes Completion",
+  "branchName": "polish-and-fixes",
+  "userStories": [
     {
-      "id": 1,
-      "name": "Critical Bugs",
-      "focus": "Fix P0 bugs and add error handling infrastructure"
-    },
-    {
-      "id": 2,
-      "name": "UX Polish",
-      "focus": "Form validation, empty states, loading buttons, undo"
-    },
-    {
-      "id": 3,
-      "name": "Quality & Accessibility",
-      "focus": "Code cleanup, constants extraction, accessibility"
-    }
-  ],
-  "tasks": [
-    {
-      "id": "P0-1",
+      "id": "US-001",
       "title": "Silent CSV Import Failures",
-      "priority": "P0",
-      "session": 1,
-      "status": "complete",
-      "problem": "When importing scores or volume data, invalid rows are silently skipped. User thinks import succeeded but data is missing.",
-      "locations": [
-        "lib/screens/import_screen.dart:190-192",
-        "lib/screens/volume_import_screen.dart:190-193"
-      ],
-      "requirements": [
+      "description": "Fix silent CSV import failures. When importing scores or volume data, invalid rows are silently skipped. User thinks import succeeded but data is missing.",
+      "acceptanceCriteria": [
         "Track skipped rows with reason (invalid date, bad score, etc.)",
         "After import, show summary dialog: Imported X scores, skipped Y rows",
         "If rows skipped, show expandable list of skipped rows with line numbers and reasons",
         "Allow user to copy skipped rows to clipboard for manual fixing",
-        "If ALL rows fail, show error state (not success with 0 imported)"
+        "If ALL rows fail, show error state (not success with 0 imported)",
+        "Import 10 valid rows + 2 invalid rows shows 'Imported 10, skipped 2'",
+        "Click 'View skipped' shows line numbers and reasons",
+        "Import file with all invalid rows shows error, not success"
       ],
-      "acceptance_criteria": [
-        "Import 10 valid rows + 2 invalid rows -> shows 'Imported 10, skipped 2'",
-        "Click 'View skipped' -> see line numbers and reasons",
-        "Import file with all invalid rows -> shows error, not success"
-      ]
+      "priority": 1,
+      "passes": true,
+      "dependsOn": []
     },
     {
-      "id": "P0-2",
+      "id": "US-002",
       "title": "ID Collision Risk",
-      "priority": "P0",
-      "session": 1,
-      "status": "complete",
-      "problem": "IDs generated using DateTime.now().millisecondsSinceEpoch can collide if two items created in same millisecond.",
-      "locations": [
-        "lib/providers/equipment_provider.dart:43",
-        "lib/screens/import_screen.dart:332"
-      ],
-      "requirements": [
+      "description": "Fix ID collision risk. IDs generated using DateTime.now().millisecondsSinceEpoch can collide if two items created in same millisecond.",
+      "acceptanceCriteria": [
         "Add uuid package to pubspec.yaml",
         "Replace all DateTime.now().millisecondsSinceEpoch.toString() with const Uuid().v4()",
-        "Audit codebase for any other millisecond-based ID generation"
-      ],
-      "acceptance_criteria": [
-        "Create two bows rapidly -> both have unique UUIDs",
-        "Import scores quickly -> no ID collisions",
+        "Audit codebase for any other millisecond-based ID generation",
+        "Create two bows rapidly - both have unique UUIDs",
+        "Import scores quickly - no ID collisions",
         "All existing data continues to work (UUIDs are strings, same as before)"
-      ]
+      ],
+      "priority": 1,
+      "passes": true,
+      "dependsOn": []
     },
     {
-      "id": "P1-1",
+      "id": "US-003",
       "title": "Error Handling Wrapper",
-      "priority": "P1",
-      "session": 1,
-      "status": "complete",
-      "problem": "Errors are silently swallowed throughout the app. User never knows when something fails.",
-      "locations": [
-        "lib/utils/error_handler.dart (create new)"
-      ],
-      "requirements": [
+      "description": "Create error handling infrastructure. Errors are silently swallowed throughout the app. User never knows when something fails.",
+      "acceptanceCriteria": [
         "Create lib/utils/error_handler.dart with ErrorHandler.run() method",
-        "Wrapper should execute async action, show loading state (optional), on success show success snackbar (optional), on error show error snackbar with retry option, log errors to debug console",
-        "Apply to critical operations: save session, import data, sync to cloud"
+        "Wrapper executes async action and shows loading state (optional)",
+        "On success show success snackbar (optional)",
+        "On error show error snackbar with retry option",
+        "Log errors to debug console",
+        "Apply to critical operations: save session, import data, sync to cloud",
+        "Network fails during backup shows 'Backup failed' with retry button",
+        "Database write fails shows error message, not silent failure"
       ],
-      "acceptance_criteria": [
-        "Network fails during backup -> user sees 'Backup failed' with retry button",
-        "Database write fails -> user sees error message, not silent failure",
-        "Success operations show brief confirmation"
-      ],
-      "api_example": "await ErrorHandler.run(context, () => saveSession(), successMessage: 'Session saved', errorMessage: 'Failed to save session');"
+      "priority": 2,
+      "passes": true,
+      "dependsOn": []
     },
     {
-      "id": "P1-2",
+      "id": "US-004",
       "title": "Form Validation Mixin",
-      "priority": "P1",
-      "session": 2,
-      "status": "complete",
-      "problem": "Forms accept any input without validation. Login, equipment forms have no validation.",
-      "locations": [
-        "lib/mixins/form_validation_mixin.dart (create new)",
-        "lib/screens/login_screen.dart",
-        "lib/screens/equipment_screen.dart"
-      ],
-      "requirements": [
+      "description": "Create form validation. Forms accept any input without validation. Login, equipment forms have no validation.",
+      "acceptanceCriteria": [
         "Create lib/mixins/form_validation_mixin.dart",
         "Include validators for: email (format check), required field (non-empty), number (with optional min/max), password (min length)",
         "Apply to login screen",
-        "Apply to equipment creation forms (bow name required, etc.)"
-      ],
-      "acceptance_criteria": [
-        "Login with invalid email -> shows 'Invalid email format' inline",
-        "Create bow with empty name -> shows 'Name required'",
+        "Apply to equipment creation forms (bow name required, etc.)",
+        "Login with invalid email shows 'Invalid email format' inline",
+        "Create bow with empty name shows 'Name required'",
         "Validation shows as user types (not just on submit)"
-      ]
+      ],
+      "priority": 2,
+      "passes": true,
+      "dependsOn": []
     },
     {
-      "id": "P1-3",
+      "id": "US-005",
       "title": "Empty State Widget",
-      "priority": "P1",
-      "session": 2,
-      "status": "complete",
-      "problem": "Screens show nothing when data is empty. User doesn't know what to do.",
-      "locations": [
-        "lib/widgets/empty_state.dart (create new)",
-        "lib/screens/history_screen.dart",
-        "lib/screens/equipment_screen.dart",
-        "lib/screens/statistics_screen.dart"
-      ],
-      "requirements": [
+      "description": "Create empty state widget. Screens show nothing when data is empty. User doesn't know what to do.",
+      "acceptanceCriteria": [
         "Create lib/widgets/empty_state.dart",
         "Props: icon, title, subtitle (optional), action button (optional)",
-        "Apply to: history screen (no sessions), equipment screen (no bows/quivers), statistics screen (no data for charts)"
-      ],
-      "design": {
-        "layout": "Centre of screen",
-        "icon_size": "64px muted",
-        "title_style": "headline",
-        "subtitle_style": "muted text",
-        "button_style": "gold primary"
-      },
-      "acceptance_criteria": [
-        "New user with no sessions -> sees 'No sessions yet' with 'Start Your First Session' button",
-        "No bows -> sees 'No bows added' with 'Add Bow' button",
+        "Apply to history screen (no sessions)",
+        "Apply to equipment screen (no bows/quivers)",
+        "Apply to statistics screen (no data for charts)",
+        "New user with no sessions sees 'No sessions yet' with 'Start Your First Session' button",
+        "No bows shows 'No bows added' with 'Add Bow' button",
         "Empty states match app aesthetic (dark + gold)"
-      ]
+      ],
+      "priority": 2,
+      "passes": true,
+      "dependsOn": []
     },
     {
-      "id": "P3-1",
+      "id": "US-006",
       "title": "Loading Button Component",
-      "priority": "P3",
-      "session": 2,
-      "status": "complete",
-      "problem": "Buttons don't show loading state during async operations. Users tap multiple times.",
-      "locations": [
-        "lib/widgets/loading_button.dart (create new)"
-      ],
-      "requirements": [
+      "description": "Create loading button component. Buttons don't show loading state during async operations. Users tap multiple times.",
+      "acceptanceCriteria": [
         "Create lib/widgets/loading_button.dart",
         "Props: label, onPressed, isLoading",
         "When loading: show spinner, disable button",
-        "Apply to: login button, save buttons, import confirm"
+        "Apply to: login button, save buttons, import confirm",
+        "Tap login shows button spinner and can't tap again",
+        "Operation completes and button returns to normal"
       ],
-      "acceptance_criteria": [
-        "Tap login -> button shows spinner, can't tap again",
-        "Operation completes -> button returns to normal"
-      ]
+      "priority": 3,
+      "passes": true,
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
     },
     {
-      "id": "P3-3",
+      "id": "US-007",
       "title": "Undo for Destructive Operations",
-      "priority": "P3",
-      "session": 2,
-      "status": "complete",
-      "problem": "Deleting sessions, equipment is permanent with no undo.",
-      "locations": [
-        "Multiple screens with delete functionality"
-      ],
-      "requirements": [
+      "description": "Add undo for destructive operations. Deleting sessions, equipment is permanent with no undo.",
+      "acceptanceCriteria": [
         "After delete, show snackbar with 'Undo' action for 5 seconds",
         "If undo tapped, restore the item",
         "Apply to: session delete, bow delete, quiver delete, shaft delete",
-        "Implementation: soft delete (mark as deleted, purge after undo window)"
+        "Implementation: soft delete (mark as deleted, purge after undo window)",
+        "Delete session shows 'Session deleted' with Undo button",
+        "Tap Undo within 5s restores session",
+        "Wait 5s and session is permanently gone"
       ],
-      "acceptance_criteria": [
-        "Delete session -> see 'Session deleted' with Undo button",
-        "Tap Undo within 5s -> session restored",
-        "Wait 5s -> session permanently gone"
-      ]
+      "priority": 3,
+      "passes": false,
+      "dependsOn": []
     },
     {
-      "id": "P3-4",
+      "id": "US-008",
       "title": "Offline Indicator",
-      "priority": "P3",
-      "session": 3,
-      "status": "complete",
-      "problem": "User doesn't know their connectivity status or if data is syncing.",
-      "locations": [
-        "App-wide (app bar)"
-      ],
-      "requirements": [
+      "description": "Add offline indicator. User doesn't know their connectivity status or if data is syncing.",
+      "acceptanceCriteria": [
         "Show subtle indicator in app bar when offline",
         "Show sync status indicator when backup in progress",
-        "Use connectivity_plus package to detect network state"
+        "Use connectivity_plus package to detect network state",
+        "Offline shows small icon in app bar (cloud with X)",
+        "Syncing shows small spinning icon",
+        "Online and synced shows no indicator (clean state)",
+        "Turn off wifi and see offline indicator appear",
+        "Turn on wifi and indicator disappears"
       ],
-      "design": {
-        "offline": "small icon in app bar (cloud with X)",
-        "syncing": "small spinning icon",
-        "online_synced": "no indicator (clean state)"
-      },
-      "acceptance_criteria": [
-        "Turn off wifi -> see offline indicator appear",
-        "Turn on wifi -> indicator disappears",
-        "Backup in progress -> see sync indicator"
-      ]
+      "priority": 3,
+      "passes": false,
+      "dependsOn": []
     },
     {
-      "id": "P4-1",
+      "id": "US-009",
       "title": "Extract Constants",
-      "priority": "P4",
-      "session": 3,
-      "status": "complete",
-      "problem": "Magic numbers scattered throughout codebase.",
-      "locations": [
-        "lib/config/app_constants.dart (create new)",
-        "lib/widgets/target_face.dart",
-        "lib/widgets/scorecard_widget.dart"
-      ],
-      "requirements": [
+      "description": "Extract magic numbers to constants. Magic numbers scattered throughout codebase.",
+      "acceptanceCriteria": [
         "Create lib/config/app_constants.dart",
-        "Move from widgets: plotting offsets (60.0 finger offset), linecutter threshold (0.04), scorecard column widths, touch target sizes",
-        "Document each constant's purpose"
-      ],
-      "acceptance_criteria": [
+        "Move plotting offsets (60.0 finger offset)",
+        "Move linecutter threshold (0.04)",
+        "Move scorecard column widths",
+        "Move touch target sizes",
+        "Document each constant's purpose",
         "All magic numbers have named constants",
         "Each constant has comment explaining its purpose",
         "No behaviour change (pure refactor)"
-      ]
+      ],
+      "priority": 4,
+      "passes": false,
+      "dependsOn": []
     },
     {
-      "id": "P4-2",
+      "id": "US-010",
       "title": "Extract Shared Widgets",
-      "priority": "P4",
-      "session": 3,
-      "status": "complete",
-      "problem": "Score display, card layouts duplicated across screens.",
-      "locations": [
-        "lib/widgets/score_display.dart (create new)",
-        "lib/screens/plotting_screen.dart",
-        "lib/screens/session_detail_screen.dart",
-        "lib/screens/history_screen.dart"
-      ],
-      "requirements": [
+      "description": "Extract shared widgets. Score display, card layouts duplicated across screens.",
+      "acceptanceCriteria": [
         "Create lib/widgets/score_display.dart - reusable score with optional max/X count",
         "Identify and extract other duplicated widgets",
-        "Update screens to use shared widgets"
-      ],
-      "acceptance_criteria": [
+        "Update screens to use shared widgets",
         "Score displays look identical across all screens (using same widget)",
         "Reduced code duplication",
         "No visual changes"
-      ]
+      ],
+      "priority": 4,
+      "passes": false,
+      "dependsOn": []
     },
     {
-      "id": "P4-3",
+      "id": "US-011",
       "title": "Replace Print with Logging",
-      "priority": "P4",
-      "session": 3,
-      "status": "complete",
-      "problem": "print() statements in production code, inconsistent logging.",
-      "locations": [
-        "lib/services/firestore_sync_service.dart"
-      ],
-      "requirements": [
+      "description": "Replace print() statements with proper logging. print() statements in production code, inconsistent logging.",
+      "acceptanceCriteria": [
         "Replace all print() with debugPrint() (only runs in debug mode)",
         "For important operations, use structured logging",
-        "Primary file: lib/services/firestore_sync_service.dart (20+ print calls)"
-      ],
-      "acceptance_criteria": [
+        "Primary file: lib/services/firestore_sync_service.dart (20+ print calls)",
         "No print() calls in lib/ (only debugPrint)",
         "Production builds don't log to console",
         "Debug builds still show useful logs"
-      ]
+      ],
+      "priority": 4,
+      "passes": false,
+      "dependsOn": []
     },
     {
-      "id": "P4-4",
+      "id": "US-012",
       "title": "Extract Round Matching Logic",
-      "priority": "P4",
-      "session": 3,
-      "status": "complete",
-      "problem": "Same fuzzy round matching duplicated in two files.",
-      "locations": [
-        "lib/utils/round_matcher.dart (create new)",
-        "lib/screens/history_screen.dart:87-129",
-        "lib/widgets/handicap_chart.dart:162-204"
-      ],
-      "requirements": [
+      "description": "Extract round matching logic. Same fuzzy round matching duplicated in two files.",
+      "acceptanceCriteria": [
         "Create lib/utils/round_matcher.dart",
-        "Move matching logic to shared utility",
-        "Update both files to use shared utility"
-      ],
-      "acceptance_criteria": [
+        "Move matching logic from lib/screens/history_screen.dart:87-129",
+        "Move matching logic from lib/widgets/handicap_chart.dart:162-204",
+        "Update both files to use shared utility",
         "Round matching works identically in both places",
         "Single source of truth for matching logic"
-      ]
+      ],
+      "priority": 4,
+      "passes": false,
+      "dependsOn": []
     },
     {
-      "id": "P5-1",
+      "id": "US-013",
       "title": "Semantic Labels",
-      "priority": "P5",
-      "session": 3,
-      "status": "complete",
-      "problem": "Screen readers can't describe UI elements.",
-      "locations": [
-        "lib/screens/home_screen.dart",
-        "lib/screens/plotting_screen.dart",
-        "lib/screens/session_detail_screen.dart"
-      ],
-      "requirements": [
+      "description": "Add semantic labels for accessibility. Screen readers can't describe UI elements.",
+      "acceptanceCriteria": [
         "Add semanticLabel to all Icon widgets",
         "Wrap complex widgets in Semantics with descriptions",
-        "Priority screens: home, plotting, session detail"
-      ],
-      "acceptance_criteria": [
-        "Enable TalkBack/VoiceOver -> can navigate app",
+        "Priority screens: home, plotting, session detail",
+        "Enable TalkBack/VoiceOver and can navigate app",
         "All buttons/icons have spoken labels",
         "Score displays read as 'Score: 278 out of 300'"
-      ]
+      ],
+      "priority": 5,
+      "passes": false,
+      "dependsOn": []
     },
     {
-      "id": "P5-2",
+      "id": "US-014",
       "title": "Touch Target Sizes",
-      "priority": "P5",
-      "session": 3,
-      "status": "complete",
-      "problem": "Some buttons/icons are smaller than 48px minimum.",
-      "locations": [
-        "lib/screens/home_screen.dart",
-        "lib/screens/settings_screen.dart"
-      ],
-      "requirements": [
+      "description": "Fix touch target sizes. Some buttons/icons are smaller than 48px minimum.",
+      "acceptanceCriteria": [
         "Audit all interactive elements for 48x48px minimum",
         "Fix undersized targets (wrap in SizedBox or increase padding)",
-        "Priority: home screen menu items, settings buttons, small icons"
-      ],
-      "acceptance_criteria": [
+        "Priority: home screen menu items, settings buttons, small icons",
         "All tappable elements are at least 48x48px",
         "No accidental taps on wrong targets"
-      ]
+      ],
+      "priority": 5,
+      "passes": false,
+      "dependsOn": []
     }
   ],
-  "out_of_scope": [
-    "New features",
-    "UI redesign",
-    "Performance optimization",
-    "Additional test coverage"
-  ],
-  "success_criteria": [
-    "All P0 bugs fixed",
-    "Error handling wrapper in place and applied to critical paths",
-    "Forms validate input",
-    "Empty states guide users",
-    "Destructive operations have undo",
-    "Code quality improved (no magic numbers, no print statements)",
-    "Basic accessibility in place",
-    "All existing tests still pass"
-  ],
-  "coding_standards": {
-    "testing": "Run flutter test before and after changes",
-    "commits": "Commit after each major item, not at end of session",
-    "patterns": "Follow existing patterns - see SessionDetailScreen for loading/error states",
-    "aesthetic": "Keep dark + gold theme",
-    "fonts": "Monospace only - VT323 for titles, Share Tech Mono for body",
-    "emojis": "None in UI"
+  "metadata": {
+    "updatedAt": "2026-01-16T23:54:42.640Z"
   }
 }

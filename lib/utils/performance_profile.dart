@@ -88,6 +88,18 @@ class PerformanceProfile {
     sessionCount: 0,
   );
 
+  /// Sample profile representing a low-to-intermediate archer
+  /// Used for demonstration when no real data exists
+  static const sampleIntermediate = PerformanceProfile(
+    accuracy: 38,       // ~38% shots in gold (9-10)
+    xRate: 8,           // ~8% X's - occasional center hits
+    scorePercent: 74,   // ~74% of max score
+    consistency: 62,    // Moderate shot-to-shot variance
+    grouping: 55,       // Groups spread across ~2-3 rings
+    arrowCount: 72,     // Simulated 2 sessions worth
+    sessionCount: 2,
+  );
+
   bool get hasData => arrowCount > 0;
 }
 

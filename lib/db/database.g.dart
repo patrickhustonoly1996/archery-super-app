@@ -750,6 +750,17 @@ class $BowsTable extends Bows with TableInfo<$BowsTable, Bow> {
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -759,6 +770,7 @@ class $BowsTable extends Bows with TableInfo<$BowsTable, Bow> {
     isDefault,
     createdAt,
     updatedAt,
+    deletedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -817,6 +829,12 @@ class $BowsTable extends Bows with TableInfo<$BowsTable, Bow> {
         updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
       );
     }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -854,6 +872,10 @@ class $BowsTable extends Bows with TableInfo<$BowsTable, Bow> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
     );
   }
 
@@ -871,6 +893,7 @@ class Bow extends DataClass implements Insertable<Bow> {
   final bool isDefault;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final DateTime? deletedAt;
   const Bow({
     required this.id,
     required this.name,
@@ -879,6 +902,7 @@ class Bow extends DataClass implements Insertable<Bow> {
     required this.isDefault,
     required this.createdAt,
     required this.updatedAt,
+    this.deletedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -892,6 +916,9 @@ class Bow extends DataClass implements Insertable<Bow> {
     map['is_default'] = Variable<bool>(isDefault);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
     return map;
   }
 
@@ -906,6 +933,9 @@ class Bow extends DataClass implements Insertable<Bow> {
       isDefault: Value(isDefault),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
     );
   }
 
@@ -922,6 +952,7 @@ class Bow extends DataClass implements Insertable<Bow> {
       isDefault: serializer.fromJson<bool>(json['isDefault']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
     );
   }
   @override
@@ -935,6 +966,7 @@ class Bow extends DataClass implements Insertable<Bow> {
       'isDefault': serializer.toJson<bool>(isDefault),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
     };
   }
 
@@ -946,6 +978,7 @@ class Bow extends DataClass implements Insertable<Bow> {
     bool? isDefault,
     DateTime? createdAt,
     DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
   }) => Bow(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -954,6 +987,7 @@ class Bow extends DataClass implements Insertable<Bow> {
     isDefault: isDefault ?? this.isDefault,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
   );
   Bow copyWithCompanion(BowsCompanion data) {
     return Bow(
@@ -964,6 +998,7 @@ class Bow extends DataClass implements Insertable<Bow> {
       isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
     );
   }
 
@@ -976,14 +1011,23 @@ class Bow extends DataClass implements Insertable<Bow> {
           ..write('settings: $settings, ')
           ..write('isDefault: $isDefault, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, name, bowType, settings, isDefault, createdAt, updatedAt);
+  int get hashCode => Object.hash(
+    id,
+    name,
+    bowType,
+    settings,
+    isDefault,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -994,7 +1038,8 @@ class Bow extends DataClass implements Insertable<Bow> {
           other.settings == this.settings &&
           other.isDefault == this.isDefault &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
 }
 
 class BowsCompanion extends UpdateCompanion<Bow> {
@@ -1005,6 +1050,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
   final Value<bool> isDefault;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
   final Value<int> rowid;
   const BowsCompanion({
     this.id = const Value.absent(),
@@ -1014,6 +1060,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     this.isDefault = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   BowsCompanion.insert({
@@ -1024,6 +1071,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     this.isDefault = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -1036,6 +1084,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     Expression<bool>? isDefault,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1046,6 +1095,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
       if (isDefault != null) 'is_default': isDefault,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1058,6 +1108,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     Value<bool>? isDefault,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
     Value<int>? rowid,
   }) {
     return BowsCompanion(
@@ -1068,6 +1119,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
       isDefault: isDefault ?? this.isDefault,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1096,6 +1148,9 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1112,6 +1167,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
           ..write('isDefault: $isDefault, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1215,6 +1271,17 @@ class $QuiversTable extends Quivers with TableInfo<$QuiversTable, Quiver> {
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1225,6 +1292,7 @@ class $QuiversTable extends Quivers with TableInfo<$QuiversTable, Quiver> {
     isDefault,
     createdAt,
     updatedAt,
+    deletedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1287,6 +1355,12 @@ class $QuiversTable extends Quivers with TableInfo<$QuiversTable, Quiver> {
         updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
       );
     }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -1328,6 +1402,10 @@ class $QuiversTable extends Quivers with TableInfo<$QuiversTable, Quiver> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
     );
   }
 
@@ -1346,6 +1424,7 @@ class Quiver extends DataClass implements Insertable<Quiver> {
   final bool isDefault;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final DateTime? deletedAt;
   const Quiver({
     required this.id,
     this.bowId,
@@ -1355,6 +1434,7 @@ class Quiver extends DataClass implements Insertable<Quiver> {
     required this.isDefault,
     required this.createdAt,
     required this.updatedAt,
+    this.deletedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1371,6 +1451,9 @@ class Quiver extends DataClass implements Insertable<Quiver> {
     map['is_default'] = Variable<bool>(isDefault);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
     return map;
   }
 
@@ -1388,6 +1471,9 @@ class Quiver extends DataClass implements Insertable<Quiver> {
       isDefault: Value(isDefault),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
     );
   }
 
@@ -1405,6 +1491,7 @@ class Quiver extends DataClass implements Insertable<Quiver> {
       isDefault: serializer.fromJson<bool>(json['isDefault']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
     );
   }
   @override
@@ -1419,6 +1506,7 @@ class Quiver extends DataClass implements Insertable<Quiver> {
       'isDefault': serializer.toJson<bool>(isDefault),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
     };
   }
 
@@ -1431,6 +1519,7 @@ class Quiver extends DataClass implements Insertable<Quiver> {
     bool? isDefault,
     DateTime? createdAt,
     DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
   }) => Quiver(
     id: id ?? this.id,
     bowId: bowId.present ? bowId.value : this.bowId,
@@ -1440,6 +1529,7 @@ class Quiver extends DataClass implements Insertable<Quiver> {
     isDefault: isDefault ?? this.isDefault,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
   );
   Quiver copyWithCompanion(QuiversCompanion data) {
     return Quiver(
@@ -1453,6 +1543,7 @@ class Quiver extends DataClass implements Insertable<Quiver> {
       isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
     );
   }
 
@@ -1466,7 +1557,8 @@ class Quiver extends DataClass implements Insertable<Quiver> {
           ..write('settings: $settings, ')
           ..write('isDefault: $isDefault, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
           ..write(')'))
         .toString();
   }
@@ -1481,6 +1573,7 @@ class Quiver extends DataClass implements Insertable<Quiver> {
     isDefault,
     createdAt,
     updatedAt,
+    deletedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -1493,7 +1586,8 @@ class Quiver extends DataClass implements Insertable<Quiver> {
           other.settings == this.settings &&
           other.isDefault == this.isDefault &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
 }
 
 class QuiversCompanion extends UpdateCompanion<Quiver> {
@@ -1505,6 +1599,7 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
   final Value<bool> isDefault;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
   final Value<int> rowid;
   const QuiversCompanion({
     this.id = const Value.absent(),
@@ -1515,6 +1610,7 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
     this.isDefault = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   QuiversCompanion.insert({
@@ -1526,6 +1622,7 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
     this.isDefault = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name);
@@ -1538,6 +1635,7 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
     Expression<bool>? isDefault,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1549,6 +1647,7 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
       if (isDefault != null) 'is_default': isDefault,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1562,6 +1661,7 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
     Value<bool>? isDefault,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
     Value<int>? rowid,
   }) {
     return QuiversCompanion(
@@ -1573,6 +1673,7 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
       isDefault: isDefault ?? this.isDefault,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1604,6 +1705,9 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1621,6 +1725,7 @@ class QuiversCompanion extends UpdateCompanion<Quiver> {
           ..write('isDefault: $isDefault, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1774,6 +1879,17 @@ class $SessionsTable extends Sessions with TableInfo<$SessionsTable, Session> {
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1788,6 +1904,7 @@ class $SessionsTable extends Sessions with TableInfo<$SessionsTable, Session> {
     bowId,
     quiverId,
     shaftTaggingEnabled,
+    deletedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1886,6 +2003,12 @@ class $SessionsTable extends Sessions with TableInfo<$SessionsTable, Session> {
         ),
       );
     }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -1943,6 +2066,10 @@ class $SessionsTable extends Sessions with TableInfo<$SessionsTable, Session> {
         DriftSqlType.bool,
         data['${effectivePrefix}shaft_tagging_enabled'],
       )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
     );
   }
 
@@ -1965,6 +2092,7 @@ class Session extends DataClass implements Insertable<Session> {
   final String? bowId;
   final String? quiverId;
   final bool shaftTaggingEnabled;
+  final DateTime? deletedAt;
   const Session({
     required this.id,
     required this.roundTypeId,
@@ -1978,6 +2106,7 @@ class Session extends DataClass implements Insertable<Session> {
     this.bowId,
     this.quiverId,
     required this.shaftTaggingEnabled,
+    this.deletedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2004,6 +2133,9 @@ class Session extends DataClass implements Insertable<Session> {
       map['quiver_id'] = Variable<String>(quiverId);
     }
     map['shaft_tagging_enabled'] = Variable<bool>(shaftTaggingEnabled);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
     return map;
   }
 
@@ -2031,6 +2163,9 @@ class Session extends DataClass implements Insertable<Session> {
           ? const Value.absent()
           : Value(quiverId),
       shaftTaggingEnabled: Value(shaftTaggingEnabled),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
     );
   }
 
@@ -2054,6 +2189,7 @@ class Session extends DataClass implements Insertable<Session> {
       shaftTaggingEnabled: serializer.fromJson<bool>(
         json['shaftTaggingEnabled'],
       ),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
     );
   }
   @override
@@ -2072,6 +2208,7 @@ class Session extends DataClass implements Insertable<Session> {
       'bowId': serializer.toJson<String?>(bowId),
       'quiverId': serializer.toJson<String?>(quiverId),
       'shaftTaggingEnabled': serializer.toJson<bool>(shaftTaggingEnabled),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
     };
   }
 
@@ -2088,6 +2225,7 @@ class Session extends DataClass implements Insertable<Session> {
     Value<String?> bowId = const Value.absent(),
     Value<String?> quiverId = const Value.absent(),
     bool? shaftTaggingEnabled,
+    Value<DateTime?> deletedAt = const Value.absent(),
   }) => Session(
     id: id ?? this.id,
     roundTypeId: roundTypeId ?? this.roundTypeId,
@@ -2101,6 +2239,7 @@ class Session extends DataClass implements Insertable<Session> {
     bowId: bowId.present ? bowId.value : this.bowId,
     quiverId: quiverId.present ? quiverId.value : this.quiverId,
     shaftTaggingEnabled: shaftTaggingEnabled ?? this.shaftTaggingEnabled,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
   );
   Session copyWithCompanion(SessionsCompanion data) {
     return Session(
@@ -2126,6 +2265,7 @@ class Session extends DataClass implements Insertable<Session> {
       shaftTaggingEnabled: data.shaftTaggingEnabled.present
           ? data.shaftTaggingEnabled.value
           : this.shaftTaggingEnabled,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
     );
   }
 
@@ -2143,7 +2283,8 @@ class Session extends DataClass implements Insertable<Session> {
           ..write('totalXs: $totalXs, ')
           ..write('bowId: $bowId, ')
           ..write('quiverId: $quiverId, ')
-          ..write('shaftTaggingEnabled: $shaftTaggingEnabled')
+          ..write('shaftTaggingEnabled: $shaftTaggingEnabled, ')
+          ..write('deletedAt: $deletedAt')
           ..write(')'))
         .toString();
   }
@@ -2162,6 +2303,7 @@ class Session extends DataClass implements Insertable<Session> {
     bowId,
     quiverId,
     shaftTaggingEnabled,
+    deletedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -2178,7 +2320,8 @@ class Session extends DataClass implements Insertable<Session> {
           other.totalXs == this.totalXs &&
           other.bowId == this.bowId &&
           other.quiverId == this.quiverId &&
-          other.shaftTaggingEnabled == this.shaftTaggingEnabled);
+          other.shaftTaggingEnabled == this.shaftTaggingEnabled &&
+          other.deletedAt == this.deletedAt);
 }
 
 class SessionsCompanion extends UpdateCompanion<Session> {
@@ -2194,6 +2337,7 @@ class SessionsCompanion extends UpdateCompanion<Session> {
   final Value<String?> bowId;
   final Value<String?> quiverId;
   final Value<bool> shaftTaggingEnabled;
+  final Value<DateTime?> deletedAt;
   final Value<int> rowid;
   const SessionsCompanion({
     this.id = const Value.absent(),
@@ -2208,6 +2352,7 @@ class SessionsCompanion extends UpdateCompanion<Session> {
     this.bowId = const Value.absent(),
     this.quiverId = const Value.absent(),
     this.shaftTaggingEnabled = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SessionsCompanion.insert({
@@ -2223,6 +2368,7 @@ class SessionsCompanion extends UpdateCompanion<Session> {
     this.bowId = const Value.absent(),
     this.quiverId = const Value.absent(),
     this.shaftTaggingEnabled = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        roundTypeId = Value(roundTypeId);
@@ -2239,6 +2385,7 @@ class SessionsCompanion extends UpdateCompanion<Session> {
     Expression<String>? bowId,
     Expression<String>? quiverId,
     Expression<bool>? shaftTaggingEnabled,
+    Expression<DateTime>? deletedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2255,6 +2402,7 @@ class SessionsCompanion extends UpdateCompanion<Session> {
       if (quiverId != null) 'quiver_id': quiverId,
       if (shaftTaggingEnabled != null)
         'shaft_tagging_enabled': shaftTaggingEnabled,
+      if (deletedAt != null) 'deleted_at': deletedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2272,6 +2420,7 @@ class SessionsCompanion extends UpdateCompanion<Session> {
     Value<String?>? bowId,
     Value<String?>? quiverId,
     Value<bool>? shaftTaggingEnabled,
+    Value<DateTime?>? deletedAt,
     Value<int>? rowid,
   }) {
     return SessionsCompanion(
@@ -2287,6 +2436,7 @@ class SessionsCompanion extends UpdateCompanion<Session> {
       bowId: bowId ?? this.bowId,
       quiverId: quiverId ?? this.quiverId,
       shaftTaggingEnabled: shaftTaggingEnabled ?? this.shaftTaggingEnabled,
+      deletedAt: deletedAt ?? this.deletedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2330,6 +2480,9 @@ class SessionsCompanion extends UpdateCompanion<Session> {
     if (shaftTaggingEnabled.present) {
       map['shaft_tagging_enabled'] = Variable<bool>(shaftTaggingEnabled.value);
     }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2351,6 +2504,7 @@ class SessionsCompanion extends UpdateCompanion<Session> {
           ..write('bowId: $bowId, ')
           ..write('quiverId: $quiverId, ')
           ..write('shaftTaggingEnabled: $shaftTaggingEnabled, ')
+          ..write('deletedAt: $deletedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -9006,6 +9160,659 @@ class UserTrainingProgressCompanion
   }
 }
 
+class $BreathTrainingLogsTable extends BreathTrainingLogs
+    with TableInfo<$BreathTrainingLogsTable, BreathTrainingLog> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BreathTrainingLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sessionTypeMeta = const VerificationMeta(
+    'sessionType',
+  );
+  @override
+  late final GeneratedColumn<String> sessionType = GeneratedColumn<String>(
+    'session_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _totalHoldSecondsMeta = const VerificationMeta(
+    'totalHoldSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> totalHoldSeconds = GeneratedColumn<int>(
+    'total_hold_seconds',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _bestHoldThisSessionMeta =
+      const VerificationMeta('bestHoldThisSession');
+  @override
+  late final GeneratedColumn<int> bestHoldThisSession = GeneratedColumn<int>(
+    'best_hold_this_session',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _bestExhaleSecondsMeta = const VerificationMeta(
+    'bestExhaleSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> bestExhaleSeconds = GeneratedColumn<int>(
+    'best_exhale_seconds',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _roundsMeta = const VerificationMeta('rounds');
+  @override
+  late final GeneratedColumn<int> rounds = GeneratedColumn<int>(
+    'rounds',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _difficultyMeta = const VerificationMeta(
+    'difficulty',
+  );
+  @override
+  late final GeneratedColumn<String> difficulty = GeneratedColumn<String>(
+    'difficulty',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _durationMinutesMeta = const VerificationMeta(
+    'durationMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> durationMinutes = GeneratedColumn<int>(
+    'duration_minutes',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _completedAtMeta = const VerificationMeta(
+    'completedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+    'completed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sessionType,
+    totalHoldSeconds,
+    bestHoldThisSession,
+    bestExhaleSeconds,
+    rounds,
+    difficulty,
+    durationMinutes,
+    completedAt,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'breath_training_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BreathTrainingLog> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('session_type')) {
+      context.handle(
+        _sessionTypeMeta,
+        sessionType.isAcceptableOrUnknown(
+          data['session_type']!,
+          _sessionTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionTypeMeta);
+    }
+    if (data.containsKey('total_hold_seconds')) {
+      context.handle(
+        _totalHoldSecondsMeta,
+        totalHoldSeconds.isAcceptableOrUnknown(
+          data['total_hold_seconds']!,
+          _totalHoldSecondsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('best_hold_this_session')) {
+      context.handle(
+        _bestHoldThisSessionMeta,
+        bestHoldThisSession.isAcceptableOrUnknown(
+          data['best_hold_this_session']!,
+          _bestHoldThisSessionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('best_exhale_seconds')) {
+      context.handle(
+        _bestExhaleSecondsMeta,
+        bestExhaleSeconds.isAcceptableOrUnknown(
+          data['best_exhale_seconds']!,
+          _bestExhaleSecondsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('rounds')) {
+      context.handle(
+        _roundsMeta,
+        rounds.isAcceptableOrUnknown(data['rounds']!, _roundsMeta),
+      );
+    }
+    if (data.containsKey('difficulty')) {
+      context.handle(
+        _difficultyMeta,
+        difficulty.isAcceptableOrUnknown(data['difficulty']!, _difficultyMeta),
+      );
+    }
+    if (data.containsKey('duration_minutes')) {
+      context.handle(
+        _durationMinutesMeta,
+        durationMinutes.isAcceptableOrUnknown(
+          data['duration_minutes']!,
+          _durationMinutesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+        _completedAtMeta,
+        completedAt.isAcceptableOrUnknown(
+          data['completed_at']!,
+          _completedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_completedAtMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  BreathTrainingLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BreathTrainingLog(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      sessionType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_type'],
+      )!,
+      totalHoldSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_hold_seconds'],
+      ),
+      bestHoldThisSession: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}best_hold_this_session'],
+      ),
+      bestExhaleSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}best_exhale_seconds'],
+      ),
+      rounds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rounds'],
+      ),
+      difficulty: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}difficulty'],
+      ),
+      durationMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_minutes'],
+      ),
+      completedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}completed_at'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $BreathTrainingLogsTable createAlias(String alias) {
+    return $BreathTrainingLogsTable(attachedDatabase, alias);
+  }
+}
+
+class BreathTrainingLog extends DataClass
+    implements Insertable<BreathTrainingLog> {
+  final String id;
+  final String sessionType;
+  final int? totalHoldSeconds;
+  final int? bestHoldThisSession;
+  final int? bestExhaleSeconds;
+  final int? rounds;
+  final String? difficulty;
+  final int? durationMinutes;
+  final DateTime completedAt;
+  final DateTime createdAt;
+  const BreathTrainingLog({
+    required this.id,
+    required this.sessionType,
+    this.totalHoldSeconds,
+    this.bestHoldThisSession,
+    this.bestExhaleSeconds,
+    this.rounds,
+    this.difficulty,
+    this.durationMinutes,
+    required this.completedAt,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['session_type'] = Variable<String>(sessionType);
+    if (!nullToAbsent || totalHoldSeconds != null) {
+      map['total_hold_seconds'] = Variable<int>(totalHoldSeconds);
+    }
+    if (!nullToAbsent || bestHoldThisSession != null) {
+      map['best_hold_this_session'] = Variable<int>(bestHoldThisSession);
+    }
+    if (!nullToAbsent || bestExhaleSeconds != null) {
+      map['best_exhale_seconds'] = Variable<int>(bestExhaleSeconds);
+    }
+    if (!nullToAbsent || rounds != null) {
+      map['rounds'] = Variable<int>(rounds);
+    }
+    if (!nullToAbsent || difficulty != null) {
+      map['difficulty'] = Variable<String>(difficulty);
+    }
+    if (!nullToAbsent || durationMinutes != null) {
+      map['duration_minutes'] = Variable<int>(durationMinutes);
+    }
+    map['completed_at'] = Variable<DateTime>(completedAt);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  BreathTrainingLogsCompanion toCompanion(bool nullToAbsent) {
+    return BreathTrainingLogsCompanion(
+      id: Value(id),
+      sessionType: Value(sessionType),
+      totalHoldSeconds: totalHoldSeconds == null && nullToAbsent
+          ? const Value.absent()
+          : Value(totalHoldSeconds),
+      bestHoldThisSession: bestHoldThisSession == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bestHoldThisSession),
+      bestExhaleSeconds: bestExhaleSeconds == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bestExhaleSeconds),
+      rounds: rounds == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rounds),
+      difficulty: difficulty == null && nullToAbsent
+          ? const Value.absent()
+          : Value(difficulty),
+      durationMinutes: durationMinutes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(durationMinutes),
+      completedAt: Value(completedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory BreathTrainingLog.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BreathTrainingLog(
+      id: serializer.fromJson<String>(json['id']),
+      sessionType: serializer.fromJson<String>(json['sessionType']),
+      totalHoldSeconds: serializer.fromJson<int?>(json['totalHoldSeconds']),
+      bestHoldThisSession: serializer.fromJson<int?>(
+        json['bestHoldThisSession'],
+      ),
+      bestExhaleSeconds: serializer.fromJson<int?>(json['bestExhaleSeconds']),
+      rounds: serializer.fromJson<int?>(json['rounds']),
+      difficulty: serializer.fromJson<String?>(json['difficulty']),
+      durationMinutes: serializer.fromJson<int?>(json['durationMinutes']),
+      completedAt: serializer.fromJson<DateTime>(json['completedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'sessionType': serializer.toJson<String>(sessionType),
+      'totalHoldSeconds': serializer.toJson<int?>(totalHoldSeconds),
+      'bestHoldThisSession': serializer.toJson<int?>(bestHoldThisSession),
+      'bestExhaleSeconds': serializer.toJson<int?>(bestExhaleSeconds),
+      'rounds': serializer.toJson<int?>(rounds),
+      'difficulty': serializer.toJson<String?>(difficulty),
+      'durationMinutes': serializer.toJson<int?>(durationMinutes),
+      'completedAt': serializer.toJson<DateTime>(completedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  BreathTrainingLog copyWith({
+    String? id,
+    String? sessionType,
+    Value<int?> totalHoldSeconds = const Value.absent(),
+    Value<int?> bestHoldThisSession = const Value.absent(),
+    Value<int?> bestExhaleSeconds = const Value.absent(),
+    Value<int?> rounds = const Value.absent(),
+    Value<String?> difficulty = const Value.absent(),
+    Value<int?> durationMinutes = const Value.absent(),
+    DateTime? completedAt,
+    DateTime? createdAt,
+  }) => BreathTrainingLog(
+    id: id ?? this.id,
+    sessionType: sessionType ?? this.sessionType,
+    totalHoldSeconds: totalHoldSeconds.present
+        ? totalHoldSeconds.value
+        : this.totalHoldSeconds,
+    bestHoldThisSession: bestHoldThisSession.present
+        ? bestHoldThisSession.value
+        : this.bestHoldThisSession,
+    bestExhaleSeconds: bestExhaleSeconds.present
+        ? bestExhaleSeconds.value
+        : this.bestExhaleSeconds,
+    rounds: rounds.present ? rounds.value : this.rounds,
+    difficulty: difficulty.present ? difficulty.value : this.difficulty,
+    durationMinutes: durationMinutes.present
+        ? durationMinutes.value
+        : this.durationMinutes,
+    completedAt: completedAt ?? this.completedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  BreathTrainingLog copyWithCompanion(BreathTrainingLogsCompanion data) {
+    return BreathTrainingLog(
+      id: data.id.present ? data.id.value : this.id,
+      sessionType: data.sessionType.present
+          ? data.sessionType.value
+          : this.sessionType,
+      totalHoldSeconds: data.totalHoldSeconds.present
+          ? data.totalHoldSeconds.value
+          : this.totalHoldSeconds,
+      bestHoldThisSession: data.bestHoldThisSession.present
+          ? data.bestHoldThisSession.value
+          : this.bestHoldThisSession,
+      bestExhaleSeconds: data.bestExhaleSeconds.present
+          ? data.bestExhaleSeconds.value
+          : this.bestExhaleSeconds,
+      rounds: data.rounds.present ? data.rounds.value : this.rounds,
+      difficulty: data.difficulty.present
+          ? data.difficulty.value
+          : this.difficulty,
+      durationMinutes: data.durationMinutes.present
+          ? data.durationMinutes.value
+          : this.durationMinutes,
+      completedAt: data.completedAt.present
+          ? data.completedAt.value
+          : this.completedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BreathTrainingLog(')
+          ..write('id: $id, ')
+          ..write('sessionType: $sessionType, ')
+          ..write('totalHoldSeconds: $totalHoldSeconds, ')
+          ..write('bestHoldThisSession: $bestHoldThisSession, ')
+          ..write('bestExhaleSeconds: $bestExhaleSeconds, ')
+          ..write('rounds: $rounds, ')
+          ..write('difficulty: $difficulty, ')
+          ..write('durationMinutes: $durationMinutes, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    sessionType,
+    totalHoldSeconds,
+    bestHoldThisSession,
+    bestExhaleSeconds,
+    rounds,
+    difficulty,
+    durationMinutes,
+    completedAt,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BreathTrainingLog &&
+          other.id == this.id &&
+          other.sessionType == this.sessionType &&
+          other.totalHoldSeconds == this.totalHoldSeconds &&
+          other.bestHoldThisSession == this.bestHoldThisSession &&
+          other.bestExhaleSeconds == this.bestExhaleSeconds &&
+          other.rounds == this.rounds &&
+          other.difficulty == this.difficulty &&
+          other.durationMinutes == this.durationMinutes &&
+          other.completedAt == this.completedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class BreathTrainingLogsCompanion extends UpdateCompanion<BreathTrainingLog> {
+  final Value<String> id;
+  final Value<String> sessionType;
+  final Value<int?> totalHoldSeconds;
+  final Value<int?> bestHoldThisSession;
+  final Value<int?> bestExhaleSeconds;
+  final Value<int?> rounds;
+  final Value<String?> difficulty;
+  final Value<int?> durationMinutes;
+  final Value<DateTime> completedAt;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const BreathTrainingLogsCompanion({
+    this.id = const Value.absent(),
+    this.sessionType = const Value.absent(),
+    this.totalHoldSeconds = const Value.absent(),
+    this.bestHoldThisSession = const Value.absent(),
+    this.bestExhaleSeconds = const Value.absent(),
+    this.rounds = const Value.absent(),
+    this.difficulty = const Value.absent(),
+    this.durationMinutes = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BreathTrainingLogsCompanion.insert({
+    required String id,
+    required String sessionType,
+    this.totalHoldSeconds = const Value.absent(),
+    this.bestHoldThisSession = const Value.absent(),
+    this.bestExhaleSeconds = const Value.absent(),
+    this.rounds = const Value.absent(),
+    this.difficulty = const Value.absent(),
+    this.durationMinutes = const Value.absent(),
+    required DateTime completedAt,
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       sessionType = Value(sessionType),
+       completedAt = Value(completedAt);
+  static Insertable<BreathTrainingLog> custom({
+    Expression<String>? id,
+    Expression<String>? sessionType,
+    Expression<int>? totalHoldSeconds,
+    Expression<int>? bestHoldThisSession,
+    Expression<int>? bestExhaleSeconds,
+    Expression<int>? rounds,
+    Expression<String>? difficulty,
+    Expression<int>? durationMinutes,
+    Expression<DateTime>? completedAt,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sessionType != null) 'session_type': sessionType,
+      if (totalHoldSeconds != null) 'total_hold_seconds': totalHoldSeconds,
+      if (bestHoldThisSession != null)
+        'best_hold_this_session': bestHoldThisSession,
+      if (bestExhaleSeconds != null) 'best_exhale_seconds': bestExhaleSeconds,
+      if (rounds != null) 'rounds': rounds,
+      if (difficulty != null) 'difficulty': difficulty,
+      if (durationMinutes != null) 'duration_minutes': durationMinutes,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BreathTrainingLogsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? sessionType,
+    Value<int?>? totalHoldSeconds,
+    Value<int?>? bestHoldThisSession,
+    Value<int?>? bestExhaleSeconds,
+    Value<int?>? rounds,
+    Value<String?>? difficulty,
+    Value<int?>? durationMinutes,
+    Value<DateTime>? completedAt,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return BreathTrainingLogsCompanion(
+      id: id ?? this.id,
+      sessionType: sessionType ?? this.sessionType,
+      totalHoldSeconds: totalHoldSeconds ?? this.totalHoldSeconds,
+      bestHoldThisSession: bestHoldThisSession ?? this.bestHoldThisSession,
+      bestExhaleSeconds: bestExhaleSeconds ?? this.bestExhaleSeconds,
+      rounds: rounds ?? this.rounds,
+      difficulty: difficulty ?? this.difficulty,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
+      completedAt: completedAt ?? this.completedAt,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (sessionType.present) {
+      map['session_type'] = Variable<String>(sessionType.value);
+    }
+    if (totalHoldSeconds.present) {
+      map['total_hold_seconds'] = Variable<int>(totalHoldSeconds.value);
+    }
+    if (bestHoldThisSession.present) {
+      map['best_hold_this_session'] = Variable<int>(bestHoldThisSession.value);
+    }
+    if (bestExhaleSeconds.present) {
+      map['best_exhale_seconds'] = Variable<int>(bestExhaleSeconds.value);
+    }
+    if (rounds.present) {
+      map['rounds'] = Variable<int>(rounds.value);
+    }
+    if (difficulty.present) {
+      map['difficulty'] = Variable<String>(difficulty.value);
+    }
+    if (durationMinutes.present) {
+      map['duration_minutes'] = Variable<int>(durationMinutes.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BreathTrainingLogsCompanion(')
+          ..write('id: $id, ')
+          ..write('sessionType: $sessionType, ')
+          ..write('totalHoldSeconds: $totalHoldSeconds, ')
+          ..write('bestHoldThisSession: $bestHoldThisSession, ')
+          ..write('bestExhaleSeconds: $bestExhaleSeconds, ')
+          ..write('rounds: $rounds, ')
+          ..write('difficulty: $difficulty, ')
+          ..write('durationMinutes: $durationMinutes, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $MilestonesTable extends Milestones
     with TableInfo<$MilestonesTable, Milestone> {
   @override
@@ -9910,6 +10717,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $UserTrainingProgressTable userTrainingProgress =
       $UserTrainingProgressTable(this);
+  late final $BreathTrainingLogsTable breathTrainingLogs =
+      $BreathTrainingLogsTable(this);
   late final $MilestonesTable milestones = $MilestonesTable(this);
   late final $VolumeImportsTable volumeImports = $VolumeImportsTable(this);
   @override
@@ -9932,6 +10741,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     olySessionExercises,
     olyTrainingLogs,
     userTrainingProgress,
+    breathTrainingLogs,
     milestones,
     volumeImports,
   ];
@@ -10368,6 +11178,7 @@ typedef $$BowsTableCreateCompanionBuilder =
       Value<bool> isDefault,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
       Value<int> rowid,
     });
 typedef $$BowsTableUpdateCompanionBuilder =
@@ -10379,6 +11190,7 @@ typedef $$BowsTableUpdateCompanionBuilder =
       Value<bool> isDefault,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
       Value<int> rowid,
     });
 
@@ -10465,6 +11277,11 @@ class $$BowsTableFilterComposer extends Composer<_$AppDatabase, $BowsTable> {
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10561,6 +11378,11 @@ class $$BowsTableOrderingComposer extends Composer<_$AppDatabase, $BowsTable> {
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$BowsTableAnnotationComposer
@@ -10592,6 +11414,9 @@ class $$BowsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
   Expression<T> quiversRefs<T extends Object>(
     Expression<T> Function($$QuiversTableAnnotationComposer a) f,
@@ -10679,6 +11504,7 @@ class $$BowsTableTableManager
                 Value<bool> isDefault = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BowsCompanion(
                 id: id,
@@ -10688,6 +11514,7 @@ class $$BowsTableTableManager
                 isDefault: isDefault,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                deletedAt: deletedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -10699,6 +11526,7 @@ class $$BowsTableTableManager
                 Value<bool> isDefault = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BowsCompanion.insert(
                 id: id,
@@ -10708,6 +11536,7 @@ class $$BowsTableTableManager
                 isDefault: isDefault,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                deletedAt: deletedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -10782,6 +11611,7 @@ typedef $$QuiversTableCreateCompanionBuilder =
       Value<bool> isDefault,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
       Value<int> rowid,
     });
 typedef $$QuiversTableUpdateCompanionBuilder =
@@ -10794,6 +11624,7 @@ typedef $$QuiversTableUpdateCompanionBuilder =
       Value<bool> isDefault,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
       Value<int> rowid,
     });
 
@@ -10898,6 +11729,11 @@ class $$QuiversTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11019,6 +11855,11 @@ class $$QuiversTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$BowsTableOrderingComposer get bowId {
     final $$BowsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -11074,6 +11915,9 @@ class $$QuiversTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
   $$BowsTableAnnotationComposer get bowId {
     final $$BowsTableAnnotationComposer composer = $composerBuilder(
@@ -11189,6 +12033,7 @@ class $$QuiversTableTableManager
                 Value<bool> isDefault = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => QuiversCompanion(
                 id: id,
@@ -11199,6 +12044,7 @@ class $$QuiversTableTableManager
                 isDefault: isDefault,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                deletedAt: deletedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -11211,6 +12057,7 @@ class $$QuiversTableTableManager
                 Value<bool> isDefault = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => QuiversCompanion.insert(
                 id: id,
@@ -11221,6 +12068,7 @@ class $$QuiversTableTableManager
                 isDefault: isDefault,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                deletedAt: deletedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -11347,6 +12195,7 @@ typedef $$SessionsTableCreateCompanionBuilder =
       Value<String?> bowId,
       Value<String?> quiverId,
       Value<bool> shaftTaggingEnabled,
+      Value<DateTime?> deletedAt,
       Value<int> rowid,
     });
 typedef $$SessionsTableUpdateCompanionBuilder =
@@ -11363,6 +12212,7 @@ typedef $$SessionsTableUpdateCompanionBuilder =
       Value<String?> bowId,
       Value<String?> quiverId,
       Value<bool> shaftTaggingEnabled,
+      Value<DateTime?> deletedAt,
       Value<int> rowid,
     });
 
@@ -11494,6 +12344,11 @@ class $$SessionsTableFilterComposer
 
   ColumnFilters<bool> get shaftTaggingEnabled => $composableBuilder(
     column: $table.shaftTaggingEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11646,6 +12501,11 @@ class $$SessionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$RoundTypesTableOrderingComposer get roundTypeId {
     final $$RoundTypesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -11759,6 +12619,9 @@ class $$SessionsTableAnnotationComposer
     column: $table.shaftTaggingEnabled,
     builder: (column) => column,
   );
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
   $$RoundTypesTableAnnotationComposer get roundTypeId {
     final $$RoundTypesTableAnnotationComposer composer = $composerBuilder(
@@ -11900,6 +12763,7 @@ class $$SessionsTableTableManager
                 Value<String?> bowId = const Value.absent(),
                 Value<String?> quiverId = const Value.absent(),
                 Value<bool> shaftTaggingEnabled = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SessionsCompanion(
                 id: id,
@@ -11914,6 +12778,7 @@ class $$SessionsTableTableManager
                 bowId: bowId,
                 quiverId: quiverId,
                 shaftTaggingEnabled: shaftTaggingEnabled,
+                deletedAt: deletedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -11930,6 +12795,7 @@ class $$SessionsTableTableManager
                 Value<String?> bowId = const Value.absent(),
                 Value<String?> quiverId = const Value.absent(),
                 Value<bool> shaftTaggingEnabled = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SessionsCompanion.insert(
                 id: id,
@@ -11944,6 +12810,7 @@ class $$SessionsTableTableManager
                 bowId: bowId,
                 quiverId: quiverId,
                 shaftTaggingEnabled: shaftTaggingEnabled,
+                deletedAt: deletedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -16241,6 +17108,328 @@ typedef $$UserTrainingProgressTableProcessedTableManager =
       UserTrainingProgressData,
       PrefetchHooks Function()
     >;
+typedef $$BreathTrainingLogsTableCreateCompanionBuilder =
+    BreathTrainingLogsCompanion Function({
+      required String id,
+      required String sessionType,
+      Value<int?> totalHoldSeconds,
+      Value<int?> bestHoldThisSession,
+      Value<int?> bestExhaleSeconds,
+      Value<int?> rounds,
+      Value<String?> difficulty,
+      Value<int?> durationMinutes,
+      required DateTime completedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$BreathTrainingLogsTableUpdateCompanionBuilder =
+    BreathTrainingLogsCompanion Function({
+      Value<String> id,
+      Value<String> sessionType,
+      Value<int?> totalHoldSeconds,
+      Value<int?> bestHoldThisSession,
+      Value<int?> bestExhaleSeconds,
+      Value<int?> rounds,
+      Value<String?> difficulty,
+      Value<int?> durationMinutes,
+      Value<DateTime> completedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$BreathTrainingLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $BreathTrainingLogsTable> {
+  $$BreathTrainingLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sessionType => $composableBuilder(
+    column: $table.sessionType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalHoldSeconds => $composableBuilder(
+    column: $table.totalHoldSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get bestHoldThisSession => $composableBuilder(
+    column: $table.bestHoldThisSession,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get bestExhaleSeconds => $composableBuilder(
+    column: $table.bestExhaleSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get rounds => $composableBuilder(
+    column: $table.rounds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get difficulty => $composableBuilder(
+    column: $table.difficulty,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationMinutes => $composableBuilder(
+    column: $table.durationMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$BreathTrainingLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $BreathTrainingLogsTable> {
+  $$BreathTrainingLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sessionType => $composableBuilder(
+    column: $table.sessionType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalHoldSeconds => $composableBuilder(
+    column: $table.totalHoldSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get bestHoldThisSession => $composableBuilder(
+    column: $table.bestHoldThisSession,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get bestExhaleSeconds => $composableBuilder(
+    column: $table.bestExhaleSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get rounds => $composableBuilder(
+    column: $table.rounds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get difficulty => $composableBuilder(
+    column: $table.difficulty,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationMinutes => $composableBuilder(
+    column: $table.durationMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$BreathTrainingLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BreathTrainingLogsTable> {
+  $$BreathTrainingLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get sessionType => $composableBuilder(
+    column: $table.sessionType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get totalHoldSeconds => $composableBuilder(
+    column: $table.totalHoldSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get bestHoldThisSession => $composableBuilder(
+    column: $table.bestHoldThisSession,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get bestExhaleSeconds => $composableBuilder(
+    column: $table.bestExhaleSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get rounds =>
+      $composableBuilder(column: $table.rounds, builder: (column) => column);
+
+  GeneratedColumn<String> get difficulty => $composableBuilder(
+    column: $table.difficulty,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get durationMinutes => $composableBuilder(
+    column: $table.durationMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$BreathTrainingLogsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $BreathTrainingLogsTable,
+          BreathTrainingLog,
+          $$BreathTrainingLogsTableFilterComposer,
+          $$BreathTrainingLogsTableOrderingComposer,
+          $$BreathTrainingLogsTableAnnotationComposer,
+          $$BreathTrainingLogsTableCreateCompanionBuilder,
+          $$BreathTrainingLogsTableUpdateCompanionBuilder,
+          (
+            BreathTrainingLog,
+            BaseReferences<
+              _$AppDatabase,
+              $BreathTrainingLogsTable,
+              BreathTrainingLog
+            >,
+          ),
+          BreathTrainingLog,
+          PrefetchHooks Function()
+        > {
+  $$BreathTrainingLogsTableTableManager(
+    _$AppDatabase db,
+    $BreathTrainingLogsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BreathTrainingLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BreathTrainingLogsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BreathTrainingLogsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> sessionType = const Value.absent(),
+                Value<int?> totalHoldSeconds = const Value.absent(),
+                Value<int?> bestHoldThisSession = const Value.absent(),
+                Value<int?> bestExhaleSeconds = const Value.absent(),
+                Value<int?> rounds = const Value.absent(),
+                Value<String?> difficulty = const Value.absent(),
+                Value<int?> durationMinutes = const Value.absent(),
+                Value<DateTime> completedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BreathTrainingLogsCompanion(
+                id: id,
+                sessionType: sessionType,
+                totalHoldSeconds: totalHoldSeconds,
+                bestHoldThisSession: bestHoldThisSession,
+                bestExhaleSeconds: bestExhaleSeconds,
+                rounds: rounds,
+                difficulty: difficulty,
+                durationMinutes: durationMinutes,
+                completedAt: completedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String sessionType,
+                Value<int?> totalHoldSeconds = const Value.absent(),
+                Value<int?> bestHoldThisSession = const Value.absent(),
+                Value<int?> bestExhaleSeconds = const Value.absent(),
+                Value<int?> rounds = const Value.absent(),
+                Value<String?> difficulty = const Value.absent(),
+                Value<int?> durationMinutes = const Value.absent(),
+                required DateTime completedAt,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BreathTrainingLogsCompanion.insert(
+                id: id,
+                sessionType: sessionType,
+                totalHoldSeconds: totalHoldSeconds,
+                bestHoldThisSession: bestHoldThisSession,
+                bestExhaleSeconds: bestExhaleSeconds,
+                rounds: rounds,
+                difficulty: difficulty,
+                durationMinutes: durationMinutes,
+                completedAt: completedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$BreathTrainingLogsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $BreathTrainingLogsTable,
+      BreathTrainingLog,
+      $$BreathTrainingLogsTableFilterComposer,
+      $$BreathTrainingLogsTableOrderingComposer,
+      $$BreathTrainingLogsTableAnnotationComposer,
+      $$BreathTrainingLogsTableCreateCompanionBuilder,
+      $$BreathTrainingLogsTableUpdateCompanionBuilder,
+      (
+        BreathTrainingLog,
+        BaseReferences<
+          _$AppDatabase,
+          $BreathTrainingLogsTable,
+          BreathTrainingLog
+        >,
+      ),
+      BreathTrainingLog,
+      PrefetchHooks Function()
+    >;
 typedef $$MilestonesTableCreateCompanionBuilder =
     MilestonesCompanion Function({
       required String id,
@@ -16733,6 +17922,8 @@ class $AppDatabaseManager {
       $$OlyTrainingLogsTableTableManager(_db, _db.olyTrainingLogs);
   $$UserTrainingProgressTableTableManager get userTrainingProgress =>
       $$UserTrainingProgressTableTableManager(_db, _db.userTrainingProgress);
+  $$BreathTrainingLogsTableTableManager get breathTrainingLogs =>
+      $$BreathTrainingLogsTableTableManager(_db, _db.breathTrainingLogs);
   $$MilestonesTableTableManager get milestones =>
       $$MilestonesTableTableManager(_db, _db.milestones);
   $$VolumeImportsTableTableManager get volumeImports =>

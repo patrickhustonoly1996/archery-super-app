@@ -5,6 +5,7 @@ import '../providers/equipment_provider.dart';
 import '../db/database.dart';
 import '../models/bow_specifications.dart';
 import '../widgets/bow_icon.dart';
+import '../utils/undo_manager.dart';
 import 'bow_form_screen.dart';
 import 'bow_specs_screen.dart';
 
@@ -64,6 +65,8 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
               if (value == 'default') {
                 await context.read<EquipmentProvider>().setDefaultBow(_bow.id);
                 _refreshBow();
+              } else if (value == 'delete') {
+                _showDeleteDialog(context);
               }
             },
             itemBuilder: (context) => [
@@ -72,6 +75,16 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
                   value: 'default',
                   child: Text('Set as default'),
                 ),
+              const PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_outline, color: AppColors.error),
+                    SizedBox(width: AppSpacing.sm),
+                    Text('Delete'),
+                  ],
+                ),
+              ),
             ],
           ),
         ],
@@ -526,5 +539,52 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
       ),
     );
     _refreshBow();
+  }
+
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        title: const Text('Delete Bow?'),
+        content: Text('Delete ${_bow.name}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final bowId = _bow.id;
+              final bowName = _bow.name;
+              final equipmentProvider = context.read<EquipmentProvider>();
+
+              await equipmentProvider.deleteBow(bowId);
+
+              if (context.mounted) {
+                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop(); // Close detail screen
+
+                // Show undo snackbar
+                UndoManager.showUndoSnackbar(
+                  context: context,
+                  message: 'Bow deleted',
+                  onUndo: () async {
+                    await equipmentProvider.restoreBow(bowId);
+                  },
+                  onExpired: () async {
+                    await equipmentProvider.permanentlyDeleteBow(bowId);
+                  },
+                );
+              }
+            },
+            child: Text(
+              'Delete',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

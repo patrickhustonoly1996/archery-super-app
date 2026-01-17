@@ -114,6 +114,7 @@ class _BreathTrainingHomeScreenState extends State<BreathTrainingHomeScreen> {
                     _SessionCard(
                       icon: Icons.timer_outlined,
                       title: 'Long Exhale Test',
+                      subtitle: 'The Patrick Breath',
                       description: _bestExhale > 0
                           ? 'How long can you exhale? Best: ${_bestExhale}s'
                           : 'How long can you exhale? Test yourself.',

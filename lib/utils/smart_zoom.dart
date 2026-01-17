@@ -14,11 +14,11 @@ class SmartZoom {
   /// With fewer arrows, we use a sensible default
   static const int minArrowsForAdaptiveZoom = 3;
 
-  /// Minimum zoom factor - never go below 2x
-  static const double minZoom = 2.0;
+  /// Minimum zoom factor - 4x for precision plotting
+  static const double minZoom = 4.0;
 
-  /// Maximum zoom factor - cap at 6x for usability
-  static const double maxZoom = 6.0;
+  /// Maximum zoom factor - cap at 10x for line-cutter precision
+  static const double maxZoom = 10.0;
 
   /// Padding in normalized units (~2 rings = 0.2)
   static const double paddingRings = 0.2;

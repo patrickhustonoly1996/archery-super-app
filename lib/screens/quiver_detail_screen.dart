@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
 import '../db/database.dart';
 import '../models/arrow_specifications.dart';
+import '../utils/undo_manager.dart';
 import 'quiver_form_screen.dart';
 import 'quiver_specs_screen.dart';
 import 'shaft_management_screen.dart';
@@ -76,6 +77,8 @@ class _QuiverDetailScreenState extends State<QuiverDetailScreen> {
                   ),
                 );
                 _refreshQuiver();
+              } else if (value == 'delete') {
+                _showDeleteDialog(context);
               }
             },
             itemBuilder: (context) => [
@@ -87,6 +90,16 @@ class _QuiverDetailScreenState extends State<QuiverDetailScreen> {
               const PopupMenuItem(
                 value: 'shafts',
                 child: Text('Manage individual arrows'),
+              ),
+              const PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_outline, color: AppColors.error),
+                    SizedBox(width: AppSpacing.sm),
+                    Text('Delete'),
+                  ],
+                ),
               ),
             ],
           ),
@@ -479,5 +492,52 @@ class _QuiverDetailScreenState extends State<QuiverDetailScreen> {
       ),
     );
     _refreshQuiver();
+  }
+
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        title: const Text('Delete Quiver?'),
+        content: Text('Delete ${_quiver.name}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final quiverId = _quiver.id;
+              final quiverName = _quiver.name;
+              final equipmentProvider = context.read<EquipmentProvider>();
+
+              await equipmentProvider.deleteQuiver(quiverId);
+
+              if (context.mounted) {
+                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop(); // Close detail screen
+
+                // Show undo snackbar
+                UndoManager.showUndoSnackbar(
+                  context: context,
+                  message: 'Quiver deleted',
+                  onUndo: () async {
+                    await equipmentProvider.restoreQuiver(quiverId);
+                  },
+                  onExpired: () async {
+                    await equipmentProvider.permanentlyDeleteQuiver(quiverId);
+                  },
+                );
+              }
+            },
+            child: Text(
+              'Delete',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

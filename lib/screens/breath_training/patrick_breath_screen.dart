@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
+import '../../db/database.dart';
+import '../../utils/unique_id.dart';
 import '../../services/beep_service.dart';
 import '../../services/breath_training_service.dart';
 import '../../widgets/breathing_visualizer.dart';
@@ -263,9 +266,31 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
     _timer?.cancel();
     // Clear provider state
     context.read<BreathTrainingProvider>().reset();
+    // Save to database
+    _saveSessionToDatabase();
     setState(() {
       _state = PatrickState.complete;
     });
+  }
+
+  Future<void> _saveSessionToDatabase() async {
+    if (_exhaleTimes.isEmpty) return;
+
+    try {
+      final db = Provider.of<AppDatabase>(context, listen: false);
+      await db.insertBreathTrainingLog(
+        BreathTrainingLogsCompanion.insert(
+          id: UniqueId.generate(),
+          sessionType: 'patrickBreath',
+          bestExhaleSeconds: Value(_bestThisSession),
+          rounds: Value(_exhaleTimes.length),
+          completedAt: DateTime.now(),
+        ),
+      );
+      debugPrint('Patrick breath session saved: ${_bestThisSession}s best exhale');
+    } catch (e) {
+      debugPrint('Error saving patrick breath session: $e');
+    }
   }
 
   Future<bool> _onWillPop() async {
