@@ -21,6 +21,9 @@ const String kTripleSpotViewPref = 'indoor_triple_spot_view';
 /// Preference key for combined view mode (when viewing triple spot)
 const String kTripleSpotCombinedViewPref = 'indoor_triple_spot_combined';
 
+/// Preference key for compound scoring mode (smaller inner 10/X ring)
+const String kCompoundScoringPref = 'compound_scoring_mode';
+
 class PlottingScreen extends StatefulWidget {
   const PlottingScreen({super.key});
 
@@ -33,6 +36,8 @@ class _PlottingScreenState extends State<PlottingScreen> {
   bool _useTripleSpotView = true;
   // Default to separate view (3 targets)
   bool _useCombinedView = false;
+  // Compound scoring mode - smaller inner 10/X ring
+  bool _compoundScoring = false;
   // Selected face for plotting (0, 1, or 2)
   int _selectedFaceIndex = 0;
   bool _prefsLoaded = false;
@@ -47,10 +52,12 @@ class _PlottingScreenState extends State<PlottingScreen> {
     final db = context.read<AppDatabase>();
     final tripleSpot = await db.getBoolPreference(kTripleSpotViewPref, defaultValue: true);
     final combined = await db.getBoolPreference(kTripleSpotCombinedViewPref, defaultValue: false);
+    final compound = await db.getBoolPreference(kCompoundScoringPref, defaultValue: false);
     if (mounted) {
       setState(() {
         _useTripleSpotView = tripleSpot;
         _useCombinedView = combined;
+        _compoundScoring = compound;
         _prefsLoaded = true;
       });
     }
@@ -66,6 +73,12 @@ class _PlottingScreenState extends State<PlottingScreen> {
     final db = context.read<AppDatabase>();
     await db.setBoolPreference(kTripleSpotCombinedViewPref, value);
     setState(() => _useCombinedView = value);
+  }
+
+  Future<void> _setCompoundScoring(bool value) async {
+    final db = context.read<AppDatabase>();
+    await db.setBoolPreference(kCompoundScoringPref, value);
+    setState(() => _compoundScoring = value);
   }
 
   @override
@@ -149,7 +162,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
 
                 const SizedBox(height: AppSpacing.md),
 
-                // Triple spot toggle for indoor rounds
+                // Indoor toggles: triple spot view + compound scoring
                 if (supportsTripleSpot)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -160,6 +173,11 @@ class _PlottingScreenState extends State<PlottingScreen> {
                         TripleSpotToggle(
                           isTripleSpot: _useTripleSpotView,
                           onChanged: _setTripleSpotView,
+                        ),
+                        // Compound scoring toggle (smaller inner 10)
+                        _CompoundToggle(
+                          isCompound: _compoundScoring,
+                          onChanged: _setCompoundScoring,
                         ),
                         // Combined vs separate toggle (only when triple spot)
                         if (_useTripleSpotView)
@@ -195,6 +213,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                   return CombinedTripleSpotView(
                                     arrows: provider.allSessionArrows,
                                     size: size.clamp(200.0, 350.0),
+                                    compoundScoring: _compoundScoring,
                                   );
                                 } else {
                                   // Separate view: 3 interactive faces
@@ -202,6 +221,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                     arrows: provider.allSessionArrows,
                                     size: size.clamp(200.0, 400.0),
                                     enabled: !provider.isEndComplete,
+                                    compoundScoring: _compoundScoring,
                                     onArrowPlotted: (x, y, faceIndex) async {
                                       await _plotArrowWithFace(
                                         context, provider, x, y, faceIndex,
@@ -219,6 +239,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                 enabled: !provider.isEndComplete,
                                 isIndoor: provider.roundType?.isIndoor ?? false,
                                 triSpot: isTriSpot,
+                                compoundScoring: _compoundScoring,
                                 lineCutterDialogEnabled: true,
                                 onArrowPlotted: (x, y) async {
                                   await _plotArrowWithFace(context, provider, x, y, 0);
@@ -450,6 +471,45 @@ class _ViewModeToggle extends StatelessWidget {
             icon,
             size: 18,
             color: isSelected ? AppColors.gold : AppColors.textMuted,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Toggle for compound scoring mode (smaller inner 10/X ring)
+class _CompoundToggle extends StatelessWidget {
+  final bool isCompound;
+  final ValueChanged<bool> onChanged;
+
+  const _CompoundToggle({
+    required this.isCompound,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: isCompound ? 'Compound (small X)' : 'Recurve (standard X)',
+      child: GestureDetector(
+        onTap: () => onChanged(!isCompound),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: isCompound ? AppColors.gold.withOpacity(0.2) : Colors.transparent,
+            border: Border.all(
+              color: isCompound ? AppColors.gold : AppColors.surfaceLight,
+            ),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            isCompound ? 'CPD' : 'REC',
+            style: TextStyle(
+              fontFamily: AppFonts.pixel,
+              fontSize: 12,
+              color: isCompound ? AppColors.gold : AppColors.textMuted,
+            ),
           ),
         ),
       ),

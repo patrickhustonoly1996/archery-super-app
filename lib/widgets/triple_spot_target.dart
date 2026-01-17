@@ -24,6 +24,7 @@ class TripleSpotTarget extends StatelessWidget {
   final int? selectedFace;
   final ValueChanged<int>? onFaceSelected;
   final bool showFaceLabels;
+  final bool compoundScoring;
 
   const TripleSpotTarget({
     super.key,
@@ -32,6 +33,7 @@ class TripleSpotTarget extends StatelessWidget {
     this.selectedFace,
     this.onFaceSelected,
     this.showFaceLabels = true,
+    this.compoundScoring = false,
   });
 
   @override
@@ -91,6 +93,7 @@ class TripleSpotTarget extends StatelessWidget {
           arrows: faceArrows,
           size: faceSize,
           triSpot: true, // Always tri-spot mode (rings 6-10 only)
+          compoundScoring: compoundScoring,
         ),
       ),
     );
@@ -126,6 +129,7 @@ class InteractiveTripleSpotTarget extends StatefulWidget {
   final Function(double x, double y, int faceIndex) onArrowPlotted;
   final bool enabled;
   final bool isLeftHanded;
+  final bool compoundScoring;
 
   const InteractiveTripleSpotTarget({
     super.key,
@@ -134,6 +138,7 @@ class InteractiveTripleSpotTarget extends StatefulWidget {
     this.size = 300,
     this.enabled = true,
     this.isLeftHanded = false,
+    this.compoundScoring = false,
   });
 
   @override
@@ -215,6 +220,7 @@ class _InteractiveTripleSpotTargetState
           isIndoor: true,
           triSpot: true,
           isLeftHanded: widget.isLeftHanded,
+          compoundScoring: widget.compoundScoring,
           onArrowPlotted: (x, y) {
             widget.onArrowPlotted(x, y, faceIndex);
           },
@@ -348,11 +354,13 @@ class TripleSpotToggle extends StatelessWidget {
 class CombinedTripleSpotView extends StatelessWidget {
   final List<Arrow> arrows;
   final double size;
+  final bool compoundScoring;
 
   const CombinedTripleSpotView({
     super.key,
     required this.arrows,
     this.size = 300,
+    this.compoundScoring = false,
   });
 
   @override
@@ -365,6 +373,7 @@ class CombinedTripleSpotView extends StatelessWidget {
           arrows: arrows,
           size: size,
           triSpot: true,
+          compoundScoring: compoundScoring,
         ),
         const SizedBox(height: 8),
         // Show face breakdown
