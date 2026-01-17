@@ -13,6 +13,7 @@ import 'package:drift/native.dart';
 import 'package:archery_super_app/db/database.dart';
 import 'package:archery_super_app/providers/session_provider.dart';
 import 'package:archery_super_app/providers/equipment_provider.dart';
+import 'package:archery_super_app/providers/connectivity_provider.dart';
 import 'package:archery_super_app/screens/plotting_screen.dart';
 import 'package:archery_super_app/screens/session_start_screen.dart';
 import 'package:archery_super_app/screens/session_complete_screen.dart';
@@ -20,6 +21,7 @@ import 'package:archery_super_app/screens/home_screen.dart';
 import 'package:archery_super_app/widgets/scorecard_widget.dart';
 import 'package:archery_super_app/widgets/target_face.dart';
 import 'package:archery_super_app/theme/app_theme.dart';
+import '../mocks/mock_connectivity_provider.dart';
 
 /// Creates an in-memory database for testing
 AppDatabase createTestDatabase() {
@@ -44,10 +46,39 @@ Widget buildTestApp({
           create: (context) =>
               EquipmentProvider(context.read<AppDatabase>())..loadEquipment(),
         ),
+        ChangeNotifierProvider<ConnectivityProvider>(
+          create: (_) => MockConnectivityProvider() as ConnectivityProvider,
+        ),
       ],
       child: MaterialApp(
         theme: AppTheme.darkTheme,
         home: child,
+      ),
+    ),
+  );
+}
+
+/// Test helper to build PlottingScreen with an existing SessionProvider
+Widget buildPlottingTestApp({
+  required AppDatabase db,
+  required SessionProvider sessionProvider,
+}) {
+  return Provider<AppDatabase>.value(
+    value: db,
+    child: MultiProvider(
+      providers: [
+        ChangeNotifierProvider<SessionProvider>.value(value: sessionProvider),
+        ChangeNotifierProvider(
+          create: (context) =>
+              EquipmentProvider(context.read<AppDatabase>())..loadEquipment(),
+        ),
+        ChangeNotifierProvider<ConnectivityProvider>(
+          create: (_) => MockConnectivityProvider() as ConnectivityProvider,
+        ),
+      ],
+      child: MaterialApp(
+        theme: AppTheme.darkTheme,
+        home: const PlottingScreen(),
       ),
     ),
   );
@@ -130,22 +161,10 @@ void main() {
 
         await sessionProvider.startSession(roundTypeId: wa18m.id);
 
-        await tester.pumpWidget(
-          Provider<AppDatabase>.value(
-            value: db,
-            child: ChangeNotifierProvider<SessionProvider>.value(
-              value: sessionProvider,
-              child: ChangeNotifierProvider(
-                create: (context) =>
-                    EquipmentProvider(context.read<AppDatabase>())..loadEquipment(),
-                child: MaterialApp(
-                  theme: AppTheme.darkTheme,
-                  home: const PlottingScreen(),
-                ),
-              ),
-            ),
-          ),
-        );
+        await tester.pumpWidget(buildPlottingTestApp(
+          db: db,
+          sessionProvider: sessionProvider,
+        ));
         await tester.pumpAndSettle();
 
         // Verify initial state
@@ -175,22 +194,10 @@ void main() {
 
         await sessionProvider.startSession(roundTypeId: wa18m.id);
 
-        await tester.pumpWidget(
-          Provider<AppDatabase>.value(
-            value: db,
-            child: ChangeNotifierProvider<SessionProvider>.value(
-              value: sessionProvider,
-              child: ChangeNotifierProvider(
-                create: (context) =>
-                    EquipmentProvider(context.read<AppDatabase>())..loadEquipment(),
-                child: MaterialApp(
-                  theme: AppTheme.darkTheme,
-                  home: const PlottingScreen(),
-                ),
-              ),
-            ),
-          ),
-        );
+        await tester.pumpWidget(buildPlottingTestApp(
+          db: db,
+          sessionProvider: sessionProvider,
+        ));
         await tester.pumpAndSettle();
 
         // Plot 3 arrows (WA 18m has 3 arrows per end)
@@ -222,22 +229,10 @@ void main() {
 
         await sessionProvider.startSession(roundTypeId: wa18m.id);
 
-        await tester.pumpWidget(
-          Provider<AppDatabase>.value(
-            value: db,
-            child: ChangeNotifierProvider<SessionProvider>.value(
-              value: sessionProvider,
-              child: ChangeNotifierProvider(
-                create: (context) =>
-                    EquipmentProvider(context.read<AppDatabase>())..loadEquipment(),
-                child: MaterialApp(
-                  theme: AppTheme.darkTheme,
-                  home: const PlottingScreen(),
-                ),
-              ),
-            ),
-          ),
-        );
+        await tester.pumpWidget(buildPlottingTestApp(
+          db: db,
+          sessionProvider: sessionProvider,
+        ));
         await tester.pumpAndSettle();
 
         // Verify starting at end 1
@@ -366,22 +361,10 @@ void main() {
 
         await sessionProvider.startSession(roundTypeId: wa18m.id);
 
-        await tester.pumpWidget(
-          Provider<AppDatabase>.value(
-            value: db,
-            child: ChangeNotifierProvider<SessionProvider>.value(
-              value: sessionProvider,
-              child: ChangeNotifierProvider(
-                create: (context) =>
-                    EquipmentProvider(context.read<AppDatabase>())..loadEquipment(),
-                child: MaterialApp(
-                  theme: AppTheme.darkTheme,
-                  home: const PlottingScreen(),
-                ),
-              ),
-            ),
-          ),
-        );
+        await tester.pumpWidget(buildPlottingTestApp(
+          db: db,
+          sessionProvider: sessionProvider,
+        ));
         await tester.pumpAndSettle();
 
         // Plot 2 arrows
@@ -410,22 +393,10 @@ void main() {
 
         await sessionProvider.startSession(roundTypeId: wa18m.id);
 
-        await tester.pumpWidget(
-          Provider<AppDatabase>.value(
-            value: db,
-            child: ChangeNotifierProvider<SessionProvider>.value(
-              value: sessionProvider,
-              child: ChangeNotifierProvider(
-                create: (context) =>
-                    EquipmentProvider(context.read<AppDatabase>())..loadEquipment(),
-                child: MaterialApp(
-                  theme: AppTheme.darkTheme,
-                  home: const PlottingScreen(),
-                ),
-              ),
-            ),
-          ),
-        );
+        await tester.pumpWidget(buildPlottingTestApp(
+          db: db,
+          sessionProvider: sessionProvider,
+        ));
         await tester.pumpAndSettle();
 
         // Find the Undo button
@@ -501,22 +472,10 @@ void main() {
 
         await sessionProvider.startSession(roundTypeId: wa18m.id);
 
-        await tester.pumpWidget(
-          Provider<AppDatabase>.value(
-            value: db,
-            child: ChangeNotifierProvider<SessionProvider>.value(
-              value: sessionProvider,
-              child: ChangeNotifierProvider(
-                create: (context) =>
-                    EquipmentProvider(context.read<AppDatabase>())..loadEquipment(),
-                child: MaterialApp(
-                  theme: AppTheme.darkTheme,
-                  home: const PlottingScreen(),
-                ),
-              ),
-            ),
-          ),
-        );
+        await tester.pumpWidget(buildPlottingTestApp(
+          db: db,
+          sessionProvider: sessionProvider,
+        ));
         await tester.pumpAndSettle();
 
         // Find and tap the menu button
@@ -661,22 +620,10 @@ void main() {
         // Plot an arrow
         await sessionProvider.plotArrow(x: 0.2, y: -0.1);
 
-        await tester.pumpWidget(
-          Provider<AppDatabase>.value(
-            value: db,
-            child: ChangeNotifierProvider<SessionProvider>.value(
-              value: sessionProvider,
-              child: ChangeNotifierProvider(
-                create: (context) =>
-                    EquipmentProvider(context.read<AppDatabase>())..loadEquipment(),
-                child: MaterialApp(
-                  theme: AppTheme.darkTheme,
-                  home: const PlottingScreen(),
-                ),
-              ),
-            ),
-          ),
-        );
+        await tester.pumpWidget(buildPlottingTestApp(
+          db: db,
+          sessionProvider: sessionProvider,
+        ));
         await tester.pumpAndSettle();
 
         // Verify target face is displayed
@@ -696,22 +643,10 @@ void main() {
 
         await sessionProvider.startSession(roundTypeId: wa18m.id);
 
-        await tester.pumpWidget(
-          Provider<AppDatabase>.value(
-            value: db,
-            child: ChangeNotifierProvider<SessionProvider>.value(
-              value: sessionProvider,
-              child: ChangeNotifierProvider(
-                create: (context) =>
-                    EquipmentProvider(context.read<AppDatabase>())..loadEquipment(),
-                child: MaterialApp(
-                  theme: AppTheme.darkTheme,
-                  home: const PlottingScreen(),
-                ),
-              ),
-            ),
-          ),
-        );
+        await tester.pumpWidget(buildPlottingTestApp(
+          db: db,
+          sessionProvider: sessionProvider,
+        ));
         await tester.pumpAndSettle();
 
         // Verify end counter is displayed with correct format

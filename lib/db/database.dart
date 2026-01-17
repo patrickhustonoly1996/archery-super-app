@@ -1011,6 +1011,32 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
+  /// Update user level (e.g., after max hold test)
+  Future<void> updateUserLevel(String level) async {
+    final existing = await getUserTrainingProgress();
+    if (existing == null) {
+      await insertUserTrainingProgress(
+        UserTrainingProgressCompanion.insert(
+          id: 'user_progress',
+          currentLevel: Value(level),
+          hasCompletedAssessment: const Value(true),
+          assessmentDate: Value(DateTime.now()),
+        ),
+      );
+    } else {
+      await updateUserTrainingProgress(
+        UserTrainingProgressCompanion(
+          id: Value(existing.id),
+          currentLevel: Value(level),
+          sessionsAtCurrentLevel: const Value(0),
+          hasCompletedAssessment: const Value(true),
+          assessmentDate: Value(DateTime.now()),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+    }
+  }
+
   Future<void> updateProgressAfterSession({
     required String completedVersion,
     required String? suggestedNextVersion,

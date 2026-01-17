@@ -3,10 +3,10 @@
   "sessionId": "dc46ae88-84c4-46be-a838-5cc1afd831ff",
   "status": "running",
   "startedAt": "2026-01-17T09:30:03.140Z",
-  "updatedAt": "2026-01-17T09:43:31.422Z",
-  "currentIteration": 3,
+  "updatedAt": "2026-01-17T09:51:02.875Z",
+  "currentIteration": 4,
   "maxIterations": 0,
-  "tasksCompleted": 3,
+  "tasksCompleted": 4,
   "isPaused": false,
   "agentPlugin": "claude",
   "model": "opus",
@@ -96,8 +96,8 @@
       {
         "id": "US-014",
         "title": "Touch Target Sizes",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       }
     ]
   },
@@ -131,12 +131,20 @@
       "durationMs": 325451,
       "startedAt": "2026-01-17T09:38:04.920Z",
       "endedAt": "2026-01-17T09:43:30.371Z"
+    },
+    {
+      "iteration": 4,
+      "status": "completed",
+      "taskId": "US-014",
+      "taskTitle": "Touch Target Sizes",
+      "taskCompleted": true,
+      "durationMs": 451447,
+      "startedAt": "2026-01-17T09:43:31.405Z",
+      "endedAt": "2026-01-17T09:51:02.852Z"
     }
   ],
   "skippedTaskIds": [],
   "cwd": "C:\\Users\\patri\\Desktop\\archery_super_app_v1",
-  "activeTaskIds": [
-    "US-014"
-  ],
+  "activeTaskIds": [],
   "subagentPanelVisible": false
 }

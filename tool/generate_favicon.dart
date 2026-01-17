@@ -37,16 +37,14 @@ void main() {
 img.Image generateFavicon(int size) {
   final image = img.Image(width: size, height: size);
 
-  // Fill with dark background
-  img.fill(image, color: img.ColorRgba8(bgR, bgG, bgB, 255));
+  // Start with transparent background
+  img.fill(image, color: img.ColorRgba8(0, 0, 0, 0));
 
   final pixelSize = size / 16;
 
-  // Gold colors at different opacities
-  final gold100 = img.ColorRgba8(goldR, goldG, goldB, 255);
-  final gold70 = img.ColorRgba8(goldR, goldG, goldB, 178);
-  final gold60 = img.ColorRgba8(goldR, goldG, goldB, 153);
-  final gold40 = img.ColorRgba8(goldR, goldG, goldB, 102);
+  final gold = img.ColorRgba8(goldR, goldG, goldB, 255);
+  final goldFaint = img.ColorRgba8(goldR, goldG, goldB, 128);
+  final goldVeryFaint = img.ColorRgba8(goldR, goldG, goldB, 77);
 
   void drawPixel(int x, int y, img.Color color) {
     final x1 = (x * pixelSize).round();
@@ -61,51 +59,34 @@ img.Image generateFavicon(int size) {
     }
   }
 
-  // Target in top-right corner - outer ring + center square
-  const targetCenterX = 12;
-  const targetCenterY = 3;
-
-  // Outer ring
-  drawPixel(targetCenterX - 1, targetCenterY - 2, gold40);
-  drawPixel(targetCenterX, targetCenterY - 2, gold40);
-  drawPixel(targetCenterX + 1, targetCenterY - 1, gold40);
-  drawPixel(targetCenterX + 2, targetCenterY, gold40);
-  drawPixel(targetCenterX + 1, targetCenterY + 1, gold40);
-  drawPixel(targetCenterX, targetCenterY + 2, gold40);
-  drawPixel(targetCenterX - 1, targetCenterY + 2, gold40);
-  drawPixel(targetCenterX - 2, targetCenterY + 1, gold40);
-  drawPixel(targetCenterX - 2, targetCenterY, gold40);
-  drawPixel(targetCenterX - 2, targetCenterY - 1, gold40);
-
-  // Center square (2x2)
-  drawPixel(targetCenterX - 1, targetCenterY, gold70);
-  drawPixel(targetCenterX, targetCenterY, gold70);
-  drawPixel(targetCenterX - 1, targetCenterY + 1, gold70);
-  drawPixel(targetCenterX, targetCenterY + 1, gold70);
-
-  // Arrow shaft
-  for (int x = 2; x <= 12; x++) {
-    drawPixel(x, 7, gold100);
-    drawPixel(x, 8, gold100);
+  // Pixel arrow pointing right - matches PixelBowIcon exactly
+  // Arrow shaft (thick, 2 pixels high)
+  for (int x = 1; x <= 11; x++) {
+    drawPixel(x, 7, gold);
+    drawPixel(x, 8, gold);
   }
 
-  // Arrow head - top part
-  drawPixel(10, 4, gold100);
-  drawPixel(11, 5, gold100);
-  drawPixel(12, 6, gold100);
-  drawPixel(13, 7, gold100);
-  drawPixel(13, 8, gold100);
+  // Arrow head - top diagonal
+  drawPixel(9, 4, gold);
+  drawPixel(10, 5, gold);
+  drawPixel(11, 6, gold);
+  drawPixel(12, 7, gold);
+  drawPixel(12, 8, gold);
 
-  // Arrow head - bottom part
-  drawPixel(12, 9, gold100);
-  drawPixel(11, 10, gold100);
-  drawPixel(10, 11, gold100);
+  // Arrow head - bottom diagonal
+  drawPixel(11, 9, gold);
+  drawPixel(10, 10, gold);
+  drawPixel(9, 11, gold);
 
-  // Fletching at back
-  drawPixel(2, 5, gold60);
-  drawPixel(3, 6, gold60);
-  drawPixel(2, 10, gold60);
-  drawPixel(3, 9, gold60);
+  // Fletching at back (subtle)
+  drawPixel(1, 5, goldFaint);
+  drawPixel(2, 6, goldFaint);
+  drawPixel(1, 10, goldFaint);
+  drawPixel(2, 9, goldFaint);
+
+  // Nock detail
+  drawPixel(0, 7, goldVeryFaint);
+  drawPixel(0, 8, goldVeryFaint);
 
   return image;
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:drift/drift.dart';
@@ -55,7 +56,7 @@ class HoldRestRatio {
   ];
 }
 
-/// Custom session configuration
+/// Custom session configuration (for quick sessions)
 class CustomSessionConfig {
   final int durationMinutes;
   final HoldRestRatio ratio;
@@ -84,6 +85,84 @@ class CustomSessionConfig {
   String get displayName => '${durationMinutes}min @ ${ratio.label}';
 }
 
+/// A custom user-created bow training session (saved sessions)
+class CustomBowSession {
+  final String id;
+  final String name;
+  final List<CustomExercise> exercises;
+  final DateTime createdAt;
+
+  CustomBowSession({
+    required this.id,
+    required this.name,
+    required this.exercises,
+    required this.createdAt,
+  });
+
+  int get totalDurationSeconds {
+    int total = 0;
+    for (final ex in exercises) {
+      total += ex.reps * (ex.holdSeconds + ex.restSeconds);
+    }
+    return total;
+  }
+
+  int get totalDurationMinutes => (totalDurationSeconds / 60).ceil();
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'exercises': exercises.map((e) => e.toJson()).toList(),
+    'createdAt': createdAt.toIso8601String(),
+  };
+
+  factory CustomBowSession.fromJson(Map<String, dynamic> json) {
+    return CustomBowSession(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      exercises: (json['exercises'] as List)
+          .map((e) => CustomExercise.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+  }
+}
+
+/// A single exercise within a custom session
+class CustomExercise {
+  final String exerciseTypeId;
+  final String name;
+  final int reps;
+  final int holdSeconds;
+  final int restSeconds;
+
+  CustomExercise({
+    required this.exerciseTypeId,
+    required this.name,
+    required this.reps,
+    required this.holdSeconds,
+    required this.restSeconds,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'exerciseTypeId': exerciseTypeId,
+    'name': name,
+    'reps': reps,
+    'holdSeconds': holdSeconds,
+    'restSeconds': restSeconds,
+  };
+
+  factory CustomExercise.fromJson(Map<String, dynamic> json) {
+    return CustomExercise(
+      exerciseTypeId: json['exerciseTypeId'] as String,
+      name: json['name'] as String,
+      reps: json['reps'] as int,
+      holdSeconds: json['holdSeconds'] as int,
+      restSeconds: json['restSeconds'] as int,
+    );
+  }
+}
+
 class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
   final AppDatabase _db;
 
@@ -93,6 +172,14 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Tracks if timer was running before app went to background
   bool _wasRunningBeforeBackground = false;
+
+  // ===========================================================================
+  // PREFERENCE KEYS
+  // ===========================================================================
+
+  static const String _prefLastDuration = 'bow_training_last_duration';
+  static const String _prefLastWorkRatio = 'bow_training_last_work_ratio';
+  static const String _prefFavoriteSessions = 'bow_training_favorites';
 
   // ===========================================================================
   // CACHED DATA
@@ -107,6 +194,24 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   UserTrainingProgressData? _userProgress;
   UserTrainingProgressData? get userProgress => _userProgress;
+
+  // User preferences (remembered settings)
+  int _lastDuration = 10;
+  int get lastDuration => _lastDuration;
+
+  double _lastWorkRatio = 0.5;
+  double get lastWorkRatio => _lastWorkRatio;
+
+  Set<String> _favoriteSessions = {};
+  Set<String> get favoriteSessions => _favoriteSessions;
+
+  // Most used sessions (computed from logs)
+  List<({String sessionId, String sessionName, int count})> _mostUsedSessions = [];
+  List<({String sessionId, String sessionName, int count})> get mostUsedSessions => _mostUsedSessions;
+
+  // Custom sessions
+  List<CustomBowSession> _customSessions = [];
+  List<CustomBowSession> get customSessions => _customSessions;
 
   // ===========================================================================
   // ACTIVE SESSION STATE
@@ -208,7 +313,195 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
     final exerciseTypes = await _db.getAllOlyExerciseTypes();
     _exerciseTypesMap = {for (var et in exerciseTypes) et.id: et};
 
+    // Load user preferences (remembered settings)
+    await _loadPreferences();
+
+    // Compute most-used sessions from logs
+    await _computeMostUsedSessions();
+
+    // Load custom sessions
+    await _loadCustomSessions();
+
     notifyListeners();
+  }
+
+  /// Load user preferences from database
+  Future<void> _loadPreferences() async {
+    final durationStr = await _db.getPreference(_prefLastDuration);
+    if (durationStr != null) {
+      _lastDuration = int.tryParse(durationStr) ?? 10;
+    }
+
+    final ratioStr = await _db.getPreference(_prefLastWorkRatio);
+    if (ratioStr != null) {
+      _lastWorkRatio = double.tryParse(ratioStr) ?? 0.5;
+    }
+
+    final favoritesStr = await _db.getPreference(_prefFavoriteSessions);
+    if (favoritesStr != null && favoritesStr.isNotEmpty) {
+      _favoriteSessions = favoritesStr.split(',').toSet();
+    }
+  }
+
+  /// Save quick session preferences
+  Future<void> saveQuickSessionPreferences({
+    required int duration,
+    required double workRatio,
+  }) async {
+    _lastDuration = duration;
+    _lastWorkRatio = workRatio;
+    await _db.setPreference(_prefLastDuration, duration.toString());
+    await _db.setPreference(_prefLastWorkRatio, workRatio.toString());
+    notifyListeners();
+  }
+
+  /// Compute most-used sessions from training logs
+  Future<void> _computeMostUsedSessions() async {
+    final allLogs = await _db.getAllOlyTrainingLogs();
+
+    // Count sessions by template ID
+    final counts = <String, ({String name, int count})>{};
+    for (final log in allLogs) {
+      if (log.sessionTemplateId != null) {
+        final existing = counts[log.sessionTemplateId!];
+        if (existing != null) {
+          counts[log.sessionTemplateId!] = (name: log.sessionName, count: existing.count + 1);
+        } else {
+          counts[log.sessionTemplateId!] = (name: log.sessionName, count: 1);
+        }
+      }
+    }
+
+    // Sort by count descending and take top 5
+    final sorted = counts.entries.toList()
+      ..sort((a, b) => b.value.count.compareTo(a.value.count));
+
+    _mostUsedSessions = sorted.take(5).map((e) => (
+      sessionId: e.key,
+      sessionName: e.value.name,
+      count: e.value.count,
+    )).toList();
+  }
+
+  // ===========================================================================
+  // FAVORITES
+  // ===========================================================================
+
+  bool isFavorite(String sessionId) => _favoriteSessions.contains(sessionId);
+
+  Future<void> toggleFavorite(String sessionId) async {
+    if (_favoriteSessions.contains(sessionId)) {
+      _favoriteSessions.remove(sessionId);
+    } else {
+      _favoriteSessions.add(sessionId);
+    }
+    await _db.setPreference(_prefFavoriteSessions, _favoriteSessions.join(','));
+    notifyListeners();
+  }
+
+  List<OlySessionTemplate> get favoriteSectionTemplates {
+    return _sessionTemplates
+        .where((s) => _favoriteSessions.contains(s.id))
+        .toList();
+  }
+
+  // ===========================================================================
+  // CUSTOM SESSIONS
+  // ===========================================================================
+
+  static const String _prefCustomSessions = 'bow_training_custom_sessions';
+
+  Future<void> _loadCustomSessions() async {
+    final jsonStr = await _db.getPreference(_prefCustomSessions);
+    if (jsonStr != null && jsonStr.isNotEmpty) {
+      try {
+        final List<dynamic> jsonList = json.decode(jsonStr);
+        _customSessions = jsonList
+            .map((e) => CustomBowSession.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } catch (e) {
+        _customSessions = [];
+      }
+    }
+  }
+
+  Future<void> saveCustomSession(CustomBowSession session) async {
+    // Remove existing with same ID if editing
+    _customSessions.removeWhere((s) => s.id == session.id);
+    _customSessions.insert(0, session);
+    await _persistCustomSessions();
+    notifyListeners();
+  }
+
+  Future<void> deleteCustomSession(String sessionId) async {
+    _customSessions.removeWhere((s) => s.id == sessionId);
+    await _persistCustomSessions();
+    notifyListeners();
+  }
+
+  Future<void> _persistCustomSessions() async {
+    final jsonStr = json.encode(_customSessions.map((s) => s.toJson()).toList());
+    await _db.setPreference(_prefCustomSessions, jsonStr);
+  }
+
+  /// Start a saved custom session (user-created)
+  void startSavedSession(CustomBowSession session) {
+    // Calculate totals
+    int totalVolume = 0;
+    for (final ex in session.exercises) {
+      totalVolume += ex.reps * ex.holdSeconds;
+    }
+
+    // Create a virtual session template
+    _activeSession = OlySessionTemplate(
+      id: 'custom_${session.id}',
+      version: 'Custom',
+      name: session.name,
+      focus: 'Custom session',
+      durationMinutes: session.totalDurationMinutes,
+      volumeLoad: totalVolume,
+      adjustedVolumeLoad: totalVolume,
+      workRatio: 0.5, // Default
+      adjustedWorkRatio: 0.5,
+      equipment: 'Bow, elbow sling',
+      sortOrder: 0,
+      createdAt: session.createdAt,
+    );
+
+    // Convert custom exercises to session exercises
+    _exercises = session.exercises.asMap().entries.map((entry) {
+      final idx = entry.key;
+      final ex = entry.value;
+      return OlySessionExercise(
+        id: 'custom_ex_${session.id}_$idx',
+        sessionTemplateId: _activeSession!.id,
+        exerciseTypeId: ex.exerciseTypeId,
+        exerciseOrder: idx + 1,
+        reps: ex.reps,
+        workSeconds: ex.holdSeconds,
+        restSeconds: ex.restSeconds,
+      );
+    }).toList();
+
+    _currentExerciseIndex = 0;
+    _currentRep = 1;
+    _phase = TimerPhase.hold;
+    _timerState = TimerState.running;
+    _secondsRemaining = _exercises.first.workSeconds;
+    _sessionStartedAt = DateTime.now();
+    _totalHoldSecondsActual = 0;
+    _totalRestSecondsActual = 0;
+    _completedExercises = 0;
+
+    _startTimer();
+    _playStartBeep();
+    notifyListeners();
+  }
+
+  /// Get available exercise types for custom session builder
+  List<OlyExerciseType> get availableExerciseTypes {
+    return _exerciseTypesMap.values.toList()
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
   }
 
   /// Get sessions grouped by level (1.x, 2.x)
@@ -234,6 +527,74 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
   // ===========================================================================
   // SESSION CONTROLS
   // ===========================================================================
+
+  /// Start a quick session with custom duration and work/rest ratio
+  /// This generates a simple session on-the-fly without following the structured plan
+  void startQuickSession({
+    required int durationMinutes,
+    required double workRatio,
+  }) {
+    // Calculate hold and rest times based on ratio
+    // Using 40s total cycle as base
+    const cycleTime = 40.0;
+    final holdSeconds = (workRatio / (1 + workRatio) * cycleTime).round();
+    final restSeconds = (cycleTime - holdSeconds).round();
+
+    // Calculate number of reps to fill duration
+    final cycleSeconds = holdSeconds + restSeconds;
+    final totalSeconds = durationMinutes * 60;
+    final numReps = (totalSeconds / cycleSeconds).floor();
+    final volumeLoad = holdSeconds * numReps;
+
+    // Create a virtual session template
+    _activeSession = OlySessionTemplate(
+      id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
+      version: 'Quick',
+      name: '$durationMinutes min Quick Session',
+      focus: 'Custom training session',
+      durationMinutes: durationMinutes,
+      volumeLoad: volumeLoad,
+      adjustedVolumeLoad: volumeLoad, // Same as volumeLoad for quick sessions
+      workRatio: workRatio,
+      adjustedWorkRatio: workRatio, // Same as workRatio for quick sessions
+      equipment: 'Bow, elbow sling',
+      sortOrder: 0,
+      createdAt: DateTime.now(),
+    );
+
+    // Create a single exercise with all the reps
+    _exercises = [
+      OlySessionExercise(
+        id: 'quick_ex_${DateTime.now().millisecondsSinceEpoch}',
+        sessionTemplateId: _activeSession!.id,
+        exerciseTypeId: 'static_reversals', // Default exercise type
+        exerciseOrder: 1,
+        reps: numReps,
+        workSeconds: holdSeconds,
+        restSeconds: restSeconds,
+      ),
+    ];
+
+    _currentExerciseIndex = 0;
+    _currentRep = 1;
+    _phase = TimerPhase.hold;
+    _timerState = TimerState.running;
+    _secondsRemaining = holdSeconds;
+    _sessionStartedAt = DateTime.now();
+    _totalHoldSecondsActual = 0;
+    _totalRestSecondsActual = 0;
+    _completedExercises = 0;
+
+    _startTimer();
+    _playStartBeep();
+    notifyListeners();
+  }
+
+  /// Set the user's current level (called after max hold test)
+  Future<void> setUserLevel(String level) async {
+    await _db.updateUserLevel(level);
+    await loadData();
+  }
 
   /// Start a new OLY training session
   Future<void> startSession(OlySessionTemplate template) async {
