@@ -28,8 +28,11 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        title: Text('CONFIRM ARROWS', style: AppFonts.pixel(size: 20)),
+        backgroundColor: AppColors.surfaceDark,
+        title: Text(
+          'CONFIRM ARROWS',
+          style: TextStyle(fontFamily: AppFonts.pixel, fontSize: 20),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () {
@@ -43,7 +46,14 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
               context.read<AutoPlotProvider>().retryCapture();
               Navigator.of(context).pop();
             },
-            child: Text('RETRY', style: AppFonts.pixel(size: 14, color: AppColors.textSecondary)),
+            child: Text(
+              'RETRY',
+              style: TextStyle(
+                fontFamily: AppFonts.pixel,
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
+            ),
           ),
         ],
       ),
@@ -54,10 +64,14 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
               // Instructions
               Container(
                 padding: const EdgeInsets.all(12),
-                color: AppColors.surface,
+                color: AppColors.surfaceDark,
                 child: Text(
                   'Tap an arrow to select. Drag to adjust. Tap empty space to add.',
-                  style: AppFonts.body(size: 12, color: AppColors.textSecondary),
+                  style: TextStyle(
+                    fontFamily: AppFonts.body,
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -161,7 +175,7 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
+                color: Colors.black.withOpacity(0.3),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
@@ -170,8 +184,9 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
           child: Center(
             child: Text(
               '${index + 1}',
-              style: AppFonts.pixel(
-                size: isSelected ? 12 : 10,
+              style: TextStyle(
+                fontFamily: AppFonts.pixel,
+                fontSize: isSelected ? 12 : 10,
                 color: isSelected ? AppColors.background : AppColors.textPrimary,
               ),
             ),
@@ -229,7 +244,7 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
 
     return Container(
       padding: const EdgeInsets.all(16),
-      color: AppColors.surface,
+      color: AppColors.surfaceDark,
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -240,7 +255,7 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
               children: [
                 Text(
                   '$arrowCount ${arrowCount == 1 ? 'arrow' : 'arrows'} detected',
-                  style: AppFonts.body(size: 14),
+                  style: TextStyle(fontFamily: AppFonts.body, fontSize: 14),
                 ),
                 if (_selectedArrowIndex != null)
                   TextButton.icon(
@@ -251,7 +266,14 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
                       });
                     },
                     icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 18),
-                    label: Text('DELETE', style: AppFonts.pixel(size: 12, color: AppColors.error)),
+                    label: Text(
+                      'DELETE',
+                      style: TextStyle(
+                        fontFamily: AppFonts.pixel,
+                        fontSize: 12,
+                        color: AppColors.error,
+                      ),
+                    ),
                   ),
               ],
             ),
@@ -274,7 +296,7 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
                 ),
                 child: Text(
                   'CONFIRM & PLOT',
-                  style: AppFonts.pixel(size: 16),
+                  style: TextStyle(fontFamily: AppFonts.pixel, fontSize: 16),
                 ),
               ),
             ),
@@ -316,7 +338,7 @@ class _TargetPainter extends CustomPainter {
 
       // Draw ring outline
       final outlinePaint = Paint()
-        ..color = i < 4 ? Colors.grey : Colors.black.withValues(alpha: 0.3)
+        ..color = i < 4 ? Colors.grey : Colors.black.withOpacity(0.3)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1;
       canvas.drawCircle(center, ringRadius, outlinePaint);

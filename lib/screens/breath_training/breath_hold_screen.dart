@@ -35,7 +35,7 @@ enum SessionState {
 }
 
 /// Prep countdown duration (seconds)
-const int _prepCountdownSeconds = 10;
+const int _prepCountdownSeconds = 5;
 
 enum DifficultyLevel {
   beginner,     // +10% per round

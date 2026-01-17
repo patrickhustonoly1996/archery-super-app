@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../theme/app_theme.dart';
 import '../providers/auto_plot_provider.dart';
+import '../services/vision_api_service.dart';
 import 'auto_plot_confirm_screen.dart';
 
 /// Screen to capture target image for Auto-Plot arrow detection
@@ -158,8 +159,11 @@ class _AutoPlotCaptureScreenState extends State<AutoPlotCaptureScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        title: Text('AUTO-PLOT', style: AppFonts.pixel(size: 20)),
+        backgroundColor: AppColors.surfaceDark,
+        title: Text(
+          'AUTO-PLOT',
+          style: TextStyle(fontFamily: AppFonts.pixel, fontSize: 20),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.close, color: AppColors.textPrimary),
           onPressed: () {
@@ -189,13 +193,20 @@ class _AutoPlotCaptureScreenState extends State<AutoPlotCaptureScreen> {
     if (provider.tier == AutoPlotTier.pro) {
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        color: AppColors.gold.withValues(alpha: 0.2),
+        color: AppColors.gold.withOpacity(0.2),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.star, color: AppColors.gold, size: 16),
             const SizedBox(width: 8),
-            Text('AUTO-PLOT PRO', style: AppFonts.pixel(size: 12, color: AppColors.gold)),
+            Text(
+              'AUTO-PLOT PRO',
+              style: TextStyle(
+                fontFamily: AppFonts.pixel,
+                fontSize: 12,
+                color: AppColors.gold,
+              ),
+            ),
           ],
         ),
       );
@@ -206,14 +217,15 @@ class _AutoPlotCaptureScreenState extends State<AutoPlotCaptureScreen> {
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      color: isLow ? AppColors.error.withValues(alpha: 0.2) : AppColors.surface,
+      color: isLow ? AppColors.error.withOpacity(0.2) : AppColors.surfaceDark,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             '$remaining scans remaining this month',
-            style: AppFonts.body(
-              size: 12,
+            style: TextStyle(
+              fontFamily: AppFonts.body,
+              fontSize: 12,
               color: isLow ? AppColors.error : AppColors.textSecondary,
             ),
           ),
@@ -223,7 +235,14 @@ class _AutoPlotCaptureScreenState extends State<AutoPlotCaptureScreen> {
               onPressed: () {
                 // TODO: Navigate to upgrade screen
               },
-              child: Text('UPGRADE', style: AppFonts.pixel(size: 12, color: AppColors.gold)),
+              child: Text(
+                'UPGRADE',
+                style: TextStyle(
+                  fontFamily: AppFonts.pixel,
+                  fontSize: 12,
+                  color: AppColors.gold,
+                ),
+              ),
             ),
           ],
         ],
@@ -243,7 +262,10 @@ class _AutoPlotCaptureScreenState extends State<AutoPlotCaptureScreen> {
               const SizedBox(height: 16),
               Text(
                 _errorMessage,
-                style: AppFonts.body(color: AppColors.error),
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  color: AppColors.error,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -264,13 +286,16 @@ class _AutoPlotCaptureScreenState extends State<AutoPlotCaptureScreen> {
         children: [
           CameraPreview(_cameraController!),
           Container(
-            color: AppColors.background.withValues(alpha: 0.8),
+            color: AppColors.background.withOpacity(0.8),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const CircularProgressIndicator(color: AppColors.gold),
                 const SizedBox(height: 24),
-                Text('Detecting arrows...', style: AppFonts.pixel(size: 16)),
+                Text(
+                  'Detecting arrows...',
+                  style: TextStyle(fontFamily: AppFonts.pixel, fontSize: 16),
+                ),
               ],
             ),
           ),
@@ -290,12 +315,12 @@ class _AutoPlotCaptureScreenState extends State<AutoPlotCaptureScreen> {
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.surface.withValues(alpha: 0.9),
+              color: AppColors.surfaceDark.withOpacity(0.9),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               'Point camera at target with arrows. Keep steady.',
-              style: AppFonts.body(size: 14),
+              style: TextStyle(fontFamily: AppFonts.body, fontSize: 14),
               textAlign: TextAlign.center,
             ),
           ),
@@ -313,7 +338,7 @@ class _AutoPlotCaptureScreenState extends State<AutoPlotCaptureScreen> {
           height: size,
           decoration: BoxDecoration(
             border: Border.all(
-              color: AppColors.gold.withValues(alpha: 0.5),
+              color: AppColors.gold.withOpacity(0.5),
               width: 2,
             ),
             borderRadius: BorderRadius.circular(size / 2),
@@ -329,7 +354,7 @@ class _AutoPlotCaptureScreenState extends State<AutoPlotCaptureScreen> {
 
     return Container(
       padding: const EdgeInsets.all(24),
-      color: AppColors.surface,
+      color: AppColors.surfaceDark,
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -337,7 +362,11 @@ class _AutoPlotCaptureScreenState extends State<AutoPlotCaptureScreen> {
             // Target type indicator
             Text(
               'Target: ${widget.targetType}${widget.isTripleSpot ? ' (Triple)' : ''}',
-              style: AppFonts.body(size: 12, color: AppColors.textSecondary),
+              style: TextStyle(
+                fontFamily: AppFonts.body,
+                fontSize: 12,
+                color: AppColors.textSecondary,
+              ),
             ),
             const SizedBox(height: 16),
             // Capture button
@@ -382,7 +411,11 @@ class _AutoPlotCaptureScreenState extends State<AutoPlotCaptureScreen> {
               const SizedBox(height: 16),
               Text(
                 'Monthly limit reached',
-                style: AppFonts.body(size: 12, color: AppColors.error),
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  fontSize: 12,
+                  color: AppColors.error,
+                ),
               ),
             ],
           ],

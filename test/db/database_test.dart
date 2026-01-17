@@ -20,7 +20,7 @@ void main() {
     test('creates in-memory database successfully', () async {
       await withTestDb((db) async {
         expect(db, matcher.isNotNull);
-        expect(db.schemaVersion, equals(17));
+        expect(db.schemaVersion, equals(18));
       });
     });
 

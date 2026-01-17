@@ -20,7 +20,7 @@ enum TimerPhase {
 }
 
 /// Default prep/intro time before exercises (seconds)
-const int kPrepCountdownSeconds = 10;
+const int kPrepCountdownSeconds = 5;
 
 /// State of the timer
 enum TimerState {

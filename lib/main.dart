@@ -97,8 +97,8 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
           ),
           ChangeNotifierProvider(
             create: (context) {
-              // TODO: Replace with actual API key from secure storage or backend
-              final visionService = VisionApiService(apiKey: null);
+              // VisionApiService uses Firebase Functions backend - no API key needed
+              final visionService = VisionApiService();
               return AutoPlotProvider(context.read<AppDatabase>(), visionService)
                 ..initialize();
             },

@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -159,8 +158,11 @@ class _TargetRegistrationScreenState extends State<TargetRegistrationScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        title: Text('REGISTER TARGET', style: AppFonts.pixel(size: 20)),
+        backgroundColor: AppColors.surfaceDark,
+        title: Text(
+          'REGISTER TARGET',
+          style: TextStyle(fontFamily: AppFonts.pixel, fontSize: 20),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.close, color: AppColors.textPrimary),
           onPressed: () => Navigator.of(context).pop(),
@@ -191,7 +193,7 @@ class _TargetRegistrationScreenState extends State<TargetRegistrationScreen> {
               const SizedBox(height: 16),
               Text(
                 _errorMessage,
-                style: AppFonts.body(color: AppColors.error),
+                style: TextStyle(fontFamily: AppFonts.body, color: AppColors.error),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -221,12 +223,12 @@ class _TargetRegistrationScreenState extends State<TargetRegistrationScreen> {
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.surface.withValues(alpha: 0.9),
+              color: AppColors.surfaceDark.withOpacity(0.9),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               'Position a CLEAN target (no arrows) within the guide.',
-              style: AppFonts.body(size: 14),
+              style: TextStyle(fontFamily: AppFonts.body, fontSize: 14),
               textAlign: TextAlign.center,
             ),
           ),
@@ -264,7 +266,7 @@ class _TargetRegistrationScreenState extends State<TargetRegistrationScreen> {
   Widget _buildControls() {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: AppColors.surface,
+      color: AppColors.surfaceDark,
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -291,7 +293,10 @@ class _TargetRegistrationScreenState extends State<TargetRegistrationScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    : Text('CAPTURE TARGET', style: AppFonts.pixel(size: 16)),
+                    : Text(
+                        'CAPTURE TARGET',
+                        style: TextStyle(fontFamily: AppFonts.pixel, fontSize: 16),
+                      ),
               ),
             ),
           ],
@@ -304,7 +309,14 @@ class _TargetRegistrationScreenState extends State<TargetRegistrationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('TARGET TYPE', style: AppFonts.pixel(size: 12, color: AppColors.textSecondary)),
+        Text(
+          'TARGET TYPE',
+          style: TextStyle(
+            fontFamily: AppFonts.pixel,
+            fontSize: 12,
+            color: AppColors.textSecondary,
+          ),
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -312,7 +324,10 @@ class _TargetRegistrationScreenState extends State<TargetRegistrationScreen> {
           children: _targetTypes.map((type) {
             final isSelected = _selectedTargetType == type.$1;
             return ChoiceChip(
-              label: Text(type.$2, style: AppFonts.body(size: 12)),
+              label: Text(
+                type.$2,
+                style: TextStyle(fontFamily: AppFonts.body, fontSize: 12),
+              ),
               selected: isSelected,
               onSelected: (selected) {
                 if (selected) {
@@ -324,8 +339,9 @@ class _TargetRegistrationScreenState extends State<TargetRegistrationScreen> {
               },
               selectedColor: AppColors.gold,
               backgroundColor: AppColors.background,
-              labelStyle: AppFonts.body(
-                size: 12,
+              labelStyle: TextStyle(
+                fontFamily: AppFonts.body,
+                fontSize: 12,
                 color: isSelected ? AppColors.background : AppColors.textPrimary,
               ),
             );

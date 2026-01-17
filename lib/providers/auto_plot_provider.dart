@@ -65,7 +65,15 @@ class AutoPlotProvider extends ChangeNotifier {
   }
 
   Future<void> _loadUsage() async {
-    _scanCount = await _db.getCurrentAutoPlotScanCount();
+    // Try to get server-side usage (source of truth)
+    final serverStatus = await _visionService.getUsageStatus();
+    if (serverStatus != null) {
+      _scanCount = serverStatus.scanCount;
+      _tier = serverStatus.isPro ? AutoPlotTier.pro : AutoPlotTier.free;
+    } else {
+      // Fall back to local count if offline
+      _scanCount = await _db.getCurrentAutoPlotScanCount();
+    }
     notifyListeners();
   }
 
@@ -186,8 +194,7 @@ class AutoPlotProvider extends ChangeNotifier {
       _detectedArrows = result.arrows;
       _state = AutoPlotState.confirming;
 
-      // Increment usage
-      await _db.incrementAutoPlotUsage();
+      // Refresh usage from server (Firebase Function incremented it)
       await _loadUsage();
     } else {
       _state = AutoPlotState.error;

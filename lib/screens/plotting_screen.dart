@@ -393,7 +393,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
                   onTap: () => _showFullScorecard(context, provider),
                   child: Container(
                     margin: const EdgeInsets.only(top: AppSpacing.sm),
-                    constraints: const BoxConstraints(maxHeight: 160),
+                    constraints: const BoxConstraints(maxHeight: 100),
                     child: FutureBuilder(
                       future: provider.getAllCompletedEndArrows(),
                       builder: (context, snapshot) {
@@ -811,7 +811,7 @@ class _ActionButtons extends StatelessWidget {
         await provider.plotArrow(
           x: arrow.x,
           y: arrow.y,
-          faceIndex: arrow.faceIndex,
+          faceIndex: arrow.faceIndex ?? 0,
         );
       }
     }
@@ -819,7 +819,7 @@ class _ActionButtons extends StatelessWidget {
 
   String _getTargetTypeFromRound(RoundType roundType) {
     // Determine target size from round configuration
-    final targetDiameter = roundType.targetDiameter;
+    final targetDiameter = roundType.faceSize;
     if (roundType.faceCount == 3) {
       return 'triple_40cm';
     }
