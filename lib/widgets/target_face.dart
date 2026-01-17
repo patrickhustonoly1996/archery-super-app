@@ -112,11 +112,11 @@ class _TargetFacePainter extends CustomPainter {
       canvas.drawCircle(center, ringRadius, paint);
     }
 
-    // Draw ring lines - thicker for crisp visibility on mobile screens
+    // Draw ring lines - solid black for clarity
     final linePaint = Paint()
-      ..color = Colors.black.withOpacity(0.5)
+      ..color = Colors.black
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = 1.5;
 
     for (final ring in rings) {
       canvas.drawCircle(center, ring.$1 * radius * ringScale, linePaint);
@@ -128,25 +128,23 @@ class _TargetFacePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, TargetRings.x * radius * ringScale, xPaint);
 
-    // Draw center dot
-    final centerPaint = Paint()
+    // Draw center cross (within X ring)
+    final crossSize = TargetRings.x * radius * ringScale * 0.6; // 60% of X ring
+    final crossPaint = Paint()
       ..color = Colors.black
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, 2, centerPaint);
-
-    // Draw crosshairs (very subtle)
-    final crosshairPaint = Paint()
-      ..color = Colors.black.withOpacity(0.1)
-      ..strokeWidth = 0.5;
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round;
+    // Vertical line
     canvas.drawLine(
-      Offset(center.dx, 0),
-      Offset(center.dx, size.height),
-      crosshairPaint,
+      Offset(center.dx, center.dy - crossSize),
+      Offset(center.dx, center.dy + crossSize),
+      crossPaint,
     );
+    // Horizontal line
     canvas.drawLine(
-      Offset(0, center.dy),
-      Offset(size.width, center.dy),
-      crosshairPaint,
+      Offset(center.dx - crossSize, center.dy),
+      Offset(center.dx + crossSize, center.dy),
+      crossPaint,
     );
   }
 
