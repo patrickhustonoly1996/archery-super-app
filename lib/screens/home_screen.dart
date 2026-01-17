@@ -445,6 +445,299 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
   }
+
+  void _showQuickStartSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => _QuickStartSheet(
+        onSessionStarted: () {
+          Navigator.pop(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const PlottingScreen()),
+          ).then((_) => _refreshSessions());
+        },
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// QUICK START SHEET
+// =============================================================================
+
+class _QuickStartSheet extends StatefulWidget {
+  final VoidCallback onSessionStarted;
+
+  const _QuickStartSheet({required this.onSessionStarted});
+
+  @override
+  State<_QuickStartSheet> createState() => _QuickStartSheetState();
+}
+
+class _QuickStartSheetState extends State<_QuickStartSheet> {
+  List<RoundType> _recentRoundTypes = [];
+  RoundType? _selectedRoundType;
+  int _arrowsPerEnd = 3;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRecentRoundTypes();
+  }
+
+  Future<void> _loadRecentRoundTypes() async {
+    final db = context.read<AppDatabase>();
+    final recentTypes = await db.getMostFrequentRecentRoundTypes(days: 14, limit: 5);
+
+    if (mounted) {
+      setState(() {
+        _recentRoundTypes = recentTypes;
+        if (recentTypes.isNotEmpty) {
+          _selectedRoundType = recentTypes.first;
+          _arrowsPerEnd = recentTypes.first.arrowsPerEnd;
+        }
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _startSession() async {
+    if (_selectedRoundType == null) return;
+
+    final sessionProvider = context.read<SessionProvider>();
+    final equipmentProvider = context.read<EquipmentProvider>();
+
+    // Get default equipment
+    final defaultBow = equipmentProvider.defaultBow;
+    final defaultQuiver = equipmentProvider.defaultQuiver;
+
+    await sessionProvider.startSession(
+      roundTypeId: _selectedRoundType!.id,
+      sessionType: 'practice',
+      bowId: defaultBow?.id,
+      quiverId: defaultQuiver?.id,
+      shaftTaggingEnabled: defaultQuiver != null,
+      arrowsPerEndOverride: _arrowsPerEnd != _selectedRoundType!.arrowsPerEnd
+          ? _arrowsPerEnd
+          : null,
+    );
+
+    widget.onSessionStarted();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.backgroundDark,
+        border: Border(
+          top: BorderSide(color: AppColors.gold.withValues(alpha: 0.4), width: 2),
+        ),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(5, (i) {
+                  return Container(
+                    width: 6,
+                    height: 6,
+                    margin: const EdgeInsets.symmetric(horizontal: 1),
+                    color: AppColors.gold.withValues(alpha: 0.4),
+                  );
+                }),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'QUICK START',
+                style: TextStyle(
+                  fontFamily: AppFonts.pixel,
+                  fontSize: 16,
+                  color: AppColors.gold,
+                  letterSpacing: 2,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              if (_isLoading)
+                const Padding(
+                  padding: EdgeInsets.all(20),
+                  child: CircularProgressIndicator(color: AppColors.gold),
+                )
+              else if (_recentRoundTypes.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    'No recent sessions found.\nStart a regular session first.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: AppFonts.body,
+                      fontSize: 14,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                )
+              else ...[
+                // Round type selector
+                Text(
+                  'ROUND TYPE',
+                  style: TextStyle(
+                    fontFamily: AppFonts.pixel,
+                    fontSize: 10,
+                    color: AppColors.textMuted,
+                    letterSpacing: 1,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _recentRoundTypes.map((roundType) {
+                    final isSelected = _selectedRoundType?.id == roundType.id;
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedRoundType = roundType;
+                          _arrowsPerEnd = roundType.arrowsPerEnd;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.gold.withValues(alpha: 0.2) : Colors.transparent,
+                          border: Border.all(
+                            color: isSelected ? AppColors.gold : AppColors.surfaceLight,
+                            width: isSelected ? 2 : 1,
+                          ),
+                        ),
+                        child: Text(
+                          roundType.name,
+                          style: TextStyle(
+                            fontFamily: AppFonts.body,
+                            fontSize: 12,
+                            color: isSelected ? AppColors.gold : AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 24),
+
+                // Arrows per end adjuster
+                Text(
+                  'ARROWS PER END',
+                  style: TextStyle(
+                    fontFamily: AppFonts.pixel,
+                    fontSize: 10,
+                    color: AppColors.textMuted,
+                    letterSpacing: 1,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _ArrowCountButton(
+                      icon: Icons.remove,
+                      onTap: _arrowsPerEnd > 1
+                          ? () => setState(() => _arrowsPerEnd--)
+                          : null,
+                    ),
+                    Container(
+                      width: 60,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.gold),
+                      ),
+                      child: Text(
+                        '$_arrowsPerEnd',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: AppFonts.pixel,
+                          fontSize: 24,
+                          color: AppColors.gold,
+                        ),
+                      ),
+                    ),
+                    _ArrowCountButton(
+                      icon: Icons.add,
+                      onTap: _arrowsPerEnd < 12
+                          ? () => setState(() => _arrowsPerEnd++)
+                          : null,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // Start button
+                GestureDetector(
+                  onTap: _startSession,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.gold,
+                      border: Border.all(color: AppColors.gold, width: 2),
+                    ),
+                    child: Text(
+                      'START SHOOTING',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: AppFonts.pixel,
+                        fontSize: 16,
+                        color: AppColors.backgroundDark,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ArrowCountButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  const _ArrowCountButton({required this.icon, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final isEnabled = onTap != null;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 48,
+        height: 48,
+        margin: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isEnabled ? AppColors.gold : AppColors.surfaceLight,
+          ),
+        ),
+        child: Icon(
+          icon,
+          color: isEnabled ? AppColors.gold : AppColors.surfaceLight,
+          size: 24,
+        ),
+      ),
+    );
+  }
 }
 
 // =============================================================================
@@ -497,7 +790,7 @@ class _TopBar extends StatelessWidget {
               ),
             ),
             child: Text(
-              'v1.2.0',
+              'v1.0.13',
               style: TextStyle(
                 fontFamily: AppFonts.pixel,
                 fontSize: 6,
@@ -1693,6 +1986,7 @@ class _RetroSheetItem extends StatelessWidget {
     );
   }
 }
+
 
 
 
