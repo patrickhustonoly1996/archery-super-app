@@ -4,7 +4,9 @@ import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../widgets/handicap_chart.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/offline_indicator.dart';
 import '../utils/handicap_calculator.dart';
+import '../providers/connectivity_provider.dart';
 import 'session_detail_screen.dart';
 import 'import_screen.dart';
 
@@ -219,6 +221,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
       appBar: AppBar(
         title: const Text('Scores Record'),
         actions: [
+          // Offline indicator
+          Consumer<ConnectivityProvider>(
+            builder: (context, connectivity, _) => OfflineIndicator(
+              isOffline: connectivity.isOffline,
+              isSyncing: connectivity.isSyncing,
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.file_upload_outlined),
             tooltip: 'Import Scores',

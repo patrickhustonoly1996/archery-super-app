@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/offline_indicator.dart';
 import '../utils/volume_calculator.dart';
+import '../providers/connectivity_provider.dart';
 import 'volume_upload_screen.dart';
 
 class StatisticsScreen extends StatefulWidget {
@@ -55,6 +57,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       appBar: AppBar(
         title: const Text('Training Volume'),
         actions: [
+          // Offline indicator
+          Consumer<ConnectivityProvider>(
+            builder: (context, connectivity, _) => OfflineIndicator(
+              isOffline: connectivity.isOffline,
+              isSyncing: connectivity.isSyncing,
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.file_upload_outlined),
             tooltip: 'Bulk Upload',

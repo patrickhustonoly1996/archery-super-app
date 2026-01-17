@@ -3,10 +3,12 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/session_provider.dart';
 import '../providers/equipment_provider.dart';
+import '../providers/connectivity_provider.dart';
 import '../widgets/target_face.dart';
 import '../widgets/group_centre_widget.dart';
 import '../widgets/scorecard_widget.dart';
 import '../widgets/shaft_selector_bottom_sheet.dart';
+import '../widgets/offline_indicator.dart';
 import '../utils/undo_manager.dart';
 import '../db/database.dart';
 import 'session_complete_screen.dart';
@@ -42,6 +44,13 @@ class PlottingScreen extends StatelessWidget {
               },
             ),
             actions: [
+              // Offline indicator
+              Consumer<ConnectivityProvider>(
+                builder: (context, connectivity, _) => OfflineIndicator(
+                  isOffline: connectivity.isOffline,
+                  isSyncing: connectivity.isSyncing,
+                ),
+              ),
               // End counter
               Padding(
                 padding: const EdgeInsets.only(right: AppSpacing.md),

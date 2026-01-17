@@ -186,6 +186,7 @@ class _BreathTrainingHomeScreenState extends State<BreathTrainingHomeScreen> {
 class _SessionCard extends StatelessWidget {
   final IconData icon;
   final String title;
+  final String? subtitle;
   final String description;
   final VoidCallback onTap;
   final bool highlight;
@@ -193,6 +194,7 @@ class _SessionCard extends StatelessWidget {
   const _SessionCard({
     required this.icon,
     required this.title,
+    this.subtitle,
     required this.description,
     required this.onTap,
     this.highlight = false,
@@ -244,6 +246,16 @@ class _SessionCard extends StatelessWidget {
                       title,
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.gold,
+                              fontStyle: FontStyle.italic,
+                            ),
+                      ),
+                    ],
                     const SizedBox(height: 4),
                     Text(
                       description,

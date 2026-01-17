@@ -120,8 +120,9 @@
         "Wait 5s and session is permanently gone"
       ],
       "priority": 3,
-      "passes": false,
-      "dependsOn": []
+      "passes": true,
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-008",
@@ -241,6 +242,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-01-16T23:54:42.640Z"
+    "updatedAt": "2026-01-17T00:08:45.494Z"
   }
 }

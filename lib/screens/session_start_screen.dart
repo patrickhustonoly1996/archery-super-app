@@ -4,6 +4,8 @@ import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../providers/session_provider.dart';
 import '../providers/equipment_provider.dart';
+import '../providers/connectivity_provider.dart';
+import '../widgets/offline_indicator.dart';
 import 'plotting_screen.dart';
 
 class SessionStartScreen extends StatefulWidget {
@@ -69,6 +71,13 @@ class _SessionStartScreenState extends State<SessionStartScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          // Offline indicator
+          Consumer<ConnectivityProvider>(
+            builder: (context, connectivity, _) => OfflineIndicator(
+              isOffline: connectivity.isOffline,
+              isSyncing: connectivity.isSyncing,
+            ),
+          ),
           // Start button in app bar
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.md),

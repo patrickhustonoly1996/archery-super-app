@@ -474,7 +474,7 @@ class _HandicapChartPainter extends CustomPainter {
     // Calculate positions
     final points = <Offset>[];
     final competitionPoints = <Offset>[];
-    final importedPoints = <Offset>[];
+    final practicePoints = <Offset>[];
 
     for (int i = 0; i < handicaps.length; i++) {
       final x = handicaps.length > 1 ? (i / (handicaps.length - 1)) * size.width : size.width / 2;
@@ -491,7 +491,7 @@ class _HandicapChartPainter extends CustomPainter {
       if (handicaps[i].isCompetition) {
         competitionPoints.add(point);
       } else {
-        importedPoints.add(point);
+        practicePoints.add(point);
       }
     }
 
@@ -529,22 +529,22 @@ class _HandicapChartPainter extends CustomPainter {
       canvas.drawPath(areaPath, areaPaint);
     }
 
-    // Draw imported score points
-    final importedPaint = Paint()
+    // Draw practice score points
+    final practicePaint = Paint()
       ..color = AppColors.textSecondary
       ..style = PaintingStyle.fill;
 
-    for (final point in importedPoints) {
-      canvas.drawCircle(point, 3, importedPaint);
+    for (final point in practicePoints) {
+      canvas.drawCircle(point, 3, practicePaint);
     }
 
-    // Draw plotted session points (on top)
-    final plottedPaint = Paint()
+    // Draw competition score points (on top)
+    final competitionPaint = Paint()
       ..color = AppColors.gold
       ..style = PaintingStyle.fill;
 
     for (final point in competitionPoints) {
-      canvas.drawCircle(point, 4, plottedPaint);
+      canvas.drawCircle(point, 4, competitionPaint);
     }
 
     // Draw handicap labels at top and bottom

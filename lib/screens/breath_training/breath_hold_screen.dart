@@ -68,6 +68,7 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
   double _phaseProgress = 0.0;
   int _totalHoldTime = 0;
   int _bestHoldThisSession = 0; // Track best individual hold
+  int _totalSessionSeconds = 0; // Total elapsed session time
 
   // Tick counter for smooth animation
   int _tickCount = 0;
@@ -213,9 +214,54 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
       _phaseProgress = 0.0;
       _totalHoldTime = 0;
       _bestHoldThisSession = 0;
+      _totalSessionSeconds = 0;
       _tickCount = 0;
     });
     _timer = Timer.periodic(const Duration(milliseconds: 100), _tick);
+  }
+
+  void _extendSession(int additionalRounds) {
+    setState(() {
+      _totalRounds += additionalRounds;
+    });
+    HapticFeedback.mediumImpact();
+  }
+
+  void _showExtendDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        title: const Text('Extend Session'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Add more rounds to your session:'),
+            const SizedBox(height: AppSpacing.md),
+            Wrap(
+              spacing: AppSpacing.sm,
+              children: [1, 2, 3, 5].map((rounds) {
+                return ActionChip(
+                  label: Text('+$rounds ${rounds == 1 ? 'round' : 'rounds'}'),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _extendSession(rounds);
+                  },
+                  backgroundColor: AppColors.gold.withValues(alpha: 0.2),
+                  labelStyle: const TextStyle(color: AppColors.gold),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _stopSession() {
@@ -296,6 +342,7 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
 
     setState(() {
       _phaseSecondsRemaining--;
+      _totalSessionSeconds++; // Track total elapsed time
 
       switch (_state) {
         case SessionState.prep:
@@ -504,6 +551,12 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
     }
   }
 
+  String _formatTime(int seconds) {
+    final mins = seconds ~/ 60;
+    final secs = seconds % 60;
+    return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final isActive = _state != SessionState.idle &&
@@ -568,45 +621,61 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
               const SizedBox(height: AppSpacing.xl),
 
               // Stats bar
-              if (_currentRound > 0 || _state == SessionState.complete)
+              if (_currentRound > 0 || _state == SessionState.complete || isActive)
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     color: AppColors.surfaceDark,
                     borderRadius: BorderRadius.circular(AppSpacing.sm),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  child: Column(
                     children: [
-                      _StatItem(
-                        label: 'Rounds',
-                        value: '$_currentRound / $_totalRounds',
-                      ),
-                      Container(
-                        width: 1,
-                        height: 32,
-                        color: AppColors.surfaceLight,
-                      ),
-                      _StatItem(
-                        label: 'Hold Time',
-                        value: '${_totalHoldTime}s',
-                      ),
-                      Container(
-                        width: 1,
-                        height: 32,
-                        color: AppColors.surfaceLight,
-                      ),
-                      _StatItem(
-                        label: 'Next Hold',
-                        value: _currentRound < _totalRounds
-                            ? '${_currentHoldTarget}s'
-                            : '-',
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _StatItem(
+                            label: 'Rounds',
+                            value: '$_currentRound / $_totalRounds',
+                          ),
+                          Container(
+                            width: 1,
+                            height: 32,
+                            color: AppColors.surfaceLight,
+                          ),
+                          _StatItem(
+                            label: 'Hold Time',
+                            value: '${_totalHoldTime}s',
+                          ),
+                          Container(
+                            width: 1,
+                            height: 32,
+                            color: AppColors.surfaceLight,
+                          ),
+                          _StatItem(
+                            label: 'Session',
+                            value: _formatTime(_totalSessionSeconds),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
 
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.md),
+
+              // Extension button (during active session)
+              if (isActive)
+                OutlinedButton.icon(
+                  onPressed: _showExtendDialog,
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add Rounds'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.gold,
+                    side: const BorderSide(color: AppColors.gold),
+                  ),
+                ),
+
+              const SizedBox(height: AppSpacing.md),
 
               // Control button
               SizedBox(

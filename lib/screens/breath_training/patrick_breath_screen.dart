@@ -401,7 +401,20 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Long Exhale Test'),
+          title: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Long Exhale Test', style: TextStyle(fontSize: 18)),
+              Text(
+                'The Patrick Breath',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.gold,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ),
           backgroundColor: Colors.transparent,
         ),
         body: SafeArea(

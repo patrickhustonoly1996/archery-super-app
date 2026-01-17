@@ -2,305 +2,79 @@
 
 Build partner for Patrick Huston (Olympic archer). New to software, time-constrained. Explain concepts plainly.
 
-## Communication Style
-
-**Use AskUserQuestion frequently** - Present options before diving into implementation. Quick check-ins lead to better outcomes than long autonomous stretches. Prefer short iteration cycles.
-
-## Domain Knowledge
-
-Read `docs/ARCHERY_DOMAIN_KNOWLEDGE.md` before asking Patrick archery questions. Contains scoring systems, round types, group analysis, 252 scheme, UX requirements - everything needed to understand the sport context.
-
 ## Permissions
 
-**Do without asking:**
-- File/folder edits, refactors, renames
-- UI polish (no behavior change)
-- Flutter widgets, layouts, styling, navigation
-- Dart code changes (services, models, utils)
-- Adding/updating Flutter dependencies (pubspec.yaml)
-- Android/iOS config (manifests, gradle, Info.plist, entitlements)
-- Platform-specific permissions, icons, launch screens
-- Build configuration, signing setup (debug only)
-- Tests, logging, defaults
-- <1hr reversible changes
+**Bypass all permission prompts.** Just do it and tell Patrick what you did. Only ask before: payments, auth changes, sync/conflict resolution, or anything hard to reverse.
 
-**Must ask:**
-- Payments/pricing/subscriptions
-- Auth/identity/data model changes
-- Sync/conflict resolution
-- Destructive ops/major dependencies
-- Scope expansion
+## Communication
 
-Hard to reverse → ask ONE question. Reversible → do it, state what you did.
+- Use AskUserQuestion for options/decisions, not for permission to act
+- Read `docs/ARCHERY_DOMAIN_KNOWLEDGE.md` before asking archery questions
 
-## Architecture Principles
+## Architecture
 
-**Offline-first:** Full airplane mode capability, sync deferred
-**Local authority:** Athlete data lives locally, cloud = backup
-**Graceful failure:** No hard AI/API dependencies, degrade to manual
-**Entitlement:** £1/month, 72hr grace → read-only (no data loss)
+- **Offline-first:** Full airplane mode capability
+- **Local authority:** Data lives locally, cloud = backup
+- **Graceful failure:** Degrade to manual if AI/API unavailable
+- **Entitlement:** £1/month, 72hr grace → read-only
 
 ## Data Rules
 
 - Coaching = versioned immutable Markdown
-- Logs = append-only
-- No silent historical rewrites
+- Logs = append-only, no silent rewrites
 - AI interprets but never alters history
-- Deterministic systems for training paths
 
-## Aesthetic
+## Design
 
-- Dark base + Gold (#FFD700) primary
-- 1-2 muted fluorescents (≤50% opacity) highlights
-- No neon, no gradients
-- 8px grid
-- Minimal animation (state-change only)
-- Copy: calm, direct, no hype/emojis
+**Colors:** Dark base + Gold (#FFD700) primary. Bright neon accents allowed sparingly when necessary. No gradients.
 
-## Typography (STRICT)
+**Typography (STRICT):** No sans-serif. All monospace.
+- VT323 (`AppFonts.pixel`) - titles, menu items
+- Share Tech Mono (`AppFonts.body`) - body, data, labels
 
-**No sans-serif fonts.** All text must be monospace.
-
-| Use | Font | AppFonts constant |
-|-----|------|-------------------|
-| Logo, titles, menu items | VT323 | `AppFonts.pixel` |
-| Body text, data, labels | Share Tech Mono | `AppFonts.body` |
-
-- VT323 = chunky pixel font (retro terminals)
-- Share Tech Mono = angular technical mono (sci-fi feel)
-- App-level default is Share Tech Mono, so any unstyled text uses it
-- Never use system fonts, Roboto, SF Pro, or any sans-serif
+**Style:** 8px grid. Minimal animation. Calm, direct copy.
 
 ## Quality
 
-- Get foundations right before layering features
-- Test core interactions work reliably before adding complexity
+- Foundations before features
 - Simple and correct beats feature-rich and flaky
+- Tests must pass before committing
 
-## Version Control (STRICT)
+## Git
 
-**Branch strategy - protect main:**
-- Small fixes (typos, one-file changes): OK to work on main
-- Medium features: Create branch, merge to main when tested, same session
-- Large/risky features: Create branch, can span multiple sessions
+**Main = stable.** Never commit broken code.
 
-**Main branch = stable, working code.** Don't commit broken code to main.
-
-**Commit discipline:**
-- Commit after completing logical chunks of work (not mid-change)
-- Commit before making risky changes (escape hatch for Patrick)
-- Never commit broken code or failing tests to main
-- Use descriptive messages: "Add 5-zone scoring" not "updates"
-
-**Push to GitHub:**
-- Push after committing (backup!)
+- Small fixes: work on main
+- Features: create branch, merge when tested
+- Commit logical chunks with descriptive messages
+- Push after committing (backup)
 - Always push at end of session
 
-**Branch hygiene:**
-- Always tell Patrick when creating a branch and why
-- Before session ends: merge branch to main OR explicitly ask Patrick if he wants to keep it for later
-- Never leave a branch without telling Patrick it exists
+**Never:** `--force`, `reset --hard` without asking, leave branches without telling Patrick
 
-**Before big changes:**
-- Suggest Patrick commits current state first
-- State clearly: "This is a significant change - recommend committing first"
-- For risky work, create a branch so main stays safe
+## Testing
 
-**Never do:**
-- `git push --force` (destroys history)
-- `git reset --hard` without asking
-- Commit broken code to main
-- Leave branches without telling Patrick
+Run `flutter test` before and after changes. All tests must pass before committing.
 
-## Code Review & Upgrade Roadmap
+**Critical tests:** Arrow coordinate math, score calculations, group analysis, coordinate conversions.
 
-**[Full Code Review Document](./docs/CODE_REVIEW_AND_UPGRADE_ROADMAP.md)**
+Full docs: `docs/TESTING_ROADMAP.md`
 
-A comprehensive code review was conducted in January 2026 covering all aspects of the codebase. Key findings:
+## Code Review
 
-**Overall Grade: B** - Good foundation, needs polish in error handling and testing.
+**Grade: B** - Good foundation, needs polish.
 
-**Critical P0 Issues to Address:**
-1. Timer doesn't pause when app backgrounds (bow training ruined)
-2. Silent CSV parsing failures (user thinks import worked)
-3. ID collision potential with millisecond timestamps
+**P0 Issues:**
+1. Timer doesn't pause when app backgrounds
+2. Silent CSV parsing failures
+3. ID collision with millisecond timestamps
 
-**Best Patterns to Follow:**
-- `SessionDetailScreen` - reference implementation for loading/error/empty states
-- `ActiveSessionsProvider` - excellent session persistence pattern
-- `HandicapCalculator` - well-documented utility with clear structure
+**Reference patterns:** `SessionDetailScreen`, `ActiveSessionsProvider`, `HandicapCalculator`
 
-**Step-by-Step Upgrade Roadmap:** See Phase 1-5 in the full document for prioritized fixes.
+Full roadmap: `docs/CODE_REVIEW_AND_UPGRADE_ROADMAP.md`
 
----
+## GitHub Branches
 
-## Testing Protocol
+Available: `claude/add-firebase-google-login-BzcZJ`, `claude/archery-handicap-graph-ySjH2`, `claude/arrow-volume-upload-NJ9nO`, `claude/progressive-web-app-lxbl1`, `claude/coding-during-training-wUZG3`, `claude/test-score-upload-storage-Mi9L2`
 
-**Full documentation:** `docs/TESTING_ROADMAP.md`
-
-### Before Making Changes
-Run `flutter test` to verify baseline. Report any existing failures before proceeding.
-
-### After Making Changes
-Run `flutter test` again. All tests must pass before committing.
-
-### When Adding Features
-Add tests for:
-1. Core functionality (happy path)
-2. Edge cases (empty inputs, boundary values, max limits)
-3. Error handling (invalid inputs)
-
-### When Fixing Bugs
-1. Write a test that reproduces the bug (should fail)
-2. Fix the bug
-3. Verify test passes
-
-### Test Organization
-```
-test/
-├── models/      # Data models, calculations
-├── utils/       # Coordinate systems, helpers
-├── widgets/     # UI components
-└── services/    # Database, API (when added)
-```
-
-### Critical Tests (Never Skip)
-- Arrow coordinate math (plotting accuracy)
-- Score calculations (ring boundaries)
-- Group analysis (spread, center, sight clicks)
-- Coordinate conversions (mm ↔ pixels ↔ normalized)
-
-### Test Helpers Available
-```dart
-// Create test arrows with mm coordinates
-createFakeArrow(id: 'a1', xMm: 50, yMm: 30, score: 9)
-
-// Create legacy arrows (normalized)
-createFakeArrowNormalized(id: 'a1', x: 0.25, y: 0.15, score: 9)
-```
-
-### Report Format
-When reporting to Patrick:
-- "All tests passing" (green light)
-- "X tests failed: [specific issues]" (needs attention)
-
----
-
-## Multi-Agent System
-
-This project has 99 specialized AI agents, 15 workflow orchestrators, and 107 skills in `./agents/plugins/`.
-
-### How to Invoke Agents
-
-Use the **Task tool** with `subagent_type` in format `plugin-name:agent-name`:
-
-```
-Task tool → subagent_type="multi-platform-apps:flutter-expert"
-         → prompt="[specific task description]"
-```
-
-### Core Agents for This Project
-
-**Flutter/Mobile (multi-platform-apps plugin):**
-| Agent | Use For |
-|-------|---------|
-| `flutter-expert` | Flutter architecture, Dart, state management, widgets |
-| `mobile-developer` | Cross-platform patterns, offline-first, React Native |
-| `ios-developer` | Native iOS/Swift, App Store, SwiftUI |
-| `ui-ux-designer` | Design systems, accessibility, wireframes |
-| `frontend-developer` | Web/PWA components, React |
-| `backend-architect` | API design, data sync patterns |
-
-**Code Quality (comprehensive-review plugin):**
-| Agent | Use For |
-|-------|---------|
-| `code-reviewer` | Security-focused code review, reliability |
-| `architect-review` | Architectural consistency, pattern validation |
-| `security-auditor` | Vulnerability assessment, OWASP compliance |
-
-**Backend/Data:**
-| Agent | Plugin | Use For |
-|-------|--------|---------|
-| `backend-architect` | backend-development | API design, microservices |
-| `database-architect` | database-design | Schema design, migrations |
-| `sql-pro` | database-design | Query optimization |
-
-**Testing/Debug:**
-| Agent | Plugin | Use For |
-|-------|--------|---------|
-| `test-automator` | codebase-cleanup | Unit/integration/E2E tests |
-| `debugger` | error-debugging | Error resolution |
-| `performance-engineer` | observability-monitoring | Profiling, optimization |
-
-### Workflow Orchestrators
-
-Orchestrators coordinate multiple agents for complex tasks. Invoke with slash commands or read the workflow file.
-
-**Most Relevant for This App:**
-
-| Orchestrator | Command | What It Does |
-|--------------|---------|--------------|
-| Full-Stack Feature | `/full-stack-orchestration:full-stack-feature` | 12-step workflow: DB → API → UI → Tests → Security → Deploy |
-| Comprehensive Review | `/comprehensive-review:full-review` | 4-phase review: Quality → Security → Testing → Best Practices |
-| PR Enhancement | `/git-pr-workflows:pr-enhance` | Improve PRs before merge |
-| Smart Debug | `/debugging-toolkit:smart-debug` | Interactive debugging with agents |
-| Test Generation | `/unit-testing:test-generate` | Auto-generate comprehensive tests |
-| Performance Optimization | `/application-performance:performance-optimization` | Profile and optimize |
-
-**To use an orchestrator manually:**
-1. Read the workflow file: `./agents/plugins/{plugin}/commands/{command}.md`
-2. Follow the phase structure, invoking agents in sequence
-3. Pass context between phases as specified
-
-### When to Use Agents
-
-**Proactively spawn agents for:**
-- New feature development → `flutter-expert` + relevant backend agents
-- Code review before commits → `code-reviewer`, `security-auditor`
-- Performance issues → `performance-engineer`
-- Architecture decisions → `backend-architect` + `flutter-expert`
-- Complex debugging → use `/debugging-toolkit:smart-debug` workflow
-
-**Agent invocation example:**
-```
-Task tool:
-  subagent_type: "multi-platform-apps:flutter-expert"
-  prompt: "Design state management approach for the bow training timer feature. Consider offline-first requirements and Provider pattern already in use. Recommend widget structure and data flow."
-```
-
-### Model Tiers
-
-Agents use different Claude models based on task complexity:
-- **Opus**: Architecture, security, code review (42 agents)
-- **Sonnet**: Complex implementation, language-specific (39 agents)
-- **Haiku**: Fast operational tasks, docs, SEO (18 agents)
-
-### All 67 Plugins
-
-Full plugin list at `./agents/docs/plugins.md`. Key categories:
-
-| Category | Plugins |
-|----------|---------|
-| Development | debugging-toolkit, backend-development, frontend-mobile-development, multi-platform-apps |
-| Testing | unit-testing, tdd-workflows |
-| Quality | code-review-ai, comprehensive-review, performance-testing-review |
-| Security | security-scanning, security-compliance, frontend-mobile-security |
-| Documentation | code-documentation, c4-architecture |
-| Infrastructure | cloud-infrastructure, kubernetes-operations, cicd-automation |
-
----
-
-## GitHub Feature Branches
-
-**Available on GitHub:**
-- `claude/add-firebase-google-login-BzcZJ` - Google Sign-In authentication
-- `claude/archery-handicap-graph-ySjH2` - Visual handicap progression graph
-- `claude/arrow-volume-upload-NJ9nO` - Bulk upload for arrow volume data
-- `claude/progressive-web-app-lxbl1` - PWA configuration
-- `claude/coding-during-training-wUZG3` - Web deployment, C64 styling
-- `claude/test-score-upload-storage-Mi9L2` - Comprehensive test suite
-
-**Already Merged:** Breath Training, Bow Training Timer
-
-**Auto-Sync:** Run `git fetch origin` at session start. Ask Patrick before merging new branches.
-
+Run `git fetch origin` at session start.

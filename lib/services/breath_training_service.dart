@@ -5,6 +5,7 @@ class BreathTrainingService {
   static const String _holdDurationKey = 'breath_hold_duration';
   static const String _pacedInhaleKey = 'paced_inhale_duration';
   static const String _pacedExhaleKey = 'paced_exhale_duration';
+  static const String _pacedDurationKey = 'paced_breathing_duration';
   static const String _holdSessionRoundsKey = 'breath_hold_session_rounds';
   static const String _patrickBestExhaleKey = 'patrick_best_exhale';
   static const String _difficultyLevelKey = 'breath_hold_difficulty';
@@ -50,6 +51,18 @@ class BreathTrainingService {
   Future<void> setPacedExhaleDuration(int seconds) async {
     await _ensureInitialized();
     await _prefs!.setInt(_pacedExhaleKey, seconds.clamp(2, 10));
+  }
+
+  /// Get paced breathing session duration in minutes (0 = unlimited, default 5)
+  Future<int> getPacedBreathingDuration() async {
+    await _ensureInitialized();
+    return _prefs!.getInt(_pacedDurationKey) ?? 5;
+  }
+
+  /// Set paced breathing session duration in minutes (0 = unlimited)
+  Future<void> setPacedBreathingDuration(int minutes) async {
+    await _ensureInitialized();
+    await _prefs!.setInt(_pacedDurationKey, minutes.clamp(0, 60));
   }
 
   /// Get number of rounds in a breath hold session (default 5)

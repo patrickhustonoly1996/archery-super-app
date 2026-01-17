@@ -1,14 +1,15 @@
 {
   "version": 1,
-  "sessionId": "f75db7a5-6343-4ee8-a7be-72b04591c4ce",
+  "sessionId": "c065dd1a-0899-48d3-a089-4a9189a1ba21",
   "status": "running",
-  "startedAt": "2026-01-16T23:52:22.025Z",
-  "updatedAt": "2026-01-16T23:54:42.702Z",
-  "currentIteration": 1,
+  "startedAt": "2026-01-17T00:08:37.405Z",
+  "updatedAt": "2026-01-17T00:08:45.523Z",
+  "currentIteration": 0,
   "maxIterations": 0,
-  "tasksCompleted": 1,
+  "tasksCompleted": 0,
   "isPaused": false,
   "agentPlugin": "claude",
+  "model": "opus",
   "trackerState": {
     "plugin": "json",
     "prdPath": "prd-polish-and-fixes.json",
@@ -48,12 +49,12 @@
         "id": "US-006",
         "title": "Loading Button Component",
         "status": "completed",
-        "completedInSession": true
+        "completedInSession": false
       },
       {
         "id": "US-007",
         "title": "Undo for Destructive Operations",
-        "status": "open",
+        "status": "completed",
         "completedInSession": false
       },
       {
@@ -100,22 +101,11 @@
       }
     ]
   },
-  "iterations": [
-    {
-      "iteration": 1,
-      "status": "completed",
-      "taskId": "US-006",
-      "taskTitle": "Loading Button Component",
-      "taskCompleted": true,
-      "durationMs": 133903,
-      "startedAt": "2026-01-16T23:52:27.630Z",
-      "endedAt": "2026-01-16T23:54:41.533Z"
-    }
-  ],
+  "iterations": [],
   "skippedTaskIds": [],
   "cwd": "C:\\Users\\patri\\Desktop\\archery_super_app_v1",
   "activeTaskIds": [
-    "US-007"
+    "US-008"
   ],
   "subagentPanelVisible": false
 }

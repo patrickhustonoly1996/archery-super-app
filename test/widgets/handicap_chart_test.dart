@@ -148,8 +148,8 @@ void main() {
         expect(find.byType(CustomPaint), findsWidgets);
 
         // Should have legend
-        expect(find.text('Plotted'), findsOneWidget);
-        expect(find.text('Imported'), findsOneWidget);
+        expect(find.text('Competition'), findsOneWidget);
+        expect(find.text('Practice'), findsOneWidget);
 
         // Should have stat badges
         expect(find.textContaining('Current'), findsOneWidget);
@@ -679,8 +679,8 @@ void main() {
           ),
         );
 
-        expect(find.text('Plotted'), findsOneWidget);
-        expect(find.text('Imported'), findsOneWidget);
+        expect(find.text('Competition'), findsOneWidget);
+        expect(find.text('Practice'), findsOneWidget);
       });
 
       testWidgets('card wrapper present', (tester) async {
@@ -967,8 +967,8 @@ void main() {
         expect(find.byType(Card), findsOneWidget);
         expect(find.text('Last 4 rounds'), findsOneWidget);
         expect(find.text('Handicap Progression'), findsOneWidget);
-        expect(find.text('Plotted'), findsOneWidget);
-        expect(find.text('Imported'), findsOneWidget);
+        expect(find.text('Competition'), findsOneWidget);
+        expect(find.text('Practice'), findsOneWidget);
         expect(find.text('Current'), findsOneWidget);
         expect(find.text('Average'), findsOneWidget);
         expect(find.text('Best'), findsOneWidget);

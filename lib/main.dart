@@ -11,6 +11,7 @@ import 'providers/bow_training_provider.dart';
 import 'providers/breath_training_provider.dart';
 import 'providers/active_sessions_provider.dart';
 import 'providers/spider_graph_provider.dart';
+import 'providers/connectivity_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/firestore_sync_service.dart';
@@ -170,6 +171,9 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
           ),
           ChangeNotifierProvider(
             create: (context) => SpiderGraphProvider(context.read<AppDatabase>()),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => ConnectivityProvider(),
           ),
         ],
         child: MaterialApp(
