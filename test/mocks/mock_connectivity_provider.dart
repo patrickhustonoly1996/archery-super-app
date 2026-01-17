@@ -1,31 +1,25 @@
-import 'package:flutter/foundation.dart';
+import 'package:archery_super_app/providers/connectivity_provider.dart';
 
 /// Mock ConnectivityProvider for testing.
 ///
-/// Always reports online status by default. Can be configured
-/// for offline testing scenarios.
-class MockConnectivityProvider with ChangeNotifier {
-  bool _isOnline;
-  bool _isSyncing = false;
+/// Extends the real ConnectivityProvider but overrides the connectivity
+/// checking to avoid platform-specific issues in tests.
+/// Always reports online status by default.
+class MockConnectivityProvider extends ConnectivityProvider {
+  bool _testIsOnline;
 
-  MockConnectivityProvider({bool isOnline = true}) : _isOnline = isOnline;
+  MockConnectivityProvider({bool isOnline = true}) : _testIsOnline = isOnline;
 
-  bool get isOnline => _isOnline;
-  bool get isSyncing => _isSyncing;
-  bool get isOffline => !_isOnline;
+  @override
+  bool get isOnline => _testIsOnline;
+
+  @override
+  bool get isOffline => !_testIsOnline;
 
   /// Set online status for testing
   void setOnline(bool online) {
-    if (_isOnline != online) {
-      _isOnline = online;
-      notifyListeners();
-    }
-  }
-
-  /// Set syncing status for testing
-  void setSyncing(bool syncing) {
-    if (_isSyncing != syncing) {
-      _isSyncing = syncing;
+    if (_testIsOnline != online) {
+      _testIsOnline = online;
       notifyListeners();
     }
   }

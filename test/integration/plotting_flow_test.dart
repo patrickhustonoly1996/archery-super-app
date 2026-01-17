@@ -47,7 +47,7 @@ Widget buildTestApp({
               EquipmentProvider(context.read<AppDatabase>())..loadEquipment(),
         ),
         ChangeNotifierProvider<ConnectivityProvider>(
-          create: (_) => MockConnectivityProvider() as ConnectivityProvider,
+          create: (_) => MockConnectivityProvider(),
         ),
       ],
       child: MaterialApp(
@@ -73,7 +73,7 @@ Widget buildPlottingTestApp({
               EquipmentProvider(context.read<AppDatabase>())..loadEquipment(),
         ),
         ChangeNotifierProvider<ConnectivityProvider>(
-          create: (_) => MockConnectivityProvider() as ConnectivityProvider,
+          create: (_) => MockConnectivityProvider(),
         ),
       ],
       child: MaterialApp(
