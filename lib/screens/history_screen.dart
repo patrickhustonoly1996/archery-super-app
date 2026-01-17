@@ -7,6 +7,7 @@ import '../widgets/empty_state.dart';
 import '../widgets/offline_indicator.dart';
 import '../widgets/filter_chip.dart';
 import '../utils/handicap_calculator.dart';
+import '../utils/round_matcher.dart';
 import '../providers/connectivity_provider.dart';
 import 'session_detail_screen.dart';
 import 'import_screen.dart';
@@ -87,50 +88,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
   }
 
-  /// Match imported round name to round type ID (same logic as handicap_chart)
-  String? _matchRoundName(String roundName) {
-    final lower = roundName.toLowerCase().trim();
-
-    // WA Outdoor
-    if (lower.contains('720') && lower.contains('70')) return 'wa_720_70m';
-    if (lower.contains('720') && lower.contains('60')) return 'wa_720_60m';
-    if (lower.contains('1440') && lower.contains('90')) return 'wa_1440_90m';
-    if (lower.contains('1440') && lower.contains('70')) return 'wa_1440_70m';
-
-    // WA Indoor
-    if (lower.contains('wa') && lower.contains('18')) return 'wa_18m';
-    if (lower.contains('wa') && lower.contains('25')) return 'wa_25m';
-
-    // AGB Indoor
-    if (lower.contains('portsmouth')) return 'portsmouth';
-    if (lower.contains('worcester')) return 'worcester';
-    if (lower.contains('vegas')) return 'vegas';
-
-    // AGB Outdoor Imperial
-    if (lower == 'york') return 'york';
-    if (lower.contains('hereford')) return 'hereford';
-    if (lower.contains('st george') || lower.contains('st. george')) {
-      return 'st_george';
-    }
-    if (lower.contains('bristol')) {
-      if (lower.contains('i') && !lower.contains('ii')) return 'bristol_i';
-      if (lower.contains('ii') && !lower.contains('iii')) return 'bristol_ii';
-      if (lower.contains('iii') && !lower.contains('iv')) return 'bristol_iii';
-      if (lower.contains('iv') && !lower.contains('v')) return 'bristol_iv';
-      if (lower.contains('v')) return 'bristol_v';
-    }
-
-    // AGB Metric
-    if (lower.contains('metric')) {
-      if (lower.contains('i') && !lower.contains('ii')) return 'metric_i';
-      if (lower.contains('ii') && !lower.contains('iii')) return 'metric_ii';
-      if (lower.contains('iii') && !lower.contains('iv')) return 'metric_iii';
-      if (lower.contains('iv') && !lower.contains('v')) return 'metric_iv';
-      if (lower.contains('v')) return 'metric_v';
-    }
-
-    return null;
-  }
 
   /// Build unified list of all scores
   List<UnifiedScore> _buildUnifiedScores() {
@@ -165,7 +122,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     // Add imported scores
     for (final imported in _importedScores) {
-      final roundTypeId = _matchRoundName(imported.roundName);
+      final roundTypeId = matchRoundName(imported.roundName, score: imported.score);
       final handicap = roundTypeId != null
           ? HandicapCalculator.calculateHandicap(roundTypeId, imported.score)
           : null;

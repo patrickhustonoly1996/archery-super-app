@@ -3,10 +3,10 @@
   "sessionId": "dc46ae88-84c4-46be-a838-5cc1afd831ff",
   "status": "running",
   "startedAt": "2026-01-17T09:30:03.140Z",
-  "updatedAt": "2026-01-17T09:30:08.957Z",
-  "currentIteration": 0,
+  "updatedAt": "2026-01-17T09:31:52.566Z",
+  "currentIteration": 1,
   "maxIterations": 0,
-  "tasksCompleted": 0,
+  "tasksCompleted": 1,
   "isPaused": false,
   "agentPlugin": "claude",
   "model": "opus",
@@ -78,8 +78,8 @@
       {
         "id": "US-011",
         "title": "Replace Print with Logging",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-012",
@@ -101,11 +101,22 @@
       }
     ]
   },
-  "iterations": [],
+  "iterations": [
+    {
+      "iteration": 1,
+      "status": "completed",
+      "taskId": "US-011",
+      "taskTitle": "Replace Print with Logging",
+      "taskCompleted": true,
+      "durationMs": 102607,
+      "startedAt": "2026-01-17T09:30:08.907Z",
+      "endedAt": "2026-01-17T09:31:51.514Z"
+    }
+  ],
   "skippedTaskIds": [],
   "cwd": "C:\\Users\\patri\\Desktop\\archery_super_app_v1",
   "activeTaskIds": [
-    "US-011"
+    "US-012"
   ],
   "subagentPanelVisible": false
 }
