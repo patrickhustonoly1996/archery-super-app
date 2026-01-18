@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archery Skill Icons - RuneScape Style</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0f;
+            min-height: 100vh;
+            font-family: 'Share Tech Mono', monospace;
+            color: #e0e0e0;
+            padding: 40px;
+        }
+
+        h1 {
+            font-family: 'VT323', monospace;
+            color: #FFD700;
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            letter-spacing: 4px;
+        }
+
+        h2 {
+            font-family: 'VT323', monospace;
+            color: #FFD700;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .skill-card {
+            background: #1a1a24;
+            border: 2px solid #2a2a3a;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .skill-card:hover {
+            border-color: #FFD700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+
+        .icon-container {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .pixel-icon {
+            display: grid;
+            grid-template-columns: repeat(12, 3px);
+            grid-template-rows: repeat(12, 3px);
+            image-rendering: pixelated;
+        }
+
+        .pixel-icon .px {
+            width: 3px;
+            height: 3px;
+        }
+
+        .pixel-icon .gold { background: #FFD700; }
+        .pixel-icon .gold-dim { background: rgba(255, 215, 0, 0.5); }
+        .pixel-icon .empty { background: transparent; }
+
+        .skill-name {
+            font-family: 'VT323', monospace;
+            color: #e0e0e0;
+            font-size: 16px;
+            letter-spacing: 1px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .level-badge {
+            background: rgba(255, 215, 0, 0.15);
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            padding: 2px 8px;
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+            color: #FFD700;
+        }
+
+        .xp-bar-container {
+            width: 100%;
+            height: 6px;
+            background: #2a2a3a;
+            margin-top: 8px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .xp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+            border-radius: 3px;
+        }
+
+        .xp-text {
+            font-size: 10px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        /* Large icon preview */
+        .large-icons {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 40px 0;
+        }
+
+        .large-icon-card {
+            background: #1a1a24;
+            border: 2px solid #2a2a3a;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .large-icon-container {
+            width: 96px;
+            height: 96px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 3px solid rgba(255, 215, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .pixel-icon-large {
+            display: grid;
+            grid-template-columns: repeat(12, 6px);
+            grid-template-rows: repeat(12, 6px);
+            image-rendering: pixelated;
+        }
+
+        .pixel-icon-large .px {
+            width: 6px;
+            height: 6px;
+        }
+
+        .large-label {
+            font-family: 'VT323', monospace;
+            color: #FFD700;
+            font-size: 18px;
+            letter-spacing: 1px;
+        }
+
+        /* RuneScape style panel */
+        .rs-panel {
+            background: #3b3224;
+            border: 4px solid #5c4a1f;
+            max-width: 400px;
+            margin: 40px auto;
+            padding: 8px;
+        }
+
+        .rs-panel-inner {
+            background: #252017;
+            border: 2px solid #1a1510;
+            padding: 8px;
+        }
+
+        .rs-skills-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+        }
+
+        .rs-skill {
+            background: #1a1510;
+            border: 1px solid #3b3224;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .rs-icon {
+            width: 24px;
+            height: 24px;
+            display: grid;
+            grid-template-columns: repeat(12, 2px);
+            grid-template-rows: repeat(12, 2px);
+        }
+
+        .rs-icon .px {
+            width: 2px;
+            height: 2px;
+        }
+
+        .rs-levels {
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .rs-level-current {
+            color: #FFD700;
+        }
+
+        .rs-level-total {
+            color: #888;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>SKILL LEVELS</h1>
+    <p class="subtitle">RuneScape-style pixel art skill icons for the Archery Super App</p>
+
+    <h2>Large Icon Preview (96x96)</h2>
+    <div class="large-icons" id="large-icons"></div>
+
+    <h2>Skill Cards with XP Bars</h2>
+    <div class="skills-grid" id="skills-grid"></div>
+
+    <h2>RuneScape Style Panel</h2>
+    <div class="rs-panel">
+        <div class="rs-panel-inner">
+            <div class="rs-skills-grid" id="rs-skills"></div>
+        </div>
+    </div>
+
+    <script>
+        // Skill definitions
+        const skills = [
+            { id: 'archery_skill', name: 'ARCHERY', level: 47, xp: 83000, progress: 0.65 },
+            { id: 'volume', name: 'VOLUME', level: 32, xp: 28500, progress: 0.42 },
+            { id: 'consistency', name: 'CONSISTENCY', level: 28, xp: 19200, progress: 0.78 },
+            { id: 'bow_fitness', name: 'BOW FITNESS', level: 21, xp: 8400, progress: 0.23 },
+            { id: 'breath_work', name: 'BREATH WORK', level: 18, xp: 5200, progress: 0.55 },
+            { id: 'equipment', name: 'EQUIPMENT', level: 15, xp: 3100, progress: 0.31 },
+            { id: 'competition', name: 'COMPETITION', level: 12, xp: 1800, progress: 0.67 },
+            { id: 'analysis', name: 'ANALYSIS', level: 24, xp: 12400, progress: 0.89 }
+        ];
+
+        // Icon pixel data (12x12 grid, 0=empty, 1=gold-dim, 2=gold)
+        const iconData = {
+            archery_skill: [ // Target
+                [0,0,0,1,1,1,1,1,1,0,0,0],
+                [0,0,1,0,0,0,0,0,0,1,0,0],
+                [0,1,0,0,2,2,2,2,0,0,1,0],
+                [1,0,0,2,0,0,0,0,2,0,0,1],
+                [1,0,2,0,0,2,2,0,0,2,0,1],
+                [1,0,2,0,2,2,2,2,0,2,0,1],
+                [1,0,2,0,2,2,2,2,0,2,0,1],
+                [1,0,2,0,0,2,2,0,0,2,0,1],
+                [1,0,0,2,0,0,0,0,2,0,0,1],
+                [0,1,0,0,2,2,2,2,0,0,1,0],
+                [0,0,1,0,0,0,0,0,0,1,0,0],
+                [0,0,0,1,1,1,1,1,1,0,0,0]
+            ],
+            volume: [ // Three arrows
+                [0,0,0,0,0,0,0,0,0,0,1,0],
+                [0,0,0,0,0,0,0,0,0,1,1,0],
+                [0,0,1,1,1,1,1,1,1,1,1,0],
+                [0,0,0,0,0,0,0,0,0,1,1,0],
+                [0,0,0,0,0,0,0,0,0,0,1,0],
+                [0,0,0,0,0,0,0,0,0,0,2,0],
+                [0,0,0,0,0,0,0,0,0,2,2,0],
+                [0,0,2,2,2,2,2,2,2,2,2,0],
+                [0,0,0,0,0,0,0,0,0,2,2,0],
+                [0,0,0,0,0,0,0,0,0,0,2,0],
+                [0,0,0,0,0,0,0,0,0,0,1,0],
+                [0,0,1,1,1,1,1,1,1,1,1,0]
+            ],
+            consistency: [ // Calendar with checkmarks
+                [0,0,2,2,2,2,2,2,2,2,0,0],
+                [0,0,2,0,0,0,0,0,0,2,0,0],
+                [0,0,2,2,2,2,2,2,2,2,0,0],
+                [0,0,2,0,1,0,1,0,1,2,0,0],
+                [0,0,2,0,2,0,2,0,0,2,0,0],
+                [0,0,2,0,0,0,0,0,1,2,0,0],
+                [0,0,2,0,1,0,2,0,0,2,0,0],
+                [0,0,2,0,2,0,0,0,1,2,0,0],
+                [0,0,2,0,0,0,1,0,0,2,0,0],
+                [0,0,2,0,1,0,0,0,1,2,0,0],
+                [0,0,2,2,2,2,2,2,2,2,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0]
+            ],
+            bow_fitness: [ // Flexed bicep
+                [0,0,0,0,0,1,0,0,0,0,0,0],
+                [0,0,0,0,2,2,0,0,0,0,0,0],
+                [0,0,0,2,2,2,2,0,0,0,0,0],
+                [0,0,2,2,2,2,2,0,0,0,0,0],
+                [0,2,2,2,2,2,2,2,0,0,0,0],
+                [0,2,2,2,2,2,2,2,2,0,0,0],
+                [0,0,2,2,2,2,2,2,2,2,0,0],
+                [0,0,0,2,2,2,2,2,2,2,1,0],
+                [0,0,0,0,2,2,2,2,2,1,1,0],
+                [0,0,0,0,0,2,2,2,1,0,0,0],
+                [0,0,0,0,0,0,2,1,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0]
+            ],
+            breath_work: [ // Lungs
+                [0,0,0,0,0,2,2,0,0,0,0,0],
+                [0,0,0,0,0,2,2,0,0,0,0,0],
+                [0,0,0,0,1,2,2,1,0,0,0,0],
+                [0,0,2,2,2,0,0,2,2,2,0,0],
+                [0,2,2,2,2,0,0,2,2,2,2,0],
+                [2,2,2,2,2,0,0,2,2,2,2,2],
+                [2,2,2,2,2,0,0,2,2,2,2,2],
+                [2,2,2,2,2,0,0,2,2,2,2,2],
+                [0,2,2,2,2,0,0,2,2,2,2,0],
+                [0,0,2,2,1,0,0,1,2,2,0,0],
+                [0,0,0,1,0,0,0,0,1,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0]
+            ],
+            equipment: [ // Gear/cog
+                [0,0,0,0,0,2,2,0,0,0,0,0],
+                [0,0,0,0,1,2,2,1,0,0,0,0],
+                [0,0,2,1,1,1,1,1,1,2,0,0],
+                [0,0,1,0,0,0,0,0,0,1,0,0],
+                [0,1,1,0,0,2,2,0,0,1,1,0],
+                [2,2,1,0,2,2,2,2,0,1,2,2],
+                [2,2,1,0,2,2,2,2,0,1,2,2],
+                [0,1,1,0,0,2,2,0,0,1,1,0],
+                [0,0,1,0,0,0,0,0,0,1,0,0],
+                [0,0,2,1,1,1,1,1,1,2,0,0],
+                [0,0,0,0,1,2,2,1,0,0,0,0],
+                [0,0,0,0,0,2,2,0,0,0,0,0]
+            ],
+            competition: [ // Trophy
+                [0,0,0,2,2,2,2,2,2,0,0,0],
+                [0,0,2,1,1,1,1,1,1,2,0,0],
+                [0,1,2,1,1,1,1,1,1,2,1,0],
+                [0,1,2,1,1,1,1,1,1,2,1,0],
+                [0,0,2,1,1,1,1,1,1,2,0,0],
+                [0,0,0,2,2,2,2,2,2,0,0,0],
+                [0,0,0,0,2,2,2,2,0,0,0,0],
+                [0,0,0,0,0,2,2,0,0,0,0,0],
+                [0,0,0,0,0,2,2,0,0,0,0,0],
+                [0,0,0,2,2,2,2,2,2,0,0,0],
+                [0,0,0,2,2,2,2,2,2,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0]
+            ],
+            analysis: [ // Bar chart
+                [0,2,0,0,0,0,0,0,0,0,0,0],
+                [0,1,0,0,0,0,0,0,0,2,0,0],
+                [0,1,0,0,0,0,0,0,0,2,0,0],
+                [0,1,0,0,0,0,2,0,0,2,0,0],
+                [0,1,0,0,0,0,2,0,0,2,0,0],
+                [0,1,0,0,2,0,2,0,0,2,0,0],
+                [0,1,0,0,2,0,2,0,0,2,0,0],
+                [0,1,0,0,2,0,2,0,2,2,0,0],
+                [0,1,2,0,2,0,2,0,2,2,0,0],
+                [0,1,2,0,2,0,2,0,2,2,0,0],
+                [0,1,1,1,1,1,1,1,1,1,1,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0]
+            ]
+        };
+
+        function renderIcon(iconId, container, pixelClass = 'px') {
+            const data = iconData[iconId];
+            if (!data) return;
+
+            for (let y = 0; y < 12; y++) {
+                for (let x = 0; x < 12; x++) {
+                    const pixel = document.createElement('div');
+                    pixel.className = pixelClass;
+                    const value = data[y][x];
+                    if (value === 2) pixel.classList.add('gold');
+                    else if (value === 1) pixel.classList.add('gold-dim');
+                    else pixel.classList.add('empty');
+                    container.appendChild(pixel);
+                }
+            }
+        }
+
+        function formatXp(xp) {
+            if (xp >= 1000000) return (xp / 1000000).toFixed(1) + 'M';
+            if (xp >= 1000) return (xp / 1000).toFixed(1) + 'K';
+            return xp.toString();
+        }
+
+        // Render large icons
+        const largeIconsContainer = document.getElementById('large-icons');
+        skills.forEach(skill => {
+            const card = document.createElement('div');
+            card.className = 'large-icon-card';
+
+            const iconContainer = document.createElement('div');
+            iconContainer.className = 'large-icon-container';
+
+            const icon = document.createElement('div');
+            icon.className = 'pixel-icon-large';
+            renderIcon(skill.id, icon);
+
+            iconContainer.appendChild(icon);
+            card.appendChild(iconContainer);
+
+            const label = document.createElement('div');
+            label.className = 'large-label';
+            label.textContent = skill.name;
+            card.appendChild(label);
+
+            largeIconsContainer.appendChild(card);
+        });
+
+        // Render skill cards
+        const skillsGrid = document.getElementById('skills-grid');
+        skills.forEach(skill => {
+            const card = document.createElement('div');
+            card.className = 'skill-card';
+
+            const iconContainer = document.createElement('div');
+            iconContainer.className = 'icon-container';
+
+            const icon = document.createElement('div');
+            icon.className = 'pixel-icon';
+            renderIcon(skill.id, icon);
+
+            iconContainer.appendChild(icon);
+            card.appendChild(iconContainer);
+
+            const name = document.createElement('div');
+            name.className = 'skill-name';
+            name.textContent = skill.name;
+            card.appendChild(name);
+
+            const levelBadge = document.createElement('div');
+            levelBadge.className = 'level-badge';
+            levelBadge.textContent = 'LV' + skill.level;
+            card.appendChild(levelBadge);
+
+            const xpBarContainer = document.createElement('div');
+            xpBarContainer.className = 'xp-bar-container';
+
+            const xpBar = document.createElement('div');
+            xpBar.className = 'xp-bar';
+            xpBar.style.width = (skill.progress * 100) + '%';
+
+            xpBarContainer.appendChild(xpBar);
+            card.appendChild(xpBarContainer);
+
+            const xpText = document.createElement('div');
+            xpText.className = 'xp-text';
+            xpText.textContent = formatXp(skill.xp) + ' XP';
+            card.appendChild(xpText);
+
+            skillsGrid.appendChild(card);
+        });
+
+        // Render RuneScape style panel
+        const rsSkills = document.getElementById('rs-skills');
+        skills.forEach(skill => {
+            const skillDiv = document.createElement('div');
+            skillDiv.className = 'rs-skill';
+
+            const icon = document.createElement('div');
+            icon.className = 'rs-icon';
+            renderIcon(skill.id, icon);
+
+            skillDiv.appendChild(icon);
+
+            const levels = document.createElement('div');
+            levels.className = 'rs-levels';
+            levels.innerHTML = `<div class="rs-level-current">${skill.level}</div><div class="rs-level-total">/99</div>`;
+            skillDiv.appendChild(levels);
+
+            rsSkills.appendChild(skillDiv);
+        });
+    </script>
+</body>
+</html>
