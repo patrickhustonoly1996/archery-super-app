@@ -243,6 +243,9 @@ class InteractiveTargetFace extends StatefulWidget {
   /// Callback for pending arrow position (for external zoom window)
   final Function(double? x, double? y)? onPendingArrowChanged;
 
+  /// Optional transform controller for coordinate adjustment when zoomed
+  final TransformationController? transformController;
+
   const InteractiveTargetFace({
     super.key,
     required this.arrows,
@@ -255,6 +258,7 @@ class InteractiveTargetFace extends StatefulWidget {
     this.lineCutterDialogEnabled = false,
     this.compoundScoring = false,
     this.onPendingArrowChanged,
+    this.transformController,
   });
 
   @override

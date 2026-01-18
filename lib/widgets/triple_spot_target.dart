@@ -114,6 +114,10 @@ class InteractiveTripleSpotTarget extends StatefulWidget {
   final bool enabled;
   final bool isLeftHanded;
   final bool compoundScoring;
+  /// Enable auto-advance to next face after plotting
+  final bool autoAdvance;
+  /// Advance order: 'column' (0→1→2→0) or 'triangular' (0→2→1→0)
+  final String advanceOrder;
 
   const InteractiveTripleSpotTarget({
     super.key,
@@ -123,6 +127,8 @@ class InteractiveTripleSpotTarget extends StatefulWidget {
     this.enabled = true,
     this.isLeftHanded = false,
     this.compoundScoring = false,
+    this.autoAdvance = false,
+    this.advanceOrder = 'column',
   });
 
   @override
@@ -133,6 +139,24 @@ class InteractiveTripleSpotTarget extends StatefulWidget {
 class _InteractiveTripleSpotTargetState
     extends State<InteractiveTripleSpotTarget> {
   int _selectedFace = 0;
+
+  /// Calculate next face based on advance order
+  int _getNextFace(int current) {
+    if (widget.advanceOrder == 'triangular') {
+      // Triangular: 0→2, 1→0, 2→1 (top, bottom, middle)
+      const order = [2, 0, 1];
+      return order[current];
+    }
+    // Column: 0→1→2→0 (top to bottom)
+    return (current + 1) % 3;
+  }
+
+  void _onArrowPlotted(double x, double y, int faceIndex) {
+    widget.onArrowPlotted(x, y, faceIndex);
+    if (widget.autoAdvance) {
+      setState(() => _selectedFace = _getNextFace(faceIndex));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -209,7 +233,7 @@ class _InteractiveTripleSpotTargetState
           isLeftHanded: widget.isLeftHanded,
           compoundScoring: widget.compoundScoring,
           onArrowPlotted: (x, y) {
-            widget.onArrowPlotted(x, y, faceIndex);
+            _onArrowPlotted(x, y, faceIndex);
           },
         ),
       ),

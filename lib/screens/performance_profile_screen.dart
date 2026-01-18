@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../providers/skills_provider.dart';
 import '../services/xp_calculation_service.dart';
 import '../db/database.dart';
+import '../widgets/bow_icon.dart';
 
 class PerformanceProfileScreen extends StatefulWidget {
   const PerformanceProfileScreen({super.key});
@@ -326,10 +327,12 @@ class _SkillTile extends StatelessWidget {
                     ),
                   ),
                   child: Center(
-                    child: CustomPaint(
-                      size: const Size(24, 24),
-                      painter: _SkillIconPainter(skillId: skill.id),
-                    ),
+                    child: skill.id == 'equipment'
+                        ? const BowIcon(size: 24, color: AppColors.gold)
+                        : CustomPaint(
+                            size: const Size(24, 24),
+                            painter: _SkillIconPainter(skillId: skill.id),
+                          ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -521,10 +524,12 @@ class _SkillDetailSheetState extends State<_SkillDetailSheet> {
                       border: Border.all(color: AppColors.gold, width: 2),
                     ),
                     child: Center(
-                      child: CustomPaint(
-                        size: const Size(32, 32),
-                        painter: _SkillIconPainter(skillId: widget.skill.id),
-                      ),
+                      child: widget.skill.id == 'equipment'
+                          ? const BowIcon(size: 32, color: AppColors.gold)
+                          : CustomPaint(
+                              size: const Size(32, 32),
+                              painter: _SkillIconPainter(skillId: widget.skill.id),
+                            ),
                     ),
                   ),
                   const SizedBox(width: 16),

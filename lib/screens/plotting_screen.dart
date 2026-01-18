@@ -7,6 +7,7 @@ import '../providers/connectivity_provider.dart';
 import '../providers/auto_plot_provider.dart';
 import '../widgets/target_face.dart';
 import '../widgets/triple_spot_target.dart';
+import '../widgets/plotting_settings_sheet.dart';
 import '../widgets/group_centre_widget.dart';
 import '../widgets/full_scorecard_widget.dart';
 import 'scorecard_view_screen.dart';
@@ -38,6 +39,12 @@ const String kShowRingNotationPref = 'show_ring_notation';
 /// Preference key for tracking nock rotation per arrow
 const String kTrackNockRotationPref = 'track_nock_rotation';
 
+/// Preference key for triple spot auto-advance
+const String kTripleSpotAutoAdvancePref = 'triple_spot_auto_advance';
+
+/// Preference key for triple spot advance order ('column' or 'triangular')
+const String kTripleSpotOrderPref = 'triple_spot_order';
+
 class PlottingScreen extends StatefulWidget {
   const PlottingScreen({super.key});
 
@@ -61,15 +68,56 @@ class _PlottingScreenState extends State<PlottingScreen> {
   // Selected face for plotting (0, 1, or 2)
   int _selectedFaceIndex = 0;
   bool _prefsLoaded = false;
+  // Triple spot auto-advance settings
+  bool _autoAdvanceEnabled = false;
+  String _autoAdvanceOrder = 'column'; // 'column' or 'triangular'
 
   // Pending arrow position for fixed zoom window (normalized -1 to +1)
-  double? _pendingArrowX;
-  double? _pendingArrowY;
+  // Using ValueNotifier for efficient updates without full widget rebuild
+  final ValueNotifier<({double x, double y})?> _pendingArrowNotifier =
+      ValueNotifier<({double x, double y})?>(null);
+
+  // Pinch-to-zoom controller for target face
+  final TransformationController _zoomController = TransformationController();
+
+  // End history viewing - null means viewing/plotting current end
+  int? _viewingEndIndex;
+  List<Arrow>? _viewingEndArrows;
 
   @override
   void initState() {
     super.initState();
     _loadPreferences();
+  }
+
+  @override
+  void dispose() {
+    _pendingArrowNotifier.dispose();
+    _zoomController.dispose();
+    super.dispose();
+  }
+
+  /// Reset zoom to 1x when starting new end
+  void _resetZoom() {
+    _zoomController.value = Matrix4.identity();
+  }
+
+  /// View arrows from a past end
+  Future<void> _viewPastEnd(int endIndex, SessionProvider provider) async {
+    final end = provider.ends[endIndex];
+    final arrows = await provider.getArrowsForEnd(end.id);
+    setState(() {
+      _viewingEndIndex = endIndex;
+      _viewingEndArrows = arrows;
+    });
+  }
+
+  /// Return to current end (exit history view)
+  void _returnToCurrentEnd() {
+    setState(() {
+      _viewingEndIndex = null;
+      _viewingEndArrows = null;
+    });
   }
 
   Future<void> _loadPreferences() async {
@@ -79,6 +127,8 @@ class _PlottingScreenState extends State<PlottingScreen> {
     final compound = await db.getBoolPreference(kCompoundScoringPref, defaultValue: false);
     final confidence = await db.getDoublePreference(kGroupCentreConfidencePref, defaultValue: 1.0);
     final ringNotation = await db.getBoolPreference(kShowRingNotationPref, defaultValue: true);
+    final autoAdvance = await db.getBoolPreference(kTripleSpotAutoAdvancePref, defaultValue: false);
+    final advanceOrder = await db.getPreference(kTripleSpotOrderPref);
     if (mounted) {
       setState(() {
         _useTripleSpotView = tripleSpot;
@@ -86,6 +136,8 @@ class _PlottingScreenState extends State<PlottingScreen> {
         _compoundScoring = compound;
         _confidenceMultiplier = confidence;
         _showRingNotation = ringNotation;
+        _autoAdvanceEnabled = autoAdvance;
+        _autoAdvanceOrder = advanceOrder ?? 'column';
         _prefsLoaded = true;
       });
     }
@@ -121,6 +173,44 @@ class _PlottingScreenState extends State<PlottingScreen> {
     final db = context.read<AppDatabase>();
     await db.setBoolPreference(kShowRingNotationPref, !_showRingNotation);
     setState(() => _showRingNotation = !_showRingNotation);
+  }
+
+  Future<void> _setAutoAdvance(bool value) async {
+    final db = context.read<AppDatabase>();
+    await db.setBoolPreference(kTripleSpotAutoAdvancePref, value);
+    setState(() => _autoAdvanceEnabled = value);
+  }
+
+  Future<void> _setAutoAdvanceOrder(String value) async {
+    final db = context.read<AppDatabase>();
+    await db.setPreference(kTripleSpotOrderPref, value);
+    setState(() => _autoAdvanceOrder = value);
+  }
+
+  void _showSettingsSheet(BuildContext context, SessionProvider provider, bool supportsTripleSpot) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => PlottingSettingsSheet(
+        supportsTripleSpot: supportsTripleSpot,
+        useTripleSpot: _useTripleSpotView,
+        onTripleSpotChanged: _setTripleSpotView,
+        useCombinedView: _useCombinedView,
+        onCombinedViewChanged: _setCombinedView,
+        compoundScoring: _compoundScoring,
+        onCompoundScoringChanged: _setCompoundScoring,
+        confidenceMultiplier: _confidenceMultiplier,
+        onToggleConfidence: _toggleConfidenceMultiplier,
+        showRingNotation: _showRingNotation,
+        onToggleRingNotation: _toggleRingNotation,
+        shaftTaggingEnabled: provider.selectedQuiverId != null ? provider.shaftTaggingEnabled : null,
+        onShaftTaggingChanged: provider.selectedQuiverId != null ? provider.setShaftTagging : null,
+        autoAdvanceEnabled: _autoAdvanceEnabled,
+        onAutoAdvanceChanged: _setAutoAdvance,
+        autoAdvanceOrder: _autoAdvanceOrder,
+        onAutoAdvanceOrderChanged: _setAutoAdvanceOrder,
+      ),
+    );
   }
 
   @override
@@ -163,7 +253,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
               ),
               // End counter
               Padding(
-                padding: const EdgeInsets.only(right: AppSpacing.md),
+                padding: const EdgeInsets.only(right: AppSpacing.sm),
                 child: Center(
                   child: Text(
                     'End ${provider.currentEndNumber}/${provider.totalEnds}',
@@ -172,6 +262,12 @@ class _PlottingScreenState extends State<PlottingScreen> {
                         ),
                   ),
                 ),
+              ),
+              // Settings gear icon
+              IconButton(
+                icon: const Icon(Icons.settings, semanticLabel: 'Settings'),
+                tooltip: 'Plotting settings',
+                onPressed: () => _showSettingsSheet(context, provider, supportsTripleSpot),
               ),
               // Menu with abandon option
               PopupMenuButton<String>(
@@ -202,43 +298,6 @@ class _PlottingScreenState extends State<PlottingScreen> {
                 // Score summary bar
                 _ScoreSummaryBar(provider: provider),
 
-                const SizedBox(height: AppSpacing.md),
-
-                // Plotting toggles row
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Indoor toggles: triple spot view + compound scoring
-                      if (supportsTripleSpot) ...[
-                        // View mode toggle (1 face vs 3 faces)
-                        TripleSpotToggle(
-                          isTripleSpot: _useTripleSpotView,
-                          onChanged: _setTripleSpotView,
-                        ),
-                        // Compound scoring toggle (smaller inner 10)
-                        _CompoundToggle(
-                          isCompound: _compoundScoring,
-                          onChanged: _setCompoundScoring,
-                        ),
-                        // Combined vs separate toggle (only when triple spot)
-                        if (_useTripleSpotView)
-                          _ViewModeToggle(
-                            isCombined: _useCombinedView,
-                            onChanged: _setCombinedView,
-                          ),
-                      ],
-                      // Arrow tracking toggle (available if quiver selected)
-                      if (provider.selectedQuiverId != null)
-                        _ArrowTrackingToggle(
-                          isEnabled: provider.shaftTaggingEnabled,
-                          onChanged: provider.setShaftTagging,
-                        ),
-                    ],
-                  ),
-                ),
-
                 const SizedBox(height: AppSpacing.sm),
 
                 // Target face with rolling average overlay and fixed zoom window
@@ -248,32 +307,41 @@ class _PlottingScreenState extends State<PlottingScreen> {
                       // Main target - fills available space naturally
                       Center(
                         child: Padding(
-                          padding: const EdgeInsets.all(AppSpacing.md),
+                          padding: const EdgeInsets.all(AppSpacing.sm),
                           child: LayoutBuilder(
                             builder: (context, constraints) {
-                              // Use the smaller dimension, leave some space for zoom window
+                              // Use the smaller dimension for square target
                               final availableSize = constraints.maxWidth < constraints.maxHeight
                                   ? constraints.maxWidth
                                   : constraints.maxHeight;
-                              // Target fills most of available space (no arbitrary clamp)
-                              final size = availableSize - AppSpacing.md * 2;
+                              // Target fills available space
+                              final size = availableSize;
+
+                              // Determine which arrows to show and whether plotting enabled
+                              final isViewingHistory = _viewingEndIndex != null;
+                              final displayArrows = isViewingHistory
+                                  ? (_viewingEndArrows ?? [])
+                                  : provider.allSessionArrows;
+                              final canPlot = !provider.isEndComplete && !isViewingHistory;
 
                               // Use triple spot view for indoor rounds when enabled
                               if (supportsTripleSpot && _useTripleSpotView) {
                                 if (_useCombinedView) {
                                   // Combined view: all arrows on one tri-spot face
                                   return CombinedTripleSpotView(
-                                    arrows: provider.allSessionArrows,
+                                    arrows: displayArrows,
                                     size: size,
                                     compoundScoring: _compoundScoring,
                                   );
                                 } else {
                                   // Separate view: 3 interactive faces
                                   return InteractiveTripleSpotTarget(
-                                    arrows: provider.allSessionArrows,
+                                    arrows: displayArrows,
                                     size: size,
-                                    enabled: !provider.isEndComplete,
+                                    enabled: canPlot,
                                     compoundScoring: _compoundScoring,
+                                    autoAdvance: _autoAdvanceEnabled,
+                                    advanceOrder: _autoAdvanceOrder,
                                     onArrowPlotted: (x, y, faceIndex) async {
                                       await _plotArrowWithFace(
                                         context, provider, x, y, faceIndex,
@@ -285,23 +353,34 @@ class _PlottingScreenState extends State<PlottingScreen> {
 
                               // Single face view (outdoor or user preference)
                               final isTriSpot = (provider.roundType?.faceCount ?? 1) == 3;
-                              return InteractiveTargetFace(
-                                arrows: provider.allSessionArrows,
-                                size: size,
-                                enabled: !provider.isEndComplete,
-                                isIndoor: provider.roundType?.isIndoor ?? false,
-                                triSpot: isTriSpot,
-                                compoundScoring: _compoundScoring,
-                                lineCutterDialogEnabled: true,
-                                onArrowPlotted: (x, y) async {
-                                  await _plotArrowWithFace(context, provider, x, y, 0);
-                                },
-                                onPendingArrowChanged: (x, y) {
-                                  setState(() {
-                                    _pendingArrowX = x;
-                                    _pendingArrowY = y;
-                                  });
-                                },
+                              // Wrap in InteractiveViewer for pinch-to-zoom
+                              // Single-finger gestures pass through for plotting
+                              return InteractiveViewer(
+                                transformationController: _zoomController,
+                                minScale: 1.0,
+                                maxScale: 4.0,
+                                panEnabled: true,
+                                scaleEnabled: true,
+                                constrained: true,
+                                child: InteractiveTargetFace(
+                                  arrows: displayArrows,
+                                  size: size,
+                                  enabled: canPlot,
+                                  isIndoor: provider.roundType?.isIndoor ?? false,
+                                  triSpot: isTriSpot,
+                                  compoundScoring: _compoundScoring,
+                                  lineCutterDialogEnabled: true,
+                                  transformController: _zoomController,
+                                  onArrowPlotted: (x, y) async {
+                                    await _plotArrowWithFace(context, provider, x, y, 0);
+                                  },
+                                  onPendingArrowChanged: (x, y) {
+                                    // Use ValueNotifier for efficient updates without full rebuild
+                                    _pendingArrowNotifier.value = x != null && y != null
+                                        ? (x: x, y: y)
+                                        : null;
+                                  },
+                                ),
                               );
                             },
                           ),
@@ -309,22 +388,30 @@ class _PlottingScreenState extends State<PlottingScreen> {
                       ),
 
                       // Fixed zoom window at 12 o'clock (top center)
-                      if (_pendingArrowX != null && _pendingArrowY != null)
-                        Positioned(
-                          top: AppSpacing.md,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: FixedZoomWindow(
-                              targetX: _pendingArrowX!,
-                              targetY: _pendingArrowY!,
-                              zoomLevel: 4.0,
-                              size: 120,
-                              triSpot: (provider.roundType?.faceCount ?? 1) == 3,
-                              compoundScoring: _compoundScoring,
+                      // Uses ValueListenableBuilder for efficient updates during touch
+                      ValueListenableBuilder<({double x, double y})?>(
+                        valueListenable: _pendingArrowNotifier,
+                        builder: (context, pending, _) {
+                          if (pending == null) return const SizedBox.shrink();
+                          return Positioned(
+                            top: AppSpacing.md,
+                            left: 0,
+                            right: 0,
+                            child: Center(
+                              child: RepaintBoundary(
+                                child: FixedZoomWindow(
+                                  targetX: pending.x,
+                                  targetY: pending.y,
+                                  zoomLevel: 4.0,
+                                  size: 120,
+                                  triSpot: (provider.roundType?.faceCount ?? 1) == 3,
+                                  compoundScoring: _compoundScoring,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
+                      ),
 
                       // Rolling 12-arrow group centre (top-left)
                       Positioned(
@@ -381,6 +468,21 @@ class _PlottingScreenState extends State<PlottingScreen> {
                   ),
                 ),
 
+                // End history bar
+                if (provider.ends.isNotEmpty)
+                  _EndHistoryBar(
+                    completedEnds: provider.ends.length,
+                    currentEndNumber: provider.currentEndNumber,
+                    viewingEndIndex: _viewingEndIndex,
+                    onEndTapped: (index) {
+                      if (index == provider.ends.length) {
+                        _returnToCurrentEnd();
+                      } else {
+                        _viewPastEnd(index, provider);
+                      }
+                    },
+                  ),
+
                 // Divider before scorecard
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -415,7 +517,10 @@ class _PlottingScreenState extends State<PlottingScreen> {
                 ),
 
                 // Action buttons
-                _ActionButtons(provider: provider),
+                _ActionButtons(
+                  provider: provider,
+                  onEndCommit: _resetZoom,
+                ),
 
                 const SizedBox(height: AppSpacing.md),
               ],
@@ -538,159 +643,6 @@ class _PlottingScreenState extends State<PlottingScreen> {
   }
 }
 
-/// Toggle between combined and separate view modes
-class _ViewModeToggle extends StatelessWidget {
-  final bool isCombined;
-  final ValueChanged<bool> onChanged;
-
-  const _ViewModeToggle({
-    required this.isCombined,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.surfaceLight),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildOption(
-            icon: Icons.grid_view,
-            tooltip: 'Separate',
-            isSelected: !isCombined,
-            onTap: () => onChanged(false),
-          ),
-          Container(width: 1, height: 32, color: AppColors.surfaceLight),
-          _buildOption(
-            icon: Icons.circle_outlined,
-            tooltip: 'Combined',
-            isSelected: isCombined,
-            onTap: () => onChanged(true),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOption({
-    required IconData icon,
-    required String tooltip,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return Tooltip(
-      message: tooltip,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.gold.withOpacity(0.2) : Colors.transparent,
-          ),
-          child: Icon(
-            icon,
-            size: 18,
-            color: isSelected ? AppColors.gold : AppColors.textMuted,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Toggle for compound scoring mode (smaller inner 10/X ring)
-class _CompoundToggle extends StatelessWidget {
-  final bool isCompound;
-  final ValueChanged<bool> onChanged;
-
-  const _CompoundToggle({
-    required this.isCompound,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: isCompound ? 'Compound (small X)' : 'Recurve (standard X)',
-      child: GestureDetector(
-        onTap: () => onChanged(!isCompound),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: isCompound ? AppColors.gold.withOpacity(0.2) : Colors.transparent,
-            border: Border.all(
-              color: isCompound ? AppColors.gold : AppColors.surfaceLight,
-            ),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Text(
-            isCompound ? 'CPD' : 'REC',
-            style: TextStyle(
-              fontFamily: AppFonts.pixel,
-              fontSize: 12,
-              color: isCompound ? AppColors.gold : AppColors.textMuted,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Toggle for arrow/shaft tracking
-class _ArrowTrackingToggle extends StatelessWidget {
-  final bool isEnabled;
-  final ValueChanged<bool> onChanged;
-
-  const _ArrowTrackingToggle({
-    required this.isEnabled,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: isEnabled ? 'Arrow tracking ON' : 'Arrow tracking OFF',
-      child: GestureDetector(
-        onTap: () => onChanged(!isEnabled),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: isEnabled ? AppColors.gold.withOpacity(0.2) : Colors.transparent,
-            border: Border.all(
-              color: isEnabled ? AppColors.gold : AppColors.surfaceLight,
-            ),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.track_changes,
-                size: 14,
-                color: isEnabled ? AppColors.gold : AppColors.textMuted,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                isEnabled ? 'ON' : 'OFF',
-                style: TextStyle(
-                  fontFamily: AppFonts.pixel,
-                  fontSize: 12,
-                  color: isEnabled ? AppColors.gold : AppColors.textMuted,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _ScoreSummaryBar extends StatelessWidget {
   final SessionProvider provider;
 
@@ -767,8 +719,12 @@ class _ScoreItem extends StatelessWidget {
 
 class _ActionButtons extends StatelessWidget {
   final SessionProvider provider;
+  final VoidCallback? onEndCommit;
 
-  const _ActionButtons({required this.provider});
+  const _ActionButtons({
+    required this.provider,
+    this.onEndCommit,
+  });
 
   void _launchAutoPlot(BuildContext context) async {
     final roundType = provider.roundType;
@@ -878,8 +834,12 @@ class _ActionButtons extends StatelessWidget {
           Expanded(
             flex: 2,
             child: ElevatedButton(
-              onPressed:
-                  provider.arrowsInCurrentEnd > 0 ? provider.commitEnd : null,
+              onPressed: provider.arrowsInCurrentEnd > 0
+                  ? () async {
+                      await provider.commitEnd();
+                      onEndCommit?.call();
+                    }
+                  : null,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                 child: Text(
@@ -891,6 +851,103 @@ class _ActionButtons extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Horizontal bar showing end numbers for history navigation
+class _EndHistoryBar extends StatelessWidget {
+  final int completedEnds;
+  final int currentEndNumber;
+  final int? viewingEndIndex;
+  final ValueChanged<int> onEndTapped;
+
+  const _EndHistoryBar({
+    required this.completedEnds,
+    required this.currentEndNumber,
+    required this.viewingEndIndex,
+    required this.onEndTapped,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Show completed ends + current end in progress
+    final totalToShow = completedEnds + 1;
+
+    return Container(
+      height: 40,
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            for (int i = 0; i < totalToShow; i++) ...[
+              if (i > 0) const SizedBox(width: 6),
+              _EndChip(
+                endNumber: i + 1,
+                isCurrent: i == completedEnds,
+                isViewing: viewingEndIndex == i,
+                isCompleted: i < completedEnds,
+                onTap: () => onEndTapped(i),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EndChip extends StatelessWidget {
+  final int endNumber;
+  final bool isCurrent;
+  final bool isViewing;
+  final bool isCompleted;
+  final VoidCallback onTap;
+
+  const _EndChip({
+    required this.endNumber,
+    required this.isCurrent,
+    required this.isViewing,
+    required this.isCompleted,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isHighlighted = isCurrent || isViewing;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: isHighlighted
+              ? AppColors.gold.withValues(alpha: 0.2)
+              : Colors.transparent,
+          border: Border.all(
+            color: isHighlighted
+                ? AppColors.gold
+                : (isCompleted ? AppColors.surfaceLight : Colors.transparent),
+            width: isHighlighted ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          '$endNumber${isCurrent ? '*' : ''}',
+          style: TextStyle(
+            fontFamily: AppFonts.pixel,
+            fontSize: 14,
+            color: isHighlighted ? AppColors.gold : AppColors.textMuted,
+          ),
+        ),
       ),
     );
   }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archery Skill Icons - RuneScape Style</title>
+    <title>Archery Skill Icons Preview</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap');
 
@@ -13,39 +13,132 @@
             box-sizing: border-box;
         }
 
+        /* App color scheme - from app_theme.dart */
+        :root {
+            --gold: #FFD700;
+            --gold-muted: rgba(255, 215, 0, 0.5);
+            --background: #121212;
+            --surface-dark: #1E1E1E;
+            --surface-light: #2A2A2A;
+            --surface-bright: #3A3A3A;
+            --text-primary: #FFFFFF;
+            --text-secondary: #B0B0B0;
+            --text-muted: #8A8A8A;
+        }
+
         body {
-            background: #0a0a0f;
+            background: var(--background);
             min-height: 100vh;
             font-family: 'Share Tech Mono', monospace;
-            color: #e0e0e0;
+            color: var(--text-primary);
             padding: 40px;
         }
 
         h1 {
             font-family: 'VT323', monospace;
-            color: #FFD700;
+            color: var(--gold);
             font-size: 48px;
             text-align: center;
             margin-bottom: 20px;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
             letter-spacing: 4px;
         }
 
         h2 {
             font-family: 'VT323', monospace;
-            color: #FFD700;
+            color: var(--gold);
             font-size: 28px;
             margin: 40px 0 20px;
             letter-spacing: 2px;
         }
 
+        h3 {
+            font-family: 'VT323', monospace;
+            color: var(--text-secondary);
+            font-size: 20px;
+            margin: 24px 0 12px;
+            letter-spacing: 1px;
+        }
+
         .subtitle {
             text-align: center;
-            color: #888;
+            color: var(--text-muted);
             margin-bottom: 40px;
             font-size: 14px;
         }
 
+        /* Large icon preview */
+        .large-icons {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 40px 0;
+        }
+
+        .large-icon-card {
+            background: var(--surface-dark);
+            border: 1px solid var(--surface-light);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .large-icon-container {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .large-label {
+            font-family: 'VT323', monospace;
+            color: var(--gold);
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        /* Options grid for alternative icons */
+        .options-grid {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .option-card {
+            background: var(--surface-dark);
+            border: 1px solid var(--surface-light);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .option-card:hover {
+            border-color: var(--gold);
+        }
+
+        .option-card.selected {
+            border-color: var(--gold);
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .option-label {
+            font-family: 'VT323', monospace;
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        /* Skill cards grid */
         .skills-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -55,52 +148,33 @@
         }
 
         .skill-card {
-            background: #1a1a24;
-            border: 2px solid #2a2a3a;
+            background: var(--surface-dark);
+            border: 1px solid var(--surface-light);
             padding: 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: relative;
-            transition: all 0.2s;
         }
 
         .skill-card:hover {
-            border-color: #FFD700;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+            border-color: var(--gold);
         }
 
         .icon-container {
             width: 48px;
             height: 48px;
             background: rgba(255, 215, 0, 0.1);
-            border: 2px solid rgba(255, 215, 0, 0.3);
+            border: 1px solid rgba(255, 215, 0, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
             margin-bottom: 12px;
         }
 
-        .pixel-icon {
-            display: grid;
-            grid-template-columns: repeat(12, 3px);
-            grid-template-rows: repeat(12, 3px);
-            image-rendering: pixelated;
-        }
-
-        .pixel-icon .px {
-            width: 3px;
-            height: 3px;
-        }
-
-        .pixel-icon .gold { background: #FFD700; }
-        .pixel-icon .gold-dim { background: rgba(255, 215, 0, 0.5); }
-        .pixel-icon .empty { background: transparent; }
-
         .skill-name {
             font-family: 'VT323', monospace;
-            color: #e0e0e0;
-            font-size: 16px;
+            color: var(--text-primary);
+            font-size: 14px;
             letter-spacing: 1px;
             text-align: center;
             margin-bottom: 8px;
@@ -111,14 +185,14 @@
             border: 1px solid rgba(255, 215, 0, 0.5);
             padding: 2px 8px;
             font-family: 'VT323', monospace;
-            font-size: 14px;
-            color: #FFD700;
+            font-size: 12px;
+            color: var(--gold);
         }
 
         .xp-bar-container {
             width: 100%;
             height: 6px;
-            background: #2a2a3a;
+            background: var(--surface-light);
             margin-top: 8px;
             border-radius: 3px;
             overflow: hidden;
@@ -126,142 +200,68 @@
 
         .xp-bar {
             height: 100%;
-            background: linear-gradient(90deg, #FFD700, #FFA500);
+            background: var(--gold);
             border-radius: 3px;
         }
 
         .xp-text {
             font-size: 10px;
-            color: #888;
+            color: var(--text-muted);
             margin-top: 4px;
         }
 
-        /* Large icon preview */
-        .large-icons {
-            display: flex;
-            gap: 40px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin: 40px 0;
-        }
-
-        .large-icon-card {
-            background: #1a1a24;
-            border: 2px solid #2a2a3a;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .large-icon-container {
-            width: 96px;
-            height: 96px;
-            background: rgba(255, 215, 0, 0.1);
-            border: 3px solid rgba(255, 215, 0, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-        }
-
-        .pixel-icon-large {
-            display: grid;
-            grid-template-columns: repeat(12, 6px);
-            grid-template-rows: repeat(12, 6px);
+        /* Canvas-based pixel icons */
+        canvas.icon {
             image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
 
-        .pixel-icon-large .px {
-            width: 6px;
-            height: 6px;
+        .code-output {
+            background: var(--surface-dark);
+            border: 1px solid var(--surface-light);
+            padding: 16px;
+            margin-top: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
-        .large-label {
-            font-family: 'VT323', monospace;
-            color: #FFD700;
-            font-size: 18px;
-            letter-spacing: 1px;
-        }
-
-        /* RuneScape style panel */
-        .rs-panel {
-            background: #3b3224;
-            border: 4px solid #5c4a1f;
-            max-width: 400px;
-            margin: 40px auto;
-            padding: 8px;
-        }
-
-        .rs-panel-inner {
-            background: #252017;
-            border: 2px solid #1a1510;
-            padding: 8px;
-        }
-
-        .rs-skills-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 4px;
-        }
-
-        .rs-skill {
-            background: #1a1510;
-            border: 1px solid #3b3224;
-            padding: 4px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .rs-icon {
-            width: 24px;
-            height: 24px;
-            display: grid;
-            grid-template-columns: repeat(12, 2px);
-            grid-template-rows: repeat(12, 2px);
-        }
-
-        .rs-icon .px {
-            width: 2px;
-            height: 2px;
-        }
-
-        .rs-levels {
-            font-family: 'VT323', monospace;
-            font-size: 14px;
-            line-height: 1;
-        }
-
-        .rs-level-current {
-            color: #FFD700;
-        }
-
-        .rs-level-total {
-            color: #888;
-            font-size: 12px;
+        .code-output pre {
+            color: var(--gold);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            white-space: pre-wrap;
+            overflow-x: auto;
         }
     </style>
 </head>
 <body>
-    <h1>SKILL LEVELS</h1>
-    <p class="subtitle">RuneScape-style pixel art skill icons for the Archery Super App</p>
+    <h1>SKILL ICONS</h1>
+    <p class="subtitle">Pixel art icons for skills - click to select alternatives</p>
 
-    <h2>Large Icon Preview (96x96)</h2>
+    <h2>Current Icons (Large)</h2>
     <div class="large-icons" id="large-icons"></div>
 
-    <h2>Skill Cards with XP Bars</h2>
+    <h2>Icon Options</h2>
+
+    <h3>VOLUME - Pick one:</h3>
+    <div class="options-grid" id="volume-options"></div>
+
+    <h3>BOW FITNESS - Pick one:</h3>
+    <div class="options-grid" id="fitness-options"></div>
+
+    <h3>EQUIPMENT - Pick one:</h3>
+    <div class="options-grid" id="equipment-options"></div>
+
+    <h2>Full Skills Grid</h2>
     <div class="skills-grid" id="skills-grid"></div>
 
-    <h2>RuneScape Style Panel</h2>
-    <div class="rs-panel">
-        <div class="rs-panel-inner">
-            <div class="rs-skills-grid" id="rs-skills"></div>
-        </div>
+    <h2>Selected Icon Data (for Flutter)</h2>
+    <div class="code-output">
+        <pre id="code-output">Click an icon option to see its pixel data here...</pre>
     </div>
 
     <script>
-        // Skill definitions
         const skills = [
             { id: 'archery_skill', name: 'ARCHERY', level: 47, xp: 83000, progress: 0.65 },
             { id: 'volume', name: 'VOLUME', level: 32, xp: 28500, progress: 0.42 },
@@ -273,7 +273,7 @@
             { id: 'analysis', name: 'ANALYSIS', level: 24, xp: 12400, progress: 0.89 }
         ];
 
-        // Icon pixel data (12x12 grid, 0=empty, 1=gold-dim, 2=gold)
+        // Current selected icons
         const iconData = {
             archery_skill: [ // Target
                 [0,0,0,1,1,1,1,1,1,0,0,0],
@@ -289,20 +289,7 @@
                 [0,0,1,0,0,0,0,0,0,1,0,0],
                 [0,0,0,1,1,1,1,1,1,0,0,0]
             ],
-            volume: [ // Three arrows
-                [0,0,0,0,0,0,0,0,0,0,1,0],
-                [0,0,0,0,0,0,0,0,0,1,1,0],
-                [0,0,1,1,1,1,1,1,1,1,1,0],
-                [0,0,0,0,0,0,0,0,0,1,1,0],
-                [0,0,0,0,0,0,0,0,0,0,1,0],
-                [0,0,0,0,0,0,0,0,0,0,2,0],
-                [0,0,0,0,0,0,0,0,0,2,2,0],
-                [0,0,2,2,2,2,2,2,2,2,2,0],
-                [0,0,0,0,0,0,0,0,0,2,2,0],
-                [0,0,0,0,0,0,0,0,0,0,2,0],
-                [0,0,0,0,0,0,0,0,0,0,1,0],
-                [0,0,1,1,1,1,1,1,1,1,1,0]
-            ],
+            volume: null, // Will be set from options
             consistency: [ // Calendar with checkmarks
                 [0,0,2,2,2,2,2,2,2,2,0,0],
                 [0,0,2,0,0,0,0,0,0,2,0,0],
@@ -317,27 +304,14 @@
                 [0,0,2,2,2,2,2,2,2,2,0,0],
                 [0,0,0,0,0,0,0,0,0,0,0,0]
             ],
-            bow_fitness: [ // Flexed bicep
-                [0,0,0,0,0,1,0,0,0,0,0,0],
-                [0,0,0,0,2,2,0,0,0,0,0,0],
-                [0,0,0,2,2,2,2,0,0,0,0,0],
-                [0,0,2,2,2,2,2,0,0,0,0,0],
-                [0,2,2,2,2,2,2,2,0,0,0,0],
-                [0,2,2,2,2,2,2,2,2,0,0,0],
-                [0,0,2,2,2,2,2,2,2,2,0,0],
-                [0,0,0,2,2,2,2,2,2,2,1,0],
-                [0,0,0,0,2,2,2,2,2,1,1,0],
-                [0,0,0,0,0,2,2,2,1,0,0,0],
-                [0,0,0,0,0,0,2,1,0,0,0,0],
-                [0,0,0,0,0,0,0,0,0,0,0,0]
-            ],
-            breath_work: [ // Lungs
+            bow_fitness: null, // Will be set from options
+            breath_work: [ // Lungs with top shading
                 [0,0,0,0,0,2,2,0,0,0,0,0],
                 [0,0,0,0,0,2,2,0,0,0,0,0],
                 [0,0,0,0,1,2,2,1,0,0,0,0],
-                [0,0,2,2,2,0,0,2,2,2,0,0],
-                [0,2,2,2,2,0,0,2,2,2,2,0],
-                [2,2,2,2,2,0,0,2,2,2,2,2],
+                [0,0,1,1,2,0,0,2,1,1,0,0],
+                [0,1,1,2,2,0,0,2,2,1,1,0],
+                [1,1,2,2,2,0,0,2,2,2,1,1],
                 [2,2,2,2,2,0,0,2,2,2,2,2],
                 [2,2,2,2,2,0,0,2,2,2,2,2],
                 [0,2,2,2,2,0,0,2,2,2,2,0],
@@ -345,20 +319,7 @@
                 [0,0,0,1,0,0,0,0,1,0,0,0],
                 [0,0,0,0,0,0,0,0,0,0,0,0]
             ],
-            equipment: [ // Gear/cog
-                [0,0,0,0,0,2,2,0,0,0,0,0],
-                [0,0,0,0,1,2,2,1,0,0,0,0],
-                [0,0,2,1,1,1,1,1,1,2,0,0],
-                [0,0,1,0,0,0,0,0,0,1,0,0],
-                [0,1,1,0,0,2,2,0,0,1,1,0],
-                [2,2,1,0,2,2,2,2,0,1,2,2],
-                [2,2,1,0,2,2,2,2,0,1,2,2],
-                [0,1,1,0,0,2,2,0,0,1,1,0],
-                [0,0,1,0,0,0,0,0,0,1,0,0],
-                [0,0,2,1,1,1,1,1,1,2,0,0],
-                [0,0,0,0,1,2,2,1,0,0,0,0],
-                [0,0,0,0,0,2,2,0,0,0,0,0]
-            ],
+            equipment: null, // Will be set from options
             competition: [ // Trophy
                 [0,0,0,2,2,2,2,2,2,0,0,0],
                 [0,0,2,1,1,1,1,1,1,2,0,0],
@@ -389,19 +350,367 @@
             ]
         };
 
-        function renderIcon(iconId, container, pixelClass = 'px') {
-            const data = iconData[iconId];
-            if (!data) return;
+        // VOLUME OPTIONS
+        const volumeOptions = {
+            'quiver_diagonal': { // Diagonal quiver with arrows poking out
+                name: 'Quiver+Arrows',
+                data: [
+                    [0,0,0,0,0,0,0,2,0,2,0,2],
+                    [0,0,0,0,0,0,0,2,0,2,0,2],
+                    [0,0,0,0,0,0,2,1,2,1,2,1],
+                    [0,0,0,0,0,2,2,2,2,2,2,0],
+                    [0,0,0,0,2,2,1,1,1,2,0,0],
+                    [0,0,0,2,2,1,1,1,2,0,0,0],
+                    [0,0,2,2,1,1,1,2,0,0,0,0],
+                    [0,2,2,1,1,1,2,0,0,0,0,0],
+                    [0,2,1,1,1,2,0,0,0,0,0,0],
+                    [0,2,1,1,2,0,0,0,0,0,0,0],
+                    [0,0,2,2,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0]
+                ]
+            },
+            'quiver_diagonal2': { // Diagonal quiver v2 - more arrows visible
+                name: 'Quiver Full',
+                data: [
+                    [0,0,0,0,0,0,2,0,2,0,2,0],
+                    [0,0,0,0,0,0,2,0,2,0,2,0],
+                    [0,0,0,0,0,2,1,2,1,2,1,0],
+                    [0,0,0,0,2,2,2,2,2,2,0,0],
+                    [0,0,0,2,2,1,1,1,1,2,0,0],
+                    [0,0,2,2,1,1,1,1,2,0,0,0],
+                    [0,2,2,1,1,1,1,2,0,0,0,0],
+                    [0,2,1,1,1,1,2,0,0,0,0,0],
+                    [2,2,1,1,1,2,0,0,0,0,0,0],
+                    [2,1,1,1,2,0,0,0,0,0,0,0],
+                    [2,2,2,2,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0]
+                ]
+            },
+            'quiver_upright': { // Upright quiver with arrows
+                name: 'Quiver Up',
+                data: [
+                    [0,0,2,0,2,0,2,0,2,0,0,0],
+                    [0,0,2,0,2,0,2,0,2,0,0,0],
+                    [0,0,1,2,1,2,1,2,1,0,0,0],
+                    [0,0,2,2,2,2,2,2,2,0,0,0],
+                    [0,0,2,1,1,1,1,1,2,0,0,0],
+                    [0,0,2,1,1,1,1,1,2,0,0,0],
+                    [0,0,2,1,1,1,1,1,2,0,0,0],
+                    [0,0,0,2,1,1,1,2,0,0,0,0],
+                    [0,0,0,2,1,1,1,2,0,0,0,0],
+                    [0,0,0,0,2,1,2,0,0,0,0,0],
+                    [0,0,0,0,0,2,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0]
+                ]
+            },
+            'arrows_stack': { // Stack of arrows
+                name: 'Arrow Stack',
+                data: [
+                    [0,0,0,0,0,0,0,0,0,0,1,0],
+                    [0,0,0,0,0,0,0,0,0,1,1,0],
+                    [0,0,1,1,1,1,1,1,1,1,1,0],
+                    [0,0,0,0,0,0,0,0,0,1,1,0],
+                    [0,0,0,0,0,0,0,0,0,0,1,0],
+                    [0,0,0,0,0,0,0,0,0,0,2,0],
+                    [0,0,0,0,0,0,0,0,0,2,2,0],
+                    [0,0,2,2,2,2,2,2,2,2,2,0],
+                    [0,0,0,0,0,0,0,0,0,2,2,0],
+                    [0,0,0,0,0,0,0,0,0,0,2,0],
+                    [0,0,0,0,0,0,0,0,0,0,1,0],
+                    [0,0,1,1,1,1,1,1,1,1,1,0]
+                ]
+            },
+            'up_graph': { // Upward trend graph
+                name: 'Up Graph',
+                data: [
+                    [0,0,0,0,0,0,0,0,0,2,2,0],
+                    [0,0,0,0,0,0,0,0,2,2,0,0],
+                    [0,0,0,0,0,0,0,2,2,0,0,0],
+                    [0,0,0,0,0,0,2,2,0,0,0,0],
+                    [0,0,0,0,0,2,2,0,0,0,0,0],
+                    [0,0,0,0,0,2,0,0,0,0,0,0],
+                    [0,0,0,2,2,1,0,0,0,0,0,0],
+                    [0,0,2,2,0,1,0,0,0,0,0,0],
+                    [0,2,2,0,0,1,0,0,0,0,0,0],
+                    [0,2,0,0,0,1,0,0,0,0,0,0],
+                    [0,1,1,1,1,1,1,1,1,1,1,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0]
+                ]
+            }
+        };
+
+        // BOW FITNESS OPTIONS
+        const fitnessOptions = {
+            'dumbbell': { // Dumbbell/weights
+                name: 'Dumbbell',
+                data: [
+                    [0,0,0,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0],
+                    [0,2,2,0,0,0,0,0,0,2,2,0],
+                    [0,2,2,0,0,0,0,0,0,2,2,0],
+                    [0,2,2,2,2,2,2,2,2,2,2,0],
+                    [0,2,2,2,2,2,2,2,2,2,2,0],
+                    [0,2,2,2,2,2,2,2,2,2,2,0],
+                    [0,2,2,2,2,2,2,2,2,2,2,0],
+                    [0,2,2,0,0,0,0,0,0,2,2,0],
+                    [0,2,2,0,0,0,0,0,0,2,2,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0]
+                ]
+            },
+            'barbell': { // Barbell from top
+                name: 'Barbell',
+                data: [
+                    [0,0,0,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0],
+                    [0,2,2,0,0,0,0,0,0,2,2,0],
+                    [2,2,2,2,0,0,0,0,2,2,2,2],
+                    [2,2,2,2,0,0,0,0,2,2,2,2],
+                    [2,2,2,2,2,2,2,2,2,2,2,2],
+                    [2,2,2,2,2,2,2,2,2,2,2,2],
+                    [2,2,2,2,0,0,0,0,2,2,2,2],
+                    [2,2,2,2,0,0,0,0,2,2,2,2],
+                    [0,2,2,0,0,0,0,0,0,2,2,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0]
+                ]
+            },
+            'kettlebell': { // Kettlebell
+                name: 'Kettlebell',
+                data: [
+                    [0,0,0,0,2,2,2,2,0,0,0,0],
+                    [0,0,0,2,0,0,0,0,2,0,0,0],
+                    [0,0,0,2,0,0,0,0,2,0,0,0],
+                    [0,0,0,0,2,2,2,2,0,0,0,0],
+                    [0,0,0,2,2,2,2,2,2,0,0,0],
+                    [0,0,2,2,2,2,2,2,2,2,0,0],
+                    [0,0,2,2,2,2,2,2,2,2,0,0],
+                    [0,0,2,2,2,2,2,2,2,2,0,0],
+                    [0,0,2,2,2,2,2,2,2,2,0,0],
+                    [0,0,0,2,2,2,2,2,2,0,0,0],
+                    [0,0,0,0,2,2,2,2,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0]
+                ]
+            },
+            'bicep': { // Original bicep
+                name: 'Bicep',
+                data: [
+                    [0,0,0,0,0,1,0,0,0,0,0,0],
+                    [0,0,0,0,2,2,0,0,0,0,0,0],
+                    [0,0,0,2,2,2,2,0,0,0,0,0],
+                    [0,0,2,2,2,2,2,0,0,0,0,0],
+                    [0,2,2,2,2,2,2,2,0,0,0,0],
+                    [0,2,2,2,2,2,2,2,2,0,0,0],
+                    [0,0,2,2,2,2,2,2,2,2,0,0],
+                    [0,0,0,2,2,2,2,2,2,2,1,0],
+                    [0,0,0,0,2,2,2,2,2,1,1,0],
+                    [0,0,0,0,0,2,2,2,1,0,0,0],
+                    [0,0,0,0,0,0,2,1,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0]
+                ]
+            }
+        };
+
+        // EQUIPMENT OPTIONS - Proper recurve bows
+        // Recurve shape: limbs curve away from string, tips curve BACK towards string
+        // String on left, bow curves right then tips come back left
+        const equipmentOptions = {
+            'recurve1': { // Recurve bow - string + limbs + recurve tips
+                name: 'Recurve 1',
+                data: [
+                    [0,2,0,0,0,0,0,0,0,0,0,0],
+                    [2,0,2,0,0,0,0,0,0,0,0,0],
+                    [2,0,0,2,0,0,0,0,0,0,0,0],
+                    [2,0,0,0,2,0,0,0,0,0,0,0],
+                    [2,0,0,0,0,2,0,0,0,0,0,0],
+                    [2,0,0,0,0,2,0,0,0,0,0,0],
+                    [2,0,0,0,0,2,0,0,0,0,0,0],
+                    [2,0,0,0,0,2,0,0,0,0,0,0],
+                    [2,0,0,0,2,0,0,0,0,0,0,0],
+                    [2,0,0,2,0,0,0,0,0,0,0,0],
+                    [2,0,2,0,0,0,0,0,0,0,0,0],
+                    [0,2,0,0,0,0,0,0,0,0,0,0]
+                ]
+            },
+            'recurve2': { // Recurve with more pronounced tips
+                name: 'Recurve 2',
+                data: [
+                    [0,0,2,0,0,0,0,0,0,0,0,0],
+                    [0,2,0,2,0,0,0,0,0,0,0,0],
+                    [2,0,0,0,2,0,0,0,0,0,0,0],
+                    [2,0,0,0,0,2,0,0,0,0,0,0],
+                    [2,0,0,0,0,0,2,0,0,0,0,0],
+                    [2,0,0,0,0,0,2,0,0,0,0,0],
+                    [2,0,0,0,0,0,2,0,0,0,0,0],
+                    [2,0,0,0,0,0,2,0,0,0,0,0],
+                    [2,0,0,0,0,2,0,0,0,0,0,0],
+                    [2,0,0,0,2,0,0,0,0,0,0,0],
+                    [0,2,0,2,0,0,0,0,0,0,0,0],
+                    [0,0,2,0,0,0,0,0,0,0,0,0]
+                ]
+            },
+            'recurve3': { // Recurve with arrow
+                name: 'Recurve+Arrow',
+                data: [
+                    [0,2,0,0,0,0,0,0,0,0,0,0],
+                    [2,0,2,0,0,0,0,0,0,0,0,0],
+                    [2,0,0,2,0,0,0,0,0,0,0,0],
+                    [2,0,0,0,2,0,0,0,0,0,0,0],
+                    [2,0,0,0,0,2,0,0,0,0,0,0],
+                    [2,2,2,2,2,2,2,2,2,2,2,2],
+                    [2,0,0,0,0,2,0,0,0,0,0,0],
+                    [2,0,0,0,0,2,0,0,0,0,0,0],
+                    [2,0,0,0,2,0,0,0,0,0,0,0],
+                    [2,0,0,2,0,0,0,0,0,0,0,0],
+                    [2,0,2,0,0,0,0,0,0,0,0,0],
+                    [0,2,0,0,0,0,0,0,0,0,0,0]
+                ]
+            },
+            'recurve4': { // Deeper recurve tips
+                name: 'Recurve 4',
+                data: [
+                    [0,0,0,2,0,0,0,0,0,0,0,0],
+                    [0,0,2,0,0,0,0,0,0,0,0,0],
+                    [0,2,0,0,2,0,0,0,0,0,0,0],
+                    [2,0,0,0,0,2,0,0,0,0,0,0],
+                    [2,0,0,0,0,0,2,0,0,0,0,0],
+                    [2,0,0,0,0,0,2,0,0,0,0,0],
+                    [2,0,0,0,0,0,2,0,0,0,0,0],
+                    [2,0,0,0,0,0,2,0,0,0,0,0],
+                    [2,0,0,0,0,2,0,0,0,0,0,0],
+                    [0,2,0,0,2,0,0,0,0,0,0,0],
+                    [0,0,2,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,2,0,0,0,0,0,0,0,0]
+                ]
+            },
+            'recurve5': { // Recurve 4 with arrow
+                name: 'Recurve 4+Arrow',
+                data: [
+                    [0,0,0,2,0,0,0,0,0,0,0,0],
+                    [0,0,2,0,0,0,0,0,0,0,0,0],
+                    [0,2,0,0,2,0,0,0,0,0,0,0],
+                    [2,0,0,0,0,2,0,0,0,0,0,0],
+                    [2,0,0,0,0,0,2,0,0,0,0,0],
+                    [2,2,2,2,2,2,2,2,2,2,2,2],
+                    [2,0,0,0,0,0,2,0,0,0,0,0],
+                    [2,0,0,0,0,0,2,0,0,0,0,0],
+                    [2,0,0,0,0,2,0,0,0,0,0,0],
+                    [0,2,0,0,2,0,0,0,0,0,0,0],
+                    [0,0,2,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,2,0,0,0,0,0,0,0,0]
+                ]
+            },
+            'recurve6': { // Shaded limbs
+                name: 'Recurve Shaded',
+                data: [
+                    [0,2,0,0,0,0,0,0,0,0,0,0],
+                    [2,0,2,0,0,0,0,0,0,0,0,0],
+                    [1,0,0,2,0,0,0,0,0,0,0,0],
+                    [1,0,0,0,2,0,0,0,0,0,0,0],
+                    [1,0,0,0,0,2,0,0,0,0,0,0],
+                    [1,0,0,0,0,2,0,0,0,0,0,0],
+                    [1,0,0,0,0,2,0,0,0,0,0,0],
+                    [1,0,0,0,0,2,0,0,0,0,0,0],
+                    [1,0,0,0,2,0,0,0,0,0,0,0],
+                    [1,0,0,2,0,0,0,0,0,0,0,0],
+                    [2,0,2,0,0,0,0,0,0,0,0,0],
+                    [0,2,0,0,0,0,0,0,0,0,0,0]
+                ]
+            },
+            'compound1': { // Compound with cams
+                name: 'Compound',
+                data: [
+                    [2,2,0,0,0,0,0,0,0,0,0,0],
+                    [2,2,2,0,0,0,0,0,0,0,0,0],
+                    [1,0,0,2,0,0,0,0,0,0,0,0],
+                    [1,0,0,0,2,0,0,0,0,0,0,0],
+                    [1,0,0,0,0,2,0,0,0,0,0,0],
+                    [1,0,0,0,0,2,0,0,0,0,0,0],
+                    [1,0,0,0,0,2,0,0,0,0,0,0],
+                    [1,0,0,0,0,2,0,0,0,0,0,0],
+                    [1,0,0,0,2,0,0,0,0,0,0,0],
+                    [1,0,0,2,0,0,0,0,0,0,0,0],
+                    [2,2,2,0,0,0,0,0,0,0,0,0],
+                    [2,2,0,0,0,0,0,0,0,0,0,0]
+                ]
+            },
+            'compound2': { // Compound with arrow
+                name: 'Compound+Arrow',
+                data: [
+                    [2,2,0,0,0,0,0,0,0,0,0,0],
+                    [2,2,2,0,0,0,0,0,0,0,0,0],
+                    [1,0,0,2,0,0,0,0,0,0,0,0],
+                    [1,0,0,0,2,0,0,0,0,0,0,0],
+                    [1,0,0,0,0,2,0,0,0,0,0,0],
+                    [1,2,2,2,2,2,2,2,2,2,2,2],
+                    [1,0,0,0,0,2,0,0,0,0,0,0],
+                    [1,0,0,0,0,2,0,0,0,0,0,0],
+                    [1,0,0,0,2,0,0,0,0,0,0,0],
+                    [1,0,0,2,0,0,0,0,0,0,0,0],
+                    [2,2,2,0,0,0,0,0,0,0,0,0],
+                    [2,2,0,0,0,0,0,0,0,0,0,0]
+                ]
+            },
+            'longbow': { // Traditional longbow - D shape, no recurve
+                name: 'Longbow',
+                data: [
+                    [0,2,0,0,0,0,0,0,0,0,0,0],
+                    [2,0,2,0,0,0,0,0,0,0,0,0],
+                    [2,0,0,2,0,0,0,0,0,0,0,0],
+                    [2,0,0,0,2,0,0,0,0,0,0,0],
+                    [2,0,0,0,0,2,0,0,0,0,0,0],
+                    [2,0,0,0,0,0,2,0,0,0,0,0],
+                    [2,0,0,0,0,2,0,0,0,0,0,0],
+                    [2,0,0,0,2,0,0,0,0,0,0,0],
+                    [2,0,0,2,0,0,0,0,0,0,0,0],
+                    [2,0,2,0,0,0,0,0,0,0,0,0],
+                    [0,2,0,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0]
+                ]
+            },
+            'longbow_arrow': { // Longbow with arrow
+                name: 'Longbow+Arrow',
+                data: [
+                    [0,2,0,0,0,0,0,0,0,0,0,0],
+                    [2,0,2,0,0,0,0,0,0,0,0,0],
+                    [2,0,0,2,0,0,0,0,0,0,0,0],
+                    [2,0,0,0,2,0,0,0,0,0,0,0],
+                    [2,0,0,0,0,2,0,0,0,0,0,0],
+                    [2,2,2,2,2,2,2,2,2,2,2,2],
+                    [2,0,0,0,0,2,0,0,0,0,0,0],
+                    [2,0,0,0,2,0,0,0,0,0,0,0],
+                    [2,0,0,2,0,0,0,0,0,0,0,0],
+                    [2,0,2,0,0,0,0,0,0,0,0,0],
+                    [0,2,0,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0]
+                ]
+            }
+        };
+
+        // Set defaults
+        iconData.volume = volumeOptions.quiver_diagonal.data;
+        iconData.bow_fitness = fitnessOptions.dumbbell.data;
+        iconData.equipment = equipmentOptions.recurve1.data;
+
+        const gold = '#FFD700';
+        const goldDim = 'rgba(255, 215, 0, 0.5)';
+
+        function drawIcon(canvas, data, pixelSize) {
+            const ctx = canvas.getContext('2d');
+            canvas.width = 12 * pixelSize;
+            canvas.height = 12 * pixelSize;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             for (let y = 0; y < 12; y++) {
                 for (let x = 0; x < 12; x++) {
-                    const pixel = document.createElement('div');
-                    pixel.className = pixelClass;
                     const value = data[y][x];
-                    if (value === 2) pixel.classList.add('gold');
-                    else if (value === 1) pixel.classList.add('gold-dim');
-                    else pixel.classList.add('empty');
-                    container.appendChild(pixel);
+                    if (value === 2) {
+                        ctx.fillStyle = gold;
+                        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+                    } else if (value === 1) {
+                        ctx.fillStyle = goldDim;
+                        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+                    }
                 }
             }
         }
@@ -412,93 +721,133 @@
             return xp.toString();
         }
 
-        // Render large icons
-        const largeIconsContainer = document.getElementById('large-icons');
-        skills.forEach(skill => {
-            const card = document.createElement('div');
-            card.className = 'large-icon-card';
+        function showCode(name, data) {
+            const code = `// ${name}
+void _draw${name.replace(/\s+/g, '')}(Canvas c, double p, Paint paint, Paint dim) {
+${data.map((row, y) =>
+    row.map((val, x) => val > 0 ? `  _px(c, ${x}, ${y}, p, ${val === 2 ? 'paint' : 'dim'});` : null)
+       .filter(x => x)
+       .join('\n')
+).filter(x => x).join('\n')}
+}
 
-            const iconContainer = document.createElement('div');
-            iconContainer.className = 'large-icon-container';
+// Pixel data array:
+[
+${data.map(row => '  [' + row.join(',') + ']').join(',\n')}
+]`;
+            document.getElementById('code-output').textContent = code;
+        }
 
-            const icon = document.createElement('div');
-            icon.className = 'pixel-icon-large';
-            renderIcon(skill.id, icon);
+        function selectOption(category, optionKey, options) {
+            iconData[category] = options[optionKey].data;
+            showCode(options[optionKey].name, options[optionKey].data);
+            renderAll();
+        }
 
-            iconContainer.appendChild(icon);
-            card.appendChild(iconContainer);
+        function renderOptions(containerId, options, category) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
 
-            const label = document.createElement('div');
-            label.className = 'large-label';
-            label.textContent = skill.name;
-            card.appendChild(label);
+            for (const [key, option] of Object.entries(options)) {
+                const card = document.createElement('div');
+                card.className = 'option-card';
+                if (iconData[category] === option.data) {
+                    card.classList.add('selected');
+                }
+                card.onclick = () => selectOption(category, key, options);
 
-            largeIconsContainer.appendChild(card);
-        });
+                const canvas = document.createElement('canvas');
+                canvas.className = 'icon';
+                drawIcon(canvas, option.data, 4);
+                card.appendChild(canvas);
 
-        // Render skill cards
-        const skillsGrid = document.getElementById('skills-grid');
-        skills.forEach(skill => {
-            const card = document.createElement('div');
-            card.className = 'skill-card';
+                const label = document.createElement('div');
+                label.className = 'option-label';
+                label.textContent = option.name;
+                card.appendChild(label);
 
-            const iconContainer = document.createElement('div');
-            iconContainer.className = 'icon-container';
+                container.appendChild(card);
+            }
+        }
 
-            const icon = document.createElement('div');
-            icon.className = 'pixel-icon';
-            renderIcon(skill.id, icon);
+        function renderAll() {
+            // Render options
+            renderOptions('volume-options', volumeOptions, 'volume');
+            renderOptions('fitness-options', fitnessOptions, 'bow_fitness');
+            renderOptions('equipment-options', equipmentOptions, 'equipment');
 
-            iconContainer.appendChild(icon);
-            card.appendChild(iconContainer);
+            // Render large icons
+            const largeIconsContainer = document.getElementById('large-icons');
+            largeIconsContainer.innerHTML = '';
+            skills.forEach(skill => {
+                const card = document.createElement('div');
+                card.className = 'large-icon-card';
 
-            const name = document.createElement('div');
-            name.className = 'skill-name';
-            name.textContent = skill.name;
-            card.appendChild(name);
+                const iconContainer = document.createElement('div');
+                iconContainer.className = 'large-icon-container';
 
-            const levelBadge = document.createElement('div');
-            levelBadge.className = 'level-badge';
-            levelBadge.textContent = 'LV' + skill.level;
-            card.appendChild(levelBadge);
+                const canvas = document.createElement('canvas');
+                canvas.className = 'icon';
+                drawIcon(canvas, iconData[skill.id], 6);
 
-            const xpBarContainer = document.createElement('div');
-            xpBarContainer.className = 'xp-bar-container';
+                iconContainer.appendChild(canvas);
+                card.appendChild(iconContainer);
 
-            const xpBar = document.createElement('div');
-            xpBar.className = 'xp-bar';
-            xpBar.style.width = (skill.progress * 100) + '%';
+                const label = document.createElement('div');
+                label.className = 'large-label';
+                label.textContent = skill.name;
+                card.appendChild(label);
 
-            xpBarContainer.appendChild(xpBar);
-            card.appendChild(xpBarContainer);
+                largeIconsContainer.appendChild(card);
+            });
 
-            const xpText = document.createElement('div');
-            xpText.className = 'xp-text';
-            xpText.textContent = formatXp(skill.xp) + ' XP';
-            card.appendChild(xpText);
+            // Render skill cards
+            const skillsGrid = document.getElementById('skills-grid');
+            skillsGrid.innerHTML = '';
+            skills.forEach(skill => {
+                const card = document.createElement('div');
+                card.className = 'skill-card';
 
-            skillsGrid.appendChild(card);
-        });
+                const iconContainer = document.createElement('div');
+                iconContainer.className = 'icon-container';
 
-        // Render RuneScape style panel
-        const rsSkills = document.getElementById('rs-skills');
-        skills.forEach(skill => {
-            const skillDiv = document.createElement('div');
-            skillDiv.className = 'rs-skill';
+                const canvas = document.createElement('canvas');
+                canvas.className = 'icon';
+                drawIcon(canvas, iconData[skill.id], 3);
 
-            const icon = document.createElement('div');
-            icon.className = 'rs-icon';
-            renderIcon(skill.id, icon);
+                iconContainer.appendChild(canvas);
+                card.appendChild(iconContainer);
 
-            skillDiv.appendChild(icon);
+                const name = document.createElement('div');
+                name.className = 'skill-name';
+                name.textContent = skill.name;
+                card.appendChild(name);
 
-            const levels = document.createElement('div');
-            levels.className = 'rs-levels';
-            levels.innerHTML = `<div class="rs-level-current">${skill.level}</div><div class="rs-level-total">/99</div>`;
-            skillDiv.appendChild(levels);
+                const levelBadge = document.createElement('div');
+                levelBadge.className = 'level-badge';
+                levelBadge.textContent = 'LV' + skill.level;
+                card.appendChild(levelBadge);
 
-            rsSkills.appendChild(skillDiv);
-        });
+                const xpBarContainer = document.createElement('div');
+                xpBarContainer.className = 'xp-bar-container';
+
+                const xpBar = document.createElement('div');
+                xpBar.className = 'xp-bar';
+                xpBar.style.width = (skill.progress * 100) + '%';
+
+                xpBarContainer.appendChild(xpBar);
+                card.appendChild(xpBarContainer);
+
+                const xpText = document.createElement('div');
+                xpText.className = 'xp-text';
+                xpText.textContent = formatXp(skill.xp) + ' XP';
+                card.appendChild(xpText);
+
+                skillsGrid.appendChild(card);
+            });
+        }
+
+        renderAll();
     </script>
 </body>
 </html>

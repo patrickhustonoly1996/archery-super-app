@@ -406,6 +406,11 @@ class SessionProvider extends ChangeNotifier {
     return allArrows;
   }
 
+  /// Get arrows for a specific end (by ID)
+  Future<List<Arrow>> getArrowsForEnd(String endId) async {
+    return await _db.getArrowsForEnd(endId);
+  }
+
   /// Refresh the completed end arrows cache from database
   Future<void> _refreshCompletedEndArrowsCache() async {
     final allArrows = <Arrow>[];
