@@ -26,6 +26,8 @@ import 'bow_training_screen.dart';
 import 'delayed_camera_screen.dart';
 import 'performance_profile_screen.dart';
 import 'user_profile_screen.dart';
+import 'education/courses_home_screen.dart';
+import 'subscription_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -150,6 +152,15 @@ class _HomeScreenState extends State<HomeScreen>
         context,
         MaterialPageRoute(builder: (_) => const BreathTrainingHomeScreen()),
       ).then((_) => _refreshSessions()),
+    ),
+    _MenuItem(
+      label: 'LEARN',
+      sublabel: 'Video courses',
+      pixelIcon: PixelIconType.scroll,
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const CoursesHomeScreen()),
+      ),
     ),
     _MenuItem(
       label: 'GEAR',

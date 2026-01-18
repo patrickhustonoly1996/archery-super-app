@@ -18,6 +18,7 @@ import 'providers/skills_provider.dart';
 import 'providers/sight_marks_provider.dart';
 import 'providers/auto_plot_provider.dart';
 import 'providers/user_profile_provider.dart';
+import 'providers/entitlement_provider.dart';
 import 'services/vision_api_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
@@ -107,6 +108,10 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
           ChangeNotifierProvider(
             create: (context) =>
                 UserProfileProvider(context.read<AppDatabase>())..loadProfile(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) =>
+                EntitlementProvider(context.read<AppDatabase>())..loadEntitlement(),
           ),
         ],
         child: MaterialApp(

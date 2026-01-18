@@ -609,6 +609,56 @@ class AutoPlotUsage extends Table {
 }
 
 // ============================================================================
+// ENTITLEMENT & EDUCATION SYSTEM
+// ============================================================================
+
+/// User subscription and entitlement state
+class Entitlements extends Table {
+  TextColumn get id => text()();
+  TextColumn get tier => text().withDefault(const Constant('archer'))(); // archer, ranger, elite, hustonSchool
+  TextColumn get stripeCustomerId => text().nullable()();
+  TextColumn get stripeSubscriptionId => text().nullable()();
+  DateTimeColumn get expiresAt => dateTime().nullable()();
+  DateTimeColumn get graceEndsAt => dateTime().nullable()(); // 72hr grace period after expiry
+  BoolColumn get isLegacy3dAiming => boolean().withDefault(const Constant(false))(); // Free 3D Aiming access
+  TextColumn get legacyEmail => text().nullable()(); // Email matched for legacy access
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Video course progress tracking
+class CourseProgress extends Table {
+  TextColumn get id => text()();
+  TextColumn get courseId => text()(); // 'plotting', '3d_aiming', etc.
+  TextColumn get lessonId => text()(); // Specific lesson within course
+  IntColumn get progressSeconds => integer().withDefault(const Constant(0))(); // Watch progress
+  IntColumn get durationSeconds => integer()(); // Total lesson duration
+  BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get lastWatchedAt => dateTime().nullable()();
+  DateTimeColumn get completedAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// One-time purchases (separate from subscriptions)
+class Purchases extends Table {
+  TextColumn get id => text()();
+  TextColumn get productId => text()(); // '3d_aiming_course', etc.
+  TextColumn get stripePaymentId => text().nullable()();
+  RealColumn get amountPaid => real().nullable()(); // Amount in GBP
+  TextColumn get source => text().withDefault(const Constant('stripe'))(); // stripe, legacy, promo
+  DateTimeColumn get purchasedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// ============================================================================
 // USER PROFILE SYSTEM
 // ============================================================================
 
@@ -694,6 +744,10 @@ class Federations extends Table {
   // User Profile System
   UserProfiles,
   Federations,
+  // Entitlement & Education System
+  Entitlements,
+  CourseProgress,
+  Purchases,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -702,7 +756,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 20;
+  int get schemaVersion => 21;
 
   @override
   MigrationStrategy get migration {
@@ -866,6 +920,12 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(stabilizers, stabilizers.rightAngleVertical);
           await m.addColumn(stabilizers, stabilizers.longRodWeights);
           await m.addColumn(stabilizers, stabilizers.setupPhotoPath);
+        }
+        if (from <= 20) {
+          // Entitlement & Education system
+          await m.createTable(entitlements);
+          await m.createTable(courseProgress);
+          await m.createTable(purchases);
         }
       },
     );
@@ -2280,6 +2340,129 @@ class AppDatabase extends _$AppDatabase {
   /// Delete all federations for a profile
   Future<int> deleteFederationsForProfile(String profileId) =>
       (delete(federations)..where((t) => t.profileId.equals(profileId))).go();
+
+  // ===========================================================================
+  // ENTITLEMENTS
+  // ===========================================================================
+
+  /// Get the user's entitlement (there's only one)
+  Future<Entitlement?> getEntitlement() =>
+      (select(entitlements)..limit(1)).getSingleOrNull();
+
+  /// Insert a new entitlement
+  Future<int> insertEntitlement(EntitlementsCompanion entitlement) =>
+      into(entitlements).insert(entitlement);
+
+  /// Update entitlement
+  Future<bool> updateEntitlement(EntitlementsCompanion entitlement) =>
+      update(entitlements).replace(entitlement);
+
+  /// Upsert entitlement (create or update)
+  Future<void> upsertEntitlement(EntitlementsCompanion entitlement) async {
+    final existing = await getEntitlement();
+    if (existing != null) {
+      await (update(entitlements)..where((t) => t.id.equals(existing.id)))
+          .write(entitlement.copyWith(updatedAt: Value(DateTime.now())));
+    } else {
+      await insertEntitlement(entitlement);
+    }
+  }
+
+  /// Delete entitlement
+  Future<int> deleteEntitlement(String id) =>
+      (delete(entitlements)..where((t) => t.id.equals(id))).go();
+
+  // ===========================================================================
+  // COURSE PROGRESS
+  // ===========================================================================
+
+  /// Get all course progress entries
+  Future<List<CourseProgressData>> getAllCourseProgress() =>
+      select(courseProgress).get();
+
+  /// Get progress for a specific course
+  Future<List<CourseProgressData>> getCourseProgressForCourse(String courseId) =>
+      (select(courseProgress)..where((t) => t.courseId.equals(courseId))).get();
+
+  /// Get progress for a specific lesson
+  Future<CourseProgressData?> getLessonProgress(String courseId, String lessonId) =>
+      (select(courseProgress)
+            ..where((t) => t.courseId.equals(courseId) & t.lessonId.equals(lessonId)))
+          .getSingleOrNull();
+
+  /// Insert course progress
+  Future<int> insertCourseProgress(CourseProgressCompanion progress) =>
+      into(courseProgress).insert(progress);
+
+  /// Update course progress
+  Future<bool> updateCourseProgress(CourseProgressCompanion progress) =>
+      update(courseProgress).replace(progress);
+
+  /// Upsert lesson progress
+  Future<void> upsertLessonProgress({
+    required String courseId,
+    required String lessonId,
+    required int progressSeconds,
+    required int durationSeconds,
+    bool? isCompleted,
+  }) async {
+    final existing = await getLessonProgress(courseId, lessonId);
+    final now = DateTime.now();
+    final completed = isCompleted ?? (progressSeconds >= durationSeconds - 5);
+
+    if (existing != null) {
+      await (update(courseProgress)..where((t) => t.id.equals(existing.id)))
+          .write(CourseProgressCompanion(
+        progressSeconds: Value(progressSeconds),
+        isCompleted: Value(completed),
+        lastWatchedAt: Value(now),
+        completedAt: completed ? Value(now) : const Value.absent(),
+      ));
+    } else {
+      await insertCourseProgress(CourseProgressCompanion.insert(
+        id: UniqueId.withPrefix('cp'),
+        courseId: courseId,
+        lessonId: lessonId,
+        progressSeconds: Value(progressSeconds),
+        durationSeconds: durationSeconds,
+        isCompleted: Value(completed),
+        lastWatchedAt: Value(now),
+        completedAt: completed ? Value(now) : const Value.absent(),
+      ));
+    }
+  }
+
+  /// Get completed lessons count for a course
+  Future<int> getCompletedLessonsCount(String courseId) async {
+    final progress = await getCourseProgressForCourse(courseId);
+    return progress.where((p) => p.isCompleted).length;
+  }
+
+  // ===========================================================================
+  // PURCHASES
+  // ===========================================================================
+
+  /// Get all purchases
+  Future<List<Purchase>> getAllPurchases() =>
+      (select(purchases)..orderBy([(t) => OrderingTerm.desc(t.purchasedAt)])).get();
+
+  /// Get purchase by product ID
+  Future<Purchase?> getPurchaseByProductId(String productId) =>
+      (select(purchases)..where((t) => t.productId.equals(productId))).getSingleOrNull();
+
+  /// Check if product is purchased
+  Future<bool> isProductPurchased(String productId) async {
+    final purchase = await getPurchaseByProductId(productId);
+    return purchase != null;
+  }
+
+  /// Insert a purchase
+  Future<int> insertPurchase(PurchasesCompanion purchase) =>
+      into(purchases).insert(purchase);
+
+  /// Delete a purchase
+  Future<int> deletePurchase(String id) =>
+      (delete(purchases)..where((t) => t.id.equals(id))).go();
 }
 
 QueryExecutor _openConnection() {

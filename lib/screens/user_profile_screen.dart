@@ -1,10 +1,13 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/user_profile_provider.dart';
+import '../db/database.dart';
 import '../models/user_profile.dart';
 import '../widgets/pixel_archer_icon.dart';
+import '../services/sample_data_seeder.dart';
 import 'federation_form_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -188,6 +191,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                   // Bow type defaults info card
                   _buildBowTypeInfoCard(),
+
+                  // Debug section (only in debug mode)
+                  if (kDebugMode) ...[
+                    const SizedBox(height: 32),
+                    _buildSectionHeader('DEBUG'),
+                    const SizedBox(height: 12),
+                    _buildDebugSection(),
+                  ],
 
                   const SizedBox(height: 80),
                 ],
@@ -810,5 +821,199 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildDebugSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLight,
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.bug_report, color: Colors.orange, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Development Tools',
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  fontSize: 14,
+                  color: Colors.orange,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Sample Data Seeding',
+            style: TextStyle(
+              fontFamily: AppFonts.body,
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Creates demo account for "Testy McTestface" with 6 months of realistic scoring, training, and equipment data.',
+            style: TextStyle(
+              fontFamily: AppFonts.body,
+              fontSize: 11,
+              color: AppColors.textMuted,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _seedSampleData,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.green,
+                    side: const BorderSide(color: Colors.green),
+                  ),
+                  child: const Text('SEED DATA'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _clearSampleData,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                  ),
+                  child: const Text('CLEAR'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _seedSampleData() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceLight,
+        title: Text(
+          'Seed Sample Data?',
+          style: TextStyle(fontFamily: AppFonts.pixel, color: AppColors.textPrimary),
+        ),
+        content: Text(
+          'This will create sample data for "Testy McTestface" including 6 months of sessions, training logs, equipment, and more.\n\nExisting sample data will be replaced.',
+          style: TextStyle(fontFamily: AppFonts.body, color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.green),
+            child: const Text('SEED'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: AppColors.gold),
+      ),
+    );
+
+    try {
+      final db = context.read<AppDatabase>();
+      final seeder = SampleDataSeeder(db);
+      await seeder.seedAll();
+
+      if (mounted) {
+        Navigator.pop(context); // Close loading
+        await _loadProfile(); // Reload profile
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Sample data seeded successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error seeding data: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _clearSampleData() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceLight,
+        title: Text(
+          'Clear Sample Data?',
+          style: TextStyle(fontFamily: AppFonts.pixel, color: AppColors.textPrimary),
+        ),
+        content: Text(
+          'This will remove all sample data created by the seeder. Your own data will not be affected.',
+          style: TextStyle(fontFamily: AppFonts.body, color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('CLEAR'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      final db = context.read<AppDatabase>();
+      final seeder = SampleDataSeeder(db);
+      await seeder.clearSampleData();
+
+      if (mounted) {
+        await _loadProfile();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Sample data cleared'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error clearing data: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

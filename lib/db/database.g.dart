@@ -21385,6 +21385,1660 @@ class FederationsCompanion extends UpdateCompanion<Federation> {
   }
 }
 
+class $EntitlementsTable extends Entitlements
+    with TableInfo<$EntitlementsTable, Entitlement> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EntitlementsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tierMeta = const VerificationMeta('tier');
+  @override
+  late final GeneratedColumn<String> tier = GeneratedColumn<String>(
+    'tier',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('archer'),
+  );
+  static const VerificationMeta _stripeCustomerIdMeta = const VerificationMeta(
+    'stripeCustomerId',
+  );
+  @override
+  late final GeneratedColumn<String> stripeCustomerId = GeneratedColumn<String>(
+    'stripe_customer_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _stripeSubscriptionIdMeta =
+      const VerificationMeta('stripeSubscriptionId');
+  @override
+  late final GeneratedColumn<String> stripeSubscriptionId =
+      GeneratedColumn<String>(
+        'stripe_subscription_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _expiresAtMeta = const VerificationMeta(
+    'expiresAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> expiresAt = GeneratedColumn<DateTime>(
+    'expires_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _graceEndsAtMeta = const VerificationMeta(
+    'graceEndsAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> graceEndsAt = GeneratedColumn<DateTime>(
+    'grace_ends_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isLegacy3dAimingMeta = const VerificationMeta(
+    'isLegacy3dAiming',
+  );
+  @override
+  late final GeneratedColumn<bool> isLegacy3dAiming = GeneratedColumn<bool>(
+    'is_legacy3d_aiming',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_legacy3d_aiming" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _legacyEmailMeta = const VerificationMeta(
+    'legacyEmail',
+  );
+  @override
+  late final GeneratedColumn<String> legacyEmail = GeneratedColumn<String>(
+    'legacy_email',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    tier,
+    stripeCustomerId,
+    stripeSubscriptionId,
+    expiresAt,
+    graceEndsAt,
+    isLegacy3dAiming,
+    legacyEmail,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'entitlements';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Entitlement> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('tier')) {
+      context.handle(
+        _tierMeta,
+        tier.isAcceptableOrUnknown(data['tier']!, _tierMeta),
+      );
+    }
+    if (data.containsKey('stripe_customer_id')) {
+      context.handle(
+        _stripeCustomerIdMeta,
+        stripeCustomerId.isAcceptableOrUnknown(
+          data['stripe_customer_id']!,
+          _stripeCustomerIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('stripe_subscription_id')) {
+      context.handle(
+        _stripeSubscriptionIdMeta,
+        stripeSubscriptionId.isAcceptableOrUnknown(
+          data['stripe_subscription_id']!,
+          _stripeSubscriptionIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('expires_at')) {
+      context.handle(
+        _expiresAtMeta,
+        expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta),
+      );
+    }
+    if (data.containsKey('grace_ends_at')) {
+      context.handle(
+        _graceEndsAtMeta,
+        graceEndsAt.isAcceptableOrUnknown(
+          data['grace_ends_at']!,
+          _graceEndsAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_legacy3d_aiming')) {
+      context.handle(
+        _isLegacy3dAimingMeta,
+        isLegacy3dAiming.isAcceptableOrUnknown(
+          data['is_legacy3d_aiming']!,
+          _isLegacy3dAimingMeta,
+        ),
+      );
+    }
+    if (data.containsKey('legacy_email')) {
+      context.handle(
+        _legacyEmailMeta,
+        legacyEmail.isAcceptableOrUnknown(
+          data['legacy_email']!,
+          _legacyEmailMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Entitlement map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Entitlement(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      tier: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tier'],
+      )!,
+      stripeCustomerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}stripe_customer_id'],
+      ),
+      stripeSubscriptionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}stripe_subscription_id'],
+      ),
+      expiresAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expires_at'],
+      ),
+      graceEndsAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}grace_ends_at'],
+      ),
+      isLegacy3dAiming: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_legacy3d_aiming'],
+      )!,
+      legacyEmail: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}legacy_email'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $EntitlementsTable createAlias(String alias) {
+    return $EntitlementsTable(attachedDatabase, alias);
+  }
+}
+
+class Entitlement extends DataClass implements Insertable<Entitlement> {
+  final String id;
+  final String tier;
+  final String? stripeCustomerId;
+  final String? stripeSubscriptionId;
+  final DateTime? expiresAt;
+  final DateTime? graceEndsAt;
+  final bool isLegacy3dAiming;
+  final String? legacyEmail;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const Entitlement({
+    required this.id,
+    required this.tier,
+    this.stripeCustomerId,
+    this.stripeSubscriptionId,
+    this.expiresAt,
+    this.graceEndsAt,
+    required this.isLegacy3dAiming,
+    this.legacyEmail,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['tier'] = Variable<String>(tier);
+    if (!nullToAbsent || stripeCustomerId != null) {
+      map['stripe_customer_id'] = Variable<String>(stripeCustomerId);
+    }
+    if (!nullToAbsent || stripeSubscriptionId != null) {
+      map['stripe_subscription_id'] = Variable<String>(stripeSubscriptionId);
+    }
+    if (!nullToAbsent || expiresAt != null) {
+      map['expires_at'] = Variable<DateTime>(expiresAt);
+    }
+    if (!nullToAbsent || graceEndsAt != null) {
+      map['grace_ends_at'] = Variable<DateTime>(graceEndsAt);
+    }
+    map['is_legacy3d_aiming'] = Variable<bool>(isLegacy3dAiming);
+    if (!nullToAbsent || legacyEmail != null) {
+      map['legacy_email'] = Variable<String>(legacyEmail);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  EntitlementsCompanion toCompanion(bool nullToAbsent) {
+    return EntitlementsCompanion(
+      id: Value(id),
+      tier: Value(tier),
+      stripeCustomerId: stripeCustomerId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stripeCustomerId),
+      stripeSubscriptionId: stripeSubscriptionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stripeSubscriptionId),
+      expiresAt: expiresAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expiresAt),
+      graceEndsAt: graceEndsAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(graceEndsAt),
+      isLegacy3dAiming: Value(isLegacy3dAiming),
+      legacyEmail: legacyEmail == null && nullToAbsent
+          ? const Value.absent()
+          : Value(legacyEmail),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory Entitlement.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Entitlement(
+      id: serializer.fromJson<String>(json['id']),
+      tier: serializer.fromJson<String>(json['tier']),
+      stripeCustomerId: serializer.fromJson<String?>(json['stripeCustomerId']),
+      stripeSubscriptionId: serializer.fromJson<String?>(
+        json['stripeSubscriptionId'],
+      ),
+      expiresAt: serializer.fromJson<DateTime?>(json['expiresAt']),
+      graceEndsAt: serializer.fromJson<DateTime?>(json['graceEndsAt']),
+      isLegacy3dAiming: serializer.fromJson<bool>(json['isLegacy3dAiming']),
+      legacyEmail: serializer.fromJson<String?>(json['legacyEmail']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'tier': serializer.toJson<String>(tier),
+      'stripeCustomerId': serializer.toJson<String?>(stripeCustomerId),
+      'stripeSubscriptionId': serializer.toJson<String?>(stripeSubscriptionId),
+      'expiresAt': serializer.toJson<DateTime?>(expiresAt),
+      'graceEndsAt': serializer.toJson<DateTime?>(graceEndsAt),
+      'isLegacy3dAiming': serializer.toJson<bool>(isLegacy3dAiming),
+      'legacyEmail': serializer.toJson<String?>(legacyEmail),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  Entitlement copyWith({
+    String? id,
+    String? tier,
+    Value<String?> stripeCustomerId = const Value.absent(),
+    Value<String?> stripeSubscriptionId = const Value.absent(),
+    Value<DateTime?> expiresAt = const Value.absent(),
+    Value<DateTime?> graceEndsAt = const Value.absent(),
+    bool? isLegacy3dAiming,
+    Value<String?> legacyEmail = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => Entitlement(
+    id: id ?? this.id,
+    tier: tier ?? this.tier,
+    stripeCustomerId: stripeCustomerId.present
+        ? stripeCustomerId.value
+        : this.stripeCustomerId,
+    stripeSubscriptionId: stripeSubscriptionId.present
+        ? stripeSubscriptionId.value
+        : this.stripeSubscriptionId,
+    expiresAt: expiresAt.present ? expiresAt.value : this.expiresAt,
+    graceEndsAt: graceEndsAt.present ? graceEndsAt.value : this.graceEndsAt,
+    isLegacy3dAiming: isLegacy3dAiming ?? this.isLegacy3dAiming,
+    legacyEmail: legacyEmail.present ? legacyEmail.value : this.legacyEmail,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  Entitlement copyWithCompanion(EntitlementsCompanion data) {
+    return Entitlement(
+      id: data.id.present ? data.id.value : this.id,
+      tier: data.tier.present ? data.tier.value : this.tier,
+      stripeCustomerId: data.stripeCustomerId.present
+          ? data.stripeCustomerId.value
+          : this.stripeCustomerId,
+      stripeSubscriptionId: data.stripeSubscriptionId.present
+          ? data.stripeSubscriptionId.value
+          : this.stripeSubscriptionId,
+      expiresAt: data.expiresAt.present ? data.expiresAt.value : this.expiresAt,
+      graceEndsAt: data.graceEndsAt.present
+          ? data.graceEndsAt.value
+          : this.graceEndsAt,
+      isLegacy3dAiming: data.isLegacy3dAiming.present
+          ? data.isLegacy3dAiming.value
+          : this.isLegacy3dAiming,
+      legacyEmail: data.legacyEmail.present
+          ? data.legacyEmail.value
+          : this.legacyEmail,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Entitlement(')
+          ..write('id: $id, ')
+          ..write('tier: $tier, ')
+          ..write('stripeCustomerId: $stripeCustomerId, ')
+          ..write('stripeSubscriptionId: $stripeSubscriptionId, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('graceEndsAt: $graceEndsAt, ')
+          ..write('isLegacy3dAiming: $isLegacy3dAiming, ')
+          ..write('legacyEmail: $legacyEmail, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    tier,
+    stripeCustomerId,
+    stripeSubscriptionId,
+    expiresAt,
+    graceEndsAt,
+    isLegacy3dAiming,
+    legacyEmail,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Entitlement &&
+          other.id == this.id &&
+          other.tier == this.tier &&
+          other.stripeCustomerId == this.stripeCustomerId &&
+          other.stripeSubscriptionId == this.stripeSubscriptionId &&
+          other.expiresAt == this.expiresAt &&
+          other.graceEndsAt == this.graceEndsAt &&
+          other.isLegacy3dAiming == this.isLegacy3dAiming &&
+          other.legacyEmail == this.legacyEmail &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class EntitlementsCompanion extends UpdateCompanion<Entitlement> {
+  final Value<String> id;
+  final Value<String> tier;
+  final Value<String?> stripeCustomerId;
+  final Value<String?> stripeSubscriptionId;
+  final Value<DateTime?> expiresAt;
+  final Value<DateTime?> graceEndsAt;
+  final Value<bool> isLegacy3dAiming;
+  final Value<String?> legacyEmail;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const EntitlementsCompanion({
+    this.id = const Value.absent(),
+    this.tier = const Value.absent(),
+    this.stripeCustomerId = const Value.absent(),
+    this.stripeSubscriptionId = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.graceEndsAt = const Value.absent(),
+    this.isLegacy3dAiming = const Value.absent(),
+    this.legacyEmail = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EntitlementsCompanion.insert({
+    required String id,
+    this.tier = const Value.absent(),
+    this.stripeCustomerId = const Value.absent(),
+    this.stripeSubscriptionId = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.graceEndsAt = const Value.absent(),
+    this.isLegacy3dAiming = const Value.absent(),
+    this.legacyEmail = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id);
+  static Insertable<Entitlement> custom({
+    Expression<String>? id,
+    Expression<String>? tier,
+    Expression<String>? stripeCustomerId,
+    Expression<String>? stripeSubscriptionId,
+    Expression<DateTime>? expiresAt,
+    Expression<DateTime>? graceEndsAt,
+    Expression<bool>? isLegacy3dAiming,
+    Expression<String>? legacyEmail,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (tier != null) 'tier': tier,
+      if (stripeCustomerId != null) 'stripe_customer_id': stripeCustomerId,
+      if (stripeSubscriptionId != null)
+        'stripe_subscription_id': stripeSubscriptionId,
+      if (expiresAt != null) 'expires_at': expiresAt,
+      if (graceEndsAt != null) 'grace_ends_at': graceEndsAt,
+      if (isLegacy3dAiming != null) 'is_legacy3d_aiming': isLegacy3dAiming,
+      if (legacyEmail != null) 'legacy_email': legacyEmail,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EntitlementsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? tier,
+    Value<String?>? stripeCustomerId,
+    Value<String?>? stripeSubscriptionId,
+    Value<DateTime?>? expiresAt,
+    Value<DateTime?>? graceEndsAt,
+    Value<bool>? isLegacy3dAiming,
+    Value<String?>? legacyEmail,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return EntitlementsCompanion(
+      id: id ?? this.id,
+      tier: tier ?? this.tier,
+      stripeCustomerId: stripeCustomerId ?? this.stripeCustomerId,
+      stripeSubscriptionId: stripeSubscriptionId ?? this.stripeSubscriptionId,
+      expiresAt: expiresAt ?? this.expiresAt,
+      graceEndsAt: graceEndsAt ?? this.graceEndsAt,
+      isLegacy3dAiming: isLegacy3dAiming ?? this.isLegacy3dAiming,
+      legacyEmail: legacyEmail ?? this.legacyEmail,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tier.present) {
+      map['tier'] = Variable<String>(tier.value);
+    }
+    if (stripeCustomerId.present) {
+      map['stripe_customer_id'] = Variable<String>(stripeCustomerId.value);
+    }
+    if (stripeSubscriptionId.present) {
+      map['stripe_subscription_id'] = Variable<String>(
+        stripeSubscriptionId.value,
+      );
+    }
+    if (expiresAt.present) {
+      map['expires_at'] = Variable<DateTime>(expiresAt.value);
+    }
+    if (graceEndsAt.present) {
+      map['grace_ends_at'] = Variable<DateTime>(graceEndsAt.value);
+    }
+    if (isLegacy3dAiming.present) {
+      map['is_legacy3d_aiming'] = Variable<bool>(isLegacy3dAiming.value);
+    }
+    if (legacyEmail.present) {
+      map['legacy_email'] = Variable<String>(legacyEmail.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EntitlementsCompanion(')
+          ..write('id: $id, ')
+          ..write('tier: $tier, ')
+          ..write('stripeCustomerId: $stripeCustomerId, ')
+          ..write('stripeSubscriptionId: $stripeSubscriptionId, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('graceEndsAt: $graceEndsAt, ')
+          ..write('isLegacy3dAiming: $isLegacy3dAiming, ')
+          ..write('legacyEmail: $legacyEmail, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CourseProgressTable extends CourseProgress
+    with TableInfo<$CourseProgressTable, CourseProgressData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CourseProgressTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _courseIdMeta = const VerificationMeta(
+    'courseId',
+  );
+  @override
+  late final GeneratedColumn<String> courseId = GeneratedColumn<String>(
+    'course_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _lessonIdMeta = const VerificationMeta(
+    'lessonId',
+  );
+  @override
+  late final GeneratedColumn<String> lessonId = GeneratedColumn<String>(
+    'lesson_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _progressSecondsMeta = const VerificationMeta(
+    'progressSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> progressSeconds = GeneratedColumn<int>(
+    'progress_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _durationSecondsMeta = const VerificationMeta(
+    'durationSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> durationSeconds = GeneratedColumn<int>(
+    'duration_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isCompletedMeta = const VerificationMeta(
+    'isCompleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isCompleted = GeneratedColumn<bool>(
+    'is_completed',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_completed" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _lastWatchedAtMeta = const VerificationMeta(
+    'lastWatchedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastWatchedAt =
+      GeneratedColumn<DateTime>(
+        'last_watched_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _completedAtMeta = const VerificationMeta(
+    'completedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+    'completed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    courseId,
+    lessonId,
+    progressSeconds,
+    durationSeconds,
+    isCompleted,
+    lastWatchedAt,
+    completedAt,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'course_progress';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CourseProgressData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('course_id')) {
+      context.handle(
+        _courseIdMeta,
+        courseId.isAcceptableOrUnknown(data['course_id']!, _courseIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_courseIdMeta);
+    }
+    if (data.containsKey('lesson_id')) {
+      context.handle(
+        _lessonIdMeta,
+        lessonId.isAcceptableOrUnknown(data['lesson_id']!, _lessonIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_lessonIdMeta);
+    }
+    if (data.containsKey('progress_seconds')) {
+      context.handle(
+        _progressSecondsMeta,
+        progressSeconds.isAcceptableOrUnknown(
+          data['progress_seconds']!,
+          _progressSecondsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('duration_seconds')) {
+      context.handle(
+        _durationSecondsMeta,
+        durationSeconds.isAcceptableOrUnknown(
+          data['duration_seconds']!,
+          _durationSecondsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_durationSecondsMeta);
+    }
+    if (data.containsKey('is_completed')) {
+      context.handle(
+        _isCompletedMeta,
+        isCompleted.isAcceptableOrUnknown(
+          data['is_completed']!,
+          _isCompletedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_watched_at')) {
+      context.handle(
+        _lastWatchedAtMeta,
+        lastWatchedAt.isAcceptableOrUnknown(
+          data['last_watched_at']!,
+          _lastWatchedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+        _completedAtMeta,
+        completedAt.isAcceptableOrUnknown(
+          data['completed_at']!,
+          _completedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CourseProgressData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CourseProgressData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      courseId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}course_id'],
+      )!,
+      lessonId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lesson_id'],
+      )!,
+      progressSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}progress_seconds'],
+      )!,
+      durationSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_seconds'],
+      )!,
+      isCompleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_completed'],
+      )!,
+      lastWatchedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_watched_at'],
+      ),
+      completedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}completed_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CourseProgressTable createAlias(String alias) {
+    return $CourseProgressTable(attachedDatabase, alias);
+  }
+}
+
+class CourseProgressData extends DataClass
+    implements Insertable<CourseProgressData> {
+  final String id;
+  final String courseId;
+  final String lessonId;
+  final int progressSeconds;
+  final int durationSeconds;
+  final bool isCompleted;
+  final DateTime? lastWatchedAt;
+  final DateTime? completedAt;
+  final DateTime createdAt;
+  const CourseProgressData({
+    required this.id,
+    required this.courseId,
+    required this.lessonId,
+    required this.progressSeconds,
+    required this.durationSeconds,
+    required this.isCompleted,
+    this.lastWatchedAt,
+    this.completedAt,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['course_id'] = Variable<String>(courseId);
+    map['lesson_id'] = Variable<String>(lessonId);
+    map['progress_seconds'] = Variable<int>(progressSeconds);
+    map['duration_seconds'] = Variable<int>(durationSeconds);
+    map['is_completed'] = Variable<bool>(isCompleted);
+    if (!nullToAbsent || lastWatchedAt != null) {
+      map['last_watched_at'] = Variable<DateTime>(lastWatchedAt);
+    }
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<DateTime>(completedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  CourseProgressCompanion toCompanion(bool nullToAbsent) {
+    return CourseProgressCompanion(
+      id: Value(id),
+      courseId: Value(courseId),
+      lessonId: Value(lessonId),
+      progressSeconds: Value(progressSeconds),
+      durationSeconds: Value(durationSeconds),
+      isCompleted: Value(isCompleted),
+      lastWatchedAt: lastWatchedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastWatchedAt),
+      completedAt: completedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory CourseProgressData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CourseProgressData(
+      id: serializer.fromJson<String>(json['id']),
+      courseId: serializer.fromJson<String>(json['courseId']),
+      lessonId: serializer.fromJson<String>(json['lessonId']),
+      progressSeconds: serializer.fromJson<int>(json['progressSeconds']),
+      durationSeconds: serializer.fromJson<int>(json['durationSeconds']),
+      isCompleted: serializer.fromJson<bool>(json['isCompleted']),
+      lastWatchedAt: serializer.fromJson<DateTime?>(json['lastWatchedAt']),
+      completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'courseId': serializer.toJson<String>(courseId),
+      'lessonId': serializer.toJson<String>(lessonId),
+      'progressSeconds': serializer.toJson<int>(progressSeconds),
+      'durationSeconds': serializer.toJson<int>(durationSeconds),
+      'isCompleted': serializer.toJson<bool>(isCompleted),
+      'lastWatchedAt': serializer.toJson<DateTime?>(lastWatchedAt),
+      'completedAt': serializer.toJson<DateTime?>(completedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  CourseProgressData copyWith({
+    String? id,
+    String? courseId,
+    String? lessonId,
+    int? progressSeconds,
+    int? durationSeconds,
+    bool? isCompleted,
+    Value<DateTime?> lastWatchedAt = const Value.absent(),
+    Value<DateTime?> completedAt = const Value.absent(),
+    DateTime? createdAt,
+  }) => CourseProgressData(
+    id: id ?? this.id,
+    courseId: courseId ?? this.courseId,
+    lessonId: lessonId ?? this.lessonId,
+    progressSeconds: progressSeconds ?? this.progressSeconds,
+    durationSeconds: durationSeconds ?? this.durationSeconds,
+    isCompleted: isCompleted ?? this.isCompleted,
+    lastWatchedAt: lastWatchedAt.present
+        ? lastWatchedAt.value
+        : this.lastWatchedAt,
+    completedAt: completedAt.present ? completedAt.value : this.completedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  CourseProgressData copyWithCompanion(CourseProgressCompanion data) {
+    return CourseProgressData(
+      id: data.id.present ? data.id.value : this.id,
+      courseId: data.courseId.present ? data.courseId.value : this.courseId,
+      lessonId: data.lessonId.present ? data.lessonId.value : this.lessonId,
+      progressSeconds: data.progressSeconds.present
+          ? data.progressSeconds.value
+          : this.progressSeconds,
+      durationSeconds: data.durationSeconds.present
+          ? data.durationSeconds.value
+          : this.durationSeconds,
+      isCompleted: data.isCompleted.present
+          ? data.isCompleted.value
+          : this.isCompleted,
+      lastWatchedAt: data.lastWatchedAt.present
+          ? data.lastWatchedAt.value
+          : this.lastWatchedAt,
+      completedAt: data.completedAt.present
+          ? data.completedAt.value
+          : this.completedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CourseProgressData(')
+          ..write('id: $id, ')
+          ..write('courseId: $courseId, ')
+          ..write('lessonId: $lessonId, ')
+          ..write('progressSeconds: $progressSeconds, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('isCompleted: $isCompleted, ')
+          ..write('lastWatchedAt: $lastWatchedAt, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    courseId,
+    lessonId,
+    progressSeconds,
+    durationSeconds,
+    isCompleted,
+    lastWatchedAt,
+    completedAt,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CourseProgressData &&
+          other.id == this.id &&
+          other.courseId == this.courseId &&
+          other.lessonId == this.lessonId &&
+          other.progressSeconds == this.progressSeconds &&
+          other.durationSeconds == this.durationSeconds &&
+          other.isCompleted == this.isCompleted &&
+          other.lastWatchedAt == this.lastWatchedAt &&
+          other.completedAt == this.completedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class CourseProgressCompanion extends UpdateCompanion<CourseProgressData> {
+  final Value<String> id;
+  final Value<String> courseId;
+  final Value<String> lessonId;
+  final Value<int> progressSeconds;
+  final Value<int> durationSeconds;
+  final Value<bool> isCompleted;
+  final Value<DateTime?> lastWatchedAt;
+  final Value<DateTime?> completedAt;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const CourseProgressCompanion({
+    this.id = const Value.absent(),
+    this.courseId = const Value.absent(),
+    this.lessonId = const Value.absent(),
+    this.progressSeconds = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
+    this.isCompleted = const Value.absent(),
+    this.lastWatchedAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CourseProgressCompanion.insert({
+    required String id,
+    required String courseId,
+    required String lessonId,
+    this.progressSeconds = const Value.absent(),
+    required int durationSeconds,
+    this.isCompleted = const Value.absent(),
+    this.lastWatchedAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       courseId = Value(courseId),
+       lessonId = Value(lessonId),
+       durationSeconds = Value(durationSeconds);
+  static Insertable<CourseProgressData> custom({
+    Expression<String>? id,
+    Expression<String>? courseId,
+    Expression<String>? lessonId,
+    Expression<int>? progressSeconds,
+    Expression<int>? durationSeconds,
+    Expression<bool>? isCompleted,
+    Expression<DateTime>? lastWatchedAt,
+    Expression<DateTime>? completedAt,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (courseId != null) 'course_id': courseId,
+      if (lessonId != null) 'lesson_id': lessonId,
+      if (progressSeconds != null) 'progress_seconds': progressSeconds,
+      if (durationSeconds != null) 'duration_seconds': durationSeconds,
+      if (isCompleted != null) 'is_completed': isCompleted,
+      if (lastWatchedAt != null) 'last_watched_at': lastWatchedAt,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CourseProgressCompanion copyWith({
+    Value<String>? id,
+    Value<String>? courseId,
+    Value<String>? lessonId,
+    Value<int>? progressSeconds,
+    Value<int>? durationSeconds,
+    Value<bool>? isCompleted,
+    Value<DateTime?>? lastWatchedAt,
+    Value<DateTime?>? completedAt,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return CourseProgressCompanion(
+      id: id ?? this.id,
+      courseId: courseId ?? this.courseId,
+      lessonId: lessonId ?? this.lessonId,
+      progressSeconds: progressSeconds ?? this.progressSeconds,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
+      isCompleted: isCompleted ?? this.isCompleted,
+      lastWatchedAt: lastWatchedAt ?? this.lastWatchedAt,
+      completedAt: completedAt ?? this.completedAt,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (courseId.present) {
+      map['course_id'] = Variable<String>(courseId.value);
+    }
+    if (lessonId.present) {
+      map['lesson_id'] = Variable<String>(lessonId.value);
+    }
+    if (progressSeconds.present) {
+      map['progress_seconds'] = Variable<int>(progressSeconds.value);
+    }
+    if (durationSeconds.present) {
+      map['duration_seconds'] = Variable<int>(durationSeconds.value);
+    }
+    if (isCompleted.present) {
+      map['is_completed'] = Variable<bool>(isCompleted.value);
+    }
+    if (lastWatchedAt.present) {
+      map['last_watched_at'] = Variable<DateTime>(lastWatchedAt.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CourseProgressCompanion(')
+          ..write('id: $id, ')
+          ..write('courseId: $courseId, ')
+          ..write('lessonId: $lessonId, ')
+          ..write('progressSeconds: $progressSeconds, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('isCompleted: $isCompleted, ')
+          ..write('lastWatchedAt: $lastWatchedAt, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PurchasesTable extends Purchases
+    with TableInfo<$PurchasesTable, Purchase> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PurchasesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _productIdMeta = const VerificationMeta(
+    'productId',
+  );
+  @override
+  late final GeneratedColumn<String> productId = GeneratedColumn<String>(
+    'product_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _stripePaymentIdMeta = const VerificationMeta(
+    'stripePaymentId',
+  );
+  @override
+  late final GeneratedColumn<String> stripePaymentId = GeneratedColumn<String>(
+    'stripe_payment_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _amountPaidMeta = const VerificationMeta(
+    'amountPaid',
+  );
+  @override
+  late final GeneratedColumn<double> amountPaid = GeneratedColumn<double>(
+    'amount_paid',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('stripe'),
+  );
+  static const VerificationMeta _purchasedAtMeta = const VerificationMeta(
+    'purchasedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> purchasedAt = GeneratedColumn<DateTime>(
+    'purchased_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    productId,
+    stripePaymentId,
+    amountPaid,
+    source,
+    purchasedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'purchases';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Purchase> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('product_id')) {
+      context.handle(
+        _productIdMeta,
+        productId.isAcceptableOrUnknown(data['product_id']!, _productIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_productIdMeta);
+    }
+    if (data.containsKey('stripe_payment_id')) {
+      context.handle(
+        _stripePaymentIdMeta,
+        stripePaymentId.isAcceptableOrUnknown(
+          data['stripe_payment_id']!,
+          _stripePaymentIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('amount_paid')) {
+      context.handle(
+        _amountPaidMeta,
+        amountPaid.isAcceptableOrUnknown(data['amount_paid']!, _amountPaidMeta),
+      );
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    }
+    if (data.containsKey('purchased_at')) {
+      context.handle(
+        _purchasedAtMeta,
+        purchasedAt.isAcceptableOrUnknown(
+          data['purchased_at']!,
+          _purchasedAtMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Purchase map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Purchase(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      productId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}product_id'],
+      )!,
+      stripePaymentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}stripe_payment_id'],
+      ),
+      amountPaid: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}amount_paid'],
+      ),
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+      purchasedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}purchased_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PurchasesTable createAlias(String alias) {
+    return $PurchasesTable(attachedDatabase, alias);
+  }
+}
+
+class Purchase extends DataClass implements Insertable<Purchase> {
+  final String id;
+  final String productId;
+  final String? stripePaymentId;
+  final double? amountPaid;
+  final String source;
+  final DateTime purchasedAt;
+  const Purchase({
+    required this.id,
+    required this.productId,
+    this.stripePaymentId,
+    this.amountPaid,
+    required this.source,
+    required this.purchasedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['product_id'] = Variable<String>(productId);
+    if (!nullToAbsent || stripePaymentId != null) {
+      map['stripe_payment_id'] = Variable<String>(stripePaymentId);
+    }
+    if (!nullToAbsent || amountPaid != null) {
+      map['amount_paid'] = Variable<double>(amountPaid);
+    }
+    map['source'] = Variable<String>(source);
+    map['purchased_at'] = Variable<DateTime>(purchasedAt);
+    return map;
+  }
+
+  PurchasesCompanion toCompanion(bool nullToAbsent) {
+    return PurchasesCompanion(
+      id: Value(id),
+      productId: Value(productId),
+      stripePaymentId: stripePaymentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stripePaymentId),
+      amountPaid: amountPaid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(amountPaid),
+      source: Value(source),
+      purchasedAt: Value(purchasedAt),
+    );
+  }
+
+  factory Purchase.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Purchase(
+      id: serializer.fromJson<String>(json['id']),
+      productId: serializer.fromJson<String>(json['productId']),
+      stripePaymentId: serializer.fromJson<String?>(json['stripePaymentId']),
+      amountPaid: serializer.fromJson<double?>(json['amountPaid']),
+      source: serializer.fromJson<String>(json['source']),
+      purchasedAt: serializer.fromJson<DateTime>(json['purchasedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'productId': serializer.toJson<String>(productId),
+      'stripePaymentId': serializer.toJson<String?>(stripePaymentId),
+      'amountPaid': serializer.toJson<double?>(amountPaid),
+      'source': serializer.toJson<String>(source),
+      'purchasedAt': serializer.toJson<DateTime>(purchasedAt),
+    };
+  }
+
+  Purchase copyWith({
+    String? id,
+    String? productId,
+    Value<String?> stripePaymentId = const Value.absent(),
+    Value<double?> amountPaid = const Value.absent(),
+    String? source,
+    DateTime? purchasedAt,
+  }) => Purchase(
+    id: id ?? this.id,
+    productId: productId ?? this.productId,
+    stripePaymentId: stripePaymentId.present
+        ? stripePaymentId.value
+        : this.stripePaymentId,
+    amountPaid: amountPaid.present ? amountPaid.value : this.amountPaid,
+    source: source ?? this.source,
+    purchasedAt: purchasedAt ?? this.purchasedAt,
+  );
+  Purchase copyWithCompanion(PurchasesCompanion data) {
+    return Purchase(
+      id: data.id.present ? data.id.value : this.id,
+      productId: data.productId.present ? data.productId.value : this.productId,
+      stripePaymentId: data.stripePaymentId.present
+          ? data.stripePaymentId.value
+          : this.stripePaymentId,
+      amountPaid: data.amountPaid.present
+          ? data.amountPaid.value
+          : this.amountPaid,
+      source: data.source.present ? data.source.value : this.source,
+      purchasedAt: data.purchasedAt.present
+          ? data.purchasedAt.value
+          : this.purchasedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Purchase(')
+          ..write('id: $id, ')
+          ..write('productId: $productId, ')
+          ..write('stripePaymentId: $stripePaymentId, ')
+          ..write('amountPaid: $amountPaid, ')
+          ..write('source: $source, ')
+          ..write('purchasedAt: $purchasedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    productId,
+    stripePaymentId,
+    amountPaid,
+    source,
+    purchasedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Purchase &&
+          other.id == this.id &&
+          other.productId == this.productId &&
+          other.stripePaymentId == this.stripePaymentId &&
+          other.amountPaid == this.amountPaid &&
+          other.source == this.source &&
+          other.purchasedAt == this.purchasedAt);
+}
+
+class PurchasesCompanion extends UpdateCompanion<Purchase> {
+  final Value<String> id;
+  final Value<String> productId;
+  final Value<String?> stripePaymentId;
+  final Value<double?> amountPaid;
+  final Value<String> source;
+  final Value<DateTime> purchasedAt;
+  final Value<int> rowid;
+  const PurchasesCompanion({
+    this.id = const Value.absent(),
+    this.productId = const Value.absent(),
+    this.stripePaymentId = const Value.absent(),
+    this.amountPaid = const Value.absent(),
+    this.source = const Value.absent(),
+    this.purchasedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PurchasesCompanion.insert({
+    required String id,
+    required String productId,
+    this.stripePaymentId = const Value.absent(),
+    this.amountPaid = const Value.absent(),
+    this.source = const Value.absent(),
+    this.purchasedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       productId = Value(productId);
+  static Insertable<Purchase> custom({
+    Expression<String>? id,
+    Expression<String>? productId,
+    Expression<String>? stripePaymentId,
+    Expression<double>? amountPaid,
+    Expression<String>? source,
+    Expression<DateTime>? purchasedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (productId != null) 'product_id': productId,
+      if (stripePaymentId != null) 'stripe_payment_id': stripePaymentId,
+      if (amountPaid != null) 'amount_paid': amountPaid,
+      if (source != null) 'source': source,
+      if (purchasedAt != null) 'purchased_at': purchasedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PurchasesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? productId,
+    Value<String?>? stripePaymentId,
+    Value<double?>? amountPaid,
+    Value<String>? source,
+    Value<DateTime>? purchasedAt,
+    Value<int>? rowid,
+  }) {
+    return PurchasesCompanion(
+      id: id ?? this.id,
+      productId: productId ?? this.productId,
+      stripePaymentId: stripePaymentId ?? this.stripePaymentId,
+      amountPaid: amountPaid ?? this.amountPaid,
+      source: source ?? this.source,
+      purchasedAt: purchasedAt ?? this.purchasedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (productId.present) {
+      map['product_id'] = Variable<String>(productId.value);
+    }
+    if (stripePaymentId.present) {
+      map['stripe_payment_id'] = Variable<String>(stripePaymentId.value);
+    }
+    if (amountPaid.present) {
+      map['amount_paid'] = Variable<double>(amountPaid.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (purchasedAt.present) {
+      map['purchased_at'] = Variable<DateTime>(purchasedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PurchasesCompanion(')
+          ..write('id: $id, ')
+          ..write('productId: $productId, ')
+          ..write('stripePaymentId: $stripePaymentId, ')
+          ..write('amountPaid: $amountPaid, ')
+          ..write('source: $source, ')
+          ..write('purchasedAt: $purchasedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -21431,6 +23085,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AutoPlotUsageTable autoPlotUsage = $AutoPlotUsageTable(this);
   late final $UserProfilesTable userProfiles = $UserProfilesTable(this);
   late final $FederationsTable federations = $FederationsTable(this);
+  late final $EntitlementsTable entitlements = $EntitlementsTable(this);
+  late final $CourseProgressTable courseProgress = $CourseProgressTable(this);
+  late final $PurchasesTable purchases = $PurchasesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -21467,6 +23124,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     autoPlotUsage,
     userProfiles,
     federations,
+    entitlements,
+    courseProgress,
+    purchases,
   ];
 }
 
@@ -35005,6 +36665,822 @@ typedef $$FederationsTableProcessedTableManager =
       Federation,
       PrefetchHooks Function({bool profileId})
     >;
+typedef $$EntitlementsTableCreateCompanionBuilder =
+    EntitlementsCompanion Function({
+      required String id,
+      Value<String> tier,
+      Value<String?> stripeCustomerId,
+      Value<String?> stripeSubscriptionId,
+      Value<DateTime?> expiresAt,
+      Value<DateTime?> graceEndsAt,
+      Value<bool> isLegacy3dAiming,
+      Value<String?> legacyEmail,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$EntitlementsTableUpdateCompanionBuilder =
+    EntitlementsCompanion Function({
+      Value<String> id,
+      Value<String> tier,
+      Value<String?> stripeCustomerId,
+      Value<String?> stripeSubscriptionId,
+      Value<DateTime?> expiresAt,
+      Value<DateTime?> graceEndsAt,
+      Value<bool> isLegacy3dAiming,
+      Value<String?> legacyEmail,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$EntitlementsTableFilterComposer
+    extends Composer<_$AppDatabase, $EntitlementsTable> {
+  $$EntitlementsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tier => $composableBuilder(
+    column: $table.tier,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get stripeCustomerId => $composableBuilder(
+    column: $table.stripeCustomerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get stripeSubscriptionId => $composableBuilder(
+    column: $table.stripeSubscriptionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get graceEndsAt => $composableBuilder(
+    column: $table.graceEndsAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isLegacy3dAiming => $composableBuilder(
+    column: $table.isLegacy3dAiming,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get legacyEmail => $composableBuilder(
+    column: $table.legacyEmail,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$EntitlementsTableOrderingComposer
+    extends Composer<_$AppDatabase, $EntitlementsTable> {
+  $$EntitlementsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tier => $composableBuilder(
+    column: $table.tier,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get stripeCustomerId => $composableBuilder(
+    column: $table.stripeCustomerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get stripeSubscriptionId => $composableBuilder(
+    column: $table.stripeSubscriptionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get graceEndsAt => $composableBuilder(
+    column: $table.graceEndsAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isLegacy3dAiming => $composableBuilder(
+    column: $table.isLegacy3dAiming,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get legacyEmail => $composableBuilder(
+    column: $table.legacyEmail,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$EntitlementsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EntitlementsTable> {
+  $$EntitlementsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get tier =>
+      $composableBuilder(column: $table.tier, builder: (column) => column);
+
+  GeneratedColumn<String> get stripeCustomerId => $composableBuilder(
+    column: $table.stripeCustomerId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get stripeSubscriptionId => $composableBuilder(
+    column: $table.stripeSubscriptionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get expiresAt =>
+      $composableBuilder(column: $table.expiresAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get graceEndsAt => $composableBuilder(
+    column: $table.graceEndsAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isLegacy3dAiming => $composableBuilder(
+    column: $table.isLegacy3dAiming,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get legacyEmail => $composableBuilder(
+    column: $table.legacyEmail,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$EntitlementsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $EntitlementsTable,
+          Entitlement,
+          $$EntitlementsTableFilterComposer,
+          $$EntitlementsTableOrderingComposer,
+          $$EntitlementsTableAnnotationComposer,
+          $$EntitlementsTableCreateCompanionBuilder,
+          $$EntitlementsTableUpdateCompanionBuilder,
+          (
+            Entitlement,
+            BaseReferences<_$AppDatabase, $EntitlementsTable, Entitlement>,
+          ),
+          Entitlement,
+          PrefetchHooks Function()
+        > {
+  $$EntitlementsTableTableManager(_$AppDatabase db, $EntitlementsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EntitlementsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EntitlementsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EntitlementsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> tier = const Value.absent(),
+                Value<String?> stripeCustomerId = const Value.absent(),
+                Value<String?> stripeSubscriptionId = const Value.absent(),
+                Value<DateTime?> expiresAt = const Value.absent(),
+                Value<DateTime?> graceEndsAt = const Value.absent(),
+                Value<bool> isLegacy3dAiming = const Value.absent(),
+                Value<String?> legacyEmail = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EntitlementsCompanion(
+                id: id,
+                tier: tier,
+                stripeCustomerId: stripeCustomerId,
+                stripeSubscriptionId: stripeSubscriptionId,
+                expiresAt: expiresAt,
+                graceEndsAt: graceEndsAt,
+                isLegacy3dAiming: isLegacy3dAiming,
+                legacyEmail: legacyEmail,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String> tier = const Value.absent(),
+                Value<String?> stripeCustomerId = const Value.absent(),
+                Value<String?> stripeSubscriptionId = const Value.absent(),
+                Value<DateTime?> expiresAt = const Value.absent(),
+                Value<DateTime?> graceEndsAt = const Value.absent(),
+                Value<bool> isLegacy3dAiming = const Value.absent(),
+                Value<String?> legacyEmail = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EntitlementsCompanion.insert(
+                id: id,
+                tier: tier,
+                stripeCustomerId: stripeCustomerId,
+                stripeSubscriptionId: stripeSubscriptionId,
+                expiresAt: expiresAt,
+                graceEndsAt: graceEndsAt,
+                isLegacy3dAiming: isLegacy3dAiming,
+                legacyEmail: legacyEmail,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$EntitlementsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $EntitlementsTable,
+      Entitlement,
+      $$EntitlementsTableFilterComposer,
+      $$EntitlementsTableOrderingComposer,
+      $$EntitlementsTableAnnotationComposer,
+      $$EntitlementsTableCreateCompanionBuilder,
+      $$EntitlementsTableUpdateCompanionBuilder,
+      (
+        Entitlement,
+        BaseReferences<_$AppDatabase, $EntitlementsTable, Entitlement>,
+      ),
+      Entitlement,
+      PrefetchHooks Function()
+    >;
+typedef $$CourseProgressTableCreateCompanionBuilder =
+    CourseProgressCompanion Function({
+      required String id,
+      required String courseId,
+      required String lessonId,
+      Value<int> progressSeconds,
+      required int durationSeconds,
+      Value<bool> isCompleted,
+      Value<DateTime?> lastWatchedAt,
+      Value<DateTime?> completedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$CourseProgressTableUpdateCompanionBuilder =
+    CourseProgressCompanion Function({
+      Value<String> id,
+      Value<String> courseId,
+      Value<String> lessonId,
+      Value<int> progressSeconds,
+      Value<int> durationSeconds,
+      Value<bool> isCompleted,
+      Value<DateTime?> lastWatchedAt,
+      Value<DateTime?> completedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$CourseProgressTableFilterComposer
+    extends Composer<_$AppDatabase, $CourseProgressTable> {
+  $$CourseProgressTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get courseId => $composableBuilder(
+    column: $table.courseId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lessonId => $composableBuilder(
+    column: $table.lessonId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get progressSeconds => $composableBuilder(
+    column: $table.progressSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isCompleted => $composableBuilder(
+    column: $table.isCompleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastWatchedAt => $composableBuilder(
+    column: $table.lastWatchedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CourseProgressTableOrderingComposer
+    extends Composer<_$AppDatabase, $CourseProgressTable> {
+  $$CourseProgressTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get courseId => $composableBuilder(
+    column: $table.courseId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lessonId => $composableBuilder(
+    column: $table.lessonId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get progressSeconds => $composableBuilder(
+    column: $table.progressSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isCompleted => $composableBuilder(
+    column: $table.isCompleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastWatchedAt => $composableBuilder(
+    column: $table.lastWatchedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CourseProgressTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CourseProgressTable> {
+  $$CourseProgressTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get courseId =>
+      $composableBuilder(column: $table.courseId, builder: (column) => column);
+
+  GeneratedColumn<String> get lessonId =>
+      $composableBuilder(column: $table.lessonId, builder: (column) => column);
+
+  GeneratedColumn<int> get progressSeconds => $composableBuilder(
+    column: $table.progressSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isCompleted => $composableBuilder(
+    column: $table.isCompleted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastWatchedAt => $composableBuilder(
+    column: $table.lastWatchedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$CourseProgressTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CourseProgressTable,
+          CourseProgressData,
+          $$CourseProgressTableFilterComposer,
+          $$CourseProgressTableOrderingComposer,
+          $$CourseProgressTableAnnotationComposer,
+          $$CourseProgressTableCreateCompanionBuilder,
+          $$CourseProgressTableUpdateCompanionBuilder,
+          (
+            CourseProgressData,
+            BaseReferences<
+              _$AppDatabase,
+              $CourseProgressTable,
+              CourseProgressData
+            >,
+          ),
+          CourseProgressData,
+          PrefetchHooks Function()
+        > {
+  $$CourseProgressTableTableManager(
+    _$AppDatabase db,
+    $CourseProgressTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CourseProgressTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CourseProgressTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CourseProgressTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> courseId = const Value.absent(),
+                Value<String> lessonId = const Value.absent(),
+                Value<int> progressSeconds = const Value.absent(),
+                Value<int> durationSeconds = const Value.absent(),
+                Value<bool> isCompleted = const Value.absent(),
+                Value<DateTime?> lastWatchedAt = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CourseProgressCompanion(
+                id: id,
+                courseId: courseId,
+                lessonId: lessonId,
+                progressSeconds: progressSeconds,
+                durationSeconds: durationSeconds,
+                isCompleted: isCompleted,
+                lastWatchedAt: lastWatchedAt,
+                completedAt: completedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String courseId,
+                required String lessonId,
+                Value<int> progressSeconds = const Value.absent(),
+                required int durationSeconds,
+                Value<bool> isCompleted = const Value.absent(),
+                Value<DateTime?> lastWatchedAt = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CourseProgressCompanion.insert(
+                id: id,
+                courseId: courseId,
+                lessonId: lessonId,
+                progressSeconds: progressSeconds,
+                durationSeconds: durationSeconds,
+                isCompleted: isCompleted,
+                lastWatchedAt: lastWatchedAt,
+                completedAt: completedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CourseProgressTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CourseProgressTable,
+      CourseProgressData,
+      $$CourseProgressTableFilterComposer,
+      $$CourseProgressTableOrderingComposer,
+      $$CourseProgressTableAnnotationComposer,
+      $$CourseProgressTableCreateCompanionBuilder,
+      $$CourseProgressTableUpdateCompanionBuilder,
+      (
+        CourseProgressData,
+        BaseReferences<_$AppDatabase, $CourseProgressTable, CourseProgressData>,
+      ),
+      CourseProgressData,
+      PrefetchHooks Function()
+    >;
+typedef $$PurchasesTableCreateCompanionBuilder =
+    PurchasesCompanion Function({
+      required String id,
+      required String productId,
+      Value<String?> stripePaymentId,
+      Value<double?> amountPaid,
+      Value<String> source,
+      Value<DateTime> purchasedAt,
+      Value<int> rowid,
+    });
+typedef $$PurchasesTableUpdateCompanionBuilder =
+    PurchasesCompanion Function({
+      Value<String> id,
+      Value<String> productId,
+      Value<String?> stripePaymentId,
+      Value<double?> amountPaid,
+      Value<String> source,
+      Value<DateTime> purchasedAt,
+      Value<int> rowid,
+    });
+
+class $$PurchasesTableFilterComposer
+    extends Composer<_$AppDatabase, $PurchasesTable> {
+  $$PurchasesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get productId => $composableBuilder(
+    column: $table.productId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get stripePaymentId => $composableBuilder(
+    column: $table.stripePaymentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get amountPaid => $composableBuilder(
+    column: $table.amountPaid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get purchasedAt => $composableBuilder(
+    column: $table.purchasedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PurchasesTableOrderingComposer
+    extends Composer<_$AppDatabase, $PurchasesTable> {
+  $$PurchasesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get productId => $composableBuilder(
+    column: $table.productId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get stripePaymentId => $composableBuilder(
+    column: $table.stripePaymentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get amountPaid => $composableBuilder(
+    column: $table.amountPaid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get purchasedAt => $composableBuilder(
+    column: $table.purchasedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PurchasesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PurchasesTable> {
+  $$PurchasesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get productId =>
+      $composableBuilder(column: $table.productId, builder: (column) => column);
+
+  GeneratedColumn<String> get stripePaymentId => $composableBuilder(
+    column: $table.stripePaymentId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get amountPaid => $composableBuilder(
+    column: $table.amountPaid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get purchasedAt => $composableBuilder(
+    column: $table.purchasedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$PurchasesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PurchasesTable,
+          Purchase,
+          $$PurchasesTableFilterComposer,
+          $$PurchasesTableOrderingComposer,
+          $$PurchasesTableAnnotationComposer,
+          $$PurchasesTableCreateCompanionBuilder,
+          $$PurchasesTableUpdateCompanionBuilder,
+          (Purchase, BaseReferences<_$AppDatabase, $PurchasesTable, Purchase>),
+          Purchase,
+          PrefetchHooks Function()
+        > {
+  $$PurchasesTableTableManager(_$AppDatabase db, $PurchasesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PurchasesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PurchasesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PurchasesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> productId = const Value.absent(),
+                Value<String?> stripePaymentId = const Value.absent(),
+                Value<double?> amountPaid = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<DateTime> purchasedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PurchasesCompanion(
+                id: id,
+                productId: productId,
+                stripePaymentId: stripePaymentId,
+                amountPaid: amountPaid,
+                source: source,
+                purchasedAt: purchasedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String productId,
+                Value<String?> stripePaymentId = const Value.absent(),
+                Value<double?> amountPaid = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<DateTime> purchasedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PurchasesCompanion.insert(
+                id: id,
+                productId: productId,
+                stripePaymentId: stripePaymentId,
+                amountPaid: amountPaid,
+                source: source,
+                purchasedAt: purchasedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PurchasesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PurchasesTable,
+      Purchase,
+      $$PurchasesTableFilterComposer,
+      $$PurchasesTableOrderingComposer,
+      $$PurchasesTableAnnotationComposer,
+      $$PurchasesTableCreateCompanionBuilder,
+      $$PurchasesTableUpdateCompanionBuilder,
+      (Purchase, BaseReferences<_$AppDatabase, $PurchasesTable, Purchase>),
+      Purchase,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -35072,4 +37548,10 @@ class $AppDatabaseManager {
       $$UserProfilesTableTableManager(_db, _db.userProfiles);
   $$FederationsTableTableManager get federations =>
       $$FederationsTableTableManager(_db, _db.federations);
+  $$EntitlementsTableTableManager get entitlements =>
+      $$EntitlementsTableTableManager(_db, _db.entitlements);
+  $$CourseProgressTableTableManager get courseProgress =>
+      $$CourseProgressTableTableManager(_db, _db.courseProgress);
+  $$PurchasesTableTableManager get purchases =>
+      $$PurchasesTableTableManager(_db, _db.purchases);
 }

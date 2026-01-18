@@ -76,6 +76,9 @@ dependencies:
   cloud_functions: ^5.2.0
   sqlite3: 2.9.4
 
+  # URL launching for Stripe checkout and video playback
+  url_launcher: ^6.2.5
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
