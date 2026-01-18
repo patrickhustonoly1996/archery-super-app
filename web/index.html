@@ -363,11 +363,9 @@
         try {
           const registration = await navigator.serviceWorker.register('flutter_service_worker.js');
 
-          // Check for updates immediately
+          // Check for updates once on app open - that's enough
+          // No polling: offline-first means the app works without network
           registration.update();
-
-          // Check for updates every 60 seconds while app is open
-          setInterval(() => registration.update(), 60000);
 
           // Handle update found
           registration.addEventListener('updatefound', () => {
