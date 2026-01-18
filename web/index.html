@@ -277,8 +277,8 @@
     <button class="loading-retry" onclick="location.reload(true)">Tap to reload</button>
   </div>
 
-  <!-- Update notification banner -->
-  <div id="update-banner" onclick="location.reload(true)">
+  <!-- Update notification banner (click handled by service worker code) -->
+  <div id="update-banner">
     New version available! Tap to update.
   </div>
 
@@ -376,12 +376,27 @@
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                   // New version available - show update banner
-                  document.getElementById('update-banner').style.display = 'block';
+                  // User must tap banner to apply update (don't auto-reload)
+                  const banner = document.getElementById('update-banner');
+                  banner.style.display = 'block';
 
-                  // Tell the new service worker to take over immediately
-                  newWorker.postMessage('skipWaiting');
+                  // Store reference to new worker so banner click can activate it
+                  banner.dataset.hasUpdate = 'true';
+                  window._pendingServiceWorker = newWorker;
                 }
               });
+            }
+          });
+
+          // Handle update banner click - only reload when user explicitly requests
+          document.getElementById('update-banner').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (window._pendingServiceWorker) {
+              // Tell the new service worker to take over, then reload will happen via controllerchange
+              window._pendingServiceWorker.postMessage('skipWaiting');
+            } else {
+              // Fallback: just reload
+              window.location.reload(true);
             }
           });
 
