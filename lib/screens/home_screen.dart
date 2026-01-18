@@ -159,8 +159,8 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     ),
     _MenuItem(
-      label: 'SKILLS',
-      sublabel: 'Skill levels',
+      label: 'PROFILE',
+      sublabel: 'Performance radar',
       pixelIcon: PixelIconType.radar,
       onTap: () => Navigator.push(
         context,

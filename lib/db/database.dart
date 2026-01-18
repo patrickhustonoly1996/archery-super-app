@@ -587,6 +587,47 @@ class AutoPlotUsage extends Table {
 }
 
 // ============================================================================
+// USER PROFILE SYSTEM
+// ============================================================================
+
+/// User profile storing archer information
+class UserProfiles extends Table {
+  TextColumn get id => text()();
+  // Core shooting info (top)
+  TextColumn get primaryBowType => text().withDefault(const Constant('recurve'))(); // recurve, compound, barebow, longbow, traditional
+  TextColumn get handedness => text().withDefault(const Constant('right'))(); // 'left' or 'right'
+  // Personal info
+  TextColumn get name => text().nullable()();
+  TextColumn get clubName => text().nullable()();
+  IntColumn get yearsShootingStart => integer().nullable()(); // Year started shooting
+  RealColumn get shootingFrequency => real().withDefault(const Constant(3.0))(); // Days per week (0-7)
+  TextColumn get competitionLevels => text().withDefault(const Constant('[]'))(); // JSON array: ['local', 'regional', 'national', 'international', 'national_team']
+  // Notes (bottom) - for club access codes, etc.
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Federation memberships (e.g., AGB, WA, NFAA)
+class Federations extends Table {
+  TextColumn get id => text()();
+  TextColumn get profileId => text().references(UserProfiles, #id)();
+  TextColumn get federationName => text()(); // e.g., "Archery GB", "World Archery"
+  TextColumn get membershipNumber => text().nullable()();
+  TextColumn get cardImagePath => text().nullable()(); // Local file path to membership card image
+  DateTimeColumn get expiryDate => dateTime().nullable()();
+  BoolColumn get isPrimary => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// ============================================================================
 // DATABASE
 // ============================================================================
 
@@ -628,6 +669,9 @@ class AutoPlotUsage extends Table {
   // Auto-Plot System
   RegisteredTargets,
   AutoPlotUsage,
+  // User Profile System
+  UserProfiles,
+  Federations,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -636,7 +680,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 19;
+  int get schemaVersion => 20;
 
   @override
   MigrationStrategy get migration {
@@ -780,6 +824,11 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(bows, bows.eyeToArrowDistance);
           // Finger tabs table
           await m.createTable(fingerTabs);
+        }
+        if (from <= 19) {
+          // User profile system
+          await m.createTable(userProfiles);
+          await m.createTable(federations);
         }
       },
     );
@@ -2122,6 +2171,78 @@ class AppDatabase extends _$AppDatabase {
     final now = DateTime.now();
     return '${now.year}-${now.month.toString().padLeft(2, '0')}';
   }
+
+  // ===========================================================================
+  // USER PROFILES
+  // ===========================================================================
+
+  /// Get the user profile (there's only one)
+  Future<UserProfile?> getUserProfile() =>
+      (select(userProfiles)..limit(1)).getSingleOrNull();
+
+  /// Insert a new user profile
+  Future<int> insertUserProfile(UserProfilesCompanion profile) =>
+      into(userProfiles).insert(profile);
+
+  /// Update user profile
+  Future<bool> updateUserProfile(UserProfilesCompanion profile) =>
+      update(userProfiles).replace(profile);
+
+  /// Upsert user profile (create or update)
+  Future<void> upsertUserProfile(UserProfilesCompanion profile) async {
+    final existing = await getUserProfile();
+    if (existing != null) {
+      await (update(userProfiles)..where((t) => t.id.equals(existing.id)))
+          .write(profile.copyWith(updatedAt: Value(DateTime.now())));
+    } else {
+      await insertUserProfile(profile);
+    }
+  }
+
+  /// Delete user profile
+  Future<int> deleteUserProfile(String id) =>
+      (delete(userProfiles)..where((t) => t.id.equals(id))).go();
+
+  // ===========================================================================
+  // FEDERATIONS
+  // ===========================================================================
+
+  /// Get all federations for a profile
+  Future<List<Federation>> getFederationsForProfile(String profileId) =>
+      (select(federations)
+            ..where((t) => t.profileId.equals(profileId))
+            ..orderBy([(t) => OrderingTerm.desc(t.isPrimary), (t) => OrderingTerm.asc(t.federationName)]))
+          .get();
+
+  /// Get federation by ID
+  Future<Federation?> getFederation(String id) =>
+      (select(federations)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  /// Insert a new federation
+  Future<int> insertFederation(FederationsCompanion federation) =>
+      into(federations).insert(federation);
+
+  /// Update federation
+  Future<bool> updateFederation(FederationsCompanion federation) =>
+      update(federations).replace(federation);
+
+  /// Delete federation
+  Future<int> deleteFederation(String id) =>
+      (delete(federations)..where((t) => t.id.equals(id))).go();
+
+  /// Set a federation as primary (unsets others)
+  Future<void> setPrimaryFederation(String federationId, String profileId) async {
+    // Unset all as primary
+    await (update(federations)..where((t) => t.profileId.equals(profileId)))
+        .write(const FederationsCompanion(isPrimary: Value(false)));
+    // Set the selected one as primary
+    await (update(federations)..where((t) => t.id.equals(federationId)))
+        .write(const FederationsCompanion(isPrimary: Value(true)));
+  }
+
+  /// Delete all federations for a profile
+  Future<int> deleteFederationsForProfile(String profileId) =>
+      (delete(federations)..where((t) => t.profileId.equals(profileId))).go();
 }
 
 QueryExecutor _openConnection() {

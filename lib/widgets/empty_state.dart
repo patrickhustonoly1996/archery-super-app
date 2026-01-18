@@ -17,8 +17,11 @@ import '../theme/app_theme.dart';
 /// )
 /// ```
 class EmptyState extends StatelessWidget {
-  /// Icon to display (64px, muted color)
-  final IconData icon;
+  /// Icon to display (64px, muted color) - use this OR iconWidget
+  final IconData? icon;
+
+  /// Custom widget to display instead of icon
+  final Widget? iconWidget;
 
   /// Main title text (headline style)
   final String title;
@@ -34,12 +37,13 @@ class EmptyState extends StatelessWidget {
 
   const EmptyState({
     super.key,
-    required this.icon,
+    this.icon,
+    this.iconWidget,
     required this.title,
     this.subtitle,
     this.actionLabel,
     this.onAction,
-  });
+  }) : assert(icon != null || iconWidget != null, 'Either icon or iconWidget must be provided');
 
   @override
   Widget build(BuildContext context) {
@@ -50,11 +54,14 @@ class EmptyState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Icon
-            Icon(
-              icon,
-              size: 64,
-              color: AppColors.textMuted.withOpacity(0.5),
-            ),
+            if (iconWidget != null)
+              iconWidget!
+            else
+              Icon(
+                icon,
+                size: 64,
+                color: AppColors.textMuted.withOpacity(0.5),
+              ),
             const SizedBox(height: AppSpacing.lg),
 
             // Title

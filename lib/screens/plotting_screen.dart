@@ -18,6 +18,7 @@ import '../db/database.dart';
 import 'session_complete_screen.dart';
 import 'home_screen.dart';
 import 'auto_plot_capture_screen.dart';
+import 'auto_plot_scan_screen.dart';
 import '../services/vision_api_service.dart';
 
 /// Preference key for triple spot view mode
@@ -750,10 +751,10 @@ class _ActionButtons extends StatelessWidget {
     final autoPlotProvider = context.read<AutoPlotProvider>();
     autoPlotProvider.startCapture(targetType);
 
-    // Navigate to capture screen
+    // Navigate to scan screen (circular scan for better accuracy)
     final result = await Navigator.of(context).push<List<DetectedArrow>>(
       MaterialPageRoute(
-        builder: (_) => AutoPlotCaptureScreen(
+        builder: (_) => AutoPlotScanScreen(
           targetType: targetType,
           isTripleSpot: isTripleSpot,
         ),
@@ -808,18 +809,18 @@ class _ActionButtons extends StatelessWidget {
 
           const SizedBox(width: AppSpacing.sm),
 
-          // Auto-Plot button
+          // Auto-Plot Scan button
           Consumer<ConnectivityProvider>(
             builder: (context, connectivity, _) {
               final isEnabled = !connectivity.isOffline;
               return IconButton(
                 onPressed: isEnabled ? () => _launchAutoPlot(context) : null,
                 icon: Icon(
-                  Icons.camera_alt,
+                  Icons.radar,
                   color: isEnabled ? AppColors.gold : AppColors.textSecondary,
-                  semanticLabel: 'Auto-Plot',
+                  semanticLabel: 'Auto-Plot Scan',
                 ),
-                tooltip: 'Auto-Plot (camera)',
+                tooltip: 'Scan target',
                 style: IconButton.styleFrom(
                   backgroundColor: AppColors.surfaceDark,
                   padding: const EdgeInsets.all(AppSpacing.md),

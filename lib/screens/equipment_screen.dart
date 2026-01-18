@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
 import '../db/database.dart';
 import '../widgets/bow_icon.dart';
+import '../widgets/quiver_icon.dart';
 import '../widgets/empty_state.dart';
 import '../models/bow_specifications.dart';
 import '../models/arrow_specifications.dart';
@@ -76,7 +77,7 @@ class _BowsTab extends StatelessWidget {
 
     if (bows.isEmpty) {
       return EmptyState(
-        icon: Icons.sports_tennis,
+        iconWidget: const BowIcon(size: 64, color: AppColors.textMuted),
         title: 'No bows added',
         subtitle: 'Add a bow to get started',
         actionLabel: 'Add Bow',
@@ -236,7 +237,7 @@ class _QuiversTab extends StatelessWidget {
 
     if (quivers.isEmpty) {
       return EmptyState(
-        icon: Icons.inventory_2_outlined,
+        iconWidget: const QuiverIcon(size: 64, color: AppColors.textMuted),
         title: 'No quivers added',
         subtitle: 'Add a quiver to track arrows',
         actionLabel: 'Add Quiver',
@@ -318,10 +319,9 @@ class _QuiverTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.inventory_2_outlined,
-                color: quiver.isDefault ? AppColors.gold : AppColors.textSecondary,
+              QuiverIcon(
                 size: 32,
+                color: quiver.isDefault ? AppColors.gold : AppColors.textSecondary,
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
