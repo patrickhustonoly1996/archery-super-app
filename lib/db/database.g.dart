@@ -5072,6 +5072,16 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _ratingMeta = const VerificationMeta('rating');
+  @override
+  late final GeneratedColumn<int> rating = GeneratedColumn<int>(
+    'rating',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(5),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -5099,6 +5109,7 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
     shaftNumber,
     shaftId,
     nockRotation,
+    rating,
     createdAt,
   ];
   @override
@@ -5200,6 +5211,12 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
         ),
       );
     }
+    if (data.containsKey('rating')) {
+      context.handle(
+        _ratingMeta,
+        rating.isAcceptableOrUnknown(data['rating']!, _ratingMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -5267,6 +5284,10 @@ class $ArrowsTable extends Arrows with TableInfo<$ArrowsTable, Arrow> {
         DriftSqlType.string,
         data['${effectivePrefix}nock_rotation'],
       ),
+      rating: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rating'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -5294,6 +5315,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
   final int? shaftNumber;
   final String? shaftId;
   final String? nockRotation;
+  final int rating;
   final DateTime createdAt;
   const Arrow({
     required this.id,
@@ -5309,6 +5331,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     this.shaftNumber,
     this.shaftId,
     this.nockRotation,
+    required this.rating,
     required this.createdAt,
   });
   @override
@@ -5333,6 +5356,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     if (!nullToAbsent || nockRotation != null) {
       map['nock_rotation'] = Variable<String>(nockRotation);
     }
+    map['rating'] = Variable<int>(rating);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -5358,6 +5382,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
       nockRotation: nockRotation == null && nullToAbsent
           ? const Value.absent()
           : Value(nockRotation),
+      rating: Value(rating),
       createdAt: Value(createdAt),
     );
   }
@@ -5381,6 +5406,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
       shaftNumber: serializer.fromJson<int?>(json['shaftNumber']),
       shaftId: serializer.fromJson<String?>(json['shaftId']),
       nockRotation: serializer.fromJson<String?>(json['nockRotation']),
+      rating: serializer.fromJson<int>(json['rating']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -5401,6 +5427,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
       'shaftNumber': serializer.toJson<int?>(shaftNumber),
       'shaftId': serializer.toJson<String?>(shaftId),
       'nockRotation': serializer.toJson<String?>(nockRotation),
+      'rating': serializer.toJson<int>(rating),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -5419,6 +5446,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     Value<int?> shaftNumber = const Value.absent(),
     Value<String?> shaftId = const Value.absent(),
     Value<String?> nockRotation = const Value.absent(),
+    int? rating,
     DateTime? createdAt,
   }) => Arrow(
     id: id ?? this.id,
@@ -5434,6 +5462,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     shaftNumber: shaftNumber.present ? shaftNumber.value : this.shaftNumber,
     shaftId: shaftId.present ? shaftId.value : this.shaftId,
     nockRotation: nockRotation.present ? nockRotation.value : this.nockRotation,
+    rating: rating ?? this.rating,
     createdAt: createdAt ?? this.createdAt,
   );
   Arrow copyWithCompanion(ArrowsCompanion data) {
@@ -5455,6 +5484,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
       nockRotation: data.nockRotation.present
           ? data.nockRotation.value
           : this.nockRotation,
+      rating: data.rating.present ? data.rating.value : this.rating,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -5475,6 +5505,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
           ..write('shaftNumber: $shaftNumber, ')
           ..write('shaftId: $shaftId, ')
           ..write('nockRotation: $nockRotation, ')
+          ..write('rating: $rating, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -5495,6 +5526,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
     shaftNumber,
     shaftId,
     nockRotation,
+    rating,
     createdAt,
   );
   @override
@@ -5514,6 +5546,7 @@ class Arrow extends DataClass implements Insertable<Arrow> {
           other.shaftNumber == this.shaftNumber &&
           other.shaftId == this.shaftId &&
           other.nockRotation == this.nockRotation &&
+          other.rating == this.rating &&
           other.createdAt == this.createdAt);
 }
 
@@ -5531,6 +5564,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
   final Value<int?> shaftNumber;
   final Value<String?> shaftId;
   final Value<String?> nockRotation;
+  final Value<int> rating;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const ArrowsCompanion({
@@ -5547,6 +5581,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     this.shaftNumber = const Value.absent(),
     this.shaftId = const Value.absent(),
     this.nockRotation = const Value.absent(),
+    this.rating = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -5564,6 +5599,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     this.shaftNumber = const Value.absent(),
     this.shaftId = const Value.absent(),
     this.nockRotation = const Value.absent(),
+    this.rating = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -5586,6 +5622,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     Expression<int>? shaftNumber,
     Expression<String>? shaftId,
     Expression<String>? nockRotation,
+    Expression<int>? rating,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -5603,6 +5640,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
       if (shaftNumber != null) 'shaft_number': shaftNumber,
       if (shaftId != null) 'shaft_id': shaftId,
       if (nockRotation != null) 'nock_rotation': nockRotation,
+      if (rating != null) 'rating': rating,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -5622,6 +5660,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     Value<int?>? shaftNumber,
     Value<String?>? shaftId,
     Value<String?>? nockRotation,
+    Value<int>? rating,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -5639,6 +5678,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
       shaftNumber: shaftNumber ?? this.shaftNumber,
       shaftId: shaftId ?? this.shaftId,
       nockRotation: nockRotation ?? this.nockRotation,
+      rating: rating ?? this.rating,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -5686,6 +5726,9 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
     if (nockRotation.present) {
       map['nock_rotation'] = Variable<String>(nockRotation.value);
     }
+    if (rating.present) {
+      map['rating'] = Variable<int>(rating.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -5711,6 +5754,7 @@ class ArrowsCompanion extends UpdateCompanion<Arrow> {
           ..write('shaftNumber: $shaftNumber, ')
           ..write('shaftId: $shaftId, ')
           ..write('nockRotation: $nockRotation, ')
+          ..write('rating: $rating, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -27242,6 +27286,7 @@ typedef $$ArrowsTableCreateCompanionBuilder =
       Value<int?> shaftNumber,
       Value<String?> shaftId,
       Value<String?> nockRotation,
+      Value<int> rating,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -27260,6 +27305,7 @@ typedef $$ArrowsTableUpdateCompanionBuilder =
       Value<int?> shaftNumber,
       Value<String?> shaftId,
       Value<String?> nockRotation,
+      Value<int> rating,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -27365,6 +27411,11 @@ class $$ArrowsTableFilterComposer
 
   ColumnFilters<String> get nockRotation => $composableBuilder(
     column: $table.nockRotation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get rating => $composableBuilder(
+    column: $table.rating,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -27484,6 +27535,11 @@ class $$ArrowsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get rating => $composableBuilder(
+    column: $table.rating,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -27582,6 +27638,9 @@ class $$ArrowsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get rating =>
+      $composableBuilder(column: $table.rating, builder: (column) => column);
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -27673,6 +27732,7 @@ class $$ArrowsTableTableManager
                 Value<int?> shaftNumber = const Value.absent(),
                 Value<String?> shaftId = const Value.absent(),
                 Value<String?> nockRotation = const Value.absent(),
+                Value<int> rating = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ArrowsCompanion(
@@ -27689,6 +27749,7 @@ class $$ArrowsTableTableManager
                 shaftNumber: shaftNumber,
                 shaftId: shaftId,
                 nockRotation: nockRotation,
+                rating: rating,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -27707,6 +27768,7 @@ class $$ArrowsTableTableManager
                 Value<int?> shaftNumber = const Value.absent(),
                 Value<String?> shaftId = const Value.absent(),
                 Value<String?> nockRotation = const Value.absent(),
+                Value<int> rating = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ArrowsCompanion.insert(
@@ -27723,6 +27785,7 @@ class $$ArrowsTableTableManager
                 shaftNumber: shaftNumber,
                 shaftId: shaftId,
                 nockRotation: nockRotation,
+                rating: rating,
                 createdAt: createdAt,
                 rowid: rowid,
               ),

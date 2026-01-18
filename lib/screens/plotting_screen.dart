@@ -569,13 +569,14 @@ class _PlottingScreenState extends State<PlottingScreen> {
         builder: (_) => ShaftSelectorBottomSheet(
           shafts: shafts,
           usedShaftNumbers: usedShaftNumbers,
-          onShaftSelected: (shaftNumber, {String? nockRotation}) {
+          onShaftSelected: (shaftNumber, {String? nockRotation, int rating = 5}) {
             provider.plotArrow(
               x: x,
               y: y,
               faceIndex: faceIndex,
               shaftNumber: shaftNumber,
               nockRotation: nockRotation,
+              rating: rating,
             );
           },
           onSkip: () {
@@ -780,12 +781,16 @@ class _ActionButtons extends StatelessWidget {
 
     // Process detected arrows
     if (result != null && result.isNotEmpty && context.mounted) {
-      for (final arrow in result) {
+      // For triple spot, auto-assign face indices cycling through 0, 1, 2
+      // This distributes arrows across the three faces
+      for (int i = 0; i < result.length; i++) {
+        final arrow = result[i];
+        final assignedFaceIndex = isTripleSpot ? (i % 3) : 0;
         // Convert normalized coordinates to what the plotting system expects
         await provider.plotArrow(
           x: arrow.x,
           y: arrow.y,
-          faceIndex: arrow.faceIndex ?? 0,
+          faceIndex: arrow.faceIndex ?? assignedFaceIndex,
         );
       }
     }
@@ -833,11 +838,11 @@ class _ActionButtons extends StatelessWidget {
               return IconButton(
                 onPressed: isEnabled ? () => _launchAutoPlot(context) : null,
                 icon: Icon(
-                  Icons.radar,
+                  Icons.auto_awesome,
                   color: isEnabled ? AppColors.gold : AppColors.textSecondary,
-                  semanticLabel: 'Auto-Plot Scan',
+                  semanticLabel: 'Auto-Plot',
                 ),
-                tooltip: 'Scan target',
+                tooltip: 'Auto-Plot',
                 style: IconButton.styleFrom(
                   backgroundColor: AppColors.surfaceDark,
                   padding: const EdgeInsets.all(AppSpacing.md),

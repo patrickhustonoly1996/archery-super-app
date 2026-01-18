@@ -83,6 +83,7 @@ class Arrows extends Table {
   IntColumn get shaftNumber => integer().nullable()(); // Legacy: arrow number for display
   TextColumn get shaftId => text().nullable().references(Shafts, #id)(); // FK to Shafts table
   TextColumn get nockRotation => text().nullable()(); // Clock position: '12', '4', '8' etc.
+  IntColumn get rating => integer().withDefault(const Constant(5))(); // Shot quality 1-5 stars (5=good, 3=exclude from analysis)
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
@@ -615,7 +616,7 @@ class AutoPlotUsage extends Table {
 /// User subscription and entitlement state
 class Entitlements extends Table {
   TextColumn get id => text()();
-  TextColumn get tier => text().withDefault(const Constant('archer'))(); // archer, ranger, elite, hustonSchool
+  TextColumn get tier => text().withDefault(const Constant('archer'))(); // archer, competitor, professional, hustonSchool
   TextColumn get stripeCustomerId => text().nullable()();
   TextColumn get stripeSubscriptionId => text().nullable()();
   DateTimeColumn get expiresAt => dateTime().nullable()();
@@ -756,7 +757,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 21;
+  int get schemaVersion => 22;
 
   @override
   MigrationStrategy get migration {
@@ -926,6 +927,10 @@ class AppDatabase extends _$AppDatabase {
           await m.createTable(entitlements);
           await m.createTable(courseProgress);
           await m.createTable(purchases);
+        }
+        if (from <= 21) {
+          // Shot rating for analysis filtering
+          await m.addColumn(arrows, arrows.rating);
         }
       },
     );

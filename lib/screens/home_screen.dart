@@ -899,6 +899,24 @@ class _ProfileIconButton extends StatelessWidget {
   }
 }
 
+/// Smaller profile icon button for collapsed header
+class _CollapsedProfileButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'User Profile',
+      child: GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const UserProfileScreen()),
+        ),
+        child: const PixelProfileIcon(size: 20),
+      ),
+    );
+  }
+}
+
 // =============================================================================
 // COLLAPSING LOGO HEADER - Smooth scroll-linked collapse effect
 // =============================================================================
@@ -989,14 +1007,6 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
                     top: 8,
                     left: 16,
                     child: _ProfileIconButton(),
-                  ),
-
-                // Connectivity indicator (top-right in expanded mode)
-                if (progress < 0.85)
-                  Positioned(
-                    top: 8,
-                    right: 16,
-                    child: const ConnectivityIndicator(),
                   ),
               ],
             ),
@@ -1094,7 +1104,10 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          // Compact icon + title
+          // Profile icon (left side)
+          _CollapsedProfileButton(),
+          const SizedBox(width: 12),
+          // Compact icon + title (center)
           Expanded(
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -1132,8 +1145,6 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
               ],
             ),
           ),
-          // Connectivity indicator (right side)
-          const ConnectivityIndicator(),
         ],
       ),
     );

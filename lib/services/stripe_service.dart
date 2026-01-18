@@ -12,8 +12,8 @@ class StripeService {
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
 
   // Stripe Price IDs - Patrick will provide from Stripe Dashboard
-  static const String rangerPriceId = 'PLACEHOLDER_RANGER_PRICE_ID';
-  static const String elitePriceId = 'PLACEHOLDER_ELITE_PRICE_ID';
+  static const String competitorPriceId = 'PLACEHOLDER_COMPETITOR_PRICE_ID';
+  static const String professionalPriceId = 'PLACEHOLDER_PROFESSIONAL_PRICE_ID';
   static const String aiming3dPriceId = 'PLACEHOLDER_3D_AIMING_PRICE_ID';
 
   /// Create a checkout session for subscription upgrade
@@ -133,10 +133,10 @@ class StripeService {
 
   String? _getPriceIdForTier(SubscriptionTier tier) {
     switch (tier) {
-      case SubscriptionTier.ranger:
-        return rangerPriceId;
-      case SubscriptionTier.elite:
-        return elitePriceId;
+      case SubscriptionTier.competitor:
+        return competitorPriceId;
+      case SubscriptionTier.professional:
+        return professionalPriceId;
       case SubscriptionTier.hustonSchool:
         return null; // Not available yet
       case SubscriptionTier.archer:

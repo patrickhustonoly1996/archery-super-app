@@ -12,14 +12,14 @@ class CoursesHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.surface,
+        backgroundColor: AppColors.surfaceDark,
         title: Text(
           'LEARN',
           style: TextStyle(
             fontFamily: AppFonts.pixel,
-            color: AppTheme.gold,
+            color: AppColors.gold,
           ),
         ),
       ),
@@ -48,7 +48,7 @@ class CoursesHomeScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: AppColors.surfaceDark,
         borderRadius: BorderRadius.circular(8),
       ),
       child: InkWell(
@@ -70,13 +70,13 @@ class CoursesHomeScreen extends StatelessWidget {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: AppTheme.background,
+                  color: AppColors.background,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   Icons.play_circle_outline,
                   size: 40,
-                  color: hasAccess ? AppTheme.gold : AppTheme.textMuted,
+                  color: hasAccess ? AppColors.gold : AppColors.textMuted,
                 ),
               ),
               const SizedBox(width: 16),
@@ -92,7 +92,7 @@ class CoursesHomeScreen extends StatelessWidget {
                             style: TextStyle(
                               fontFamily: AppFonts.pixel,
                               fontSize: 18,
-                              color: AppTheme.textPrimary,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         ),
@@ -100,7 +100,7 @@ class CoursesHomeScreen extends StatelessWidget {
                           Icon(
                             Icons.lock_outline,
                             size: 18,
-                            color: AppTheme.textMuted,
+                            color: AppColors.textMuted,
                           ),
                       ],
                     ),
@@ -110,7 +110,7 @@ class CoursesHomeScreen extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: AppFonts.body,
                         fontSize: 13,
-                        color: AppTheme.textMuted,
+                        color: AppColors.textMuted,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -121,7 +121,7 @@ class CoursesHomeScreen extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: AppFonts.body,
                             fontSize: 12,
-                            color: AppTheme.textMuted,
+                            color: AppColors.textMuted,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -130,7 +130,7 @@ class CoursesHomeScreen extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: AppFonts.body,
                             fontSize: 12,
-                            color: AppTheme.textMuted,
+                            color: AppColors.textMuted,
                           ),
                         ),
                         const Spacer(),
@@ -170,7 +170,7 @@ class CoursesHomeScreen extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: AppTheme.gold.withValues(alpha: 0.2),
+          color: AppColors.gold.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(
@@ -178,7 +178,7 @@ class CoursesHomeScreen extends StatelessWidget {
           style: TextStyle(
             fontFamily: AppFonts.pixel,
             fontSize: 10,
-            color: AppTheme.gold,
+            color: AppColors.gold,
           ),
         ),
       );
@@ -187,7 +187,7 @@ class CoursesHomeScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: AppTheme.textMuted.withValues(alpha: 0.2),
+        color: AppColors.textMuted.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
@@ -195,7 +195,7 @@ class CoursesHomeScreen extends StatelessWidget {
         style: TextStyle(
           fontFamily: AppFonts.pixel,
           fontSize: 10,
-          color: AppTheme.textMuted,
+          color: AppColors.textMuted,
         ),
       ),
     );
@@ -207,10 +207,10 @@ class CoursesHomeScreen extends StatelessWidget {
         return true;
       case CourseAccessType.purchase:
         return entitlement.has3dAimingCourse;
-      case CourseAccessType.ranger:
-        return entitlement.tier.index >= SubscriptionTier.ranger.index;
-      case CourseAccessType.elite:
-        return entitlement.tier.index >= SubscriptionTier.elite.index;
+      case CourseAccessType.competitor:
+        return entitlement.tier.index >= SubscriptionTier.competitor.index;
+      case CourseAccessType.professional:
+        return entitlement.tier.index >= SubscriptionTier.professional.index;
       case CourseAccessType.hustonSchool:
         return entitlement.hasHustonSchool;
     }

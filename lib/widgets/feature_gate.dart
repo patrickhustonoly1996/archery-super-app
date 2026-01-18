@@ -37,9 +37,9 @@ extension GatedFeatureExtension on GatedFeature {
       case GatedFeature.shaftAnalysis:
       case GatedFeature.olyTraining:
       case GatedFeature.autoPlot:
-        return SubscriptionTier.ranger;
+        return SubscriptionTier.competitor;
       case GatedFeature.unlimitedAutoPlot:
-        return SubscriptionTier.elite;
+        return SubscriptionTier.professional;
       case GatedFeature.hustonSchool:
         return SubscriptionTier.hustonSchool;
       case GatedFeature.aiming3dCourse:
@@ -105,7 +105,7 @@ class FeatureGate extends StatelessWidget {
           Icon(
             Icons.lock_outline,
             size: 48,
-            color: AppTheme.textMuted,
+            color: AppColors.textMuted,
           ),
           const SizedBox(height: 16),
           Text(
@@ -113,7 +113,7 @@ class FeatureGate extends StatelessWidget {
             style: TextStyle(
               fontFamily: AppFonts.pixel,
               fontSize: 20,
-              color: AppTheme.gold,
+              color: AppColors.gold,
             ),
             textAlign: TextAlign.center,
           ),
@@ -123,7 +123,7 @@ class FeatureGate extends StatelessWidget {
             style: TextStyle(
               fontFamily: AppFonts.body,
               fontSize: 14,
-              color: AppTheme.textMuted,
+              color: AppColors.textMuted,
             ),
             textAlign: TextAlign.center,
           ),
@@ -165,7 +165,7 @@ class FeatureGate extends StatelessWidget {
         );
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppTheme.gold,
+        backgroundColor: AppColors.gold,
         foregroundColor: Colors.black,
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
       ),
@@ -236,17 +236,17 @@ class _UpgradeDialog extends StatelessWidget {
     final isPurchase = feature == GatedFeature.aiming3dCourse;
 
     return AlertDialog(
-      backgroundColor: AppTheme.surface,
+      backgroundColor: AppColors.surfaceDark,
       title: Row(
         children: [
-          Icon(Icons.lock_outline, color: AppTheme.gold, size: 24),
+          Icon(Icons.lock_outline, color: AppColors.gold, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               feature.displayName,
               style: TextStyle(
                 fontFamily: AppFonts.pixel,
-                color: AppTheme.gold,
+                color: AppColors.gold,
               ),
             ),
           ),
@@ -258,7 +258,7 @@ class _UpgradeDialog extends StatelessWidget {
             : 'Upgrade to ${feature.requiredTier.displayName} to unlock this feature.',
         style: TextStyle(
           fontFamily: AppFonts.body,
-          color: AppTheme.textPrimary,
+          color: AppColors.textPrimary,
         ),
       ),
       actions: [
@@ -268,7 +268,7 @@ class _UpgradeDialog extends StatelessWidget {
             'CANCEL',
             style: TextStyle(
               fontFamily: AppFonts.pixel,
-              color: AppTheme.textMuted,
+              color: AppColors.textMuted,
             ),
           ),
         ),
@@ -278,7 +278,7 @@ class _UpgradeDialog extends StatelessWidget {
             isPurchase ? 'PURCHASE' : 'UPGRADE',
             style: TextStyle(
               fontFamily: AppFonts.pixel,
-              color: AppTheme.gold,
+              color: AppColors.gold,
             ),
           ),
         ),
@@ -332,7 +332,7 @@ class GracePeriodBanner extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: AppFonts.pixel,
                     fontSize: 12,
-                    color: AppTheme.gold,
+                    color: AppColors.gold,
                   ),
                 ),
               ),

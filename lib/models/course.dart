@@ -72,8 +72,8 @@ class Course {
 enum CourseAccessType {
   free,           // Available to everyone (Plotting course)
   purchase,       // One-time purchase (3D Aiming)
-  ranger,         // Ranger tier and above
-  elite,          // Elite tier and above
+  competitor,     // Competitor tier and above
+  professional,   // Professional tier and above
   hustonSchool,   // Huston School tier only
 }
 
@@ -84,10 +84,10 @@ extension CourseAccessTypeExtension on CourseAccessType {
         return 'Free';
       case CourseAccessType.purchase:
         return 'One-time purchase';
-      case CourseAccessType.ranger:
-        return 'Ranger+';
-      case CourseAccessType.elite:
-        return 'Elite+';
+      case CourseAccessType.competitor:
+        return 'Competitor+';
+      case CourseAccessType.professional:
+        return 'Professional+';
       case CourseAccessType.hustonSchool:
         return 'Huston School';
     }

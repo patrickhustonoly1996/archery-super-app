@@ -7,15 +7,10 @@ import '../db/database.dart';
 import '../models/arrow_specifications.dart';
 import '../services/vision_api_service.dart';
 import '../utils/unique_id.dart';
+import 'entitlement_provider.dart';
 
-/// Free tier scan limit per month
-const int kAutoPlotFreeLimit = 50;
-
-/// Auto-Plot subscription tier
-enum AutoPlotTier {
-  free, // 50 scans/month
-  pro, // Unlimited scans
-}
+/// Competitor tier scan limit per month
+const int kAutoPlotCompetitorLimit = 50;
 
 /// State for the auto-plot flow
 enum AutoPlotState {
@@ -27,15 +22,21 @@ enum AutoPlotState {
 }
 
 /// Manages Auto-Plot state and business logic
+/// Requires EntitlementProvider to check access permissions
 class AutoPlotProvider extends ChangeNotifier {
   final AppDatabase _db;
   final VisionApiService _visionService;
+  EntitlementProvider? _entitlementProvider;
 
   AutoPlotProvider(this._db, this._visionService);
 
+  /// Set the entitlement provider for access checks
+  void setEntitlementProvider(EntitlementProvider provider) {
+    _entitlementProvider = provider;
+  }
+
   // State
   AutoPlotState _state = AutoPlotState.idle;
-  AutoPlotTier _tier = AutoPlotTier.free;
   int _scanCount = 0;
   String? _errorMessage;
 
@@ -55,10 +56,7 @@ class AutoPlotProvider extends ChangeNotifier {
 
   // Getters
   AutoPlotState get state => _state;
-  AutoPlotTier get tier => _tier;
   int get scanCount => _scanCount;
-  int get scansRemaining => _tier == AutoPlotTier.pro ? -1 : kAutoPlotFreeLimit - _scanCount;
-  bool get canScan => _tier == AutoPlotTier.pro || _scanCount < kAutoPlotFreeLimit;
   String? get errorMessage => _errorMessage;
   List<DetectedArrow> get detectedArrows => _detectedArrows;
   Uint8List? get capturedImage => _capturedImage;
@@ -68,6 +66,40 @@ class AutoPlotProvider extends ChangeNotifier {
   String? get learnedAppearanceDescription => _learnedAppearanceDescription;
   bool get hasLearnedAppearance => _hasLearnedAppearance;
   bool get isLearning => _isLearning;
+
+  /// Check if user has Auto-Plot access at all
+  bool get hasAutoPlotAccess => _entitlementProvider?.hasAutoPlot ?? false;
+
+  /// Check if user has unlimited Auto-Plot (Professional+)
+  bool get hasUnlimitedAutoPlot => _entitlementProvider?.hasUnlimitedAutoPlot ?? false;
+
+  /// Get monthly scan limit based on tier
+  int get scanLimit => hasUnlimitedAutoPlot ? -1 : kAutoPlotCompetitorLimit;
+
+  /// Remaining scans this month (-1 = unlimited)
+  int get scansRemaining {
+    if (!hasAutoPlotAccess) return 0;
+    if (hasUnlimitedAutoPlot) return -1;
+    return (kAutoPlotCompetitorLimit - _scanCount).clamp(0, kAutoPlotCompetitorLimit);
+  }
+
+  /// Whether user can perform a scan
+  bool get canScan {
+    if (!hasAutoPlotAccess) return false;
+    if (hasUnlimitedAutoPlot) return true;
+    return _scanCount < kAutoPlotCompetitorLimit;
+  }
+
+  /// Message explaining why user can't scan
+  String? get upgradeMessage {
+    if (!hasAutoPlotAccess) {
+      return 'Auto-Plot requires Competitor tier or higher. Upgrade to unlock.';
+    }
+    if (!canScan) {
+      return 'Monthly scan limit reached. Upgrade to Professional for unlimited scans.';
+    }
+    return null;
+  }
 
   /// Initialize provider - load usage and registered targets
   Future<void> initialize() async {
@@ -80,7 +112,6 @@ class AutoPlotProvider extends ChangeNotifier {
     final serverStatus = await _visionService.getUsageStatus();
     if (serverStatus != null) {
       _scanCount = serverStatus.scanCount;
-      _tier = serverStatus.isPro ? AutoPlotTier.pro : AutoPlotTier.free;
     } else {
       // Fall back to local count if offline
       _scanCount = await _db.getCurrentAutoPlotScanCount();
@@ -93,10 +124,9 @@ class AutoPlotProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Set the subscription tier
-  void setTier(AutoPlotTier tier) {
-    _tier = tier;
-    notifyListeners();
+  /// Refresh usage count from server
+  Future<void> refreshUsage() async {
+    await _loadUsage();
   }
 
   /// Set arrow appearance for identification (from user's quiver settings)
@@ -237,7 +267,7 @@ class AutoPlotProvider extends ChangeNotifier {
   Future<void> processImage(Uint8List imageData) async {
     if (!canScan) {
       _state = AutoPlotState.error;
-      _errorMessage = 'Monthly scan limit reached. Upgrade to Auto-Plot Pro for unlimited scans.';
+      _errorMessage = upgradeMessage ?? 'Unable to scan. Please check your subscription.';
       notifyListeners();
       return;
     }

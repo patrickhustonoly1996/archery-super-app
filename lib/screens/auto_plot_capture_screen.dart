@@ -191,17 +191,17 @@ class _AutoPlotCaptureScreenState extends State<AutoPlotCaptureScreen> {
   }
 
   Widget _buildUsageIndicator(AutoPlotProvider provider) {
-    if (provider.tier == AutoPlotTier.pro) {
+    if (provider.hasUnlimitedAutoPlot) {
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        color: AppColors.gold.withOpacity(0.2),
+        color: AppColors.gold.withValues(alpha: 0.2),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.star, color: AppColors.gold, size: 16),
             const SizedBox(width: 8),
             Text(
-              'AUTO-PLOT PRO',
+              'PROFESSIONAL',
               style: TextStyle(
                 fontFamily: AppFonts.pixel,
                 fontSize: 12,

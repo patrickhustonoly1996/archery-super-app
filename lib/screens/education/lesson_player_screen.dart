@@ -27,14 +27,14 @@ class _LessonPlayerScreenState extends State<LessonPlayerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.surface,
+        backgroundColor: AppColors.surfaceDark,
         title: Text(
           widget.lesson.title,
           style: TextStyle(
             fontFamily: AppFonts.pixel,
-            color: AppTheme.gold,
+            color: AppColors.gold,
             fontSize: 16,
           ),
         ),
@@ -48,7 +48,7 @@ class _LessonPlayerScreenState extends State<LessonPlayerScreen> {
             Container(
               height: 200,
               decoration: BoxDecoration(
-                color: AppTheme.surface,
+                color: AppColors.surfaceDark,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: InkWell(
@@ -60,7 +60,7 @@ class _LessonPlayerScreenState extends State<LessonPlayerScreen> {
                     Icon(
                       Icons.play_circle_filled,
                       size: 64,
-                      color: AppTheme.gold,
+                      color: AppColors.gold,
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -68,7 +68,7 @@ class _LessonPlayerScreenState extends State<LessonPlayerScreen> {
                       style: TextStyle(
                         fontFamily: AppFonts.pixel,
                         fontSize: 16,
-                        color: AppTheme.gold,
+                        color: AppColors.gold,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -77,7 +77,7 @@ class _LessonPlayerScreenState extends State<LessonPlayerScreen> {
                       style: TextStyle(
                         fontFamily: AppFonts.body,
                         fontSize: 12,
-                        color: AppTheme.textMuted,
+                        color: AppColors.textMuted,
                       ),
                     ),
                   ],
@@ -92,20 +92,20 @@ class _LessonPlayerScreenState extends State<LessonPlayerScreen> {
               style: TextStyle(
                 fontFamily: AppFonts.pixel,
                 fontSize: 20,
-                color: AppTheme.textPrimary,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.access_time, size: 16, color: AppTheme.textMuted),
+                Icon(Icons.access_time, size: 16, color: AppColors.textMuted),
                 const SizedBox(width: 4),
                 Text(
                   widget.lesson.formattedDuration,
                   style: TextStyle(
                     fontFamily: AppFonts.body,
                     fontSize: 13,
-                    color: AppTheme.textMuted,
+                    color: AppColors.textMuted,
                   ),
                 ),
               ],
@@ -116,7 +116,7 @@ class _LessonPlayerScreenState extends State<LessonPlayerScreen> {
               style: TextStyle(
                 fontFamily: AppFonts.body,
                 fontSize: 14,
-                color: AppTheme.textPrimary,
+                color: AppColors.textPrimary,
                 height: 1.5,
               ),
             ),
@@ -127,7 +127,7 @@ class _LessonPlayerScreenState extends State<LessonPlayerScreen> {
               ElevatedButton(
                 onPressed: _markAsComplete,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.gold,
+                  backgroundColor: AppColors.gold,
                   foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),

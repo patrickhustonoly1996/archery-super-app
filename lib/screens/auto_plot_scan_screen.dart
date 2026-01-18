@@ -169,9 +169,7 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
 
       // Set focus mode for consistent captures
       try {
-        if (_cameraController!.value.focusModeLockedSupported) {
-          await _cameraController!.setFocusMode(FocusMode.auto);
-        }
+        await _cameraController!.setFocusMode(FocusMode.auto);
       } catch (_) {
         // Focus mode may not be supported on all devices
       }
@@ -380,17 +378,17 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
   }
 
   Widget _buildUsageIndicator(AutoPlotProvider provider) {
-    if (provider.tier == AutoPlotTier.pro) {
+    if (provider.hasUnlimitedAutoPlot) {
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        color: AppColors.gold.withOpacity(0.2),
+        color: AppColors.gold.withValues(alpha: 0.2),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.star, color: AppColors.gold, size: 16),
             const SizedBox(width: 8),
             Text(
-              'AUTO-PLOT PRO',
+              'PROFESSIONAL',
               style: TextStyle(
                 fontFamily: AppFonts.pixel,
                 fontSize: 12,
@@ -625,7 +623,7 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
                   ),
                   child: _isScanning
                       ? const Icon(Icons.stop, color: AppColors.background, size: 32)
-                      : const Icon(Icons.radar, color: AppColors.background, size: 32),
+                      : const Icon(Icons.auto_awesome, color: AppColors.background, size: 32),
                 ),
               ),
             ),

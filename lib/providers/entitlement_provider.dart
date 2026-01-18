@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart';
 import '../db/database.dart';
 import '../utils/unique_id.dart';
@@ -5,8 +6,8 @@ import '../utils/unique_id.dart';
 /// Subscription tier levels
 enum SubscriptionTier {
   archer,       // Free - £0/mo
-  ranger,       // Base - £2/mo
-  elite,        // Premium - £7.20/mo
+  competitor,   // Base - £2/mo
+  professional, // Premium - £7.20/mo
   hustonSchool, // Future - £40/mo
 }
 
@@ -15,10 +16,10 @@ extension SubscriptionTierExtension on SubscriptionTier {
     switch (this) {
       case SubscriptionTier.archer:
         return 'Archer';
-      case SubscriptionTier.ranger:
-        return 'Ranger';
-      case SubscriptionTier.elite:
-        return 'Elite';
+      case SubscriptionTier.competitor:
+        return 'Competitor';
+      case SubscriptionTier.professional:
+        return 'Professional';
       case SubscriptionTier.hustonSchool:
         return 'Huston School';
     }
@@ -28,9 +29,9 @@ extension SubscriptionTierExtension on SubscriptionTier {
     switch (this) {
       case SubscriptionTier.archer:
         return 'Free';
-      case SubscriptionTier.ranger:
+      case SubscriptionTier.competitor:
         return '£2/mo';
-      case SubscriptionTier.elite:
+      case SubscriptionTier.professional:
         return '£7.20/mo';
       case SubscriptionTier.hustonSchool:
         return '£40/mo';
@@ -41,12 +42,12 @@ extension SubscriptionTierExtension on SubscriptionTier {
     switch (this) {
       case SubscriptionTier.archer:
         return 'Equipment, volume, scores, breathing, bow training, Plotting course';
-      case SubscriptionTier.ranger:
+      case SubscriptionTier.competitor:
         return 'Everything in Archer + Shaft analysis, OLY training, Auto-Plot (50/mo)';
-      case SubscriptionTier.elite:
-        return 'Everything in Ranger + Unlimited Auto-Plot';
+      case SubscriptionTier.professional:
+        return 'Everything in Competitor + Unlimited Auto-Plot';
       case SubscriptionTier.hustonSchool:
-        return 'Everything in Elite + Video coaching library';
+        return 'Everything in Professional + Video coaching library';
     }
   }
 
@@ -54,9 +55,9 @@ extension SubscriptionTierExtension on SubscriptionTier {
     switch (this) {
       case SubscriptionTier.archer:
         return 0;
-      case SubscriptionTier.ranger:
+      case SubscriptionTier.competitor:
         return 50;
-      case SubscriptionTier.elite:
+      case SubscriptionTier.professional:
       case SubscriptionTier.hustonSchool:
         return -1; // Unlimited
     }
@@ -64,10 +65,10 @@ extension SubscriptionTierExtension on SubscriptionTier {
 
   static SubscriptionTier fromString(String value) {
     switch (value.toLowerCase()) {
-      case 'ranger':
-        return SubscriptionTier.ranger;
-      case 'elite':
-        return SubscriptionTier.elite;
+      case 'competitor':
+        return SubscriptionTier.competitor;
+      case 'professional':
+        return SubscriptionTier.professional;
       case 'hustonschool':
       case 'huston_school':
         return SubscriptionTier.hustonSchool;
@@ -136,25 +137,25 @@ class EntitlementProvider extends ChangeNotifier {
   /// Has access to shaft analysis (Ranger+)
   bool get hasShaftAnalysis {
     if (isExpired) return false;
-    return _tier.index >= SubscriptionTier.ranger.index;
+    return _tier.index >= SubscriptionTier.competitor.index;
   }
 
   /// Has access to OLY training (Ranger+)
   bool get hasOlyTraining {
     if (isExpired) return false;
-    return _tier.index >= SubscriptionTier.ranger.index;
+    return _tier.index >= SubscriptionTier.competitor.index;
   }
 
   /// Has access to Auto-Plot (Ranger+)
   bool get hasAutoPlot {
     if (isExpired) return false;
-    return _tier.index >= SubscriptionTier.ranger.index;
+    return _tier.index >= SubscriptionTier.competitor.index;
   }
 
   /// Has unlimited Auto-Plot (Elite+)
   bool get hasUnlimitedAutoPlot {
     if (isExpired) return false;
-    return _tier.index >= SubscriptionTier.elite.index;
+    return _tier.index >= SubscriptionTier.professional.index;
   }
 
   /// Has access to Huston School video library (HustonSchool only)

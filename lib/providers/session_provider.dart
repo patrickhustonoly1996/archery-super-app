@@ -221,11 +221,13 @@ class SessionProvider extends ChangeNotifier {
 
   /// Plot an arrow using mm coordinates (preferred method)
   /// This is the primary plotting method with sub-millimeter precision.
+  /// [rating] defaults to 5 (good shot), lower values (e.g. 3) exclude from analysis.
   Future<void> plotArrowMm({
     required ArrowCoordinate coord,
     int faceIndex = 0,
     int? shaftNumber,
     String? nockRotation,
+    int rating = 5,
   }) async {
     if (_activeEnd == null || isEndComplete) return;
 
@@ -262,6 +264,7 @@ class SessionProvider extends ChangeNotifier {
       shaftNumber: Value(shaftNumber),
       shaftId: Value(shaftId),
       nockRotation: Value(nockRotation),
+      rating: Value(rating),
     ));
 
     // Reload current end arrows
@@ -276,12 +279,14 @@ class SessionProvider extends ChangeNotifier {
 
   /// Plot an arrow at the given normalized position (-1 to +1)
   /// [faceIndex] specifies which face (0, 1, or 2) for triple spot mode
+  /// [rating] defaults to 5 (good shot), lower values (e.g. 3) exclude from analysis.
   Future<void> plotArrow({
     required double x,
     required double y,
     int faceIndex = 0,
     int? shaftNumber,
     String? nockRotation,
+    int rating = 5,
   }) async {
     // Convert normalized to ArrowCoordinate and use the mm method
     final coord = ArrowCoordinate.fromNormalized(
@@ -294,6 +299,7 @@ class SessionProvider extends ChangeNotifier {
       faceIndex: faceIndex,
       shaftNumber: shaftNumber,
       nockRotation: nockRotation,
+      rating: rating,
     );
   }
 

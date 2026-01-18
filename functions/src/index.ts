@@ -2,7 +2,23 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import Anthropic from "@anthropic-ai/sdk";
 
+// Initialize Firebase Admin SDK before any imports that use it
 admin.initializeApp();
+
+// Export Stripe functions
+export {
+  createCheckoutSession,
+  createCustomerPortalSession,
+  getEntitlementStatus,
+  stripeWebhook,
+} from "./stripe";
+
+// Export legacy access functions
+export {
+  checkLegacyAccess,
+  addLegacyUser,
+  removeLegacyUser,
+} from "./legacy";
 
 // Initialize Anthropic client with API key from environment
 const getAnthropicClient = () => {

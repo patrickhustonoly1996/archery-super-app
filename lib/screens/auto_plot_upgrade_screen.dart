@@ -238,13 +238,13 @@ class AutoPlotUpgradeScreen extends StatelessWidget {
   Widget _buildCurrentUsage(BuildContext context) {
     return Consumer<AutoPlotProvider>(
       builder: (context, provider, _) {
-        if (provider.tier == AutoPlotTier.pro) {
+        if (provider.hasUnlimitedAutoPlot) {
           return Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.success.withOpacity(0.1),
+              color: AppColors.success.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppSpacing.sm),
-              border: Border.all(color: AppColors.success.withOpacity(0.3)),
+              border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -252,7 +252,7 @@ class AutoPlotUpgradeScreen extends StatelessWidget {
                 const Icon(Icons.check_circle, color: AppColors.success, size: 16),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
-                  'You have Auto-Plot Pro',
+                  'You have Professional tier',
                   style: TextStyle(
                     fontFamily: AppFonts.body,
                     fontSize: 14,
@@ -265,6 +265,7 @@ class AutoPlotUpgradeScreen extends StatelessWidget {
         }
 
         final remaining = provider.scansRemaining;
+        final limit = provider.scanLimit;
         return Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
@@ -272,7 +273,7 @@ class AutoPlotUpgradeScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppSpacing.sm),
           ),
           child: Text(
-            'Free tier: $remaining of $kAutoPlotFreeLimit scans remaining this month',
+            'Competitor tier: $remaining of $limit scans remaining this month',
             style: TextStyle(
               fontFamily: AppFonts.body,
               fontSize: 12,

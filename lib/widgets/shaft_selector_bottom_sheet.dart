@@ -5,12 +5,14 @@ import 'nock_rotation_selector.dart';
 
 class ShaftSelectorBottomSheet extends StatefulWidget {
   final List<Shaft> shafts;
-  final Function(int shaftNumber, {String? nockRotation}) onShaftSelected;
+  final Function(int shaftNumber, {String? nockRotation, int rating}) onShaftSelected;
   final VoidCallback onSkip;
   /// Shaft numbers already used in this end (disabled but not retired)
   final Set<int> usedShaftNumbers;
   /// Whether to show nock rotation selector
   final bool showNockRotation;
+  /// Whether to show shot rating selector
+  final bool showRating;
 
   const ShaftSelectorBottomSheet({
     super.key,
@@ -19,6 +21,7 @@ class ShaftSelectorBottomSheet extends StatefulWidget {
     required this.onSkip,
     this.usedShaftNumbers = const {},
     this.showNockRotation = false,
+    this.showRating = true,
   });
 
   @override
@@ -28,6 +31,7 @@ class ShaftSelectorBottomSheet extends StatefulWidget {
 
 class _ShaftSelectorBottomSheetState extends State<ShaftSelectorBottomSheet> {
   String? _selectedNockRotation;
+  int _rating = 5; // Default to 5 stars (good shot)
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +50,15 @@ class _ShaftSelectorBottomSheetState extends State<ShaftSelectorBottomSheet> {
             style: Theme.of(context).textTheme.labelLarge,
           ),
           const SizedBox(height: AppSpacing.md),
+
+          // Shot rating (default 5 stars, tap to reduce)
+          if (widget.showRating) ...[
+            _ShotRatingSelector(
+              rating: _rating,
+              onChanged: (r) => setState(() => _rating = r),
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
 
           // Nock rotation selector (optional)
           if (widget.showNockRotation) ...[
@@ -85,6 +98,7 @@ class _ShaftSelectorBottomSheetState extends State<ShaftSelectorBottomSheet> {
                         widget.onShaftSelected(
                           shaft.number,
                           nockRotation: _selectedNockRotation,
+                          rating: _rating,
                         );
                       }
                     : null,
@@ -112,6 +126,60 @@ class _ShaftSelectorBottomSheetState extends State<ShaftSelectorBottomSheet> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Star rating selector - 5 stars default, tap lower to mark as "bad shot"
+class _ShotRatingSelector extends StatelessWidget {
+  final int rating;
+  final ValueChanged<int> onChanged;
+
+  const _ShotRatingSelector({
+    required this.rating,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          'Shot:',
+          style: TextStyle(
+            fontFamily: AppFonts.body,
+            fontSize: 12,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        for (int i = 1; i <= 5; i++)
+          GestureDetector(
+            onTap: () => onChanged(i),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Icon(
+                i <= rating ? Icons.star : Icons.star_border,
+                size: 28,
+                color: i <= rating
+                    ? (rating >= 4 ? AppColors.gold : AppColors.textMuted)
+                    : AppColors.surfaceLight,
+              ),
+            ),
+          ),
+        const SizedBox(width: AppSpacing.sm),
+        if (rating < 4)
+          Text(
+            'exclude',
+            style: TextStyle(
+              fontFamily: AppFonts.body,
+              fontSize: 10,
+              color: AppColors.textMuted,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+      ],
     );
   }
 }

@@ -10,14 +10,14 @@ class SubscriptionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.surface,
+        backgroundColor: AppColors.surfaceDark,
         title: Text(
           'SUBSCRIPTION',
           style: TextStyle(
             fontFamily: AppFonts.pixel,
-            color: AppTheme.gold,
+            color: AppColors.gold,
           ),
         ),
       ),
@@ -38,13 +38,13 @@ class SubscriptionScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 _buildTierCard(
                   context,
-                  tier: SubscriptionTier.ranger,
+                  tier: SubscriptionTier.competitor,
                   currentTier: entitlement.tier,
                 ),
                 const SizedBox(height: 12),
                 _buildTierCard(
                   context,
-                  tier: SubscriptionTier.elite,
+                  tier: SubscriptionTier.professional,
                   currentTier: entitlement.tier,
                 ),
                 const SizedBox(height: 24),
@@ -61,13 +61,13 @@ class SubscriptionScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: AppColors.surfaceDark,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.gold, width: 2),
+        border: Border.all(color: AppColors.gold, width: 2),
       ),
       child: Row(
         children: [
-          Icon(Icons.star, color: AppTheme.gold, size: 32),
+          Icon(Icons.star, color: AppColors.gold, size: 32),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -78,7 +78,7 @@ class SubscriptionScreen extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: AppFonts.body,
                     fontSize: 12,
-                    color: AppTheme.textMuted,
+                    color: AppColors.textMuted,
                   ),
                 ),
                 Text(
@@ -86,7 +86,7 @@ class SubscriptionScreen extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: AppFonts.pixel,
                     fontSize: 24,
-                    color: AppTheme.gold,
+                    color: AppColors.gold,
                   ),
                 ),
               ],
@@ -108,10 +108,10 @@ class SubscriptionScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: AppColors.surfaceDark,
         borderRadius: BorderRadius.circular(8),
         border: isCurrent
-            ? Border.all(color: AppTheme.gold, width: 2)
+            ? Border.all(color: AppColors.gold, width: 2)
             : null,
       ),
       child: Column(
@@ -125,7 +125,7 @@ class SubscriptionScreen extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: AppFonts.pixel,
                     fontSize: 20,
-                    color: isCurrent ? AppTheme.gold : AppTheme.textPrimary,
+                    color: isCurrent ? AppColors.gold : AppColors.textPrimary,
                   ),
                 ),
               ),
@@ -134,7 +134,7 @@ class SubscriptionScreen extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: AppFonts.pixel,
                   fontSize: 18,
-                  color: AppTheme.gold,
+                  color: AppColors.gold,
                 ),
               ),
             ],
@@ -145,7 +145,7 @@ class SubscriptionScreen extends StatelessWidget {
             style: TextStyle(
               fontFamily: AppFonts.body,
               fontSize: 13,
-              color: AppTheme.textMuted,
+              color: AppColors.textMuted,
             ),
           ),
           if (isUpgrade) ...[
@@ -155,7 +155,7 @@ class SubscriptionScreen extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () => _handleUpgrade(context, tier),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.gold,
+                  backgroundColor: AppColors.gold,
                   foregroundColor: Colors.black,
                 ),
                 child: Text(
@@ -176,7 +176,7 @@ class SubscriptionScreen extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: AppFonts.pixel,
                   fontSize: 12,
-                  color: AppTheme.gold,
+                  color: AppColors.gold,
                 ),
               ),
             ),
@@ -195,14 +195,14 @@ class SubscriptionScreen extends StatelessWidget {
           style: TextStyle(
             fontFamily: AppFonts.pixel,
             fontSize: 16,
-            color: AppTheme.textMuted,
+            color: AppColors.textMuted,
           ),
         ),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppTheme.surface,
+            color: AppColors.surfaceDark,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -216,7 +216,7 @@ class SubscriptionScreen extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: AppFonts.pixel,
                         fontSize: 16,
-                        color: AppTheme.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -225,7 +225,7 @@ class SubscriptionScreen extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: AppFonts.body,
                         fontSize: 13,
-                        color: AppTheme.textMuted,
+                        color: AppColors.textMuted,
                       ),
                     ),
                   ],
@@ -251,7 +251,7 @@ class SubscriptionScreen extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () => _handlePurchase(context, '3d_aiming_course'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.gold,
+                    backgroundColor: AppColors.gold,
                     foregroundColor: Colors.black,
                   ),
                   child: Text(

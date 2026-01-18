@@ -391,84 +391,35 @@ class _ConfidenceEllipsePainter extends CustomPainter {
   }
 }
 
-/// High contrast cross to mark the group centre
-/// Uses thick black outline with bright inner color for visibility on any background
+/// Simple black cross to mark the group centre
 class _GroupCentreCrossPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
 
-    // Thick black outline for contrast
-    final outlinePaint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 5
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    // Bright magenta inner line - high visibility
+    // Simple black cross - small and defined
     final crossPaint = Paint()
-      ..color = const Color(0xFFFF00FF)
-      ..strokeWidth = 2.5
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    // Cross dimensions - spans most of the widget
-    final armLength = size.width * 0.35;
-    const gapSize = 6.0;
-
-    // Vertical line (with gap)
-    canvas.drawLine(
-      Offset(center.dx, center.dy - armLength),
-      Offset(center.dx, center.dy - gapSize),
-      outlinePaint,
-    );
-    canvas.drawLine(
-      Offset(center.dx, center.dy + gapSize),
-      Offset(center.dx, center.dy + armLength),
-      outlinePaint,
-    );
-    canvas.drawLine(
-      Offset(center.dx, center.dy - armLength),
-      Offset(center.dx, center.dy - gapSize),
-      crossPaint,
-    );
-    canvas.drawLine(
-      Offset(center.dx, center.dy + gapSize),
-      Offset(center.dx, center.dy + armLength),
-      crossPaint,
-    );
-
-    // Horizontal line (with gap)
-    canvas.drawLine(
-      Offset(center.dx - armLength, center.dy),
-      Offset(center.dx - gapSize, center.dy),
-      outlinePaint,
-    );
-    canvas.drawLine(
-      Offset(center.dx + gapSize, center.dy),
-      Offset(center.dx + armLength, center.dy),
-      outlinePaint,
-    );
-    canvas.drawLine(
-      Offset(center.dx - armLength, center.dy),
-      Offset(center.dx - gapSize, center.dy),
-      crossPaint,
-    );
-    canvas.drawLine(
-      Offset(center.dx + gapSize, center.dy),
-      Offset(center.dx + armLength, center.dy),
-      crossPaint,
-    );
-
-    // Centre dot
-    final dotOutlinePaint = Paint()
       ..color = Colors.black
-      ..style = PaintingStyle.fill;
-    final dotPaint = Paint()
-      ..color = const Color(0xFFFF00FF)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, 4, dotOutlinePaint);
-    canvas.drawCircle(center, 2, dotPaint);
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.butt;
+
+    // Cross dimensions - small, just marks the center
+    const armLength = 8.0;
+
+    // Vertical line
+    canvas.drawLine(
+      Offset(center.dx, center.dy - armLength),
+      Offset(center.dx, center.dy + armLength),
+      crossPaint,
+    );
+
+    // Horizontal line
+    canvas.drawLine(
+      Offset(center.dx - armLength, center.dy),
+      Offset(center.dx + armLength, center.dy),
+      crossPaint,
+    );
   }
 
   @override
