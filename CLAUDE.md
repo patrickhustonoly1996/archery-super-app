@@ -55,7 +55,18 @@ Build partner for Patrick Huston (Olympic archer). New to software, time-constra
 
 ## Testing
 
-Run `flutter test` at session start (baseline), run relevant tests during iteration, run full suite before committing. All tests must pass before commit. Add tests for new features/fixes. Details: `docs/TESTING_ROADMAP.md`
+**Session start:**
+1. Run `git status` and `git log -1 --oneline`
+2. If clean (no changes) → trust last commit, skip test run
+3. If changes exist → run tests for affected areas only (e.g., `flutter test test/db/` for database changes)
+
+**During work:** Run relevant tests as you iterate.
+
+**Before commit:** Run `flutter test` (full suite). All must pass. No exceptions.
+
+**New code:** Add tests for new features/fixes.
+
+Details: `docs/TESTING_ROADMAP.md`
 
 ## GitHub
 
