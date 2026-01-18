@@ -234,4 +234,90 @@ class VisionApiService {
       return null;
     }
   }
+
+  /// Learn arrow appearance from user's manual selection
+  /// Asks AI to describe the visual characteristics of selected arrows
+  Future<LearnedAppearanceResult> learnArrowAppearance({
+    required Uint8List image,
+    required List<DetectedArrow> selectedArrows,
+  }) async {
+    if (!isAuthenticated) {
+      return LearnedAppearanceResult.failure('Authentication required');
+    }
+
+    try {
+      final callable = _functions.httpsCallable(
+        'learnArrowAppearance',
+        options: HttpsCallableOptions(timeout: const Duration(seconds: 30)),
+      );
+
+      final arrowPositions = selectedArrows.map((a) => {
+        'x': a.x,
+        'y': a.y,
+      }).toList();
+
+      final result = await callable.call<Map<String, dynamic>>({
+        'image': base64Encode(image),
+        'arrowPositions': arrowPositions,
+        'userId': userId,
+      });
+
+      final data = result.data;
+
+      if (data['success'] == true) {
+        final appearanceData = data['appearance'] as Map<String, dynamic>?;
+        ArrowAppearance? appearance;
+        if (appearanceData != null) {
+          appearance = ArrowAppearance(
+            fletchColor: appearanceData['fletchColor'] as String?,
+            nockColor: appearanceData['nockColor'] as String?,
+            wrapColor: appearanceData['wrapColor'] as String?,
+          );
+        }
+        return LearnedAppearanceResult.success(
+          appearance: appearance,
+          description: data['description'] as String?,
+        );
+      } else {
+        return LearnedAppearanceResult.failure(
+          data['error'] as String? ?? 'Failed to learn appearance',
+        );
+      }
+    } catch (e) {
+      return LearnedAppearanceResult.failure('Connection error: $e');
+    }
+  }
+}
+
+/// Result of learning arrow appearance
+class LearnedAppearanceResult {
+  final bool isSuccess;
+  final ArrowAppearance? appearance;
+  final String? description;
+  final String? error;
+
+  LearnedAppearanceResult._({
+    required this.isSuccess,
+    this.appearance,
+    this.description,
+    this.error,
+  });
+
+  factory LearnedAppearanceResult.success({
+    ArrowAppearance? appearance,
+    String? description,
+  }) {
+    return LearnedAppearanceResult._(
+      isSuccess: true,
+      appearance: appearance,
+      description: description,
+    );
+  }
+
+  factory LearnedAppearanceResult.failure(String error) {
+    return LearnedAppearanceResult._(
+      isSuccess: false,
+      error: error,
+    );
+  }
 }

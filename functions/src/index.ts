@@ -348,3 +348,123 @@ export const getAutoPlotStatus = functions.https.onCall(async (data, context) =>
     remaining: isPro ? -1 : Math.max(0, 50 - scanCount),
   };
 });
+
+interface LearnArrowsRequest {
+  image: string; // base64
+  arrowPositions: Array<{ x: number; y: number }>; // normalized coords of selected arrows
+  userId: string;
+}
+
+interface LearnArrowsResponse {
+  success: boolean;
+  appearance?: ArrowAppearance;
+  description?: string; // human-readable description
+  error?: string;
+}
+
+/**
+ * Learn arrow appearance from user's selection
+ * Asks Claude to describe the visual characteristics of the selected arrows
+ */
+export const learnArrowAppearance = functions
+  .runWith({
+    timeoutSeconds: 30,
+    memory: "256MB",
+  })
+  .https.onCall(async (data: LearnArrowsRequest, context): Promise<LearnArrowsResponse> => {
+    if (!context.auth) {
+      return { success: false, error: "Authentication required" };
+    }
+
+    const { image, arrowPositions, userId } = data;
+
+    if (!image || !arrowPositions || arrowPositions.length === 0) {
+      return { success: false, error: "Missing image or arrow positions" };
+    }
+
+    try {
+      const anthropic = getAnthropicClient();
+
+      const positionsDesc = arrowPositions.map((p, i) =>
+        `Arrow ${i + 1}: x=${p.x.toFixed(2)}, y=${p.y.toFixed(2)}`
+      ).join("\n");
+
+      const prompt = `You are analyzing an archery target image to learn what the user's arrows look like.
+
+The user has selected these arrows as theirs (coordinates are normalized -1 to 1, where 0,0 is center):
+${positionsDesc}
+
+Examine ONLY these specific arrows and describe their distinguishing visual features. Focus on:
+- Fletching/vane color (the feathers/plastic fins near the back)
+- Nock color (the small piece at the very end that clips to the string)
+- Wrap color (decorative wrap near the fletching, if any)
+- Any other distinctive markings
+
+Return a JSON object with these fields (use null if not visible/uncertain):
+{
+  "fletchColor": "color name or null",
+  "nockColor": "color name or null",
+  "wrapColor": "color name or null",
+  "description": "brief human-readable description like 'green fletches with orange nocks'"
+}
+
+Return ONLY the JSON, no other text.`;
+
+      const response = await anthropic.messages.create({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 256,
+        messages: [{
+          role: "user",
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/jpeg",
+                data: image,
+              },
+            },
+            {
+              type: "text",
+              text: prompt,
+            },
+          ],
+        }],
+      });
+
+      // Extract text response
+      const textBlock = response.content.find(block => block.type === "text");
+      if (!textBlock || textBlock.type !== "text") {
+        return { success: false, error: "No text response from AI" };
+      }
+
+      // Parse JSON response
+      const jsonMatch = textBlock.text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        return { success: false, error: "Could not parse AI response" };
+      }
+
+      const parsed = JSON.parse(jsonMatch[0]);
+
+      const appearance: ArrowAppearance = {
+        fletchColor: parsed.fletchColor || undefined,
+        nockColor: parsed.nockColor || undefined,
+        wrapColor: parsed.wrapColor || undefined,
+      };
+
+      // Store the learned appearance in Firestore for this user
+      await admin.firestore().collection("users").doc(userId).set({
+        arrowAppearance: appearance,
+        arrowAppearanceDescription: parsed.description || null,
+        arrowAppearanceUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+
+      return {
+        success: true,
+        appearance,
+        description: parsed.description,
+      };
+    } catch (e) {
+      return { success: false, error: `Failed to learn appearance: ${e}` };
+    }
+  });

@@ -688,11 +688,70 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> with Widg
         .map((i) => allArrows[i])
         .toList();
 
-    // Clear provider state
+    // If this was a manual selection (no arrows were auto-selected as "mine")
+    // and user doesn't have learned appearance, learn from this selection
+    // Note: We learn BEFORE reset since reset clears the captured image
+    final wasManualSelection = !allArrows.any((a) => a.isMyArrow);
+    final shouldLearn = wasManualSelection && !provider.hasLearnedAppearance && selectedArrows.isNotEmpty;
+
+    if (shouldLearn) {
+      // Learn in background - don't block the user
+      // Pass the arrows before reset
+      _learnArrowsInBackground(provider, List.from(selectedArrows));
+    }
+
+    // Return only selected arrows (don't reset yet if learning - provider handles it)
+    if (!shouldLearn) {
+      provider.reset();
+    }
+
+    Navigator.of(context).pop(selectedArrows);
+  }
+
+  Future<void> _learnArrowsInBackground(
+    AutoPlotProvider provider,
+    List<DetectedArrow> selectedArrows,
+  ) async {
+    // Show brief notification
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.gold,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('Learning your arrows...'),
+          ],
+        ),
+        duration: const Duration(seconds: 2),
+        backgroundColor: AppColors.surfaceDark,
+      ),
+    );
+
+    final success = await provider.learnArrowAppearance(selectedArrows);
+
+    // Reset provider after learning (image was needed for learning)
     provider.reset();
 
-    // Return only selected arrows
-    Navigator.of(context).pop(selectedArrows);
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            provider.learnedAppearanceDescription != null
+                ? 'Learned: ${provider.learnedAppearanceDescription}'
+                : 'Arrows learned - will auto-identify next time',
+          ),
+          duration: const Duration(seconds: 3),
+          backgroundColor: AppColors.gold,
+        ),
+      );
+    }
   }
 }
 

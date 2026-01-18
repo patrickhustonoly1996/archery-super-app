@@ -49,6 +49,9 @@ class AutoPlotProvider extends ChangeNotifier {
 
   // Arrow appearance for identification
   ArrowAppearanceForAutoPlot? _arrowAppearance;
+  String? _learnedAppearanceDescription; // Human-readable "green fletches, orange nocks"
+  bool _hasLearnedAppearance = false;
+  bool _isLearning = false;
 
   // Getters
   AutoPlotState get state => _state;
@@ -62,6 +65,9 @@ class AutoPlotProvider extends ChangeNotifier {
   String? get selectedTargetType => _selectedTargetType;
   List<RegisteredTarget> get registeredTargets => _registeredTargets;
   ArrowAppearanceForAutoPlot? get arrowAppearance => _arrowAppearance;
+  String? get learnedAppearanceDescription => _learnedAppearanceDescription;
+  bool get hasLearnedAppearance => _hasLearnedAppearance;
+  bool get isLearning => _isLearning;
 
   /// Initialize provider - load usage and registered targets
   Future<void> initialize() async {
@@ -99,15 +105,62 @@ class AutoPlotProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Load arrow appearance from quiver settings
+  /// Load arrow appearance from quiver settings or learned appearance
+  /// Priority: 1) Quiver equipment profile colors, 2) Previously learned appearance
   Future<void> loadArrowAppearanceFromQuiver(Quiver? quiver) async {
+    // First try quiver settings (explicit user-entered colors)
     if (quiver?.settings != null) {
       final arrowSpecs = ArrowSpecifications.fromJson(quiver!.settings);
-      _arrowAppearance = arrowSpecs.appearanceForAutoPlot;
-    } else {
-      _arrowAppearance = null;
+      final fromQuiver = arrowSpecs.appearanceForAutoPlot;
+      if (fromQuiver.hasAnyFeatures) {
+        _arrowAppearance = fromQuiver;
+        _hasLearnedAppearance = false;
+        notifyListeners();
+        return;
+      }
     }
+
+    // If no quiver colors, we'll rely on previously learned appearance (if any)
+    // The learned appearance is already loaded in _arrowAppearance from Firestore
+    // during the API call (server stores and returns it)
     notifyListeners();
+  }
+
+  /// Learn arrow appearance from user's manual selection
+  /// Call this after user confirms their arrows for the first time
+  Future<bool> learnArrowAppearance(List<DetectedArrow> selectedArrows) async {
+    if (_capturedImage == null || selectedArrows.isEmpty) {
+      return false;
+    }
+
+    _isLearning = true;
+    notifyListeners();
+
+    try {
+      final result = await _visionService.learnArrowAppearance(
+        image: _capturedImage!,
+        selectedArrows: selectedArrows,
+      );
+
+      if (result.isSuccess && result.appearance != null) {
+        _arrowAppearance = ArrowAppearanceForAutoPlot(
+          fletchColor: result.appearance!.fletchColor,
+          nockColor: result.appearance!.nockColor,
+          wrapColor: result.appearance!.wrapColor,
+        );
+        _learnedAppearanceDescription = result.description;
+        _hasLearnedAppearance = true;
+        _isLearning = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      // Silent failure - learning is a nice-to-have
+    }
+
+    _isLearning = false;
+    notifyListeners();
+    return false;
   }
 
   /// Check if a target type has a registered reference
