@@ -10,6 +10,7 @@ import '../providers/skills_provider.dart';
 import '../services/auth_service.dart';
 import '../widgets/pixel_bow_icon.dart';
 import '../widgets/pixel_archer_icon.dart';
+import '../widgets/pixel_profile_icon.dart';
 import '../widgets/connectivity_indicator.dart';
 import '../widgets/level_badge.dart';
 import 'session_start_screen.dart';
@@ -879,7 +880,7 @@ class _ProfileIconButton extends StatelessWidget {
             ),
           ),
           child: const Center(
-            child: PixelArcherIcon(size: 24),
+            child: PixelProfileIcon(size: 24),
           ),
         ),
       ),
@@ -956,39 +957,36 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
                 // Main content - use Align to position from top
                 Align(
                   alignment: Alignment.topCenter,
-                  child: Stack(
-                    children: [
-                      // Main logo content
-                      Padding(
-                        padding: EdgeInsets.only(top: verticalPadding),
-                        child: progress < 0.85
-                            ? _buildExpandedLayout(
-                                iconSize: iconSize,
-                                titleSize: titleSize,
-                                spacing: spacing,
-                                subtitleOpacity: subtitleOpacity,
-                                decorationOpacity: decorationOpacity,
-                                glow: glow,
-                              )
-                            : _buildCollapsedLayout(glow: glow),
-                      ),
-                      // Profile icon (top-left in expanded mode)
-                      if (progress < 0.85)
-                        Positioned(
-                          top: 8,
-                          left: 16,
-                          child: _ProfileIconButton(),
-                        ),
-                      // Connectivity indicator (always top-right in expanded mode)
-                      if (progress < 0.85)
-                        Positioned(
-                          top: 8,
-                          right: 16,
-                          child: const ConnectivityIndicator(),
-                        ),
-                    ],
+                  child: Padding(
+                    padding: EdgeInsets.only(top: verticalPadding),
+                    child: progress < 0.85
+                        ? _buildExpandedLayout(
+                            iconSize: iconSize,
+                            titleSize: titleSize,
+                            spacing: spacing,
+                            subtitleOpacity: subtitleOpacity,
+                            decorationOpacity: decorationOpacity,
+                            glow: glow,
+                          )
+                        : _buildCollapsedLayout(glow: glow),
                   ),
                 ),
+
+                // Profile icon (top-left in expanded mode)
+                if (progress < 0.85)
+                  Positioned(
+                    top: 8,
+                    left: 16,
+                    child: _ProfileIconButton(),
+                  ),
+
+                // Connectivity indicator (top-right in expanded mode)
+                if (progress < 0.85)
+                  Positioned(
+                    top: 8,
+                    right: 16,
+                    child: const ConnectivityIndicator(),
+                  ),
               ],
             ),
           ),
