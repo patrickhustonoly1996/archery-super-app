@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import '../providers/auto_plot_provider.dart';
 import '../services/vision_api_service.dart';
 import 'auto_plot_confirm_screen.dart';
+import 'auto_plot_upgrade_screen.dart';
 
 /// Screen to capture target image for Auto-Plot arrow detection
 class AutoPlotCaptureScreen extends StatefulWidget {
@@ -233,7 +234,11 @@ class _AutoPlotCaptureScreenState extends State<AutoPlotCaptureScreen> {
             const SizedBox(width: 8),
             TextButton(
               onPressed: () {
-                // TODO: Navigate to upgrade screen
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const AutoPlotUpgradeScreen(),
+                  ),
+                );
               },
               child: Text(
                 'UPGRADE',

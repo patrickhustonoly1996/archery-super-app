@@ -15,6 +15,7 @@ import 'package:archery_super_app/providers/session_provider.dart';
 import 'package:archery_super_app/providers/equipment_provider.dart';
 import 'package:archery_super_app/providers/connectivity_provider.dart';
 import 'package:archery_super_app/providers/skills_provider.dart';
+import 'package:archery_super_app/providers/sight_marks_provider.dart';
 import 'package:archery_super_app/screens/plotting_screen.dart';
 import 'package:archery_super_app/screens/session_start_screen.dart';
 import 'package:archery_super_app/screens/session_complete_screen.dart';
@@ -348,6 +349,7 @@ void main() {
         // Build session complete screen with required providers
         final equipmentProvider = EquipmentProvider(db);
         final skillsProvider = SkillsProvider(db)..loadSkills();
+        final sightMarksProvider = SightMarksProvider(db);
         await tester.pumpWidget(
           Provider<AppDatabase>.value(
             value: db,
@@ -361,6 +363,9 @@ void main() {
                 ),
                 ChangeNotifierProvider<SkillsProvider>.value(
                   value: skillsProvider,
+                ),
+                ChangeNotifierProvider<SightMarksProvider>.value(
+                  value: sightMarksProvider,
                 ),
               ],
               child: MaterialApp(
