@@ -160,27 +160,6 @@
     }
     /* iOS safe area - handled by Flutter's SafeArea widget, not CSS */
     /* DO NOT add padding here - it breaks touch detection in PWA standalone mode */
-    /* Update notification banner */
-    #update-banner {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(90deg, #FFD700, #FFA500);
-      color: #1a1a1a;
-      padding: 12px 16px;
-      text-align: center;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      z-index: 999999;
-      cursor: pointer;
-      padding-top: calc(12px + env(safe-area-inset-top));
-    }
-    #update-banner:hover {
-      background: linear-gradient(90deg, #FFA500, #FF8C00);
-    }
     /* Install prompt */
     #install-prompt {
       display: none;
@@ -277,11 +256,6 @@
     <button class="loading-retry" onclick="location.reload(true)">Tap to reload</button>
   </div>
 
-  <!-- Update notification banner (click handled by service worker code) -->
-  <div id="update-banner">
-    New version available! Tap to update.
-  </div>
-
   <!-- Install prompt for browser users -->
   <div id="install-prompt">
     <div class="install-content">
@@ -367,34 +341,16 @@
           // No polling: offline-first means the app works without network
           registration.update();
 
-          // Handle update found
+          // Handle update found - force update immediately
           registration.addEventListener('updatefound', () => {
             const newWorker = registration.installing;
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  // New version available - show update banner
-                  // User must tap banner to apply update (don't auto-reload)
-                  const banner = document.getElementById('update-banner');
-                  banner.style.display = 'block';
-
-                  // Store reference to new worker so banner click can activate it
-                  banner.dataset.hasUpdate = 'true';
-                  window._pendingServiceWorker = newWorker;
+                  // New version ready - activate it immediately
+                  newWorker.postMessage('skipWaiting');
                 }
               });
-            }
-          });
-
-          // Handle update banner click - only reload when user explicitly requests
-          document.getElementById('update-banner').addEventListener('click', function(e) {
-            e.preventDefault();
-            if (window._pendingServiceWorker) {
-              // Tell the new service worker to take over, then reload will happen via controllerchange
-              window._pendingServiceWorker.postMessage('skipWaiting');
-            } else {
-              // Fallback: just reload
-              window.location.reload(true);
             }
           });
 
