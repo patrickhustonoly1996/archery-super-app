@@ -37,6 +37,7 @@ These cannot be caught by `flutter test`.
 |-------|---------|------------|
 | Install prompt | `beforeinstallprompt` timing | Captured and deferred |
 | Splash screen | May flash white | Dark background set in manifest |
+| Grey screen on resume | PWA killed in background, splash gets stuck | visibilitychange handler + 15s retry button |
 | Back button | Hardware back exits app | Handle via Navigator |
 | Storage | More generous than iOS | Usually not an issue |
 | Notifications | Requires permission | Not yet implemented |
@@ -191,6 +192,19 @@ Documented checklist (above) run before each release.
 ---
 
 ## Quick Debug Steps
+
+### Grey Screen on Android PWA
+This typically happens when:
+1. User is in the app, switches to another app
+2. Android kills the PWA process to reclaim memory
+3. User returns - PWA reloads but splash screen gets stuck
+
+**Current fixes in place:**
+- `visibilitychange` listener removes splash 2s after becoming visible
+- 15-second hard timeout shows "Tap to reload" button
+- CSS forces dark background on Flutter container elements
+
+**User workaround:** Wait 15 seconds for reload button, or force close and reopen the app.
 
 ### App Unresponsive in PWA Mode
 1. Open Safari > archery-super.web.app (in browser, not PWA)

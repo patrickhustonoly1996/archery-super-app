@@ -51,13 +51,20 @@
       font-display: swap;
     }
 
-    /* Prevent flash of white during load */
+    /* Prevent flash of white/grey during load - critical for Android PWA */
     html, body {
       background-color: #1a1a1a;
       margin: 0;
       padding: 0;
       height: 100%;
       overflow: hidden;
+      /* Force dark background even if CSS partially loads */
+      color-scheme: dark;
+    }
+
+    /* Ensure Flutter container never shows grey/white */
+    flt-glass-pane, flt-scene-host, flutter-view {
+      background-color: #1a1a1a !important;
     }
 
     /* Eliminate iOS 300ms touch delay for all interactive elements */
@@ -136,6 +143,20 @@
       font-size: 14px;
       color: #666;
       margin-top: 16px;
+    }
+    .loading-retry {
+      display: none;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 14px;
+      color: #FFD700;
+      margin-top: 24px;
+      padding: 12px 24px;
+      border: 1px solid #FFD700;
+      background: transparent;
+      cursor: pointer;
+    }
+    .loading-retry:hover {
+      background: rgba(255, 215, 0, 0.1);
     }
     /* iOS safe area - handled by Flutter's SafeArea widget, not CSS */
     /* DO NOT add padding here - it breaks touch detection in PWA standalone mode */
@@ -253,6 +274,7 @@
     </div>
     <div class="loading-spinner"></div>
     <div class="loading-text">Loading...</div>
+    <button class="loading-retry" onclick="location.reload(true)">Tap to reload</button>
   </div>
 
   <!-- Update notification banner -->
@@ -400,6 +422,51 @@
         hideSplash();
       }
     }, 5000);
+
+    // Emergency fallback: if splash is STILL visible after 15 seconds, show reload button
+    // This handles cases where Flutter completely fails to initialize (grey screen issue)
+    setTimeout(function() {
+      const splash = document.getElementById('loading-splash');
+      if (splash && !splash.classList.contains('hidden')) {
+        console.warn('Flutter still not loaded after 15s, showing reload option');
+        const retryBtn = splash.querySelector('.loading-retry');
+        const loadingText = splash.querySelector('.loading-text');
+        if (retryBtn) retryBtn.style.display = 'block';
+        if (loadingText) loadingText.textContent = 'Taking too long...';
+      }
+    }, 15000);
+
+    // Android PWA resume fix: when app returns from background, ensure splash is gone
+    // Android can kill/reload PWA while suspended, causing splash to reappear without
+    // the flutter-first-frame event firing again
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible') {
+        // Give Flutter a moment to re-render after resume
+        setTimeout(function() {
+          const splash = document.getElementById('loading-splash');
+          if (splash && !splash.classList.contains('hidden')) {
+            console.warn('Splash still visible after resume, forcing removal');
+            hideSplash();
+          }
+        }, 2000);
+      }
+    });
+
+    // Additional safety: if page was loaded in background (prerender), handle it
+    if (document.visibilityState === 'hidden') {
+      document.addEventListener('visibilitychange', function onFirstVisible() {
+        if (document.visibilityState === 'visible') {
+          document.removeEventListener('visibilitychange', onFirstVisible);
+          setTimeout(function() {
+            const splash = document.getElementById('loading-splash');
+            if (splash && !splash.classList.contains('hidden')) {
+              console.warn('Splash still visible after becoming visible, forcing removal');
+              hideSplash();
+            }
+          }, 5000);
+        }
+      });
+    }
   </script>
 </body>
 </html>
