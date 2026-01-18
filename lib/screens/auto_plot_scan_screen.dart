@@ -167,9 +167,11 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
 
       await _cameraController!.initialize();
 
-      // Lock focus mode for consistent captures
-      if (_cameraController!.value.focusModeLockedSupported) {
+      // Set focus mode for consistent captures
+      try {
         await _cameraController!.setFocusMode(FocusMode.auto);
+      } catch (_) {
+        // Focus mode may not be supported on all devices
       }
 
       if (mounted) {

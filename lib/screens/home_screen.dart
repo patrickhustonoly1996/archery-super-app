@@ -12,7 +12,6 @@ import '../widgets/pixel_bow_icon.dart';
 import '../widgets/pixel_archer_icon.dart';
 import '../widgets/connectivity_indicator.dart';
 import '../widgets/level_badge.dart';
-import 'user_profile_screen.dart';
 import 'session_start_screen.dart';
 import 'plotting_screen.dart';
 import 'history_screen.dart';
@@ -25,6 +24,7 @@ import 'bow_training_home_screen.dart';
 import 'bow_training_screen.dart';
 import 'delayed_camera_screen.dart';
 import 'performance_profile_screen.dart';
+import 'user_profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -857,6 +857,36 @@ class _PixelDot extends StatelessWidget {
   }
 }
 
+/// Profile icon button that navigates to user profile screen
+class _ProfileIconButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'User Profile',
+      child: GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const UserProfileScreen()),
+        ),
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: AppColors.gold.withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+          child: const Center(
+            child: PixelArcherIcon(size: 24),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // =============================================================================
 // COLLAPSING LOGO HEADER - Smooth scroll-linked collapse effect
 // =============================================================================
@@ -942,6 +972,13 @@ class _CollapsingLogoHeader extends SliverPersistentHeaderDelegate {
                               )
                             : _buildCollapsedLayout(glow: glow),
                       ),
+                      // Profile icon (top-left in expanded mode)
+                      if (progress < 0.85)
+                        Positioned(
+                          top: 8,
+                          left: 16,
+                          child: _ProfileIconButton(),
+                        ),
                       // Connectivity indicator (always top-right in expanded mode)
                       if (progress < 0.85)
                         Positioned(
