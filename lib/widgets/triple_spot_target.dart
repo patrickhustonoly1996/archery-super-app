@@ -160,87 +160,70 @@ class _InteractiveTripleSpotTargetState
 
   @override
   Widget build(BuildContext context) {
-    // Triple spot arranged vertically (stacked) as per Portsmouth rules
-    // Account for 8px gaps (x2) + 2px border on each side (x6)
-    final faceSize = (widget.size - 28) / 3;
+    // Focused layout: selected face is large, others are small selectors
+    // Main face gets ~70% of available size, selectors split the rest
+    final mainFaceSize = widget.size * 0.75;
+    final selectorSize = (widget.size - mainFaceSize - 24) / 3; // 24 = gaps
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Face labels on the left
+        // Face selectors on the left (small thumbnails)
         Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildFaceLabel(0, faceSize),
+            _buildFaceSelector(0, selectorSize),
             const SizedBox(height: 8),
-            _buildFaceLabel(1, faceSize),
+            _buildFaceSelector(1, selectorSize),
             const SizedBox(height: 8),
-            _buildFaceLabel(2, faceSize),
+            _buildFaceSelector(2, selectorSize),
           ],
         ),
         const SizedBox(width: 8),
-        // Stacked faces
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildInteractiveFace(0, faceSize),
-            const SizedBox(height: 8),
-            _buildInteractiveFace(1, faceSize),
-            const SizedBox(height: 8),
-            _buildInteractiveFace(2, faceSize),
-          ],
-        ),
+        // Main interactive face (large, selected)
+        _buildMainFace(_selectedFace, mainFaceSize),
       ],
     );
   }
 
-  Widget _buildInteractiveFace(int faceIndex, double faceSize) {
+  /// Build the main interactive face (large, for plotting)
+  Widget _buildMainFace(int faceIndex, double faceSize) {
     final faceArrows =
         widget.arrows.where((a) => a.faceIndex == faceIndex).toList();
-    final isSelected = _selectedFace == faceIndex;
-    final hasArrow = faceArrows.isNotEmpty;
 
-    return GestureDetector(
-      onTap: () {
-        setState(() => _selectedFace = faceIndex);
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isSelected
-                ? AppColors.gold
-                : (hasArrow ? AppColors.gold.withOpacity(0.3) : AppColors.surfaceLight),
-            width: isSelected ? 2 : 1,
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: AppColors.gold,
+          width: 2,
+        ),
+        borderRadius: BorderRadius.circular(4),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.gold.withOpacity(0.3),
+            blurRadius: 8,
+            spreadRadius: 1,
           ),
-          borderRadius: BorderRadius.circular(4),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.gold.withOpacity(0.3),
-                    blurRadius: 8,
-                    spreadRadius: 1,
-                  ),
-                ]
-              : null,
-        ),
-        child: InteractiveTargetFace(
-          arrows: faceArrows,
-          size: faceSize,
-          enabled: widget.enabled && isSelected,
-          isIndoor: true,
-          triSpot: true,
-          isLeftHanded: widget.isLeftHanded,
-          compoundScoring: widget.compoundScoring,
-          onArrowPlotted: (x, y) {
-            _onArrowPlotted(x, y, faceIndex);
-          },
-        ),
+        ],
+      ),
+      child: InteractiveTargetFace(
+        arrows: faceArrows,
+        size: faceSize,
+        enabled: widget.enabled,
+        isIndoor: true,
+        triSpot: true,
+        isLeftHanded: widget.isLeftHanded,
+        compoundScoring: widget.compoundScoring,
+        onArrowPlotted: (x, y) {
+          _onArrowPlotted(x, y, faceIndex);
+        },
       ),
     );
   }
 
-  Widget _buildFaceLabel(int faceIndex, double faceSize) {
+  /// Build a small face selector (thumbnail with score)
+  Widget _buildFaceSelector(int faceIndex, double selectorSize) {
     final faceArrows =
         widget.arrows.where((a) => a.faceIndex == faceIndex).toList();
     final isSelected = _selectedFace == faceIndex;
@@ -252,36 +235,54 @@ class _InteractiveTripleSpotTargetState
     return GestureDetector(
       onTap: () => setState(() => _selectedFace = faceIndex),
       child: Container(
-        width: 48, // Fixed narrow width for side labels
-        height: faceSize + 4, // Match face height including border
+        width: selectorSize + 24, // Extra width for label
+        height: selectorSize + 4,
         padding: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.gold.withOpacity(0.2) : Colors.transparent,
           border: Border.all(
-            color: isSelected ? AppColors.gold : Colors.transparent,
+            color: isSelected
+                ? AppColors.gold
+                : (hasArrow ? AppColors.gold.withOpacity(0.3) : AppColors.surfaceLight),
+            width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Column(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              '${faceIndex + 1}',
-              style: TextStyle(
-                fontFamily: AppFonts.pixel,
-                fontSize: 16,
-                color: isSelected ? AppColors.gold : AppColors.textMuted,
-              ),
+            // Small target preview
+            TargetFace(
+              arrows: faceArrows,
+              size: selectorSize,
+              triSpot: true,
+              compoundScoring: widget.compoundScoring,
             ),
-            if (hasArrow)
-              Text(
-                '$score',
-                style: TextStyle(
-                  fontFamily: AppFonts.body,
-                  fontSize: 12,
-                  color: AppColors.gold,
+            const SizedBox(width: 4),
+            // Face number and score
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${faceIndex + 1}',
+                  style: TextStyle(
+                    fontFamily: AppFonts.pixel,
+                    fontSize: 14,
+                    color: isSelected ? AppColors.gold : AppColors.textMuted,
+                  ),
                 ),
-              ),
+                if (hasArrow)
+                  Text(
+                    '$score',
+                    style: TextStyle(
+                      fontFamily: AppFonts.body,
+                      fontSize: 12,
+                      color: AppColors.gold,
+                    ),
+                  ),
+              ],
+            ),
           ],
         ),
       ),

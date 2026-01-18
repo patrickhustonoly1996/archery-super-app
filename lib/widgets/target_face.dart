@@ -28,6 +28,10 @@ class TargetFace extends StatelessWidget {
     final markerSize = (size * _ArrowMarker._markerFraction).clamp(4.0, 10.0);
     final halfMarker = markerSize / 2;
 
+    // For tri-spot, arrows need to be scaled to match the ring scaling
+    // Ring 6 (at 0.5 normalized) fills the face, so scale = 1/0.5 = 2.0
+    final arrowScale = triSpot ? (1.0 / TargetRings.ring6) : 1.0;
+
     return SizedBox(
       width: size,
       height: size,
@@ -40,12 +44,13 @@ class TargetFace extends StatelessWidget {
         child: Stack(
           children: arrows.map((arrow) {
             // Convert normalized coordinates (-1 to 1) to widget coordinates
+            // For tri-spot, scale up arrow positions to match ring scaling
             final centerX = size / 2;
             final centerY = size / 2;
             final radius = size / 2;
 
-            final x = centerX + (arrow.x * radius);
-            final y = centerY + (arrow.y * radius);
+            final x = centerX + (arrow.x * arrowScale * radius);
+            final y = centerY + (arrow.y * arrowScale * radius);
 
             return Positioned(
               left: x - halfMarker,
@@ -282,11 +287,19 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
 
   /// Convert widget-space pixel position to normalized coordinates (-1 to +1)
   /// This is the DIRECT path - no transform reversal needed
+  /// For tri-spot, coordinates are scaled so edge taps map to ring 6 boundary (0.5)
   (double, double) _widgetToNormalized(Offset widgetPosition) {
     final center = widget.size / 2;
     final radius = widget.size / 2;
-    final normalizedX = (widgetPosition.dx - center) / radius;
-    final normalizedY = (widgetPosition.dy - center) / radius;
+    var normalizedX = (widgetPosition.dx - center) / radius;
+    var normalizedY = (widgetPosition.dy - center) / radius;
+
+    // For tri-spot, scale down so edge (1.0) maps to ring 6 boundary (0.5)
+    if (widget.triSpot) {
+      normalizedX *= TargetRings.ring6;
+      normalizedY *= TargetRings.ring6;
+    }
+
     return (normalizedX, normalizedY);
   }
 
