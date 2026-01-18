@@ -11,10 +11,11 @@ class StripeService {
 
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
 
-  // Stripe Price IDs - Patrick will provide from Stripe Dashboard
-  static const String competitorPriceId = 'PLACEHOLDER_COMPETITOR_PRICE_ID';
-  static const String professionalPriceId = 'PLACEHOLDER_PROFESSIONAL_PRICE_ID';
-  static const String aiming3dPriceId = 'PLACEHOLDER_3D_AIMING_PRICE_ID';
+  // Stripe Price IDs
+  static const String competitorPriceId = 'price_1SqztNRpdm3uvDfu5wcHwFum';
+  static const String professionalPriceId = 'price_1SqzuiRpdm3uvDfuzehsoDZt';
+  static const String hustonSchoolPriceId = 'price_1Sr3ETRpdm3uvDfuEEfNt7P1';
+  static const String aiming3dPriceId = 'price_1Sr3GJRpdm3uvDfuhGWLxEx3';
 
   /// Create a checkout session for subscription upgrade
   Future<String?> createSubscriptionCheckout({
@@ -138,7 +139,7 @@ class StripeService {
       case SubscriptionTier.professional:
         return professionalPriceId;
       case SubscriptionTier.hustonSchool:
-        return null; // Not available yet
+        return hustonSchoolPriceId;
       case SubscriptionTier.archer:
         return null; // Free tier
     }

@@ -19,16 +19,14 @@ interface PriceToTierMap {
 }
 
 // Map Stripe price IDs to subscription tiers
-// Patrick will replace these with real IDs from Stripe Dashboard
 const PRICE_TO_TIER: PriceToTierMap = {
-  // Subscriptions
-  "price_competitor_monthly": "competitor",      // £2/mo
-  "price_professional_monthly": "professional",  // £7.20/mo
-  "price_huston_monthly": "hustonSchool",        // £40/mo
+  "price_1SqztNRpdm3uvDfu5wcHwFum": "competitor",      // £2/mo
+  "price_1SqzuiRpdm3uvDfuzehsoDZt": "professional",    // £7.20/mo
+  "price_1Sr3ETRpdm3uvDfuEEfNt7P1": "hustonSchool",    // £40/mo
 };
 
 // One-time product IDs
-const PRODUCT_3D_AIMING = "prod_3d_aiming_course"; // £12 one-time
+const PRODUCT_3D_AIMING = "prod_SM4VhVapcll6nZ"; // £12 one-time
 
 // Grace period after subscription expires (72 hours)
 const GRACE_PERIOD_MS = 72 * 60 * 60 * 1000;

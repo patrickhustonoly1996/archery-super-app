@@ -4,206 +4,195 @@ Complete checklist for launching the subscription and payment system.
 
 ---
 
-## 1. Stripe Dashboard Setup
+## Progress Summary
 
-### Create Products
-
-- [ ] **Competitor Subscription** (£2/month)
-  - Go to Stripe Dashboard > Products > Add Product
-  - Name: "Competitor"
-  - Description: "Shaft analysis, OLY training, Auto-Plot (50/mo)"
-  - Pricing: £2.00 GBP, Recurring monthly
-  - Copy the **Price ID** (starts with `price_`)
-
-- [ ] **Professional Subscription** (£7.20/month)
-  - Name: "Professional"
-  - Description: "Everything in Competitor + Unlimited Auto-Plot"
-  - Pricing: £7.20 GBP, Recurring monthly
-  - Copy the **Price ID**
-
-- [ ] **Huston School Subscription** (£40/month) - Future
-  - Name: "Huston School"
-  - Description: "Everything in Professional + Video coaching library"
-  - Pricing: £40.00 GBP, Recurring monthly
-  - Copy the **Price ID**
-
-- [ ] **3D Aiming Course** (£12 one-time)
-  - Name: "3D Aiming Course"
-  - Description: "Visual aiming system mastery"
-  - Pricing: £12.00 GBP, One-time
-  - Copy the **Price ID**
-
-### Configure Webhook
-
-- [ ] Go to Stripe Dashboard > Developers > Webhooks
-- [ ] Add endpoint: `https://[region]-[project-id].cloudfunctions.net/stripeWebhook`
-- [ ] Select events to listen for:
-  - `checkout.session.completed`
-  - `customer.subscription.updated`
-  - `customer.subscription.deleted`
-  - `invoice.payment_succeeded`
-  - `invoice.payment_failed`
-- [ ] Copy the **Webhook Signing Secret** (starts with `whsec_`)
-
-### Configure Customer Portal
-
-- [ ] Go to Stripe Dashboard > Settings > Billing > Customer portal
-- [ ] Enable: Cancel subscriptions
-- [ ] Enable: Switch plans
-- [ ] Enable: Update payment methods
-- [ ] Save changes
+| Area | Status |
+|------|--------|
+| Stripe products | Done |
+| Stripe webhook | Done |
+| Code updated | Done |
+| Firebase secrets | Waiting on email access |
+| Bunny.net videos | Not started |
+| Email migration | Not started |
+| Email list system | Not started |
 
 ---
 
-## 2. Update Code with Stripe IDs
+## 1. Stripe Dashboard Setup - DONE
 
-### Flutter (`lib/services/stripe_service.dart`)
+### Products Created
 
-- [ ] Replace placeholder price IDs:
-  ```dart
-  static const String competitorPriceId = 'price_XXXXX'; // Your real ID
-  static const String professionalPriceId = 'price_XXXXX'; // Your real ID
-  static const String aiming3dPriceId = 'price_XXXXX'; // Your real ID
-  ```
+- [x] **Competitor Subscription** (£2/month)
+  - Price ID: `price_1SqztNRpdm3uvDfu5wcHwFum`
 
-### Firebase Functions (`functions/src/stripe.ts`)
+- [x] **Professional Subscription** (£7.20/month)
+  - Price ID: `price_1SqzuiRpdm3uvDfuzehsoDZt`
 
-- [ ] Replace placeholder price IDs in `PRICE_TO_TIER` mapping:
-  ```typescript
-  const PRICE_TO_TIER: PriceToTierMap = {
-    "price_XXXXX": "competitor",      // Your real Competitor price ID
-    "price_XXXXX": "professional",    // Your real Professional price ID
-    "price_XXXXX": "hustonSchool",    // Your real Huston School price ID
-  };
-  ```
+- [x] **Huston School Subscription** (£40/month)
+  - Price ID: `price_1Sr3ETRpdm3uvDfuEEfNt7P1`
 
-- [ ] Update `PRODUCT_3D_AIMING` with real product ID:
-  ```typescript
-  const PRODUCT_3D_AIMING = "prod_XXXXX"; // Your real product ID
-  ```
+- [x] **3D Aiming Course** (£12 one-time)
+  - Price ID: `price_1Sr3GJRpdm3uvDfuhGWLxEx3`
+  - Product ID: `prod_SM4VhVapcll6nZ`
+
+### Webhook Configured
+
+- [x] Endpoint: `https://us-central1-archery-super.cloudfunctions.net/stripeWebhook`
+- [x] Events: 6 events configured (checkout, subscription, invoice)
+- [x] Webhook secret: `whsec_Tkal8LkePTQ6Hi25kYlJvVF0xibTeSZc`
+
+### Customer Portal
+
+- [x] Enabled in Stripe settings
 
 ---
 
-## 3. Firebase Configuration
+## 2. Code Updated - DONE
 
-### Set Environment Variables
+- [x] `lib/services/stripe_service.dart` - All price IDs added
+- [x] `functions/src/stripe.ts` - Price-to-tier mapping + product ID added
 
-- [ ] Set Stripe secret key:
-  ```bash
-  firebase functions:config:set stripe.secret_key="sk_live_XXXXX"
-  ```
+---
 
-- [ ] Set webhook secret:
-  ```bash
-  firebase functions:config:set stripe.webhook_secret="whsec_XXXXX"
-  ```
+## 3. Firebase Configuration - BLOCKED (needs email access)
 
-- [ ] Deploy config:
-  ```bash
-  firebase deploy --only functions
-  ```
+### Set Secrets (run when you have the API key)
+
+```bash
+cd C:\Users\patri\Desktop\archery_super_app_v1
+firebase functions:config:set stripe.secret_key="sk_test_XXXXX" stripe.webhook_secret="whsec_Tkal8LkePTQ6Hi25kYlJvVF0xibTeSZc"
+firebase deploy --only functions
+```
+
+- [ ] Get Stripe secret key from Developers > API keys
+- [ ] Run the config command above
+- [ ] Deploy functions
 
 ### Firestore Security Rules
 
-- [ ] Ensure users can only read their own entitlements:
-  ```javascript
-  match /users/{userId}/entitlement/{doc} {
-    allow read: if request.auth != null && request.auth.uid == userId;
-    allow write: if false; // Only Cloud Functions can write
-  }
-
-  match /users/{userId}/purchases/{doc} {
-    allow read: if request.auth != null && request.auth.uid == userId;
-    allow write: if false;
-  }
-  ```
+- [ ] Add entitlement read rules (users can only read their own)
 
 ### Legacy Users Collection
 
-- [ ] Create `legacyUsers` collection in Firestore for existing 3D Aiming purchasers
-- [ ] Add documents with format:
-  ```json
-  {
-    "email": "user@example.com",
-    "products": ["3d_aiming_course"],
-    "grantedAt": <timestamp>,
-    "notes": "Original purchaser"
-  }
-  ```
+- [ ] Create `legacyUsers` collection for existing 3D Aiming purchasers
+- [ ] Add documents for grandfathered users
 
 ---
 
-## 4. Bunny Stream Setup
+## 4. Email Migration (from GHL)
 
-### Upload Videos
+### Get Email List from GoHighLevel
 
-- [ ] Create Bunny Stream library for course videos
-- [ ] Upload 3D Aiming Course videos
-- [ ] Upload Plotting Course videos (free)
-- [ ] Note the **Video IDs** for each lesson
+- [ ] Export contacts/subscribers from GHL
+- [ ] Clean list (remove bounces, unsubscribes)
+- [ ] Note: Need hosting guy's help (waiting until Monday)
 
-### Update Course Data
+### Choose Email Service
 
-- [ ] Edit `lib/data/courses.dart` with real Bunny video IDs:
+Pick ONE of these (don't build custom):
+
+| Service | Free Tier | Notes |
+|---------|-----------|-------|
+| **Buttondown** | 100 subs | Simple, markdown-friendly, cheap |
+| **MailerLite** | 1,000 subs | Good free tier, visual builder |
+| **ConvertKit** | 1,000 subs | Creator-focused, automation |
+| **Loops** | 1,000 subs | Modern, developer-friendly |
+
+- [ ] Create account with chosen service
+- [ ] Import email list
+- [ ] Set up domain authentication (SPF/DKIM)
+- [ ] Create welcome sequence
+
+### Connect to App (optional)
+
+- [ ] Add newsletter signup to app settings
+- [ ] API integration for new user welcome emails
+
+---
+
+## 5. Bunny.net Video Hosting
+
+### Account Setup
+
+- [ ] Log into Bunny.net
+- [ ] Create Stream library for "Huston School" videos
+- [ ] Note the **API key** and **Library ID**
+
+### Upload Huston School Videos
+
+- [ ] Upload all coaching/analysis videos
+- [ ] Organize into folders by topic
+- [ ] Note each **Video ID** for the app
+
+### Upload Course Videos
+
+- [ ] 3D Aiming Course videos
+- [ ] Plotting Course videos (free)
+
+### Update App Code
+
+- [ ] Add Bunny API key to Firebase config:
+  ```bash
+  firebase functions:config:set bunny.api_key="XXXXX" bunny.library_id="XXXXX"
+  ```
+
+- [ ] Update `lib/data/courses.dart` with real Bunny video IDs:
   ```dart
   Lesson(
     id: 'lesson_1',
     title: 'Introduction',
-    bunnyVideoId: 'XXXXX-XXXXX-XXXXX', // Real Bunny video ID
-    // ...
+    bunnyVideoId: 'XXXXX-XXXXX-XXXXX',
   ),
   ```
 
 ---
 
-## 5. Testing Checklist
+## 6. Testing Checklist
 
 ### Stripe Test Mode
 
-- [ ] Use Stripe test mode first (test API keys)
-- [ ] Test checkout flow with card `4242 4242 4242 4242`
+- [ ] Test checkout with card `4242 4242 4242 4242`
 - [ ] Verify subscription creates correctly
-- [ ] Verify webhook updates Firestore entitlement
+- [ ] Verify webhook updates Firestore
 - [ ] Test subscription cancellation
 - [ ] Test one-time purchase (3D Aiming)
 
 ### App Testing
 
-- [ ] Verify free tier (Archer) features work
-- [ ] Verify locked features show upgrade prompt
-- [ ] Verify Competitor tier unlocks correct features
-- [ ] Verify Professional tier unlocks unlimited Auto-Plot
-- [ ] Verify 3D Aiming course purchase unlocks content
-- [ ] Test grace period behavior (72 hours after expiry)
-- [ ] Test legacy user email check
-
-### Edge Cases
-
-- [ ] Test offline behavior
-- [ ] Test expired subscription → read-only mode
-- [ ] Test payment failure handling
+- [ ] Free tier features work
+- [ ] Locked features show upgrade prompt
+- [ ] Competitor unlocks correct features
+- [ ] Professional unlocks unlimited Auto-Plot
+- [ ] 3D Aiming purchase unlocks content
+- [ ] Grace period (72hr after expiry)
 
 ---
 
-## 6. Go Live
+## 7. Go Live
 
 ### Switch to Live Mode
 
-- [ ] Replace test API keys with live keys in Firebase config
-- [ ] Update webhook endpoint to use live webhook secret
-- [ ] Deploy functions with live config
+- [ ] Replace test API keys with live keys
+- [ ] Update webhook to live secret
+- [ ] Deploy functions
 
-### App Store / Play Store
+### Legal
 
-- [ ] Ensure subscription terms are disclosed
-- [ ] Link to privacy policy
-- [ ] Link to terms of service
+- [ ] Subscription terms disclosed
+- [ ] Privacy policy linked
+- [ ] Terms of service linked
 
-### Monitor
+---
 
-- [ ] Set up Stripe webhook failure alerts
-- [ ] Monitor Firebase Functions logs for errors
-- [ ] Set up revenue dashboard in Stripe
+## Next Actions (in order)
+
+1. **Monday**: Get email access sorted with hosting guy
+2. **Get Stripe secret key** and run Firebase config command
+3. **Deploy functions** to Firebase
+4. **Test Stripe** with test card
+5. **Set up Bunny.net** - upload videos, get IDs
+6. **Export emails from GHL** and import to chosen email service
+7. **Go live** when all tested
 
 ---
 
@@ -213,25 +202,14 @@ Complete checklist for launching the subscription and payment system.
 |---------|---------------|-----------------|----------------------|---------------------|
 | Equipment tracking | Yes | Yes | Yes | Yes |
 | Volume/scores | Yes | Yes | Yes | Yes |
-| Breathing training | Yes | Yes | Yes | Yes |
-| Bow training | Yes | Yes | Yes | Yes |
+| Breathing/bow training | Yes | Yes | Yes | Yes |
 | Plotting course | Yes | Yes | Yes | Yes |
 | Shaft analysis | No | Yes | Yes | Yes |
 | OLY training | No | Yes | Yes | Yes |
 | Auto-Plot | No | 50/month | Unlimited | Unlimited |
 | Huston School videos | No | No | No | Yes |
-| 3D Aiming course | Purchase £12 | Purchase £12 | Purchase £12 | Purchase £12 |
+| 3D Aiming course | £12 | £12 | £12 | £12 |
 
 ---
 
-## Files Modified
-
-These files contain placeholder IDs that need updating:
-
-1. `lib/services/stripe_service.dart` - Flutter price IDs
-2. `functions/src/stripe.ts` - Firebase price ID mapping
-3. `lib/data/courses.dart` - Bunny video IDs
-
----
-
-*Last updated: Session implementing Education + Payment System*
+*Last updated: 18 Jan 2026*
