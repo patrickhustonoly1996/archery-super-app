@@ -7307,6 +7307,142 @@ class $StabilizersTable extends Stabilizers
         type: DriftSqlType.dateTime,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _leftSideRodModelMeta = const VerificationMeta(
+    'leftSideRodModel',
+  );
+  @override
+  late final GeneratedColumn<String> leftSideRodModel = GeneratedColumn<String>(
+    'left_side_rod_model',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _leftSideRodLengthMeta = const VerificationMeta(
+    'leftSideRodLength',
+  );
+  @override
+  late final GeneratedColumn<double> leftSideRodLength =
+      GeneratedColumn<double>(
+        'left_side_rod_length',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _leftSideRodWeightMeta = const VerificationMeta(
+    'leftSideRodWeight',
+  );
+  @override
+  late final GeneratedColumn<double> leftSideRodWeight =
+      GeneratedColumn<double>(
+        'left_side_rod_weight',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _leftWeightsMeta = const VerificationMeta(
+    'leftWeights',
+  );
+  @override
+  late final GeneratedColumn<String> leftWeights = GeneratedColumn<String>(
+    'left_weights',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _leftAngleHorizontalMeta =
+      const VerificationMeta('leftAngleHorizontal');
+  @override
+  late final GeneratedColumn<double> leftAngleHorizontal =
+      GeneratedColumn<double>(
+        'left_angle_horizontal',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _leftAngleVerticalMeta = const VerificationMeta(
+    'leftAngleVertical',
+  );
+  @override
+  late final GeneratedColumn<double> leftAngleVertical =
+      GeneratedColumn<double>(
+        'left_angle_vertical',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _rightSideRodModelMeta = const VerificationMeta(
+    'rightSideRodModel',
+  );
+  @override
+  late final GeneratedColumn<String> rightSideRodModel =
+      GeneratedColumn<String>(
+        'right_side_rod_model',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _rightSideRodLengthMeta =
+      const VerificationMeta('rightSideRodLength');
+  @override
+  late final GeneratedColumn<double> rightSideRodLength =
+      GeneratedColumn<double>(
+        'right_side_rod_length',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _rightSideRodWeightMeta =
+      const VerificationMeta('rightSideRodWeight');
+  @override
+  late final GeneratedColumn<double> rightSideRodWeight =
+      GeneratedColumn<double>(
+        'right_side_rod_weight',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _rightWeightsMeta = const VerificationMeta(
+    'rightWeights',
+  );
+  @override
+  late final GeneratedColumn<String> rightWeights = GeneratedColumn<String>(
+    'right_weights',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _rightAngleHorizontalMeta =
+      const VerificationMeta('rightAngleHorizontal');
+  @override
+  late final GeneratedColumn<double> rightAngleHorizontal =
+      GeneratedColumn<double>(
+        'right_angle_horizontal',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _rightAngleVerticalMeta =
+      const VerificationMeta('rightAngleVertical');
+  @override
+  late final GeneratedColumn<double> rightAngleVertical =
+      GeneratedColumn<double>(
+        'right_angle_vertical',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _sideRodModelMeta = const VerificationMeta(
     'sideRodModel',
   );
@@ -7396,6 +7532,17 @@ class $StabilizersTable extends Stabilizers
         type: DriftSqlType.double,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _longRodWeightsMeta = const VerificationMeta(
+    'longRodWeights',
+  );
+  @override
+  late final GeneratedColumn<String> longRodWeights = GeneratedColumn<String>(
+    'long_rod_weights',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _weightArrangementMeta = const VerificationMeta(
     'weightArrangement',
   );
@@ -7408,6 +7555,17 @@ class $StabilizersTable extends Stabilizers
         type: DriftSqlType.string,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _setupPhotoPathMeta = const VerificationMeta(
+    'setupPhotoPath',
+  );
+  @override
+  late final GeneratedColumn<String> setupPhotoPath = GeneratedColumn<String>(
+    'setup_photo_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _damperModelMeta = const VerificationMeta(
     'damperModel',
   );
@@ -7472,6 +7630,18 @@ class $StabilizersTable extends Stabilizers
     longRodLength,
     longRodWeight,
     longRodPurchaseDate,
+    leftSideRodModel,
+    leftSideRodLength,
+    leftSideRodWeight,
+    leftWeights,
+    leftAngleHorizontal,
+    leftAngleVertical,
+    rightSideRodModel,
+    rightSideRodLength,
+    rightSideRodWeight,
+    rightWeights,
+    rightAngleHorizontal,
+    rightAngleVertical,
     sideRodModel,
     sideRodLength,
     sideRodWeight,
@@ -7480,7 +7650,9 @@ class $StabilizersTable extends Stabilizers
     vbarModel,
     vbarAngleHorizontal,
     vbarAngleVertical,
+    longRodWeights,
     weightArrangement,
+    setupPhotoPath,
     damperModel,
     damperPositions,
     notes,
@@ -7554,6 +7726,114 @@ class $StabilizersTable extends Stabilizers
         ),
       );
     }
+    if (data.containsKey('left_side_rod_model')) {
+      context.handle(
+        _leftSideRodModelMeta,
+        leftSideRodModel.isAcceptableOrUnknown(
+          data['left_side_rod_model']!,
+          _leftSideRodModelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('left_side_rod_length')) {
+      context.handle(
+        _leftSideRodLengthMeta,
+        leftSideRodLength.isAcceptableOrUnknown(
+          data['left_side_rod_length']!,
+          _leftSideRodLengthMeta,
+        ),
+      );
+    }
+    if (data.containsKey('left_side_rod_weight')) {
+      context.handle(
+        _leftSideRodWeightMeta,
+        leftSideRodWeight.isAcceptableOrUnknown(
+          data['left_side_rod_weight']!,
+          _leftSideRodWeightMeta,
+        ),
+      );
+    }
+    if (data.containsKey('left_weights')) {
+      context.handle(
+        _leftWeightsMeta,
+        leftWeights.isAcceptableOrUnknown(
+          data['left_weights']!,
+          _leftWeightsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('left_angle_horizontal')) {
+      context.handle(
+        _leftAngleHorizontalMeta,
+        leftAngleHorizontal.isAcceptableOrUnknown(
+          data['left_angle_horizontal']!,
+          _leftAngleHorizontalMeta,
+        ),
+      );
+    }
+    if (data.containsKey('left_angle_vertical')) {
+      context.handle(
+        _leftAngleVerticalMeta,
+        leftAngleVertical.isAcceptableOrUnknown(
+          data['left_angle_vertical']!,
+          _leftAngleVerticalMeta,
+        ),
+      );
+    }
+    if (data.containsKey('right_side_rod_model')) {
+      context.handle(
+        _rightSideRodModelMeta,
+        rightSideRodModel.isAcceptableOrUnknown(
+          data['right_side_rod_model']!,
+          _rightSideRodModelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('right_side_rod_length')) {
+      context.handle(
+        _rightSideRodLengthMeta,
+        rightSideRodLength.isAcceptableOrUnknown(
+          data['right_side_rod_length']!,
+          _rightSideRodLengthMeta,
+        ),
+      );
+    }
+    if (data.containsKey('right_side_rod_weight')) {
+      context.handle(
+        _rightSideRodWeightMeta,
+        rightSideRodWeight.isAcceptableOrUnknown(
+          data['right_side_rod_weight']!,
+          _rightSideRodWeightMeta,
+        ),
+      );
+    }
+    if (data.containsKey('right_weights')) {
+      context.handle(
+        _rightWeightsMeta,
+        rightWeights.isAcceptableOrUnknown(
+          data['right_weights']!,
+          _rightWeightsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('right_angle_horizontal')) {
+      context.handle(
+        _rightAngleHorizontalMeta,
+        rightAngleHorizontal.isAcceptableOrUnknown(
+          data['right_angle_horizontal']!,
+          _rightAngleHorizontalMeta,
+        ),
+      );
+    }
+    if (data.containsKey('right_angle_vertical')) {
+      context.handle(
+        _rightAngleVerticalMeta,
+        rightAngleVertical.isAcceptableOrUnknown(
+          data['right_angle_vertical']!,
+          _rightAngleVerticalMeta,
+        ),
+      );
+    }
     if (data.containsKey('side_rod_model')) {
       context.handle(
         _sideRodModelMeta,
@@ -7623,12 +7903,30 @@ class $StabilizersTable extends Stabilizers
         ),
       );
     }
+    if (data.containsKey('long_rod_weights')) {
+      context.handle(
+        _longRodWeightsMeta,
+        longRodWeights.isAcceptableOrUnknown(
+          data['long_rod_weights']!,
+          _longRodWeightsMeta,
+        ),
+      );
+    }
     if (data.containsKey('weight_arrangement')) {
       context.handle(
         _weightArrangementMeta,
         weightArrangement.isAcceptableOrUnknown(
           data['weight_arrangement']!,
           _weightArrangementMeta,
+        ),
+      );
+    }
+    if (data.containsKey('setup_photo_path')) {
+      context.handle(
+        _setupPhotoPathMeta,
+        setupPhotoPath.isAcceptableOrUnknown(
+          data['setup_photo_path']!,
+          _setupPhotoPathMeta,
         ),
       );
     }
@@ -7705,6 +8003,54 @@ class $StabilizersTable extends Stabilizers
         DriftSqlType.dateTime,
         data['${effectivePrefix}long_rod_purchase_date'],
       ),
+      leftSideRodModel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}left_side_rod_model'],
+      ),
+      leftSideRodLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}left_side_rod_length'],
+      ),
+      leftSideRodWeight: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}left_side_rod_weight'],
+      ),
+      leftWeights: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}left_weights'],
+      ),
+      leftAngleHorizontal: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}left_angle_horizontal'],
+      ),
+      leftAngleVertical: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}left_angle_vertical'],
+      ),
+      rightSideRodModel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}right_side_rod_model'],
+      ),
+      rightSideRodLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}right_side_rod_length'],
+      ),
+      rightSideRodWeight: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}right_side_rod_weight'],
+      ),
+      rightWeights: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}right_weights'],
+      ),
+      rightAngleHorizontal: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}right_angle_horizontal'],
+      ),
+      rightAngleVertical: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}right_angle_vertical'],
+      ),
       sideRodModel: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}side_rod_model'],
@@ -7737,9 +8083,17 @@ class $StabilizersTable extends Stabilizers
         DriftSqlType.double,
         data['${effectivePrefix}vbar_angle_vertical'],
       ),
+      longRodWeights: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}long_rod_weights'],
+      ),
       weightArrangement: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}weight_arrangement'],
+      ),
+      setupPhotoPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}setup_photo_path'],
       ),
       damperModel: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -7778,6 +8132,18 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
   final double? longRodLength;
   final double? longRodWeight;
   final DateTime? longRodPurchaseDate;
+  final String? leftSideRodModel;
+  final double? leftSideRodLength;
+  final double? leftSideRodWeight;
+  final String? leftWeights;
+  final double? leftAngleHorizontal;
+  final double? leftAngleVertical;
+  final String? rightSideRodModel;
+  final double? rightSideRodLength;
+  final double? rightSideRodWeight;
+  final String? rightWeights;
+  final double? rightAngleHorizontal;
+  final double? rightAngleVertical;
   final String? sideRodModel;
   final double? sideRodLength;
   final double? sideRodWeight;
@@ -7786,7 +8152,9 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
   final String? vbarModel;
   final double? vbarAngleHorizontal;
   final double? vbarAngleVertical;
+  final String? longRodWeights;
   final String? weightArrangement;
+  final String? setupPhotoPath;
   final String? damperModel;
   final String? damperPositions;
   final String? notes;
@@ -7800,6 +8168,18 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
     this.longRodLength,
     this.longRodWeight,
     this.longRodPurchaseDate,
+    this.leftSideRodModel,
+    this.leftSideRodLength,
+    this.leftSideRodWeight,
+    this.leftWeights,
+    this.leftAngleHorizontal,
+    this.leftAngleVertical,
+    this.rightSideRodModel,
+    this.rightSideRodLength,
+    this.rightSideRodWeight,
+    this.rightWeights,
+    this.rightAngleHorizontal,
+    this.rightAngleVertical,
     this.sideRodModel,
     this.sideRodLength,
     this.sideRodWeight,
@@ -7808,7 +8188,9 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
     this.vbarModel,
     this.vbarAngleHorizontal,
     this.vbarAngleVertical,
+    this.longRodWeights,
     this.weightArrangement,
+    this.setupPhotoPath,
     this.damperModel,
     this.damperPositions,
     this.notes,
@@ -7835,6 +8217,42 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
     if (!nullToAbsent || longRodPurchaseDate != null) {
       map['long_rod_purchase_date'] = Variable<DateTime>(longRodPurchaseDate);
     }
+    if (!nullToAbsent || leftSideRodModel != null) {
+      map['left_side_rod_model'] = Variable<String>(leftSideRodModel);
+    }
+    if (!nullToAbsent || leftSideRodLength != null) {
+      map['left_side_rod_length'] = Variable<double>(leftSideRodLength);
+    }
+    if (!nullToAbsent || leftSideRodWeight != null) {
+      map['left_side_rod_weight'] = Variable<double>(leftSideRodWeight);
+    }
+    if (!nullToAbsent || leftWeights != null) {
+      map['left_weights'] = Variable<String>(leftWeights);
+    }
+    if (!nullToAbsent || leftAngleHorizontal != null) {
+      map['left_angle_horizontal'] = Variable<double>(leftAngleHorizontal);
+    }
+    if (!nullToAbsent || leftAngleVertical != null) {
+      map['left_angle_vertical'] = Variable<double>(leftAngleVertical);
+    }
+    if (!nullToAbsent || rightSideRodModel != null) {
+      map['right_side_rod_model'] = Variable<String>(rightSideRodModel);
+    }
+    if (!nullToAbsent || rightSideRodLength != null) {
+      map['right_side_rod_length'] = Variable<double>(rightSideRodLength);
+    }
+    if (!nullToAbsent || rightSideRodWeight != null) {
+      map['right_side_rod_weight'] = Variable<double>(rightSideRodWeight);
+    }
+    if (!nullToAbsent || rightWeights != null) {
+      map['right_weights'] = Variable<String>(rightWeights);
+    }
+    if (!nullToAbsent || rightAngleHorizontal != null) {
+      map['right_angle_horizontal'] = Variable<double>(rightAngleHorizontal);
+    }
+    if (!nullToAbsent || rightAngleVertical != null) {
+      map['right_angle_vertical'] = Variable<double>(rightAngleVertical);
+    }
     if (!nullToAbsent || sideRodModel != null) {
       map['side_rod_model'] = Variable<String>(sideRodModel);
     }
@@ -7859,8 +8277,14 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
     if (!nullToAbsent || vbarAngleVertical != null) {
       map['vbar_angle_vertical'] = Variable<double>(vbarAngleVertical);
     }
+    if (!nullToAbsent || longRodWeights != null) {
+      map['long_rod_weights'] = Variable<String>(longRodWeights);
+    }
     if (!nullToAbsent || weightArrangement != null) {
       map['weight_arrangement'] = Variable<String>(weightArrangement);
+    }
+    if (!nullToAbsent || setupPhotoPath != null) {
+      map['setup_photo_path'] = Variable<String>(setupPhotoPath);
     }
     if (!nullToAbsent || damperModel != null) {
       map['damper_model'] = Variable<String>(damperModel);
@@ -7893,6 +8317,42 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
       longRodPurchaseDate: longRodPurchaseDate == null && nullToAbsent
           ? const Value.absent()
           : Value(longRodPurchaseDate),
+      leftSideRodModel: leftSideRodModel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(leftSideRodModel),
+      leftSideRodLength: leftSideRodLength == null && nullToAbsent
+          ? const Value.absent()
+          : Value(leftSideRodLength),
+      leftSideRodWeight: leftSideRodWeight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(leftSideRodWeight),
+      leftWeights: leftWeights == null && nullToAbsent
+          ? const Value.absent()
+          : Value(leftWeights),
+      leftAngleHorizontal: leftAngleHorizontal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(leftAngleHorizontal),
+      leftAngleVertical: leftAngleVertical == null && nullToAbsent
+          ? const Value.absent()
+          : Value(leftAngleVertical),
+      rightSideRodModel: rightSideRodModel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rightSideRodModel),
+      rightSideRodLength: rightSideRodLength == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rightSideRodLength),
+      rightSideRodWeight: rightSideRodWeight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rightSideRodWeight),
+      rightWeights: rightWeights == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rightWeights),
+      rightAngleHorizontal: rightAngleHorizontal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rightAngleHorizontal),
+      rightAngleVertical: rightAngleVertical == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rightAngleVertical),
       sideRodModel: sideRodModel == null && nullToAbsent
           ? const Value.absent()
           : Value(sideRodModel),
@@ -7917,9 +8377,15 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
       vbarAngleVertical: vbarAngleVertical == null && nullToAbsent
           ? const Value.absent()
           : Value(vbarAngleVertical),
+      longRodWeights: longRodWeights == null && nullToAbsent
+          ? const Value.absent()
+          : Value(longRodWeights),
       weightArrangement: weightArrangement == null && nullToAbsent
           ? const Value.absent()
           : Value(weightArrangement),
+      setupPhotoPath: setupPhotoPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(setupPhotoPath),
       damperModel: damperModel == null && nullToAbsent
           ? const Value.absent()
           : Value(damperModel),
@@ -7949,6 +8415,36 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
       longRodPurchaseDate: serializer.fromJson<DateTime?>(
         json['longRodPurchaseDate'],
       ),
+      leftSideRodModel: serializer.fromJson<String?>(json['leftSideRodModel']),
+      leftSideRodLength: serializer.fromJson<double?>(
+        json['leftSideRodLength'],
+      ),
+      leftSideRodWeight: serializer.fromJson<double?>(
+        json['leftSideRodWeight'],
+      ),
+      leftWeights: serializer.fromJson<String?>(json['leftWeights']),
+      leftAngleHorizontal: serializer.fromJson<double?>(
+        json['leftAngleHorizontal'],
+      ),
+      leftAngleVertical: serializer.fromJson<double?>(
+        json['leftAngleVertical'],
+      ),
+      rightSideRodModel: serializer.fromJson<String?>(
+        json['rightSideRodModel'],
+      ),
+      rightSideRodLength: serializer.fromJson<double?>(
+        json['rightSideRodLength'],
+      ),
+      rightSideRodWeight: serializer.fromJson<double?>(
+        json['rightSideRodWeight'],
+      ),
+      rightWeights: serializer.fromJson<String?>(json['rightWeights']),
+      rightAngleHorizontal: serializer.fromJson<double?>(
+        json['rightAngleHorizontal'],
+      ),
+      rightAngleVertical: serializer.fromJson<double?>(
+        json['rightAngleVertical'],
+      ),
       sideRodModel: serializer.fromJson<String?>(json['sideRodModel']),
       sideRodLength: serializer.fromJson<double?>(json['sideRodLength']),
       sideRodWeight: serializer.fromJson<double?>(json['sideRodWeight']),
@@ -7963,9 +8459,11 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
       vbarAngleVertical: serializer.fromJson<double?>(
         json['vbarAngleVertical'],
       ),
+      longRodWeights: serializer.fromJson<String?>(json['longRodWeights']),
       weightArrangement: serializer.fromJson<String?>(
         json['weightArrangement'],
       ),
+      setupPhotoPath: serializer.fromJson<String?>(json['setupPhotoPath']),
       damperModel: serializer.fromJson<String?>(json['damperModel']),
       damperPositions: serializer.fromJson<String?>(json['damperPositions']),
       notes: serializer.fromJson<String?>(json['notes']),
@@ -7984,6 +8482,18 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
       'longRodLength': serializer.toJson<double?>(longRodLength),
       'longRodWeight': serializer.toJson<double?>(longRodWeight),
       'longRodPurchaseDate': serializer.toJson<DateTime?>(longRodPurchaseDate),
+      'leftSideRodModel': serializer.toJson<String?>(leftSideRodModel),
+      'leftSideRodLength': serializer.toJson<double?>(leftSideRodLength),
+      'leftSideRodWeight': serializer.toJson<double?>(leftSideRodWeight),
+      'leftWeights': serializer.toJson<String?>(leftWeights),
+      'leftAngleHorizontal': serializer.toJson<double?>(leftAngleHorizontal),
+      'leftAngleVertical': serializer.toJson<double?>(leftAngleVertical),
+      'rightSideRodModel': serializer.toJson<String?>(rightSideRodModel),
+      'rightSideRodLength': serializer.toJson<double?>(rightSideRodLength),
+      'rightSideRodWeight': serializer.toJson<double?>(rightSideRodWeight),
+      'rightWeights': serializer.toJson<String?>(rightWeights),
+      'rightAngleHorizontal': serializer.toJson<double?>(rightAngleHorizontal),
+      'rightAngleVertical': serializer.toJson<double?>(rightAngleVertical),
       'sideRodModel': serializer.toJson<String?>(sideRodModel),
       'sideRodLength': serializer.toJson<double?>(sideRodLength),
       'sideRodWeight': serializer.toJson<double?>(sideRodWeight),
@@ -7992,7 +8502,9 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
       'vbarModel': serializer.toJson<String?>(vbarModel),
       'vbarAngleHorizontal': serializer.toJson<double?>(vbarAngleHorizontal),
       'vbarAngleVertical': serializer.toJson<double?>(vbarAngleVertical),
+      'longRodWeights': serializer.toJson<String?>(longRodWeights),
       'weightArrangement': serializer.toJson<String?>(weightArrangement),
+      'setupPhotoPath': serializer.toJson<String?>(setupPhotoPath),
       'damperModel': serializer.toJson<String?>(damperModel),
       'damperPositions': serializer.toJson<String?>(damperPositions),
       'notes': serializer.toJson<String?>(notes),
@@ -8009,6 +8521,18 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
     Value<double?> longRodLength = const Value.absent(),
     Value<double?> longRodWeight = const Value.absent(),
     Value<DateTime?> longRodPurchaseDate = const Value.absent(),
+    Value<String?> leftSideRodModel = const Value.absent(),
+    Value<double?> leftSideRodLength = const Value.absent(),
+    Value<double?> leftSideRodWeight = const Value.absent(),
+    Value<String?> leftWeights = const Value.absent(),
+    Value<double?> leftAngleHorizontal = const Value.absent(),
+    Value<double?> leftAngleVertical = const Value.absent(),
+    Value<String?> rightSideRodModel = const Value.absent(),
+    Value<double?> rightSideRodLength = const Value.absent(),
+    Value<double?> rightSideRodWeight = const Value.absent(),
+    Value<String?> rightWeights = const Value.absent(),
+    Value<double?> rightAngleHorizontal = const Value.absent(),
+    Value<double?> rightAngleVertical = const Value.absent(),
     Value<String?> sideRodModel = const Value.absent(),
     Value<double?> sideRodLength = const Value.absent(),
     Value<double?> sideRodWeight = const Value.absent(),
@@ -8017,7 +8541,9 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
     Value<String?> vbarModel = const Value.absent(),
     Value<double?> vbarAngleHorizontal = const Value.absent(),
     Value<double?> vbarAngleVertical = const Value.absent(),
+    Value<String?> longRodWeights = const Value.absent(),
     Value<String?> weightArrangement = const Value.absent(),
+    Value<String?> setupPhotoPath = const Value.absent(),
     Value<String?> damperModel = const Value.absent(),
     Value<String?> damperPositions = const Value.absent(),
     Value<String?> notes = const Value.absent(),
@@ -8037,6 +8563,38 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
     longRodPurchaseDate: longRodPurchaseDate.present
         ? longRodPurchaseDate.value
         : this.longRodPurchaseDate,
+    leftSideRodModel: leftSideRodModel.present
+        ? leftSideRodModel.value
+        : this.leftSideRodModel,
+    leftSideRodLength: leftSideRodLength.present
+        ? leftSideRodLength.value
+        : this.leftSideRodLength,
+    leftSideRodWeight: leftSideRodWeight.present
+        ? leftSideRodWeight.value
+        : this.leftSideRodWeight,
+    leftWeights: leftWeights.present ? leftWeights.value : this.leftWeights,
+    leftAngleHorizontal: leftAngleHorizontal.present
+        ? leftAngleHorizontal.value
+        : this.leftAngleHorizontal,
+    leftAngleVertical: leftAngleVertical.present
+        ? leftAngleVertical.value
+        : this.leftAngleVertical,
+    rightSideRodModel: rightSideRodModel.present
+        ? rightSideRodModel.value
+        : this.rightSideRodModel,
+    rightSideRodLength: rightSideRodLength.present
+        ? rightSideRodLength.value
+        : this.rightSideRodLength,
+    rightSideRodWeight: rightSideRodWeight.present
+        ? rightSideRodWeight.value
+        : this.rightSideRodWeight,
+    rightWeights: rightWeights.present ? rightWeights.value : this.rightWeights,
+    rightAngleHorizontal: rightAngleHorizontal.present
+        ? rightAngleHorizontal.value
+        : this.rightAngleHorizontal,
+    rightAngleVertical: rightAngleVertical.present
+        ? rightAngleVertical.value
+        : this.rightAngleVertical,
     sideRodModel: sideRodModel.present ? sideRodModel.value : this.sideRodModel,
     sideRodLength: sideRodLength.present
         ? sideRodLength.value
@@ -8057,9 +8615,15 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
     vbarAngleVertical: vbarAngleVertical.present
         ? vbarAngleVertical.value
         : this.vbarAngleVertical,
+    longRodWeights: longRodWeights.present
+        ? longRodWeights.value
+        : this.longRodWeights,
     weightArrangement: weightArrangement.present
         ? weightArrangement.value
         : this.weightArrangement,
+    setupPhotoPath: setupPhotoPath.present
+        ? setupPhotoPath.value
+        : this.setupPhotoPath,
     damperModel: damperModel.present ? damperModel.value : this.damperModel,
     damperPositions: damperPositions.present
         ? damperPositions.value
@@ -8085,6 +8649,42 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
       longRodPurchaseDate: data.longRodPurchaseDate.present
           ? data.longRodPurchaseDate.value
           : this.longRodPurchaseDate,
+      leftSideRodModel: data.leftSideRodModel.present
+          ? data.leftSideRodModel.value
+          : this.leftSideRodModel,
+      leftSideRodLength: data.leftSideRodLength.present
+          ? data.leftSideRodLength.value
+          : this.leftSideRodLength,
+      leftSideRodWeight: data.leftSideRodWeight.present
+          ? data.leftSideRodWeight.value
+          : this.leftSideRodWeight,
+      leftWeights: data.leftWeights.present
+          ? data.leftWeights.value
+          : this.leftWeights,
+      leftAngleHorizontal: data.leftAngleHorizontal.present
+          ? data.leftAngleHorizontal.value
+          : this.leftAngleHorizontal,
+      leftAngleVertical: data.leftAngleVertical.present
+          ? data.leftAngleVertical.value
+          : this.leftAngleVertical,
+      rightSideRodModel: data.rightSideRodModel.present
+          ? data.rightSideRodModel.value
+          : this.rightSideRodModel,
+      rightSideRodLength: data.rightSideRodLength.present
+          ? data.rightSideRodLength.value
+          : this.rightSideRodLength,
+      rightSideRodWeight: data.rightSideRodWeight.present
+          ? data.rightSideRodWeight.value
+          : this.rightSideRodWeight,
+      rightWeights: data.rightWeights.present
+          ? data.rightWeights.value
+          : this.rightWeights,
+      rightAngleHorizontal: data.rightAngleHorizontal.present
+          ? data.rightAngleHorizontal.value
+          : this.rightAngleHorizontal,
+      rightAngleVertical: data.rightAngleVertical.present
+          ? data.rightAngleVertical.value
+          : this.rightAngleVertical,
       sideRodModel: data.sideRodModel.present
           ? data.sideRodModel.value
           : this.sideRodModel,
@@ -8107,9 +8707,15 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
       vbarAngleVertical: data.vbarAngleVertical.present
           ? data.vbarAngleVertical.value
           : this.vbarAngleVertical,
+      longRodWeights: data.longRodWeights.present
+          ? data.longRodWeights.value
+          : this.longRodWeights,
       weightArrangement: data.weightArrangement.present
           ? data.weightArrangement.value
           : this.weightArrangement,
+      setupPhotoPath: data.setupPhotoPath.present
+          ? data.setupPhotoPath.value
+          : this.setupPhotoPath,
       damperModel: data.damperModel.present
           ? data.damperModel.value
           : this.damperModel,
@@ -8132,6 +8738,18 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
           ..write('longRodLength: $longRodLength, ')
           ..write('longRodWeight: $longRodWeight, ')
           ..write('longRodPurchaseDate: $longRodPurchaseDate, ')
+          ..write('leftSideRodModel: $leftSideRodModel, ')
+          ..write('leftSideRodLength: $leftSideRodLength, ')
+          ..write('leftSideRodWeight: $leftSideRodWeight, ')
+          ..write('leftWeights: $leftWeights, ')
+          ..write('leftAngleHorizontal: $leftAngleHorizontal, ')
+          ..write('leftAngleVertical: $leftAngleVertical, ')
+          ..write('rightSideRodModel: $rightSideRodModel, ')
+          ..write('rightSideRodLength: $rightSideRodLength, ')
+          ..write('rightSideRodWeight: $rightSideRodWeight, ')
+          ..write('rightWeights: $rightWeights, ')
+          ..write('rightAngleHorizontal: $rightAngleHorizontal, ')
+          ..write('rightAngleVertical: $rightAngleVertical, ')
           ..write('sideRodModel: $sideRodModel, ')
           ..write('sideRodLength: $sideRodLength, ')
           ..write('sideRodWeight: $sideRodWeight, ')
@@ -8140,7 +8758,9 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
           ..write('vbarModel: $vbarModel, ')
           ..write('vbarAngleHorizontal: $vbarAngleHorizontal, ')
           ..write('vbarAngleVertical: $vbarAngleVertical, ')
+          ..write('longRodWeights: $longRodWeights, ')
           ..write('weightArrangement: $weightArrangement, ')
+          ..write('setupPhotoPath: $setupPhotoPath, ')
           ..write('damperModel: $damperModel, ')
           ..write('damperPositions: $damperPositions, ')
           ..write('notes: $notes, ')
@@ -8159,6 +8779,18 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
     longRodLength,
     longRodWeight,
     longRodPurchaseDate,
+    leftSideRodModel,
+    leftSideRodLength,
+    leftSideRodWeight,
+    leftWeights,
+    leftAngleHorizontal,
+    leftAngleVertical,
+    rightSideRodModel,
+    rightSideRodLength,
+    rightSideRodWeight,
+    rightWeights,
+    rightAngleHorizontal,
+    rightAngleVertical,
     sideRodModel,
     sideRodLength,
     sideRodWeight,
@@ -8167,7 +8799,9 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
     vbarModel,
     vbarAngleHorizontal,
     vbarAngleVertical,
+    longRodWeights,
     weightArrangement,
+    setupPhotoPath,
     damperModel,
     damperPositions,
     notes,
@@ -8185,6 +8819,18 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
           other.longRodLength == this.longRodLength &&
           other.longRodWeight == this.longRodWeight &&
           other.longRodPurchaseDate == this.longRodPurchaseDate &&
+          other.leftSideRodModel == this.leftSideRodModel &&
+          other.leftSideRodLength == this.leftSideRodLength &&
+          other.leftSideRodWeight == this.leftSideRodWeight &&
+          other.leftWeights == this.leftWeights &&
+          other.leftAngleHorizontal == this.leftAngleHorizontal &&
+          other.leftAngleVertical == this.leftAngleVertical &&
+          other.rightSideRodModel == this.rightSideRodModel &&
+          other.rightSideRodLength == this.rightSideRodLength &&
+          other.rightSideRodWeight == this.rightSideRodWeight &&
+          other.rightWeights == this.rightWeights &&
+          other.rightAngleHorizontal == this.rightAngleHorizontal &&
+          other.rightAngleVertical == this.rightAngleVertical &&
           other.sideRodModel == this.sideRodModel &&
           other.sideRodLength == this.sideRodLength &&
           other.sideRodWeight == this.sideRodWeight &&
@@ -8193,7 +8839,9 @@ class Stabilizer extends DataClass implements Insertable<Stabilizer> {
           other.vbarModel == this.vbarModel &&
           other.vbarAngleHorizontal == this.vbarAngleHorizontal &&
           other.vbarAngleVertical == this.vbarAngleVertical &&
+          other.longRodWeights == this.longRodWeights &&
           other.weightArrangement == this.weightArrangement &&
+          other.setupPhotoPath == this.setupPhotoPath &&
           other.damperModel == this.damperModel &&
           other.damperPositions == this.damperPositions &&
           other.notes == this.notes &&
@@ -8209,6 +8857,18 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
   final Value<double?> longRodLength;
   final Value<double?> longRodWeight;
   final Value<DateTime?> longRodPurchaseDate;
+  final Value<String?> leftSideRodModel;
+  final Value<double?> leftSideRodLength;
+  final Value<double?> leftSideRodWeight;
+  final Value<String?> leftWeights;
+  final Value<double?> leftAngleHorizontal;
+  final Value<double?> leftAngleVertical;
+  final Value<String?> rightSideRodModel;
+  final Value<double?> rightSideRodLength;
+  final Value<double?> rightSideRodWeight;
+  final Value<String?> rightWeights;
+  final Value<double?> rightAngleHorizontal;
+  final Value<double?> rightAngleVertical;
   final Value<String?> sideRodModel;
   final Value<double?> sideRodLength;
   final Value<double?> sideRodWeight;
@@ -8217,7 +8877,9 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
   final Value<String?> vbarModel;
   final Value<double?> vbarAngleHorizontal;
   final Value<double?> vbarAngleVertical;
+  final Value<String?> longRodWeights;
   final Value<String?> weightArrangement;
+  final Value<String?> setupPhotoPath;
   final Value<String?> damperModel;
   final Value<String?> damperPositions;
   final Value<String?> notes;
@@ -8232,6 +8894,18 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
     this.longRodLength = const Value.absent(),
     this.longRodWeight = const Value.absent(),
     this.longRodPurchaseDate = const Value.absent(),
+    this.leftSideRodModel = const Value.absent(),
+    this.leftSideRodLength = const Value.absent(),
+    this.leftSideRodWeight = const Value.absent(),
+    this.leftWeights = const Value.absent(),
+    this.leftAngleHorizontal = const Value.absent(),
+    this.leftAngleVertical = const Value.absent(),
+    this.rightSideRodModel = const Value.absent(),
+    this.rightSideRodLength = const Value.absent(),
+    this.rightSideRodWeight = const Value.absent(),
+    this.rightWeights = const Value.absent(),
+    this.rightAngleHorizontal = const Value.absent(),
+    this.rightAngleVertical = const Value.absent(),
     this.sideRodModel = const Value.absent(),
     this.sideRodLength = const Value.absent(),
     this.sideRodWeight = const Value.absent(),
@@ -8240,7 +8914,9 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
     this.vbarModel = const Value.absent(),
     this.vbarAngleHorizontal = const Value.absent(),
     this.vbarAngleVertical = const Value.absent(),
+    this.longRodWeights = const Value.absent(),
     this.weightArrangement = const Value.absent(),
+    this.setupPhotoPath = const Value.absent(),
     this.damperModel = const Value.absent(),
     this.damperPositions = const Value.absent(),
     this.notes = const Value.absent(),
@@ -8256,6 +8932,18 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
     this.longRodLength = const Value.absent(),
     this.longRodWeight = const Value.absent(),
     this.longRodPurchaseDate = const Value.absent(),
+    this.leftSideRodModel = const Value.absent(),
+    this.leftSideRodLength = const Value.absent(),
+    this.leftSideRodWeight = const Value.absent(),
+    this.leftWeights = const Value.absent(),
+    this.leftAngleHorizontal = const Value.absent(),
+    this.leftAngleVertical = const Value.absent(),
+    this.rightSideRodModel = const Value.absent(),
+    this.rightSideRodLength = const Value.absent(),
+    this.rightSideRodWeight = const Value.absent(),
+    this.rightWeights = const Value.absent(),
+    this.rightAngleHorizontal = const Value.absent(),
+    this.rightAngleVertical = const Value.absent(),
     this.sideRodModel = const Value.absent(),
     this.sideRodLength = const Value.absent(),
     this.sideRodWeight = const Value.absent(),
@@ -8264,7 +8952,9 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
     this.vbarModel = const Value.absent(),
     this.vbarAngleHorizontal = const Value.absent(),
     this.vbarAngleVertical = const Value.absent(),
+    this.longRodWeights = const Value.absent(),
     this.weightArrangement = const Value.absent(),
+    this.setupPhotoPath = const Value.absent(),
     this.damperModel = const Value.absent(),
     this.damperPositions = const Value.absent(),
     this.notes = const Value.absent(),
@@ -8281,6 +8971,18 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
     Expression<double>? longRodLength,
     Expression<double>? longRodWeight,
     Expression<DateTime>? longRodPurchaseDate,
+    Expression<String>? leftSideRodModel,
+    Expression<double>? leftSideRodLength,
+    Expression<double>? leftSideRodWeight,
+    Expression<String>? leftWeights,
+    Expression<double>? leftAngleHorizontal,
+    Expression<double>? leftAngleVertical,
+    Expression<String>? rightSideRodModel,
+    Expression<double>? rightSideRodLength,
+    Expression<double>? rightSideRodWeight,
+    Expression<String>? rightWeights,
+    Expression<double>? rightAngleHorizontal,
+    Expression<double>? rightAngleVertical,
     Expression<String>? sideRodModel,
     Expression<double>? sideRodLength,
     Expression<double>? sideRodWeight,
@@ -8289,7 +8991,9 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
     Expression<String>? vbarModel,
     Expression<double>? vbarAngleHorizontal,
     Expression<double>? vbarAngleVertical,
+    Expression<String>? longRodWeights,
     Expression<String>? weightArrangement,
+    Expression<String>? setupPhotoPath,
     Expression<String>? damperModel,
     Expression<String>? damperPositions,
     Expression<String>? notes,
@@ -8306,6 +9010,23 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
       if (longRodWeight != null) 'long_rod_weight': longRodWeight,
       if (longRodPurchaseDate != null)
         'long_rod_purchase_date': longRodPurchaseDate,
+      if (leftSideRodModel != null) 'left_side_rod_model': leftSideRodModel,
+      if (leftSideRodLength != null) 'left_side_rod_length': leftSideRodLength,
+      if (leftSideRodWeight != null) 'left_side_rod_weight': leftSideRodWeight,
+      if (leftWeights != null) 'left_weights': leftWeights,
+      if (leftAngleHorizontal != null)
+        'left_angle_horizontal': leftAngleHorizontal,
+      if (leftAngleVertical != null) 'left_angle_vertical': leftAngleVertical,
+      if (rightSideRodModel != null) 'right_side_rod_model': rightSideRodModel,
+      if (rightSideRodLength != null)
+        'right_side_rod_length': rightSideRodLength,
+      if (rightSideRodWeight != null)
+        'right_side_rod_weight': rightSideRodWeight,
+      if (rightWeights != null) 'right_weights': rightWeights,
+      if (rightAngleHorizontal != null)
+        'right_angle_horizontal': rightAngleHorizontal,
+      if (rightAngleVertical != null)
+        'right_angle_vertical': rightAngleVertical,
       if (sideRodModel != null) 'side_rod_model': sideRodModel,
       if (sideRodLength != null) 'side_rod_length': sideRodLength,
       if (sideRodWeight != null) 'side_rod_weight': sideRodWeight,
@@ -8316,7 +9037,9 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
       if (vbarAngleHorizontal != null)
         'vbar_angle_horizontal': vbarAngleHorizontal,
       if (vbarAngleVertical != null) 'vbar_angle_vertical': vbarAngleVertical,
+      if (longRodWeights != null) 'long_rod_weights': longRodWeights,
       if (weightArrangement != null) 'weight_arrangement': weightArrangement,
+      if (setupPhotoPath != null) 'setup_photo_path': setupPhotoPath,
       if (damperModel != null) 'damper_model': damperModel,
       if (damperPositions != null) 'damper_positions': damperPositions,
       if (notes != null) 'notes': notes,
@@ -8334,6 +9057,18 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
     Value<double?>? longRodLength,
     Value<double?>? longRodWeight,
     Value<DateTime?>? longRodPurchaseDate,
+    Value<String?>? leftSideRodModel,
+    Value<double?>? leftSideRodLength,
+    Value<double?>? leftSideRodWeight,
+    Value<String?>? leftWeights,
+    Value<double?>? leftAngleHorizontal,
+    Value<double?>? leftAngleVertical,
+    Value<String?>? rightSideRodModel,
+    Value<double?>? rightSideRodLength,
+    Value<double?>? rightSideRodWeight,
+    Value<String?>? rightWeights,
+    Value<double?>? rightAngleHorizontal,
+    Value<double?>? rightAngleVertical,
     Value<String?>? sideRodModel,
     Value<double?>? sideRodLength,
     Value<double?>? sideRodWeight,
@@ -8342,7 +9077,9 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
     Value<String?>? vbarModel,
     Value<double?>? vbarAngleHorizontal,
     Value<double?>? vbarAngleVertical,
+    Value<String?>? longRodWeights,
     Value<String?>? weightArrangement,
+    Value<String?>? setupPhotoPath,
     Value<String?>? damperModel,
     Value<String?>? damperPositions,
     Value<String?>? notes,
@@ -8358,6 +9095,18 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
       longRodLength: longRodLength ?? this.longRodLength,
       longRodWeight: longRodWeight ?? this.longRodWeight,
       longRodPurchaseDate: longRodPurchaseDate ?? this.longRodPurchaseDate,
+      leftSideRodModel: leftSideRodModel ?? this.leftSideRodModel,
+      leftSideRodLength: leftSideRodLength ?? this.leftSideRodLength,
+      leftSideRodWeight: leftSideRodWeight ?? this.leftSideRodWeight,
+      leftWeights: leftWeights ?? this.leftWeights,
+      leftAngleHorizontal: leftAngleHorizontal ?? this.leftAngleHorizontal,
+      leftAngleVertical: leftAngleVertical ?? this.leftAngleVertical,
+      rightSideRodModel: rightSideRodModel ?? this.rightSideRodModel,
+      rightSideRodLength: rightSideRodLength ?? this.rightSideRodLength,
+      rightSideRodWeight: rightSideRodWeight ?? this.rightSideRodWeight,
+      rightWeights: rightWeights ?? this.rightWeights,
+      rightAngleHorizontal: rightAngleHorizontal ?? this.rightAngleHorizontal,
+      rightAngleVertical: rightAngleVertical ?? this.rightAngleVertical,
       sideRodModel: sideRodModel ?? this.sideRodModel,
       sideRodLength: sideRodLength ?? this.sideRodLength,
       sideRodWeight: sideRodWeight ?? this.sideRodWeight,
@@ -8366,7 +9115,9 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
       vbarModel: vbarModel ?? this.vbarModel,
       vbarAngleHorizontal: vbarAngleHorizontal ?? this.vbarAngleHorizontal,
       vbarAngleVertical: vbarAngleVertical ?? this.vbarAngleVertical,
+      longRodWeights: longRodWeights ?? this.longRodWeights,
       weightArrangement: weightArrangement ?? this.weightArrangement,
+      setupPhotoPath: setupPhotoPath ?? this.setupPhotoPath,
       damperModel: damperModel ?? this.damperModel,
       damperPositions: damperPositions ?? this.damperPositions,
       notes: notes ?? this.notes,
@@ -8402,6 +9153,46 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
         longRodPurchaseDate.value,
       );
     }
+    if (leftSideRodModel.present) {
+      map['left_side_rod_model'] = Variable<String>(leftSideRodModel.value);
+    }
+    if (leftSideRodLength.present) {
+      map['left_side_rod_length'] = Variable<double>(leftSideRodLength.value);
+    }
+    if (leftSideRodWeight.present) {
+      map['left_side_rod_weight'] = Variable<double>(leftSideRodWeight.value);
+    }
+    if (leftWeights.present) {
+      map['left_weights'] = Variable<String>(leftWeights.value);
+    }
+    if (leftAngleHorizontal.present) {
+      map['left_angle_horizontal'] = Variable<double>(
+        leftAngleHorizontal.value,
+      );
+    }
+    if (leftAngleVertical.present) {
+      map['left_angle_vertical'] = Variable<double>(leftAngleVertical.value);
+    }
+    if (rightSideRodModel.present) {
+      map['right_side_rod_model'] = Variable<String>(rightSideRodModel.value);
+    }
+    if (rightSideRodLength.present) {
+      map['right_side_rod_length'] = Variable<double>(rightSideRodLength.value);
+    }
+    if (rightSideRodWeight.present) {
+      map['right_side_rod_weight'] = Variable<double>(rightSideRodWeight.value);
+    }
+    if (rightWeights.present) {
+      map['right_weights'] = Variable<String>(rightWeights.value);
+    }
+    if (rightAngleHorizontal.present) {
+      map['right_angle_horizontal'] = Variable<double>(
+        rightAngleHorizontal.value,
+      );
+    }
+    if (rightAngleVertical.present) {
+      map['right_angle_vertical'] = Variable<double>(rightAngleVertical.value);
+    }
     if (sideRodModel.present) {
       map['side_rod_model'] = Variable<String>(sideRodModel.value);
     }
@@ -8430,8 +9221,14 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
     if (vbarAngleVertical.present) {
       map['vbar_angle_vertical'] = Variable<double>(vbarAngleVertical.value);
     }
+    if (longRodWeights.present) {
+      map['long_rod_weights'] = Variable<String>(longRodWeights.value);
+    }
     if (weightArrangement.present) {
       map['weight_arrangement'] = Variable<String>(weightArrangement.value);
+    }
+    if (setupPhotoPath.present) {
+      map['setup_photo_path'] = Variable<String>(setupPhotoPath.value);
     }
     if (damperModel.present) {
       map['damper_model'] = Variable<String>(damperModel.value);
@@ -8464,6 +9261,18 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
           ..write('longRodLength: $longRodLength, ')
           ..write('longRodWeight: $longRodWeight, ')
           ..write('longRodPurchaseDate: $longRodPurchaseDate, ')
+          ..write('leftSideRodModel: $leftSideRodModel, ')
+          ..write('leftSideRodLength: $leftSideRodLength, ')
+          ..write('leftSideRodWeight: $leftSideRodWeight, ')
+          ..write('leftWeights: $leftWeights, ')
+          ..write('leftAngleHorizontal: $leftAngleHorizontal, ')
+          ..write('leftAngleVertical: $leftAngleVertical, ')
+          ..write('rightSideRodModel: $rightSideRodModel, ')
+          ..write('rightSideRodLength: $rightSideRodLength, ')
+          ..write('rightSideRodWeight: $rightSideRodWeight, ')
+          ..write('rightWeights: $rightWeights, ')
+          ..write('rightAngleHorizontal: $rightAngleHorizontal, ')
+          ..write('rightAngleVertical: $rightAngleVertical, ')
           ..write('sideRodModel: $sideRodModel, ')
           ..write('sideRodLength: $sideRodLength, ')
           ..write('sideRodWeight: $sideRodWeight, ')
@@ -8472,7 +9281,9 @@ class StabilizersCompanion extends UpdateCompanion<Stabilizer> {
           ..write('vbarModel: $vbarModel, ')
           ..write('vbarAngleHorizontal: $vbarAngleHorizontal, ')
           ..write('vbarAngleVertical: $vbarAngleVertical, ')
+          ..write('longRodWeights: $longRodWeights, ')
           ..write('weightArrangement: $weightArrangement, ')
+          ..write('setupPhotoPath: $setupPhotoPath, ')
           ..write('damperModel: $damperModel, ')
           ..write('damperPositions: $damperPositions, ')
           ..write('notes: $notes, ')
@@ -26124,6 +26935,18 @@ typedef $$StabilizersTableCreateCompanionBuilder =
       Value<double?> longRodLength,
       Value<double?> longRodWeight,
       Value<DateTime?> longRodPurchaseDate,
+      Value<String?> leftSideRodModel,
+      Value<double?> leftSideRodLength,
+      Value<double?> leftSideRodWeight,
+      Value<String?> leftWeights,
+      Value<double?> leftAngleHorizontal,
+      Value<double?> leftAngleVertical,
+      Value<String?> rightSideRodModel,
+      Value<double?> rightSideRodLength,
+      Value<double?> rightSideRodWeight,
+      Value<String?> rightWeights,
+      Value<double?> rightAngleHorizontal,
+      Value<double?> rightAngleVertical,
       Value<String?> sideRodModel,
       Value<double?> sideRodLength,
       Value<double?> sideRodWeight,
@@ -26132,7 +26955,9 @@ typedef $$StabilizersTableCreateCompanionBuilder =
       Value<String?> vbarModel,
       Value<double?> vbarAngleHorizontal,
       Value<double?> vbarAngleVertical,
+      Value<String?> longRodWeights,
       Value<String?> weightArrangement,
+      Value<String?> setupPhotoPath,
       Value<String?> damperModel,
       Value<String?> damperPositions,
       Value<String?> notes,
@@ -26149,6 +26974,18 @@ typedef $$StabilizersTableUpdateCompanionBuilder =
       Value<double?> longRodLength,
       Value<double?> longRodWeight,
       Value<DateTime?> longRodPurchaseDate,
+      Value<String?> leftSideRodModel,
+      Value<double?> leftSideRodLength,
+      Value<double?> leftSideRodWeight,
+      Value<String?> leftWeights,
+      Value<double?> leftAngleHorizontal,
+      Value<double?> leftAngleVertical,
+      Value<String?> rightSideRodModel,
+      Value<double?> rightSideRodLength,
+      Value<double?> rightSideRodWeight,
+      Value<String?> rightWeights,
+      Value<double?> rightAngleHorizontal,
+      Value<double?> rightAngleVertical,
       Value<String?> sideRodModel,
       Value<double?> sideRodLength,
       Value<double?> sideRodWeight,
@@ -26157,7 +26994,9 @@ typedef $$StabilizersTableUpdateCompanionBuilder =
       Value<String?> vbarModel,
       Value<double?> vbarAngleHorizontal,
       Value<double?> vbarAngleVertical,
+      Value<String?> longRodWeights,
       Value<String?> weightArrangement,
+      Value<String?> setupPhotoPath,
       Value<String?> damperModel,
       Value<String?> damperPositions,
       Value<String?> notes,
@@ -26228,6 +27067,66 @@ class $$StabilizersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get leftSideRodModel => $composableBuilder(
+    column: $table.leftSideRodModel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get leftSideRodLength => $composableBuilder(
+    column: $table.leftSideRodLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get leftSideRodWeight => $composableBuilder(
+    column: $table.leftSideRodWeight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get leftWeights => $composableBuilder(
+    column: $table.leftWeights,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get leftAngleHorizontal => $composableBuilder(
+    column: $table.leftAngleHorizontal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get leftAngleVertical => $composableBuilder(
+    column: $table.leftAngleVertical,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rightSideRodModel => $composableBuilder(
+    column: $table.rightSideRodModel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get rightSideRodLength => $composableBuilder(
+    column: $table.rightSideRodLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get rightSideRodWeight => $composableBuilder(
+    column: $table.rightSideRodWeight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rightWeights => $composableBuilder(
+    column: $table.rightWeights,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get rightAngleHorizontal => $composableBuilder(
+    column: $table.rightAngleHorizontal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get rightAngleVertical => $composableBuilder(
+    column: $table.rightAngleVertical,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get sideRodModel => $composableBuilder(
     column: $table.sideRodModel,
     builder: (column) => ColumnFilters(column),
@@ -26268,8 +27167,18 @@ class $$StabilizersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get longRodWeights => $composableBuilder(
+    column: $table.longRodWeights,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get weightArrangement => $composableBuilder(
     column: $table.weightArrangement,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get setupPhotoPath => $composableBuilder(
+    column: $table.setupPhotoPath,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -26361,6 +27270,66 @@ class $$StabilizersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get leftSideRodModel => $composableBuilder(
+    column: $table.leftSideRodModel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get leftSideRodLength => $composableBuilder(
+    column: $table.leftSideRodLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get leftSideRodWeight => $composableBuilder(
+    column: $table.leftSideRodWeight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get leftWeights => $composableBuilder(
+    column: $table.leftWeights,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get leftAngleHorizontal => $composableBuilder(
+    column: $table.leftAngleHorizontal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get leftAngleVertical => $composableBuilder(
+    column: $table.leftAngleVertical,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rightSideRodModel => $composableBuilder(
+    column: $table.rightSideRodModel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get rightSideRodLength => $composableBuilder(
+    column: $table.rightSideRodLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get rightSideRodWeight => $composableBuilder(
+    column: $table.rightSideRodWeight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rightWeights => $composableBuilder(
+    column: $table.rightWeights,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get rightAngleHorizontal => $composableBuilder(
+    column: $table.rightAngleHorizontal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get rightAngleVertical => $composableBuilder(
+    column: $table.rightAngleVertical,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get sideRodModel => $composableBuilder(
     column: $table.sideRodModel,
     builder: (column) => ColumnOrderings(column),
@@ -26401,8 +27370,18 @@ class $$StabilizersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get longRodWeights => $composableBuilder(
+    column: $table.longRodWeights,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get weightArrangement => $composableBuilder(
     column: $table.weightArrangement,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get setupPhotoPath => $composableBuilder(
+    column: $table.setupPhotoPath,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -26490,6 +27469,66 @@ class $$StabilizersTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get leftSideRodModel => $composableBuilder(
+    column: $table.leftSideRodModel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get leftSideRodLength => $composableBuilder(
+    column: $table.leftSideRodLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get leftSideRodWeight => $composableBuilder(
+    column: $table.leftSideRodWeight,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get leftWeights => $composableBuilder(
+    column: $table.leftWeights,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get leftAngleHorizontal => $composableBuilder(
+    column: $table.leftAngleHorizontal,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get leftAngleVertical => $composableBuilder(
+    column: $table.leftAngleVertical,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get rightSideRodModel => $composableBuilder(
+    column: $table.rightSideRodModel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get rightSideRodLength => $composableBuilder(
+    column: $table.rightSideRodLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get rightSideRodWeight => $composableBuilder(
+    column: $table.rightSideRodWeight,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get rightWeights => $composableBuilder(
+    column: $table.rightWeights,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get rightAngleHorizontal => $composableBuilder(
+    column: $table.rightAngleHorizontal,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get rightAngleVertical => $composableBuilder(
+    column: $table.rightAngleVertical,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get sideRodModel => $composableBuilder(
     column: $table.sideRodModel,
     builder: (column) => column,
@@ -26528,8 +27567,18 @@ class $$StabilizersTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get longRodWeights => $composableBuilder(
+    column: $table.longRodWeights,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get weightArrangement => $composableBuilder(
     column: $table.weightArrangement,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get setupPhotoPath => $composableBuilder(
+    column: $table.setupPhotoPath,
     builder: (column) => column,
   );
 
@@ -26611,6 +27660,18 @@ class $$StabilizersTableTableManager
                 Value<double?> longRodLength = const Value.absent(),
                 Value<double?> longRodWeight = const Value.absent(),
                 Value<DateTime?> longRodPurchaseDate = const Value.absent(),
+                Value<String?> leftSideRodModel = const Value.absent(),
+                Value<double?> leftSideRodLength = const Value.absent(),
+                Value<double?> leftSideRodWeight = const Value.absent(),
+                Value<String?> leftWeights = const Value.absent(),
+                Value<double?> leftAngleHorizontal = const Value.absent(),
+                Value<double?> leftAngleVertical = const Value.absent(),
+                Value<String?> rightSideRodModel = const Value.absent(),
+                Value<double?> rightSideRodLength = const Value.absent(),
+                Value<double?> rightSideRodWeight = const Value.absent(),
+                Value<String?> rightWeights = const Value.absent(),
+                Value<double?> rightAngleHorizontal = const Value.absent(),
+                Value<double?> rightAngleVertical = const Value.absent(),
                 Value<String?> sideRodModel = const Value.absent(),
                 Value<double?> sideRodLength = const Value.absent(),
                 Value<double?> sideRodWeight = const Value.absent(),
@@ -26619,7 +27680,9 @@ class $$StabilizersTableTableManager
                 Value<String?> vbarModel = const Value.absent(),
                 Value<double?> vbarAngleHorizontal = const Value.absent(),
                 Value<double?> vbarAngleVertical = const Value.absent(),
+                Value<String?> longRodWeights = const Value.absent(),
                 Value<String?> weightArrangement = const Value.absent(),
+                Value<String?> setupPhotoPath = const Value.absent(),
                 Value<String?> damperModel = const Value.absent(),
                 Value<String?> damperPositions = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
@@ -26634,6 +27697,18 @@ class $$StabilizersTableTableManager
                 longRodLength: longRodLength,
                 longRodWeight: longRodWeight,
                 longRodPurchaseDate: longRodPurchaseDate,
+                leftSideRodModel: leftSideRodModel,
+                leftSideRodLength: leftSideRodLength,
+                leftSideRodWeight: leftSideRodWeight,
+                leftWeights: leftWeights,
+                leftAngleHorizontal: leftAngleHorizontal,
+                leftAngleVertical: leftAngleVertical,
+                rightSideRodModel: rightSideRodModel,
+                rightSideRodLength: rightSideRodLength,
+                rightSideRodWeight: rightSideRodWeight,
+                rightWeights: rightWeights,
+                rightAngleHorizontal: rightAngleHorizontal,
+                rightAngleVertical: rightAngleVertical,
                 sideRodModel: sideRodModel,
                 sideRodLength: sideRodLength,
                 sideRodWeight: sideRodWeight,
@@ -26642,7 +27717,9 @@ class $$StabilizersTableTableManager
                 vbarModel: vbarModel,
                 vbarAngleHorizontal: vbarAngleHorizontal,
                 vbarAngleVertical: vbarAngleVertical,
+                longRodWeights: longRodWeights,
                 weightArrangement: weightArrangement,
+                setupPhotoPath: setupPhotoPath,
                 damperModel: damperModel,
                 damperPositions: damperPositions,
                 notes: notes,
@@ -26659,6 +27736,18 @@ class $$StabilizersTableTableManager
                 Value<double?> longRodLength = const Value.absent(),
                 Value<double?> longRodWeight = const Value.absent(),
                 Value<DateTime?> longRodPurchaseDate = const Value.absent(),
+                Value<String?> leftSideRodModel = const Value.absent(),
+                Value<double?> leftSideRodLength = const Value.absent(),
+                Value<double?> leftSideRodWeight = const Value.absent(),
+                Value<String?> leftWeights = const Value.absent(),
+                Value<double?> leftAngleHorizontal = const Value.absent(),
+                Value<double?> leftAngleVertical = const Value.absent(),
+                Value<String?> rightSideRodModel = const Value.absent(),
+                Value<double?> rightSideRodLength = const Value.absent(),
+                Value<double?> rightSideRodWeight = const Value.absent(),
+                Value<String?> rightWeights = const Value.absent(),
+                Value<double?> rightAngleHorizontal = const Value.absent(),
+                Value<double?> rightAngleVertical = const Value.absent(),
                 Value<String?> sideRodModel = const Value.absent(),
                 Value<double?> sideRodLength = const Value.absent(),
                 Value<double?> sideRodWeight = const Value.absent(),
@@ -26667,7 +27756,9 @@ class $$StabilizersTableTableManager
                 Value<String?> vbarModel = const Value.absent(),
                 Value<double?> vbarAngleHorizontal = const Value.absent(),
                 Value<double?> vbarAngleVertical = const Value.absent(),
+                Value<String?> longRodWeights = const Value.absent(),
                 Value<String?> weightArrangement = const Value.absent(),
+                Value<String?> setupPhotoPath = const Value.absent(),
                 Value<String?> damperModel = const Value.absent(),
                 Value<String?> damperPositions = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
@@ -26682,6 +27773,18 @@ class $$StabilizersTableTableManager
                 longRodLength: longRodLength,
                 longRodWeight: longRodWeight,
                 longRodPurchaseDate: longRodPurchaseDate,
+                leftSideRodModel: leftSideRodModel,
+                leftSideRodLength: leftSideRodLength,
+                leftSideRodWeight: leftSideRodWeight,
+                leftWeights: leftWeights,
+                leftAngleHorizontal: leftAngleHorizontal,
+                leftAngleVertical: leftAngleVertical,
+                rightSideRodModel: rightSideRodModel,
+                rightSideRodLength: rightSideRodLength,
+                rightSideRodWeight: rightSideRodWeight,
+                rightWeights: rightWeights,
+                rightAngleHorizontal: rightAngleHorizontal,
+                rightAngleVertical: rightAngleVertical,
                 sideRodModel: sideRodModel,
                 sideRodLength: sideRodLength,
                 sideRodWeight: sideRodWeight,
@@ -26690,7 +27793,9 @@ class $$StabilizersTableTableManager
                 vbarModel: vbarModel,
                 vbarAngleHorizontal: vbarAngleHorizontal,
                 vbarAngleVertical: vbarAngleVertical,
+                longRodWeights: longRodWeights,
                 weightArrangement: weightArrangement,
+                setupPhotoPath: setupPhotoPath,
                 damperModel: damperModel,
                 damperPositions: damperPositions,
                 notes: notes,

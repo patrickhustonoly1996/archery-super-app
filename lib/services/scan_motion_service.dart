@@ -187,13 +187,14 @@ class SimulatedScanMotionService extends ScanMotionService {
   }
 
   void _simulateTick(Timer timer) {
-    // Increment by ~0.05 radians each 50ms tick for smoother scanning
-    _totalRotation += 0.05;
+    // Increment by ~0.125 radians each 50ms tick to complete in ~2.5 seconds
+    // (2π ≈ 6.283 / 0.125 ≈ 50 ticks * 50ms = 2.5s)
+    _totalRotation += 0.125;
     _currentAngularVelocity = 0.8; // Simulated comfortable speed
     _isMoving = true;
 
-    if (_totalRotation >= kFullRotation) {
-      _totalRotation = kFullRotation;
+    if (_totalRotation >= ScanMotionService.kFullRotation) {
+      _totalRotation = ScanMotionService.kFullRotation;
       timer.cancel();
       onScanComplete?.call();
     }
