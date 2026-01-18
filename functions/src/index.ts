@@ -19,6 +19,14 @@ interface DetectedArrow {
   face?: number;
   confidence?: number; // 0.0-1.0, lower for line cutters
   isLineCutter?: boolean; // true if arrow is on/near a ring line
+  isMyArrow?: boolean; // true if arrow matches user's registered appearance
+}
+
+interface ArrowAppearance {
+  fletchColor?: string;
+  nockColor?: string;
+  wrapColor?: string;
+  shaftColor?: string;
 }
 
 interface DetectArrowsRequest {
@@ -27,6 +35,7 @@ interface DetectArrowsRequest {
   targetType: string;
   isTripleSpot: boolean;
   userId: string;
+  arrowAppearance?: ArrowAppearance; // User's arrow visual characteristics
 }
 
 interface DetectArrowsResponse {
@@ -49,7 +58,7 @@ export const detectArrows = functions
       return { success: false, error: "Authentication required" };
     }
 
-    const { shotImage, referenceImage, targetType, isTripleSpot, userId } = data;
+    const { shotImage, referenceImage, targetType, isTripleSpot, userId, arrowAppearance } = data;
 
     if (!shotImage || !targetType) {
       return { success: false, error: "Missing required fields" };
@@ -80,7 +89,7 @@ export const detectArrows = functions
 
     try {
       const anthropic = getAnthropicClient();
-      const prompt = buildPrompt(targetType, isTripleSpot);
+      const prompt = buildPrompt(targetType, isTripleSpot, arrowAppearance);
       const content = buildContent(shotImage, referenceImage, prompt);
 
       const response = await anthropic.messages.create({
@@ -122,8 +131,34 @@ function getCurrentYearMonth(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function buildPrompt(targetType: string, isTripleSpot: boolean): string {
+function buildPrompt(targetType: string, isTripleSpot: boolean, arrowAppearance?: ArrowAppearance): string {
   const targetDesc = getTargetDescription(targetType);
+  const hasAppearance = arrowAppearance && (
+    arrowAppearance.fletchColor ||
+    arrowAppearance.nockColor ||
+    arrowAppearance.wrapColor ||
+    arrowAppearance.shaftColor
+  );
+
+  // Build arrow identification description
+  let myArrowDesc = "";
+  if (hasAppearance) {
+    const features: string[] = [];
+    if (arrowAppearance!.fletchColor) features.push(`${arrowAppearance!.fletchColor} fletches/vanes`);
+    if (arrowAppearance!.nockColor) features.push(`${arrowAppearance!.nockColor} nocks`);
+    if (arrowAppearance!.wrapColor) features.push(`${arrowAppearance!.wrapColor} wraps`);
+    if (arrowAppearance!.shaftColor) features.push(`${arrowAppearance!.shaftColor} shafts`);
+    myArrowDesc = `
+
+MY ARROWS: The user's arrows have: ${features.join(", ")}.
+For each arrow, also return "isMyArrow": true if it matches this description, false otherwise.
+This is CRITICAL for tournament scoring - we need to identify which arrows belong to the user.`;
+  }
+
+  const isMyArrowField = hasAppearance ? `
+- "isMyArrow": true if arrow matches the user's arrow description above` : "";
+
+  const exampleIsMyArrow = hasAppearance ? `, "isMyArrow": true` : "";
 
   if (isTripleSpot) {
     return `You are analyzing an archery target image with 3 vertical target faces (triple-spot layout).
@@ -134,8 +169,8 @@ IMPORTANT: This may be a tournament scenario with up to 4 archers shooting at th
 There could be up to 24 arrows total (6 arrows × 4 archers). Arrows may:
 - Overlap or cross each other
 - Be tightly clustered in scoring zones
-- Have different colored fletches/nocks (ignore colors, just detect positions)
-- Partially obscure other arrows
+- Have different colored fletches/nocks
+- Partially obscure other arrows${myArrowDesc}
 
 Task: Identify ALL arrow positions on the target. Count carefully - missing arrows is worse than slight position errors.
 
@@ -145,12 +180,12 @@ For each arrow, return:
 - "y": normalized from -1.0 (top of that face) to +1.0 (bottom)
 - (0, 0) = center of that face (X ring)
 - "confidence": 0.0-1.0 how certain you are of the exact position
-- "isLineCutter": true if arrow appears to be touching or very close to a ring line
+- "isLineCutter": true if arrow appears to be touching or very close to a ring line${isMyArrowField}
 
 LINE CUTTERS: If an arrow shaft touches a ring line, it scores the higher value. Flag these with low confidence (0.3-0.5) and isLineCutter:true so the archer can verify.
 
 Return ONLY a JSON array, no other text:
-[{"face": 0, "x": 0.12, "y": -0.05, "confidence": 0.95}, {"face": 1, "x": -0.23, "y": 0.18, "confidence": 0.4, "isLineCutter": true}]
+[{"face": 0, "x": 0.12, "y": -0.05, "confidence": 0.95${exampleIsMyArrow}}, {"face": 1, "x": -0.23, "y": 0.18, "confidence": 0.4, "isLineCutter": true, "isMyArrow": false}]
 
 If no arrows are visible or you cannot reliably detect them, return:
 {"error": "reason"}`;
@@ -164,8 +199,8 @@ IMPORTANT: This may be a tournament scenario with up to 4 archers shooting at th
 There could be up to 24 arrows total (6 arrows × 4 archers). Arrows may:
 - Overlap or cross each other
 - Be tightly clustered in scoring zones
-- Have different colored fletches/nocks (ignore colors, just detect positions)
-- Partially obscure other arrows
+- Have different colored fletches/nocks
+- Partially obscure other arrows${myArrowDesc}
 
 Task: Identify ALL arrow positions on the target. Count carefully - missing arrows is worse than slight position errors.
 
@@ -174,12 +209,12 @@ For each arrow, return:
 - "y": normalized from -1.0 (top edge) to +1.0 (bottom edge)
 - (0, 0) = center of target (X ring)
 - "confidence": 0.0-1.0 how certain you are of the exact position
-- "isLineCutter": true if arrow appears to be touching or very close to a ring line
+- "isLineCutter": true if arrow appears to be touching or very close to a ring line${isMyArrowField}
 
 LINE CUTTERS: If an arrow shaft touches a ring line, it scores the higher value. Flag these with low confidence (0.3-0.5) and isLineCutter:true so the archer can verify.
 
 Return ONLY a JSON array, no other text:
-[{"x": 0.12, "y": -0.05, "confidence": 0.95}, {"x": -0.23, "y": 0.18, "confidence": 0.4, "isLineCutter": true}]
+[{"x": 0.12, "y": -0.05, "confidence": 0.95${exampleIsMyArrow}}, {"x": -0.23, "y": 0.18, "confidence": 0.4, "isLineCutter": true, "isMyArrow": false}]
 
 If no arrows are visible or you cannot reliably detect them, return:
 {"error": "reason"}`;
@@ -273,6 +308,7 @@ function parseResponse(text: string): DetectArrowsResponse {
         face: item.face !== undefined ? Number(item.face) : undefined,
         confidence: item.confidence !== undefined ? Number(item.confidence) : 1.0,
         isLineCutter: item.isLineCutter === true,
+        isMyArrow: item.isMyArrow === true,
       }));
       return { success: true, arrows };
     }

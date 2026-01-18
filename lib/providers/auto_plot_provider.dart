@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:drift/drift.dart';
 import '../db/database.dart';
+import '../models/arrow_specifications.dart';
 import '../services/vision_api_service.dart';
 import '../utils/unique_id.dart';
 
@@ -46,6 +47,9 @@ class AutoPlotProvider extends ChangeNotifier {
   // Registered targets
   List<RegisteredTarget> _registeredTargets = [];
 
+  // Arrow appearance for identification
+  ArrowAppearanceForAutoPlot? _arrowAppearance;
+
   // Getters
   AutoPlotState get state => _state;
   AutoPlotTier get tier => _tier;
@@ -57,6 +61,7 @@ class AutoPlotProvider extends ChangeNotifier {
   Uint8List? get capturedImage => _capturedImage;
   String? get selectedTargetType => _selectedTargetType;
   List<RegisteredTarget> get registeredTargets => _registeredTargets;
+  ArrowAppearanceForAutoPlot? get arrowAppearance => _arrowAppearance;
 
   /// Initialize provider - load usage and registered targets
   Future<void> initialize() async {
@@ -85,6 +90,23 @@ class AutoPlotProvider extends ChangeNotifier {
   /// Set the subscription tier
   void setTier(AutoPlotTier tier) {
     _tier = tier;
+    notifyListeners();
+  }
+
+  /// Set arrow appearance for identification (from user's quiver settings)
+  void setArrowAppearance(ArrowAppearanceForAutoPlot? appearance) {
+    _arrowAppearance = appearance;
+    notifyListeners();
+  }
+
+  /// Load arrow appearance from quiver settings
+  Future<void> loadArrowAppearanceFromQuiver(Quiver? quiver) async {
+    if (quiver?.settings != null) {
+      final arrowSpecs = ArrowSpecifications.fromJson(quiver!.settings);
+      _arrowAppearance = arrowSpecs.appearanceForAutoPlot;
+    } else {
+      _arrowAppearance = null;
+    }
     notifyListeners();
   }
 
@@ -182,12 +204,23 @@ class AutoPlotProvider extends ChangeNotifier {
       }
     }
 
+    // Convert arrow appearance for API
+    ArrowAppearance? apiAppearance;
+    if (_arrowAppearance != null && _arrowAppearance!.hasAnyFeatures) {
+      apiAppearance = ArrowAppearance(
+        fletchColor: _arrowAppearance!.fletchColor,
+        nockColor: _arrowAppearance!.nockColor,
+        wrapColor: _arrowAppearance!.wrapColor,
+      );
+    }
+
     // Call vision API
     final result = await _visionService.detectArrows(
       shotImage: imageData,
       referenceImage: referenceImage,
       targetType: _selectedTargetType!,
       isTripleSpot: registeredTarget?.isTripleSpot ?? _selectedTargetType!.contains('triple'),
+      arrowAppearance: apiAppearance,
     );
 
     if (result.isSuccess) {

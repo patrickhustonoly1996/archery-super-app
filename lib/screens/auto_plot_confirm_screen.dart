@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -20,11 +21,106 @@ class AutoPlotConfirmScreen extends StatefulWidget {
   State<AutoPlotConfirmScreen> createState() => _AutoPlotConfirmScreenState();
 }
 
-class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
+class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> with WidgetsBindingObserver {
   // Multi-select for tournament scenarios (up to 24 arrows, user picks their 6)
   final Set<int> _selectedArrowIndices = {};
   // Track if we're in "select my arrows" mode vs "adjust" mode
   bool _isSelectionMode = true;
+  // Auto-accept timer (activates when arrows are auto-selected)
+  Timer? _autoAcceptTimer;
+  int _autoAcceptSecondsRemaining = 0;
+  static const int _autoAcceptDelay = 8; // seconds to wait before auto-accepting
+  bool _autoSelectApplied = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Auto-select arrows marked as "my arrows" after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _autoSelectMyArrows();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _autoAcceptTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // If user locks screen or switches away while auto-accept is running,
+    // immediately accept (they've walked away to retrieve arrows)
+    if (state == AppLifecycleState.paused && _autoAcceptTimer != null) {
+      _autoAcceptTimer?.cancel();
+      _autoAcceptTimer = null;
+      // Auto-accept immediately
+      final provider = context.read<AutoPlotProvider>();
+      if (_selectedArrowIndices.isNotEmpty) {
+        _confirmSelectedArrows(provider);
+      }
+    }
+  }
+
+  void _autoSelectMyArrows() {
+    if (_autoSelectApplied) return;
+    _autoSelectApplied = true;
+
+    final provider = context.read<AutoPlotProvider>();
+    final arrows = provider.detectedArrows;
+
+    // Find all arrows marked as "my arrow"
+    final myArrowIndices = <int>[];
+    for (int i = 0; i < arrows.length; i++) {
+      if (arrows[i].isMyArrow) {
+        myArrowIndices.add(i);
+      }
+    }
+
+    if (myArrowIndices.isNotEmpty) {
+      setState(() {
+        _selectedArrowIndices.addAll(myArrowIndices);
+      });
+      // Start auto-accept countdown if we auto-selected some arrows
+      _startAutoAcceptTimer();
+    }
+  }
+
+  void _startAutoAcceptTimer() {
+    _autoAcceptTimer?.cancel();
+    setState(() {
+      _autoAcceptSecondsRemaining = _autoAcceptDelay;
+    });
+
+    _autoAcceptTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _autoAcceptSecondsRemaining--;
+      });
+      if (_autoAcceptSecondsRemaining <= 0) {
+        timer.cancel();
+        _autoAcceptTimer = null;
+        // Auto-confirm
+        final provider = context.read<AutoPlotProvider>();
+        if (_selectedArrowIndices.isNotEmpty) {
+          _confirmSelectedArrows(provider);
+        }
+      }
+    });
+  }
+
+  void _cancelAutoAccept() {
+    _autoAcceptTimer?.cancel();
+    _autoAcceptTimer = null;
+    setState(() {
+      _autoAcceptSecondsRemaining = 0;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -221,6 +317,8 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
       top: y - markerSize / 2,
       child: GestureDetector(
         onTap: () {
+          // User interaction cancels auto-accept
+          _cancelAutoAccept();
           setState(() {
             if (_isSelectionMode) {
               // Multi-select toggle
@@ -313,6 +411,9 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
   }
 
   void _handleTap(Offset position, double targetSize, double padding, AutoPlotProvider provider) {
+    // User interaction cancels auto-accept
+    _cancelAutoAccept();
+
     // Check if tap is within target bounds
     final adjustedPos = Offset(position.dx - padding, position.dy - padding);
     if (adjustedPos.dx < 0 || adjustedPos.dx > targetSize ||
@@ -320,11 +421,16 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
       return;
     }
 
-    // If arrow is selected, deselect
-    if (_selectedArrowIndex != null) {
+    // If in adjustment mode, deselect all
+    if (!_isSelectionMode && _selectedArrowIndices.isNotEmpty) {
       setState(() {
-        _selectedArrowIndex = null;
+        _selectedArrowIndices.clear();
       });
+      return;
+    }
+
+    // In selection mode, taps on empty space do nothing
+    if (_isSelectionMode) {
       return;
     }
 
@@ -334,7 +440,7 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
     final normalizedX = (adjustedPos.dx - centerX) / (targetSize / 2);
     final normalizedY = (adjustedPos.dy - centerY) / (targetSize / 2);
 
-    // Add new arrow
+    // Add new arrow (adjustment mode only)
     provider.addArrow(normalizedX, normalizedY);
   }
 
@@ -446,6 +552,50 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
               ],
             ),
             const SizedBox(height: 12),
+            // Auto-accept countdown banner
+            if (_autoAcceptSecondsRemaining > 0) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.gold.withOpacity(0.5)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.timer, color: AppColors.gold, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Auto-confirming in $_autoAcceptSecondsRemaining...',
+                        style: TextStyle(
+                          fontFamily: AppFonts.body,
+                          fontSize: 13,
+                          color: AppColors.gold,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _cancelAutoAccept,
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        'CANCEL',
+                        style: TextStyle(
+                          fontFamily: AppFonts.pixel,
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             // Mode toggle and confirm buttons
             if (_isSelectionMode) ...[
               // In selection mode: show "Continue with selected" button
@@ -454,6 +604,7 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
                 child: ElevatedButton(
                   onPressed: selectedCount > 0
                       ? () {
+                          _cancelAutoAccept();
                           if (isTournamentMode) {
                             // In tournament mode, go to adjustment mode with selected arrows
                             setState(() {

@@ -793,6 +793,11 @@ class _ActionButtons extends StatelessWidget {
 
     // Initialize auto-plot provider
     final autoPlotProvider = context.read<AutoPlotProvider>();
+
+    // Load arrow appearance from active quiver for identification
+    final equipmentProvider = context.read<EquipmentProvider>();
+    await autoPlotProvider.loadArrowAppearanceFromQuiver(equipmentProvider.defaultQuiver);
+
     autoPlotProvider.startCapture(targetType);
 
     // Navigate to scan screen (circular scan for better accuracy)
