@@ -465,6 +465,17 @@ class _PlottingScreenState extends State<PlottingScreen> {
                           ),
                         ),
                       ),
+
+                      // Quick toggle for triple spot view mode (stacked vs combined)
+                      if (supportsTripleSpot && _useTripleSpotView)
+                        Positioned(
+                          bottom: AppSpacing.md,
+                          right: AppSpacing.md,
+                          child: _TripleSpotViewToggle(
+                            isCombined: _useCombinedView,
+                            onToggle: () => _setCombinedView(!_useCombinedView),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -950,6 +961,84 @@ class _EndChip extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Quick toggle for switching between stacked (3 faces) and combined (1 target) view
+class _TripleSpotViewToggle extends StatelessWidget {
+  final bool isCombined;
+  final VoidCallback onToggle;
+
+  const _TripleSpotViewToggle({
+    required this.isCombined,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onToggle,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceDark.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: AppColors.surfaceLight),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Stacked icon (3 horizontal lines)
+            _ViewOption(
+              icon: Icons.view_agenda_outlined,
+              label: '3',
+              isSelected: !isCombined,
+            ),
+            const SizedBox(width: 8),
+            Container(width: 1, height: 20, color: AppColors.surfaceLight),
+            const SizedBox(width: 8),
+            // Combined icon (single circle)
+            _ViewOption(
+              icon: Icons.adjust,
+              label: '1',
+              isSelected: isCombined,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ViewOption extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+
+  const _ViewOption({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isSelected ? AppColors.gold : AppColors.textMuted;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontFamily: AppFonts.pixel,
+            fontSize: 14,
+            color: color,
+          ),
+        ),
+      ],
     );
   }
 }
