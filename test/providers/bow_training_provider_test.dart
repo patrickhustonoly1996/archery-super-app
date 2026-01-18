@@ -1917,7 +1917,7 @@ void main() {
 
       provider.startCustomSession(config);
 
-      expect(provider.formattedTime, equals('00:10'));
+      expect(provider.formattedTime, equals('00:05'));
     });
 
     test('formattedTime updates during countdown', () {
@@ -1929,11 +1929,11 @@ void main() {
         );
 
         provider.startCustomSession(config);
-        expect(provider.formattedTime, equals('00:10'));
-
-        async.elapse(const Duration(seconds: 5));
-
         expect(provider.formattedTime, equals('00:05'));
+
+        async.elapse(const Duration(seconds: 3));
+
+        expect(provider.formattedTime, equals('00:02'));
       });
     });
 

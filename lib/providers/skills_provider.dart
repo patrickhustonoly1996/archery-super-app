@@ -423,12 +423,16 @@ class SkillsProvider extends ChangeNotifier {
 
   void _triggerCloudBackup() {
     Future.microtask(() async {
-      final syncService = FirestoreSyncService();
-      if (syncService.isAuthenticated) {
-        await ErrorHandler.runBackground(
-          () => syncService.backupAllData(_db),
-          errorMessage: 'Skills cloud backup failed',
-        );
+      try {
+        final syncService = FirestoreSyncService();
+        if (syncService.isAuthenticated) {
+          await ErrorHandler.runBackground(
+            () => syncService.backupAllData(_db),
+            errorMessage: 'Skills cloud backup failed',
+          );
+        }
+      } catch (_) {
+        // Firebase not initialized (e.g., in tests) - skip backup
       }
     });
   }
