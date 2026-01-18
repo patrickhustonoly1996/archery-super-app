@@ -566,7 +566,7 @@ class _SkillDetailSheetState extends State<_SkillDetailSheet> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          _formatDate(entry.awardedAt),
+                          _formatDate(entry.earnedAt),
                           style: TextStyle(
                             fontFamily: AppFonts.body,
                             fontSize: 10,

@@ -96,13 +96,42 @@ class WeatherService {
     final wind = data['wind'] as Map<String, dynamic>?;
     final weather = (data['weather'] as List?)?.firstOrNull as Map<String, dynamic>?;
 
+    // Convert API wind speed (m/s) to qualitative description
+    final windSpeed = wind?['speed']?.toDouble();
+    String? windDesc;
+    if (windSpeed != null) {
+      if (windSpeed < 1.5) {
+        windDesc = 'none';
+      } else if (windSpeed < 5.5) {
+        windDesc = 'light';
+      } else if (windSpeed < 10.8) {
+        windDesc = 'moderate';
+      } else {
+        windDesc = 'strong';
+      }
+    }
+
+    // Convert API weather description to sky condition
+    final apiDescription = weather?['main'] as String?;
+    String? sky;
+    if (apiDescription != null) {
+      final desc = apiDescription.toLowerCase();
+      if (desc.contains('rain') || desc.contains('drizzle') || desc.contains('thunder')) {
+        sky = 'rainy';
+      } else if (desc.contains('clear') || desc.contains('sun')) {
+        sky = 'sunny';
+      } else if (desc.contains('overcast') || desc.contains('mist') || desc.contains('fog')) {
+        sky = 'overcast';
+      } else if (desc.contains('cloud')) {
+        sky = 'cloudy';
+      }
+    }
+
     return WeatherConditions(
       temperature: main?['temp']?.toDouble(),
-      humidity: main?['humidity']?.toDouble(),
-      pressure: main?['pressure']?.toDouble(),
-      windSpeed: wind?['speed']?.toDouble(),
-      windDirection: wind?['deg']?.toDouble(),
-      description: weather?['main'] as String?,
+      sky: sky,
+      wind: windDesc,
+      // sunPosition can't be determined from API - user sets manually
     );
   }
 
@@ -138,15 +167,15 @@ class WeatherService {
   /// Create manual weather conditions
   static WeatherConditions createManual({
     double? temperature,
-    double? humidity,
-    double? pressure,
-    String? description,
+    String? sky,
+    String? sunPosition,
+    String? wind,
   }) {
     return WeatherConditions(
       temperature: temperature,
-      humidity: humidity,
-      pressure: pressure,
-      description: description ?? 'Manual entry',
+      sky: sky,
+      sunPosition: sunPosition,
+      wind: wind,
     );
   }
 }

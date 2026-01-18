@@ -4,6 +4,7 @@ import '../db/database.dart';
 import '../models/sight_mark.dart' as model;
 import '../models/weather_conditions.dart';
 import '../utils/unique_id.dart';
+import '../utils/sight_mark_calculator.dart';
 
 class SightMarksProvider extends ChangeNotifier {
   final AppDatabase _db;
@@ -158,95 +159,33 @@ class SightMarksProvider extends ChangeNotifier {
   // ===========================================================================
 
   /// Get exact mark or interpolated prediction for a distance
+  /// Uses quadratic curve fitting with 3+ marks (matches ballistic reality),
+  /// falls back to linear interpolation with 2 marks.
+  ///
+  /// Future enhancement: crowdsourced sight mark data from thousands of
+  /// archers could provide accurate predictions for new users based on
+  /// bow type, poundage, and arrow specs.
   model.PredictedSightMark? getPredictedMark({
     required String bowId,
     required double distance,
     required model.DistanceUnit unit,
   }) {
-    final marks = getMarksForBow(bowId)
-        .where((m) => m.unit == unit)
-        .toList();
-
+    final marks = getMarksForBow(bowId);
     if (marks.isEmpty) return null;
 
-    // Check for exact match first
-    final exactMatch = marks.where((m) => m.distance == distance).toList();
-    if (exactMatch.isNotEmpty) {
-      // Return most recent if multiple
-      exactMatch.sort((a, b) => b.recordedAt.compareTo(a.recordedAt));
-      return model.PredictedSightMark(
-        distance: distance,
-        unit: unit,
-        predictedValue: exactMatch.first.numericValue,
-        confidence: exactMatch.first.confidenceLevel,
-        source: 'exact',
-        basedOn: exactMatch.first,
-      );
-    }
+    // Use the calculator for smart prediction
+    return SightMarkCalculator.predict(
+      marks: marks,
+      targetDistance: distance,
+      unit: unit,
+    );
+  }
 
-    // Sort marks by distance
-    marks.sort((a, b) => a.distance.compareTo(b.distance));
-
-    // Find bracketing marks for interpolation
-    model.SightMark? lower;
-    model.SightMark? upper;
-
-    for (final mark in marks) {
-      if (mark.distance < distance) {
-        lower = mark;
-      } else if (mark.distance > distance && upper == null) {
-        upper = mark;
-        break;
-      }
-    }
-
-    // Interpolate if we have both bounds
-    if (lower != null && upper != null) {
-      final ratio = (distance - lower.distance) / (upper.distance - lower.distance);
-      final interpolated = lower.numericValue +
-          (upper.numericValue - lower.numericValue) * ratio;
-
-      return model.PredictedSightMark(
-        distance: distance,
-        unit: unit,
-        predictedValue: interpolated,
-        confidence: model.SightMarkConfidence.medium,
-        source: 'interpolated',
-        interpolatedFrom: [lower, upper],
-      );
-    }
-
-    // Extrapolate if we have at least 2 marks
-    if (marks.length >= 2) {
-      // Linear extrapolation using two nearest marks
-      final sorted = List<model.SightMark>.from(marks);
-      model.SightMark m1, m2;
-
-      if (distance < marks.first.distance) {
-        // Extrapolate downward
-        m1 = sorted[0];
-        m2 = sorted[1];
-      } else {
-        // Extrapolate upward
-        m1 = sorted[sorted.length - 2];
-        m2 = sorted[sorted.length - 1];
-      }
-
-      final slope = (m2.numericValue - m1.numericValue) /
-          (m2.distance - m1.distance);
-      final extrapolated = m1.numericValue + slope * (distance - m1.distance);
-
-      return model.PredictedSightMark(
-        distance: distance,
-        unit: unit,
-        predictedValue: extrapolated,
-        confidence: model.SightMarkConfidence.low,
-        source: 'extrapolated',
-        interpolatedFrom: [m1, m2],
-      );
-    }
-
-    return null;
+  /// Get curve coefficients for visualization (if 3+ marks available)
+  /// Returns [a, b, c] where sightMark = a*distance² + b*distance + c
+  List<double>? getCurveCoefficients(String bowId, model.DistanceUnit unit) {
+    final marks = getMarksForBow(bowId);
+    return SightMarkCalculator.getCurveCoefficients(marks, unit);
   }
 
   /// Get all predictions for common distances

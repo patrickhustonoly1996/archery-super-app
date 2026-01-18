@@ -1,21 +1,18 @@
 import 'dart:convert';
 
-/// Weather conditions captured when recording a sight mark
+/// Weather/field conditions captured when recording a sight mark
+/// Focused on what archers actually know and observe
 class WeatherConditions {
-  final double? temperature; // Celsius
-  final double? humidity; // Percentage (0-100)
-  final double? pressure; // hPa (hectopascals)
-  final double? windSpeed; // m/s
-  final double? windDirection; // degrees (0-360)
-  final String? description; // e.g., "Sunny", "Overcast"
+  final double? temperature; // Celsius (optional)
+  final String? sky; // 'sunny', 'cloudy', 'overcast', 'rainy'
+  final String? sunPosition; // 'in_face', 'behind', 'left', 'right', 'overhead', 'none'
+  final String? wind; // 'none', 'light', 'moderate', 'strong'
 
   const WeatherConditions({
     this.temperature,
-    this.humidity,
-    this.pressure,
-    this.windSpeed,
-    this.windDirection,
-    this.description,
+    this.sky,
+    this.sunPosition,
+    this.wind,
   });
 
   factory WeatherConditions.fromJson(String? jsonString) {
@@ -33,11 +30,9 @@ class WeatherConditions {
   factory WeatherConditions.fromMap(Map<String, dynamic> map) {
     return WeatherConditions(
       temperature: _parseDouble(map['temperature']),
-      humidity: _parseDouble(map['humidity']),
-      pressure: _parseDouble(map['pressure']),
-      windSpeed: _parseDouble(map['windSpeed']),
-      windDirection: _parseDouble(map['windDirection']),
-      description: map['description'] as String?,
+      sky: map['sky'] as String? ?? map['description'] as String?, // backwards compat
+      sunPosition: map['sunPosition'] as String?,
+      wind: map['wind'] as String?,
     );
   }
 
@@ -52,11 +47,9 @@ class WeatherConditions {
   Map<String, dynamic> toMap() {
     return {
       if (temperature != null) 'temperature': temperature,
-      if (humidity != null) 'humidity': humidity,
-      if (pressure != null) 'pressure': pressure,
-      if (windSpeed != null) 'windSpeed': windSpeed,
-      if (windDirection != null) 'windDirection': windDirection,
-      if (description != null) 'description': description,
+      if (sky != null) 'sky': sky,
+      if (sunPosition != null) 'sunPosition': sunPosition,
+      if (wind != null) 'wind': wind,
     };
   }
 
@@ -68,27 +61,23 @@ class WeatherConditions {
 
   WeatherConditions copyWith({
     double? temperature,
-    double? humidity,
-    double? pressure,
-    double? windSpeed,
-    double? windDirection,
-    String? description,
+    String? sky,
+    String? sunPosition,
+    String? wind,
   }) {
     return WeatherConditions(
       temperature: temperature ?? this.temperature,
-      humidity: humidity ?? this.humidity,
-      pressure: pressure ?? this.pressure,
-      windSpeed: windSpeed ?? this.windSpeed,
-      windDirection: windDirection ?? this.windDirection,
-      description: description ?? this.description,
+      sky: sky ?? this.sky,
+      sunPosition: sunPosition ?? this.sunPosition,
+      wind: wind ?? this.wind,
     );
   }
 
   bool get hasAnyData =>
       temperature != null ||
-      humidity != null ||
-      pressure != null ||
-      windSpeed != null;
+      sky != null ||
+      sunPosition != null ||
+      wind != null;
 
   /// Get a summary string for display
   String get summaryText {
@@ -97,22 +86,49 @@ class WeatherConditions {
     if (temperature != null) {
       parts.add('${temperature!.toStringAsFixed(0)}°C');
     }
-    if (humidity != null) {
-      parts.add('${humidity!.toStringAsFixed(0)}%');
+    if (sky != null) {
+      parts.add(_skyDisplayName(sky!));
     }
-    if (pressure != null) {
-      parts.add('${pressure!.toStringAsFixed(0)} hPa');
+    if (sunPosition != null && sunPosition != 'none') {
+      parts.add('Sun ${_sunPositionDisplayName(sunPosition!)}');
+    }
+    if (wind != null && wind != 'none') {
+      parts.add('${_windDisplayName(wind!)} wind');
     }
 
-    return parts.isEmpty ? 'No weather data' : parts.join(' | ');
+    return parts.isEmpty ? 'No conditions recorded' : parts.join(' · ');
   }
 
-  /// Get temperature adjusted pressure (density altitude indicator)
-  /// Higher values = thinner air = arrows fly faster/flatter
-  double? get densityIndicator {
-    if (temperature == null || pressure == null) return null;
-    // Simple ISA correction factor
-    return pressure! * (288.15 / (273.15 + temperature!));
+  static String _skyDisplayName(String sky) {
+    switch (sky) {
+      case 'sunny': return 'Sunny';
+      case 'cloudy': return 'Cloudy';
+      case 'overcast': return 'Overcast';
+      case 'rainy': return 'Rainy';
+      default: return sky;
+    }
+  }
+
+  static String _sunPositionDisplayName(String pos) {
+    switch (pos) {
+      case 'in_face': return 'in face';
+      case 'behind': return 'behind';
+      case 'left': return 'on left';
+      case 'right': return 'on right';
+      case 'overhead': return 'overhead';
+      case 'none': return '';
+      default: return pos;
+    }
+  }
+
+  static String _windDisplayName(String wind) {
+    switch (wind) {
+      case 'none': return 'No';
+      case 'light': return 'Light';
+      case 'moderate': return 'Moderate';
+      case 'strong': return 'Strong';
+      default: return wind;
+    }
   }
 
   @override
@@ -123,20 +139,75 @@ class WeatherConditions {
     if (identical(this, other)) return true;
     return other is WeatherConditions &&
         other.temperature == temperature &&
-        other.humidity == humidity &&
-        other.pressure == pressure &&
-        other.windSpeed == windSpeed &&
-        other.windDirection == windDirection &&
-        other.description == description;
+        other.sky == sky &&
+        other.sunPosition == sunPosition &&
+        other.wind == wind;
   }
 
   @override
-  int get hashCode => Object.hash(
-        temperature,
-        humidity,
-        pressure,
-        windSpeed,
-        windDirection,
-        description,
-      );
+  int get hashCode => Object.hash(temperature, sky, sunPosition, wind);
+}
+
+/// Sky condition options
+class SkyOptions {
+  static const sunny = 'sunny';
+  static const cloudy = 'cloudy';
+  static const overcast = 'overcast';
+  static const rainy = 'rainy';
+
+  static const all = [sunny, cloudy, overcast, rainy];
+
+  static String displayName(String value) {
+    switch (value) {
+      case sunny: return 'Sunny';
+      case cloudy: return 'Cloudy';
+      case overcast: return 'Overcast';
+      case rainy: return 'Rainy';
+      default: return value;
+    }
+  }
+}
+
+/// Sun position options
+class SunPositionOptions {
+  static const inFace = 'in_face';
+  static const behind = 'behind';
+  static const left = 'left';
+  static const right = 'right';
+  static const overhead = 'overhead';
+  static const none = 'none';
+
+  static const all = [none, inFace, behind, left, right, overhead];
+
+  static String displayName(String value) {
+    switch (value) {
+      case inFace: return 'In face';
+      case behind: return 'Behind';
+      case left: return 'Left';
+      case right: return 'Right';
+      case overhead: return 'Overhead';
+      case none: return 'N/A';
+      default: return value;
+    }
+  }
+}
+
+/// Wind strength options
+class WindOptions {
+  static const none = 'none';
+  static const light = 'light';
+  static const moderate = 'moderate';
+  static const strong = 'strong';
+
+  static const all = [none, light, moderate, strong];
+
+  static String displayName(String value) {
+    switch (value) {
+      case none: return 'None';
+      case light: return 'Light';
+      case moderate: return 'Moderate';
+      case strong: return 'Strong';
+      default: return value;
+    }
+  }
 }

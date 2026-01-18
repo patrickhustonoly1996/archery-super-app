@@ -4,7 +4,9 @@ import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
 import '../db/database.dart';
 import '../models/bow_specifications.dart';
+import '../models/tuning_session.dart';
 import '../widgets/bow_icon.dart';
+import '../widgets/measurement_guide_button.dart';
 import '../utils/undo_manager.dart';
 import '../providers/sight_marks_provider.dart';
 import '../models/sight_mark.dart';
@@ -116,6 +118,7 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
                       ? '${specs.braceHeight!.toStringAsFixed(1)} mm'
                       : null,
                   isPrimary: true,
+                  tuningType: TuningType.braceHeight,
                 ),
                 _buildSpecRow(
                   context,
@@ -125,6 +128,7 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
                       : null,
                   subtitle: 'Above square',
                   isPrimary: true,
+                  tuningType: TuningType.nockPoint,
                 ),
                 _buildSpecRow(
                   context,
@@ -133,6 +137,7 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
                       ? '${specs.tillerTop!.toStringAsFixed(1)} mm'
                       : null,
                   isPrimary: true,
+                  tuningType: TuningType.tiller,
                 ),
                 _buildSpecRow(
                   context,
@@ -209,11 +214,13 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
                   context,
                   label: 'Spring Tension',
                   value: specs.buttonSpringTension,
+                  tuningType: TuningType.plungerTension,
                 ),
                 _buildSpecRow(
                   context,
                   label: 'Centre Shot',
                   value: CentreShotOptions.displayName(specs.centreShot),
+                  tuningType: TuningType.centershot,
                 ),
               ],
               onEdit: () => _editSpecs(context, 'button'),
@@ -454,6 +461,7 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
     String? subtitle,
     bool isPrimary = false,
     bool isCalculated = false,
+    String? tuningType,
   }) {
     final hasValue = value != null && value != 'Not set';
 
@@ -464,22 +472,35 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
         children: [
           Expanded(
             flex: 2,
-            child: Column(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
                       ),
-                ),
-                if (subtitle != null)
-                  Text(
-                    subtitle,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textMuted,
-                          fontSize: 10,
+                      if (subtitle != null)
+                        Text(
+                          subtitle,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.textMuted,
+                                fontSize: 10,
+                              ),
                         ),
+                    ],
+                  ),
+                ),
+                if (tuningType != null)
+                  MeasurementGuideButton(
+                    tuningType: tuningType,
+                    bowType: _bow.bowType,
+                    size: 14,
                   ),
               ],
             ),

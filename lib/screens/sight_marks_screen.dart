@@ -91,8 +91,16 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
 
                 return ListView.builder(
                   padding: const EdgeInsets.all(AppSpacing.md),
-                  itemCount: distances.length,
+                  itemCount: distances.length + 1, // +1 for the reminder at bottom
                   itemBuilder: (context, index) {
+                    // Show reminder as last item
+                    if (index == distances.length) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.md),
+                        child: _buildWrittenRecordReminder(context),
+                      );
+                    }
+
                     final distance = distances[index];
                     final distanceMarks = groupedMarks[distance]!;
                     // Get the most recent mark for display
@@ -115,27 +123,70 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
 
   Widget _buildEmptyState(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.visibility_outlined,
+              size: 64,
+              color: AppColors.textMuted,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'No sight marks recorded',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Tap + to add your first sight mark',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            _buildWrittenRecordReminder(context),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWrittenRecordReminder(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.gold.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppSpacing.sm),
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+      ),
+      child: Row(
         children: [
-          Icon(
-            Icons.visibility_outlined,
-            size: 64,
-            color: AppColors.textMuted,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            'No sight marks recorded',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.textMuted,
+          const Icon(Icons.edit_note, color: AppColors.gold, size: 24),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Keep a written record',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: AppColors.gold,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'Tap + to add your first sight mark',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textMuted,
+                const SizedBox(height: 2),
+                Text(
+                  'Always write sight marks in your kit bag notebook. This app is your backup - paper is your authority.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                 ),
+              ],
+            ),
           ),
         ],
       ),

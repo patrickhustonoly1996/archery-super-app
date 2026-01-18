@@ -144,6 +144,28 @@ class Bows extends Table {
   TextColumn get buttonTension => text().nullable()(); // soft/medium/stiff or number
   RealColumn get clickerPosition => real().nullable()(); // mm
 
+  // Sight geometry (for sight mark predictions)
+  RealColumn get eyeToArrowDistance => real().nullable()(); // mm, vertical distance from eye to arrow at anchor
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Finger tabs
+class FingerTabs extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get make => text().nullable()(); // e.g., "AAE", "Fairweather", "Fivics"
+  TextColumn get model => text().nullable()(); // e.g., "Elite", "Tab II"
+  TextColumn get size => text().nullable()(); // e.g., "M", "L"
+  TextColumn get plateType => text().nullable()(); // e.g., "Aluminium", "Brass", "Cordovan"
+  TextColumn get fingerSpacer => text().nullable()(); // e.g., "Small", "Medium", "None"
+  TextColumn get notes => text().nullable()();
+  BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()(); // soft delete
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -576,6 +598,7 @@ class AutoPlotUsage extends Table {
   ImportedScores,
   UserPreferences,
   Bows,
+  FingerTabs,
   Quivers,
   Shafts,
   Stabilizers,
@@ -613,7 +636,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 18;
+  int get schemaVersion => 19;
 
   @override
   MigrationStrategy get migration {
@@ -751,6 +774,12 @@ class AppDatabase extends _$AppDatabase {
         if (from <= 17) {
           // Nock rotation tracking for arrows
           await m.addColumn(arrows, arrows.nockRotation);
+        }
+        if (from <= 18) {
+          // Eye-to-arrow distance for sight geometry
+          await m.addColumn(bows, bows.eyeToArrowDistance);
+          // Finger tabs table
+          await m.createTable(fingerTabs);
         }
       },
     );
@@ -1084,6 +1113,45 @@ class AppDatabase extends _$AppDatabase {
     }
     return count;
   }
+
+  // ===========================================================================
+  // FINGER TABS
+  // ===========================================================================
+
+  Future<List<FingerTab>> getAllFingerTabs() =>
+      (select(fingerTabs)
+            ..where((t) => t.deletedAt.isNull())
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
+  Future<FingerTab?> getFingerTab(String id) =>
+      (select(fingerTabs)..where((t) => t.id.equals(id) & t.deletedAt.isNull()))
+          .getSingleOrNull();
+
+  Future<FingerTab?> getDefaultFingerTab() =>
+      (select(fingerTabs)..where((t) => t.isDefault.equals(true) & t.deletedAt.isNull()))
+          .getSingleOrNull();
+
+  Future<int> insertFingerTab(FingerTabsCompanion tab) => into(fingerTabs).insert(tab);
+
+  Future<bool> updateFingerTab(FingerTabsCompanion tab) => update(fingerTabs).replace(tab);
+
+  Future<int> setDefaultFingerTab(String tabId) async {
+    await (update(fingerTabs)).write(const FingerTabsCompanion(isDefault: Value(false)));
+    return (update(fingerTabs)..where((t) => t.id.equals(tabId)))
+        .write(const FingerTabsCompanion(isDefault: Value(true)));
+  }
+
+  Future<int> softDeleteFingerTab(String tabId) =>
+      (update(fingerTabs)..where((t) => t.id.equals(tabId)))
+          .write(FingerTabsCompanion(deletedAt: Value(DateTime.now())));
+
+  Future<int> restoreFingerTab(String tabId) =>
+      (update(fingerTabs)..where((t) => t.id.equals(tabId)))
+          .write(const FingerTabsCompanion(deletedAt: Value(null)));
+
+  Future<int> deleteFingerTab(String tabId) =>
+      (delete(fingerTabs)..where((t) => t.id.equals(tabId))).go();
 
   // ===========================================================================
   // QUIVERS

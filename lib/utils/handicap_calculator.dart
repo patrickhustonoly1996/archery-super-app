@@ -66,10 +66,13 @@ class HandicapCalculator {
 
     // Half metric / 70m practice round (36 arrows)
     'half_metric_70m': _halfMetric70m,
+    'half_metric_2': _halfMetric70m, // Alias for seed ID
 
     // WA Indoor Rounds
     'wa_18m': _wa18m,
     'wa_18_60': _wa18m,
+    'wa_18_30': _wa18m, // Half round uses same table
+    'wa_18_trispot': _wa18m, // Trispot uses same table
     'wa_25m': _wa25m,
     'wa_25_60': _wa25m,
 
@@ -78,6 +81,7 @@ class HandicapCalculator {
     'worcester': _worcester,
     'vegas': _vegas,
     'vegas_300': _vegas,
+    'nfaa_vegas': _vegas, // Alias for NFAA Vegas
     'bray_1': _bray1,
     'bray_2': _bray2,
     'stafford': _stafford,
@@ -85,11 +89,17 @@ class HandicapCalculator {
     // AGB Outdoor Imperial Rounds
     'york': _york,
     'hereford': _hereford,
+    // Bristol rounds - support both roman numeral and numeric IDs
     'bristol_i': _bristol1,
     'bristol_ii': _bristol2,
     'bristol_iii': _bristol3,
     'bristol_iv': _bristol4,
     'bristol_v': _bristol5,
+    'bristol_1': _bristol1, // Alias for seed ID
+    'bristol_2': _bristol2, // Alias for seed ID
+    'bristol_3': _bristol3, // Alias for seed ID
+    'bristol_4': _bristol4, // Alias for seed ID
+    'bristol_5': _bristol5, // Alias for seed ID
     'st_george': _stGeorge,
 
     // AGB National Rounds
@@ -98,12 +108,17 @@ class HandicapCalculator {
     'short_national': _shortNational,
     'junior_national': _juniorNational,
 
-    // AGB Metric Rounds
+    // AGB Metric Rounds - support both roman numeral and numeric IDs
     'metric_i': _metric1,
     'metric_ii': _metric2,
     'metric_iii': _metric3,
     'metric_iv': _metric4,
     'metric_v': _metric5,
+    'metric_1': _metric1, // Alias for seed ID
+    'metric_2': _metric2, // Alias for seed ID
+    'metric_3': _metric3, // Alias for seed ID
+    'metric_4': _metric4, // Alias for seed ID
+    'metric_5': _metric5, // Alias for seed ID
   };
 
   // ============================================================================

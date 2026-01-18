@@ -895,6 +895,17 @@ class $BowsTable extends Bows with TableInfo<$BowsTable, Bow> {
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _eyeToArrowDistanceMeta =
+      const VerificationMeta('eyeToArrowDistance');
+  @override
+  late final GeneratedColumn<double> eyeToArrowDistance =
+      GeneratedColumn<double>(
+        'eye_to_arrow_distance',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -917,6 +928,7 @@ class $BowsTable extends Bows with TableInfo<$BowsTable, Bow> {
     buttonPosition,
     buttonTension,
     clickerPosition,
+    eyeToArrowDistance,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1077,6 +1089,15 @@ class $BowsTable extends Bows with TableInfo<$BowsTable, Bow> {
         ),
       );
     }
+    if (data.containsKey('eye_to_arrow_distance')) {
+      context.handle(
+        _eyeToArrowDistanceMeta,
+        eyeToArrowDistance.isAcceptableOrUnknown(
+          data['eye_to_arrow_distance']!,
+          _eyeToArrowDistanceMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1166,6 +1187,10 @@ class $BowsTable extends Bows with TableInfo<$BowsTable, Bow> {
         DriftSqlType.double,
         data['${effectivePrefix}clicker_position'],
       ),
+      eyeToArrowDistance: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}eye_to_arrow_distance'],
+      ),
     );
   }
 
@@ -1196,6 +1221,7 @@ class Bow extends DataClass implements Insertable<Bow> {
   final double? buttonPosition;
   final String? buttonTension;
   final double? clickerPosition;
+  final double? eyeToArrowDistance;
   const Bow({
     required this.id,
     required this.name,
@@ -1217,6 +1243,7 @@ class Bow extends DataClass implements Insertable<Bow> {
     this.buttonPosition,
     this.buttonTension,
     this.clickerPosition,
+    this.eyeToArrowDistance,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1268,6 +1295,9 @@ class Bow extends DataClass implements Insertable<Bow> {
     }
     if (!nullToAbsent || clickerPosition != null) {
       map['clicker_position'] = Variable<double>(clickerPosition);
+    }
+    if (!nullToAbsent || eyeToArrowDistance != null) {
+      map['eye_to_arrow_distance'] = Variable<double>(eyeToArrowDistance);
     }
     return map;
   }
@@ -1322,6 +1352,9 @@ class Bow extends DataClass implements Insertable<Bow> {
       clickerPosition: clickerPosition == null && nullToAbsent
           ? const Value.absent()
           : Value(clickerPosition),
+      eyeToArrowDistance: eyeToArrowDistance == null && nullToAbsent
+          ? const Value.absent()
+          : Value(eyeToArrowDistance),
     );
   }
 
@@ -1357,6 +1390,9 @@ class Bow extends DataClass implements Insertable<Bow> {
       buttonPosition: serializer.fromJson<double?>(json['buttonPosition']),
       buttonTension: serializer.fromJson<String?>(json['buttonTension']),
       clickerPosition: serializer.fromJson<double?>(json['clickerPosition']),
+      eyeToArrowDistance: serializer.fromJson<double?>(
+        json['eyeToArrowDistance'],
+      ),
     );
   }
   @override
@@ -1383,6 +1419,7 @@ class Bow extends DataClass implements Insertable<Bow> {
       'buttonPosition': serializer.toJson<double?>(buttonPosition),
       'buttonTension': serializer.toJson<String?>(buttonTension),
       'clickerPosition': serializer.toJson<double?>(clickerPosition),
+      'eyeToArrowDistance': serializer.toJson<double?>(eyeToArrowDistance),
     };
   }
 
@@ -1407,6 +1444,7 @@ class Bow extends DataClass implements Insertable<Bow> {
     Value<double?> buttonPosition = const Value.absent(),
     Value<String?> buttonTension = const Value.absent(),
     Value<double?> clickerPosition = const Value.absent(),
+    Value<double?> eyeToArrowDistance = const Value.absent(),
   }) => Bow(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -1440,6 +1478,9 @@ class Bow extends DataClass implements Insertable<Bow> {
     clickerPosition: clickerPosition.present
         ? clickerPosition.value
         : this.clickerPosition,
+    eyeToArrowDistance: eyeToArrowDistance.present
+        ? eyeToArrowDistance.value
+        : this.eyeToArrowDistance,
   );
   Bow copyWithCompanion(BowsCompanion data) {
     return Bow(
@@ -1481,6 +1522,9 @@ class Bow extends DataClass implements Insertable<Bow> {
       clickerPosition: data.clickerPosition.present
           ? data.clickerPosition.value
           : this.clickerPosition,
+      eyeToArrowDistance: data.eyeToArrowDistance.present
+          ? data.eyeToArrowDistance.value
+          : this.eyeToArrowDistance,
     );
   }
 
@@ -1506,13 +1550,14 @@ class Bow extends DataClass implements Insertable<Bow> {
           ..write('nockingPointHeight: $nockingPointHeight, ')
           ..write('buttonPosition: $buttonPosition, ')
           ..write('buttonTension: $buttonTension, ')
-          ..write('clickerPosition: $clickerPosition')
+          ..write('clickerPosition: $clickerPosition, ')
+          ..write('eyeToArrowDistance: $eyeToArrowDistance')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     name,
     bowType,
@@ -1533,7 +1578,8 @@ class Bow extends DataClass implements Insertable<Bow> {
     buttonPosition,
     buttonTension,
     clickerPosition,
-  );
+    eyeToArrowDistance,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1557,7 +1603,8 @@ class Bow extends DataClass implements Insertable<Bow> {
           other.nockingPointHeight == this.nockingPointHeight &&
           other.buttonPosition == this.buttonPosition &&
           other.buttonTension == this.buttonTension &&
-          other.clickerPosition == this.clickerPosition);
+          other.clickerPosition == this.clickerPosition &&
+          other.eyeToArrowDistance == this.eyeToArrowDistance);
 }
 
 class BowsCompanion extends UpdateCompanion<Bow> {
@@ -1581,6 +1628,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
   final Value<double?> buttonPosition;
   final Value<String?> buttonTension;
   final Value<double?> clickerPosition;
+  final Value<double?> eyeToArrowDistance;
   final Value<int> rowid;
   const BowsCompanion({
     this.id = const Value.absent(),
@@ -1603,6 +1651,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     this.buttonPosition = const Value.absent(),
     this.buttonTension = const Value.absent(),
     this.clickerPosition = const Value.absent(),
+    this.eyeToArrowDistance = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   BowsCompanion.insert({
@@ -1626,6 +1675,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     this.buttonPosition = const Value.absent(),
     this.buttonTension = const Value.absent(),
     this.clickerPosition = const Value.absent(),
+    this.eyeToArrowDistance = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -1651,6 +1701,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     Expression<double>? buttonPosition,
     Expression<String>? buttonTension,
     Expression<double>? clickerPosition,
+    Expression<double>? eyeToArrowDistance,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1675,6 +1726,8 @@ class BowsCompanion extends UpdateCompanion<Bow> {
       if (buttonPosition != null) 'button_position': buttonPosition,
       if (buttonTension != null) 'button_tension': buttonTension,
       if (clickerPosition != null) 'clicker_position': clickerPosition,
+      if (eyeToArrowDistance != null)
+        'eye_to_arrow_distance': eyeToArrowDistance,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1700,6 +1753,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     Value<double?>? buttonPosition,
     Value<String?>? buttonTension,
     Value<double?>? clickerPosition,
+    Value<double?>? eyeToArrowDistance,
     Value<int>? rowid,
   }) {
     return BowsCompanion(
@@ -1723,6 +1777,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
       buttonPosition: buttonPosition ?? this.buttonPosition,
       buttonTension: buttonTension ?? this.buttonTension,
       clickerPosition: clickerPosition ?? this.clickerPosition,
+      eyeToArrowDistance: eyeToArrowDistance ?? this.eyeToArrowDistance,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1790,6 +1845,9 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     if (clickerPosition.present) {
       map['clicker_position'] = Variable<double>(clickerPosition.value);
     }
+    if (eyeToArrowDistance.present) {
+      map['eye_to_arrow_distance'] = Variable<double>(eyeToArrowDistance.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1819,6 +1877,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
           ..write('buttonPosition: $buttonPosition, ')
           ..write('buttonTension: $buttonTension, ')
           ..write('clickerPosition: $clickerPosition, ')
+          ..write('eyeToArrowDistance: $eyeToArrowDistance, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -6463,6 +6522,705 @@ class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
     return (StringBuffer('UserPreferencesCompanion(')
           ..write('key: $key, ')
           ..write('value: $value, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FingerTabsTable extends FingerTabs
+    with TableInfo<$FingerTabsTable, FingerTab> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FingerTabsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _makeMeta = const VerificationMeta('make');
+  @override
+  late final GeneratedColumn<String> make = GeneratedColumn<String>(
+    'make',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _modelMeta = const VerificationMeta('model');
+  @override
+  late final GeneratedColumn<String> model = GeneratedColumn<String>(
+    'model',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sizeMeta = const VerificationMeta('size');
+  @override
+  late final GeneratedColumn<String> size = GeneratedColumn<String>(
+    'size',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _plateTypeMeta = const VerificationMeta(
+    'plateType',
+  );
+  @override
+  late final GeneratedColumn<String> plateType = GeneratedColumn<String>(
+    'plate_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _fingerSpacerMeta = const VerificationMeta(
+    'fingerSpacer',
+  );
+  @override
+  late final GeneratedColumn<String> fingerSpacer = GeneratedColumn<String>(
+    'finger_spacer',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isDefaultMeta = const VerificationMeta(
+    'isDefault',
+  );
+  @override
+  late final GeneratedColumn<bool> isDefault = GeneratedColumn<bool>(
+    'is_default',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_default" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    make,
+    model,
+    size,
+    plateType,
+    fingerSpacer,
+    notes,
+    isDefault,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'finger_tabs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FingerTab> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('make')) {
+      context.handle(
+        _makeMeta,
+        make.isAcceptableOrUnknown(data['make']!, _makeMeta),
+      );
+    }
+    if (data.containsKey('model')) {
+      context.handle(
+        _modelMeta,
+        model.isAcceptableOrUnknown(data['model']!, _modelMeta),
+      );
+    }
+    if (data.containsKey('size')) {
+      context.handle(
+        _sizeMeta,
+        size.isAcceptableOrUnknown(data['size']!, _sizeMeta),
+      );
+    }
+    if (data.containsKey('plate_type')) {
+      context.handle(
+        _plateTypeMeta,
+        plateType.isAcceptableOrUnknown(data['plate_type']!, _plateTypeMeta),
+      );
+    }
+    if (data.containsKey('finger_spacer')) {
+      context.handle(
+        _fingerSpacerMeta,
+        fingerSpacer.isAcceptableOrUnknown(
+          data['finger_spacer']!,
+          _fingerSpacerMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('is_default')) {
+      context.handle(
+        _isDefaultMeta,
+        isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FingerTab map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FingerTab(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      make: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}make'],
+      ),
+      model: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}model'],
+      ),
+      size: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}size'],
+      ),
+      plateType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}plate_type'],
+      ),
+      fingerSpacer: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}finger_spacer'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      isDefault: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_default'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $FingerTabsTable createAlias(String alias) {
+    return $FingerTabsTable(attachedDatabase, alias);
+  }
+}
+
+class FingerTab extends DataClass implements Insertable<FingerTab> {
+  final String id;
+  final String name;
+  final String? make;
+  final String? model;
+  final String? size;
+  final String? plateType;
+  final String? fingerSpacer;
+  final String? notes;
+  final bool isDefault;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const FingerTab({
+    required this.id,
+    required this.name,
+    this.make,
+    this.model,
+    this.size,
+    this.plateType,
+    this.fingerSpacer,
+    this.notes,
+    required this.isDefault,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || make != null) {
+      map['make'] = Variable<String>(make);
+    }
+    if (!nullToAbsent || model != null) {
+      map['model'] = Variable<String>(model);
+    }
+    if (!nullToAbsent || size != null) {
+      map['size'] = Variable<String>(size);
+    }
+    if (!nullToAbsent || plateType != null) {
+      map['plate_type'] = Variable<String>(plateType);
+    }
+    if (!nullToAbsent || fingerSpacer != null) {
+      map['finger_spacer'] = Variable<String>(fingerSpacer);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['is_default'] = Variable<bool>(isDefault);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  FingerTabsCompanion toCompanion(bool nullToAbsent) {
+    return FingerTabsCompanion(
+      id: Value(id),
+      name: Value(name),
+      make: make == null && nullToAbsent ? const Value.absent() : Value(make),
+      model: model == null && nullToAbsent
+          ? const Value.absent()
+          : Value(model),
+      size: size == null && nullToAbsent ? const Value.absent() : Value(size),
+      plateType: plateType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(plateType),
+      fingerSpacer: fingerSpacer == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fingerSpacer),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      isDefault: Value(isDefault),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory FingerTab.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FingerTab(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      make: serializer.fromJson<String?>(json['make']),
+      model: serializer.fromJson<String?>(json['model']),
+      size: serializer.fromJson<String?>(json['size']),
+      plateType: serializer.fromJson<String?>(json['plateType']),
+      fingerSpacer: serializer.fromJson<String?>(json['fingerSpacer']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      isDefault: serializer.fromJson<bool>(json['isDefault']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'make': serializer.toJson<String?>(make),
+      'model': serializer.toJson<String?>(model),
+      'size': serializer.toJson<String?>(size),
+      'plateType': serializer.toJson<String?>(plateType),
+      'fingerSpacer': serializer.toJson<String?>(fingerSpacer),
+      'notes': serializer.toJson<String?>(notes),
+      'isDefault': serializer.toJson<bool>(isDefault),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  FingerTab copyWith({
+    String? id,
+    String? name,
+    Value<String?> make = const Value.absent(),
+    Value<String?> model = const Value.absent(),
+    Value<String?> size = const Value.absent(),
+    Value<String?> plateType = const Value.absent(),
+    Value<String?> fingerSpacer = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    bool? isDefault,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => FingerTab(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    make: make.present ? make.value : this.make,
+    model: model.present ? model.value : this.model,
+    size: size.present ? size.value : this.size,
+    plateType: plateType.present ? plateType.value : this.plateType,
+    fingerSpacer: fingerSpacer.present ? fingerSpacer.value : this.fingerSpacer,
+    notes: notes.present ? notes.value : this.notes,
+    isDefault: isDefault ?? this.isDefault,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  FingerTab copyWithCompanion(FingerTabsCompanion data) {
+    return FingerTab(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      make: data.make.present ? data.make.value : this.make,
+      model: data.model.present ? data.model.value : this.model,
+      size: data.size.present ? data.size.value : this.size,
+      plateType: data.plateType.present ? data.plateType.value : this.plateType,
+      fingerSpacer: data.fingerSpacer.present
+          ? data.fingerSpacer.value
+          : this.fingerSpacer,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FingerTab(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('make: $make, ')
+          ..write('model: $model, ')
+          ..write('size: $size, ')
+          ..write('plateType: $plateType, ')
+          ..write('fingerSpacer: $fingerSpacer, ')
+          ..write('notes: $notes, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    make,
+    model,
+    size,
+    plateType,
+    fingerSpacer,
+    notes,
+    isDefault,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FingerTab &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.make == this.make &&
+          other.model == this.model &&
+          other.size == this.size &&
+          other.plateType == this.plateType &&
+          other.fingerSpacer == this.fingerSpacer &&
+          other.notes == this.notes &&
+          other.isDefault == this.isDefault &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class FingerTabsCompanion extends UpdateCompanion<FingerTab> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String?> make;
+  final Value<String?> model;
+  final Value<String?> size;
+  final Value<String?> plateType;
+  final Value<String?> fingerSpacer;
+  final Value<String?> notes;
+  final Value<bool> isDefault;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const FingerTabsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.make = const Value.absent(),
+    this.model = const Value.absent(),
+    this.size = const Value.absent(),
+    this.plateType = const Value.absent(),
+    this.fingerSpacer = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FingerTabsCompanion.insert({
+    required String id,
+    required String name,
+    this.make = const Value.absent(),
+    this.model = const Value.absent(),
+    this.size = const Value.absent(),
+    this.plateType = const Value.absent(),
+    this.fingerSpacer = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name);
+  static Insertable<FingerTab> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? make,
+    Expression<String>? model,
+    Expression<String>? size,
+    Expression<String>? plateType,
+    Expression<String>? fingerSpacer,
+    Expression<String>? notes,
+    Expression<bool>? isDefault,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (make != null) 'make': make,
+      if (model != null) 'model': model,
+      if (size != null) 'size': size,
+      if (plateType != null) 'plate_type': plateType,
+      if (fingerSpacer != null) 'finger_spacer': fingerSpacer,
+      if (notes != null) 'notes': notes,
+      if (isDefault != null) 'is_default': isDefault,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FingerTabsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String?>? make,
+    Value<String?>? model,
+    Value<String?>? size,
+    Value<String?>? plateType,
+    Value<String?>? fingerSpacer,
+    Value<String?>? notes,
+    Value<bool>? isDefault,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return FingerTabsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      make: make ?? this.make,
+      model: model ?? this.model,
+      size: size ?? this.size,
+      plateType: plateType ?? this.plateType,
+      fingerSpacer: fingerSpacer ?? this.fingerSpacer,
+      notes: notes ?? this.notes,
+      isDefault: isDefault ?? this.isDefault,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (make.present) {
+      map['make'] = Variable<String>(make.value);
+    }
+    if (model.present) {
+      map['model'] = Variable<String>(model.value);
+    }
+    if (size.present) {
+      map['size'] = Variable<String>(size.value);
+    }
+    if (plateType.present) {
+      map['plate_type'] = Variable<String>(plateType.value);
+    }
+    if (fingerSpacer.present) {
+      map['finger_spacer'] = Variable<String>(fingerSpacer.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (isDefault.present) {
+      map['is_default'] = Variable<bool>(isDefault.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FingerTabsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('make: $make, ')
+          ..write('model: $model, ')
+          ..write('size: $size, ')
+          ..write('plateType: $plateType, ')
+          ..write('fingerSpacer: $fingerSpacer, ')
+          ..write('notes: $notes, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -18578,6 +19336,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $UserPreferencesTable userPreferences = $UserPreferencesTable(
     this,
   );
+  late final $FingerTabsTable fingerTabs = $FingerTabsTable(this);
   late final $StabilizersTable stabilizers = $StabilizersTable(this);
   late final $BowStringsTable bowStrings = $BowStringsTable(this);
   late final $VolumeEntriesTable volumeEntries = $VolumeEntriesTable(this);
@@ -18621,6 +19380,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     arrows,
     importedScores,
     userPreferences,
+    fingerTabs,
     stabilizers,
     bowStrings,
     volumeEntries,
@@ -19087,6 +19847,7 @@ typedef $$BowsTableCreateCompanionBuilder =
       Value<double?> buttonPosition,
       Value<String?> buttonTension,
       Value<double?> clickerPosition,
+      Value<double?> eyeToArrowDistance,
       Value<int> rowid,
     });
 typedef $$BowsTableUpdateCompanionBuilder =
@@ -19111,6 +19872,7 @@ typedef $$BowsTableUpdateCompanionBuilder =
       Value<double?> buttonPosition,
       Value<String?> buttonTension,
       Value<double?> clickerPosition,
+      Value<double?> eyeToArrowDistance,
       Value<int> rowid,
     });
 
@@ -19362,6 +20124,11 @@ class $$BowsTableFilterComposer extends Composer<_$AppDatabase, $BowsTable> {
 
   ColumnFilters<double> get clickerPosition => $composableBuilder(
     column: $table.clickerPosition,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get eyeToArrowDistance => $composableBuilder(
+    column: $table.eyeToArrowDistance,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -19650,6 +20417,11 @@ class $$BowsTableOrderingComposer extends Composer<_$AppDatabase, $BowsTable> {
     column: $table.clickerPosition,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<double> get eyeToArrowDistance => $composableBuilder(
+    column: $table.eyeToArrowDistance,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$BowsTableAnnotationComposer
@@ -19736,6 +20508,11 @@ class $$BowsTableAnnotationComposer
 
   GeneratedColumn<double> get clickerPosition => $composableBuilder(
     column: $table.clickerPosition,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get eyeToArrowDistance => $composableBuilder(
+    column: $table.eyeToArrowDistance,
     builder: (column) => column,
   );
 
@@ -19973,6 +20750,7 @@ class $$BowsTableTableManager
                 Value<double?> buttonPosition = const Value.absent(),
                 Value<String?> buttonTension = const Value.absent(),
                 Value<double?> clickerPosition = const Value.absent(),
+                Value<double?> eyeToArrowDistance = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BowsCompanion(
                 id: id,
@@ -19995,6 +20773,7 @@ class $$BowsTableTableManager
                 buttonPosition: buttonPosition,
                 buttonTension: buttonTension,
                 clickerPosition: clickerPosition,
+                eyeToArrowDistance: eyeToArrowDistance,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -20019,6 +20798,7 @@ class $$BowsTableTableManager
                 Value<double?> buttonPosition = const Value.absent(),
                 Value<String?> buttonTension = const Value.absent(),
                 Value<double?> clickerPosition = const Value.absent(),
+                Value<double?> eyeToArrowDistance = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BowsCompanion.insert(
                 id: id,
@@ -20041,6 +20821,7 @@ class $$BowsTableTableManager
                 buttonPosition: buttonPosition,
                 buttonTension: buttonTension,
                 clickerPosition: clickerPosition,
+                eyeToArrowDistance: eyeToArrowDistance,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -23744,6 +24525,338 @@ typedef $$UserPreferencesTableProcessedTableManager =
         BaseReferences<_$AppDatabase, $UserPreferencesTable, UserPreference>,
       ),
       UserPreference,
+      PrefetchHooks Function()
+    >;
+typedef $$FingerTabsTableCreateCompanionBuilder =
+    FingerTabsCompanion Function({
+      required String id,
+      required String name,
+      Value<String?> make,
+      Value<String?> model,
+      Value<String?> size,
+      Value<String?> plateType,
+      Value<String?> fingerSpacer,
+      Value<String?> notes,
+      Value<bool> isDefault,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$FingerTabsTableUpdateCompanionBuilder =
+    FingerTabsCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String?> make,
+      Value<String?> model,
+      Value<String?> size,
+      Value<String?> plateType,
+      Value<String?> fingerSpacer,
+      Value<String?> notes,
+      Value<bool> isDefault,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$FingerTabsTableFilterComposer
+    extends Composer<_$AppDatabase, $FingerTabsTable> {
+  $$FingerTabsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get make => $composableBuilder(
+    column: $table.make,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get model => $composableBuilder(
+    column: $table.model,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get size => $composableBuilder(
+    column: $table.size,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get plateType => $composableBuilder(
+    column: $table.plateType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fingerSpacer => $composableBuilder(
+    column: $table.fingerSpacer,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDefault => $composableBuilder(
+    column: $table.isDefault,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FingerTabsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FingerTabsTable> {
+  $$FingerTabsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get make => $composableBuilder(
+    column: $table.make,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get model => $composableBuilder(
+    column: $table.model,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get size => $composableBuilder(
+    column: $table.size,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get plateType => $composableBuilder(
+    column: $table.plateType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fingerSpacer => $composableBuilder(
+    column: $table.fingerSpacer,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDefault => $composableBuilder(
+    column: $table.isDefault,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FingerTabsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FingerTabsTable> {
+  $$FingerTabsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get make =>
+      $composableBuilder(column: $table.make, builder: (column) => column);
+
+  GeneratedColumn<String> get model =>
+      $composableBuilder(column: $table.model, builder: (column) => column);
+
+  GeneratedColumn<String> get size =>
+      $composableBuilder(column: $table.size, builder: (column) => column);
+
+  GeneratedColumn<String> get plateType =>
+      $composableBuilder(column: $table.plateType, builder: (column) => column);
+
+  GeneratedColumn<String> get fingerSpacer => $composableBuilder(
+    column: $table.fingerSpacer,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDefault =>
+      $composableBuilder(column: $table.isDefault, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$FingerTabsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FingerTabsTable,
+          FingerTab,
+          $$FingerTabsTableFilterComposer,
+          $$FingerTabsTableOrderingComposer,
+          $$FingerTabsTableAnnotationComposer,
+          $$FingerTabsTableCreateCompanionBuilder,
+          $$FingerTabsTableUpdateCompanionBuilder,
+          (
+            FingerTab,
+            BaseReferences<_$AppDatabase, $FingerTabsTable, FingerTab>,
+          ),
+          FingerTab,
+          PrefetchHooks Function()
+        > {
+  $$FingerTabsTableTableManager(_$AppDatabase db, $FingerTabsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FingerTabsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FingerTabsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FingerTabsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> make = const Value.absent(),
+                Value<String?> model = const Value.absent(),
+                Value<String?> size = const Value.absent(),
+                Value<String?> plateType = const Value.absent(),
+                Value<String?> fingerSpacer = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<bool> isDefault = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FingerTabsCompanion(
+                id: id,
+                name: name,
+                make: make,
+                model: model,
+                size: size,
+                plateType: plateType,
+                fingerSpacer: fingerSpacer,
+                notes: notes,
+                isDefault: isDefault,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                Value<String?> make = const Value.absent(),
+                Value<String?> model = const Value.absent(),
+                Value<String?> size = const Value.absent(),
+                Value<String?> plateType = const Value.absent(),
+                Value<String?> fingerSpacer = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<bool> isDefault = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FingerTabsCompanion.insert(
+                id: id,
+                name: name,
+                make: make,
+                model: model,
+                size: size,
+                plateType: plateType,
+                fingerSpacer: fingerSpacer,
+                notes: notes,
+                isDefault: isDefault,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FingerTabsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FingerTabsTable,
+      FingerTab,
+      $$FingerTabsTableFilterComposer,
+      $$FingerTabsTableOrderingComposer,
+      $$FingerTabsTableAnnotationComposer,
+      $$FingerTabsTableCreateCompanionBuilder,
+      $$FingerTabsTableUpdateCompanionBuilder,
+      (FingerTab, BaseReferences<_$AppDatabase, $FingerTabsTable, FingerTab>),
+      FingerTab,
       PrefetchHooks Function()
     >;
 typedef $$StabilizersTableCreateCompanionBuilder =
@@ -30720,6 +31833,8 @@ class $AppDatabaseManager {
       $$ImportedScoresTableTableManager(_db, _db.importedScores);
   $$UserPreferencesTableTableManager get userPreferences =>
       $$UserPreferencesTableTableManager(_db, _db.userPreferences);
+  $$FingerTabsTableTableManager get fingerTabs =>
+      $$FingerTabsTableTableManager(_db, _db.fingerTabs);
   $$StabilizersTableTableManager get stabilizers =>
       $$StabilizersTableTableManager(_db, _db.stabilizers);
   $$BowStringsTableTableManager get bowStrings =>

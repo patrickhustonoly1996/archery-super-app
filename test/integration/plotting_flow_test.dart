@@ -14,6 +14,7 @@ import 'package:archery_super_app/db/database.dart';
 import 'package:archery_super_app/providers/session_provider.dart';
 import 'package:archery_super_app/providers/equipment_provider.dart';
 import 'package:archery_super_app/providers/connectivity_provider.dart';
+import 'package:archery_super_app/providers/skills_provider.dart';
 import 'package:archery_super_app/screens/plotting_screen.dart';
 import 'package:archery_super_app/screens/session_start_screen.dart';
 import 'package:archery_super_app/screens/session_complete_screen.dart';
@@ -49,6 +50,10 @@ Widget buildTestApp({
         ChangeNotifierProvider<ConnectivityProvider>(
           create: (_) => MockConnectivityProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (context) =>
+              SkillsProvider(context.read<AppDatabase>())..loadSkills(),
+        ),
       ],
       child: MaterialApp(
         theme: AppTheme.darkTheme,
@@ -75,6 +80,10 @@ Widget buildPlottingTestApp({
         ChangeNotifierProvider<ConnectivityProvider>(
           create: (_) => MockConnectivityProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (context) =>
+              SkillsProvider(context.read<AppDatabase>())..loadSkills(),
+        ),
       ],
       child: MaterialApp(
         theme: AppTheme.darkTheme,
@@ -93,6 +102,13 @@ void main() {
       // Wait for database initialization including round type seeding
       await db.getAllRoundTypes();
     });
+
+    /// Configure a larger test surface to avoid RenderFlex overflow in tight layouts
+    void setLargeScreenSize(WidgetTester tester) {
+      tester.view.physicalSize = const Size(1080, 1920);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+    }
 
     tearDown(() async {
       await db.close();
@@ -151,6 +167,7 @@ void main() {
     group('Arrow Plotting', () {
       testWidgets('plot arrow -> score calculated -> arrow appears in scorecard',
           (tester) async {
+        setLargeScreenSize(tester);
         // Create a session first
         final sessionProvider = SessionProvider(db);
         final roundTypes = await db.getAllRoundTypes();
@@ -185,6 +202,7 @@ void main() {
 
       testWidgets('plot multiple arrows -> end totals update correctly',
           (tester) async {
+        setLargeScreenSize(tester);
         final sessionProvider = SessionProvider(db);
         final roundTypes = await db.getAllRoundTypes();
         final wa18m = roundTypes.firstWhere(
@@ -220,6 +238,7 @@ void main() {
 
     group('End Commit', () {
       testWidgets('commit end -> advance to next end', (tester) async {
+        setLargeScreenSize(tester);
         final sessionProvider = SessionProvider(db);
         final roundTypes = await db.getAllRoundTypes();
         final wa18m = roundTypes.firstWhere(
@@ -306,6 +325,7 @@ void main() {
       });
 
       testWidgets('session complete screen shows correct stats', (tester) async {
+        setLargeScreenSize(tester);
         final sessionProvider = SessionProvider(db);
         final roundTypes = await db.getAllRoundTypes();
         final testRound = roundTypes.firstWhere(
@@ -327,6 +347,7 @@ void main() {
 
         // Build session complete screen with required providers
         final equipmentProvider = EquipmentProvider(db);
+        final skillsProvider = SkillsProvider(db)..loadSkills();
         await tester.pumpWidget(
           Provider<AppDatabase>.value(
             value: db,
@@ -337,6 +358,9 @@ void main() {
                 ),
                 ChangeNotifierProvider<EquipmentProvider>.value(
                   value: equipmentProvider,
+                ),
+                ChangeNotifierProvider<SkillsProvider>.value(
+                  value: skillsProvider,
                 ),
               ],
               child: MaterialApp(
@@ -360,6 +384,7 @@ void main() {
 
     group('Undo Functionality', () {
       testWidgets('undo arrow -> removes last plotted arrow', (tester) async {
+        setLargeScreenSize(tester);
         final sessionProvider = SessionProvider(db);
         final roundTypes = await db.getAllRoundTypes();
         final wa18m = roundTypes.firstWhere(
@@ -616,6 +641,7 @@ void main() {
 
     group('Target Face Interaction', () {
       testWidgets('target face displays arrows', (tester) async {
+        setLargeScreenSize(tester);
         final sessionProvider = SessionProvider(db);
         final roundTypes = await db.getAllRoundTypes();
         final wa18m = roundTypes.firstWhere(

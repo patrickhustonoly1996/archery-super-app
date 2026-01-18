@@ -13,7 +13,6 @@ class SightMarkEntryForm extends StatefulWidget {
   final DistanceUnit? defaultUnit;
   final double? defaultDistance;
   final VoidCallback? onSaved;
-  final WeatherConditions? currentWeather;
 
   const SightMarkEntryForm({
     super.key,
@@ -22,7 +21,6 @@ class SightMarkEntryForm extends StatefulWidget {
     this.defaultUnit,
     this.defaultDistance,
     this.onSaved,
-    this.currentWeather,
   });
 
   @override
@@ -33,11 +31,16 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
   final _formKey = GlobalKey<FormState>();
   final _distanceController = TextEditingController();
   final _sightValueController = TextEditingController();
+  final _tempController = TextEditingController();
   final _slopeController = TextEditingController();
 
   late DistanceUnit _unit;
   bool _isSaving = false;
-  bool _showAdvanced = false;
+
+  // Conditions (all optional)
+  String? _selectedSky;
+  String? _selectedSunPosition;
+  String? _selectedWind;
 
   // Common outdoor distances for quick selection
   final List<double> _commonMeters = [18, 25, 30, 40, 50, 60, 70, 90];
@@ -53,7 +56,15 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
       _sightValueController.text = widget.existingMark!.sightValue;
       if (widget.existingMark!.slopeAngle != null) {
         _slopeController.text = widget.existingMark!.slopeAngle!.toStringAsFixed(0);
-        _showAdvanced = true;
+      }
+      if (widget.existingMark!.weather != null) {
+        final w = widget.existingMark!.weather!;
+        if (w.temperature != null) {
+          _tempController.text = w.temperature!.toStringAsFixed(0);
+        }
+        _selectedSky = w.sky;
+        _selectedSunPosition = w.sunPosition;
+        _selectedWind = w.wind;
       }
     } else {
       _unit = widget.defaultUnit ?? DistanceUnit.meters;
@@ -67,6 +78,7 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
   void dispose() {
     _distanceController.dispose();
     _sightValueController.dispose();
+    _tempController.dispose();
     _slopeController.dispose();
     super.dispose();
   }
@@ -86,240 +98,339 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
       ),
       child: Form(
         key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Title
-            Text(
-              isEditing ? 'Edit Sight Mark' : 'Add Sight Mark',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-
-            // Unit selector
-            Row(
-              children: [
-                Text(
-                  'Unit:',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                SegmentedButton<DistanceUnit>(
-                  segments: const [
-                    ButtonSegment(
-                      value: DistanceUnit.meters,
-                      label: Text('Meters'),
-                    ),
-                    ButtonSegment(
-                      value: DistanceUnit.yards,
-                      label: Text('Yards'),
-                    ),
-                  ],
-                  selected: {_unit},
-                  onSelectionChanged: (selected) {
-                    setState(() => _unit = selected.first);
-                  },
-                  style: ButtonStyle(
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-
-            // Quick distance selection (only when adding new)
-            if (!isEditing) ...[
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title
               Text(
-                'Common distances:',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textMuted,
-                    ),
+                isEditing ? 'Edit Sight Mark' : 'Add Sight Mark',
+                style: Theme.of(context).textTheme.headlineSmall,
               ),
-              const SizedBox(height: AppSpacing.sm),
-              Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.sm,
-                children: commonDistances.map((d) {
-                  final isSelected =
-                      _distanceController.text == d.toStringAsFixed(0);
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _distanceController.text = d.toStringAsFixed(0);
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: AppSpacing.xs,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.gold
-                            : AppColors.surfaceBright,
-                        borderRadius: BorderRadius.circular(AppSpacing.xs),
-                      ),
-                      child: Text(
-                        '${d.toStringAsFixed(0)}${_unit.abbreviation}',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: isSelected
-                                  ? AppColors.background
-                                  : AppColors.textPrimary,
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: AppSpacing.md),
-            ],
+              const SizedBox(height: AppSpacing.lg),
 
-            // Distance input
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: TextFormField(
-                    controller: _distanceController,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
-                    ],
-                    decoration: InputDecoration(
-                      labelText: 'Distance',
-                      suffixText: _unit.abbreviation,
-                      filled: true,
-                      fillColor: AppColors.surfaceBright.withOpacity(0.5),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Required';
-                      }
-                      final distance = double.tryParse(value);
-                      if (distance == null || distance <= 0) {
-                        return 'Invalid';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  flex: 3,
-                  child: TextFormField(
-                    controller: _sightValueController,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
-                    ],
-                    decoration: InputDecoration(
-                      labelText: 'Sight Mark',
-                      hintText: '5.14 or 51.4',
-                      filled: true,
-                      fillColor: AppColors.surfaceBright.withOpacity(0.5),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Required';
-                      }
-                      return null;
-                    },
-                    autofocus: !isEditing && widget.defaultDistance != null,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: AppSpacing.md),
-
-            // Advanced options toggle
-            GestureDetector(
-              onTap: () => setState(() => _showAdvanced = !_showAdvanced),
-              child: Row(
+              // Unit selector
+              Row(
                 children: [
-                  Icon(
-                    _showAdvanced
-                        ? Icons.expand_less
-                        : Icons.expand_more,
-                    color: AppColors.textMuted,
-                    size: 20,
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
                   Text(
-                    'Field conditions',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textMuted,
+                    'Unit:',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
                         ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  SegmentedButton<DistanceUnit>(
+                    segments: const [
+                      ButtonSegment(
+                        value: DistanceUnit.meters,
+                        label: Text('Meters'),
+                      ),
+                      ButtonSegment(
+                        value: DistanceUnit.yards,
+                        label: Text('Yards'),
+                      ),
+                    ],
+                    selected: {_unit},
+                    onSelectionChanged: (selected) {
+                      setState(() => _unit = selected.first);
+                    },
+                    style: ButtonStyle(
+                      visualDensity: VisualDensity.compact,
+                    ),
                   ),
                 ],
               ),
-            ),
-
-            if (_showAdvanced) ...[
               const SizedBox(height: AppSpacing.md),
-              TextFormField(
-                controller: _slopeController,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true, signed: true),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[-\d.]')),
-                ],
-                decoration: InputDecoration(
-                  labelText: 'Slope Angle',
-                  hintText: '-15 to +15',
-                  suffixText: '°',
-                  helperText: 'Negative = uphill, Positive = downhill',
-                  filled: true,
-                  fillColor: AppColors.surfaceBright.withOpacity(0.5),
+
+              // Quick distance selection (only when adding new)
+              if (!isEditing) ...[
+                Text(
+                  'Common distances:',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textMuted,
+                      ),
                 ),
-                validator: (value) {
-                  if (value != null && value.isNotEmpty) {
-                    final slope = double.tryParse(value);
-                    if (slope == null || slope < -15 || slope > 15) {
-                      return 'Must be -15 to +15';
-                    }
-                  }
-                  return null;
-                },
+                const SizedBox(height: AppSpacing.sm),
+                Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
+                  children: commonDistances.map((d) {
+                    final isSelected =
+                        _distanceController.text == d.toStringAsFixed(0);
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _distanceController.text = d.toStringAsFixed(0);
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.xs,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.gold
+                              : AppColors.surfaceBright,
+                          borderRadius: BorderRadius.circular(AppSpacing.xs),
+                        ),
+                        child: Text(
+                          '${d.toStringAsFixed(0)}${_unit.abbreviation}',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: isSelected
+                                    ? AppColors.background
+                                    : AppColors.textPrimary,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
+
+              // Distance and sight value inputs
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: TextFormField(
+                      controller: _distanceController,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+                      ],
+                      decoration: InputDecoration(
+                        labelText: 'Distance',
+                        suffixText: _unit.abbreviation,
+                        filled: true,
+                        fillColor: AppColors.surfaceBright.withValues(alpha: 0.5),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Required';
+                        }
+                        final distance = double.tryParse(value);
+                        if (distance == null || distance <= 0) {
+                          return 'Invalid';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    flex: 3,
+                    child: TextFormField(
+                      controller: _sightValueController,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+                      ],
+                      decoration: InputDecoration(
+                        labelText: 'Sight Mark',
+                        hintText: '5.14 or 51.4',
+                        filled: true,
+                        fillColor: AppColors.surfaceBright.withValues(alpha: 0.5),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Required';
+                        }
+                        return null;
+                      },
+                      autofocus: !isEditing && widget.defaultDistance != null,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: AppSpacing.xl),
+
+              // CONDITIONS SECTION - All optional
+              Text(
+                'Conditions (optional)',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+
+              // Slope angle - prominent because it directly affects sight
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _slopeController,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true, signed: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[-\d.]')),
+                      ],
+                      decoration: InputDecoration(
+                        labelText: 'Slope',
+                        hintText: '0',
+                        suffixText: '°',
+                        helperText: '- uphill, + downhill',
+                        filled: true,
+                        fillColor: AppColors.surfaceBright.withValues(alpha: 0.5),
+                      ),
+                      validator: (value) {
+                        if (value != null && value.isNotEmpty) {
+                          final slope = double.tryParse(value);
+                          if (slope == null || slope < -45 || slope > 45) {
+                            return '-45 to +45';
+                          }
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _tempController,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true, signed: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[-\d]')),
+                      ],
+                      decoration: InputDecoration(
+                        labelText: 'Temperature',
+                        hintText: '20',
+                        suffixText: '°C',
+                        filled: true,
+                        fillColor: AppColors.surfaceBright.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: AppSpacing.md),
+
+              // Sky conditions
+              _buildChipSelector(
+                label: 'Sky',
+                options: SkyOptions.all,
+                selectedValue: _selectedSky,
+                displayName: SkyOptions.displayName,
+                onSelected: (value) => setState(() => _selectedSky = value),
+              ),
+
+              const SizedBox(height: AppSpacing.md),
+
+              // Sun position
+              _buildChipSelector(
+                label: 'Sun',
+                options: SunPositionOptions.all,
+                selectedValue: _selectedSunPosition,
+                displayName: SunPositionOptions.displayName,
+                onSelected: (value) => setState(() => _selectedSunPosition = value),
+              ),
+
+              const SizedBox(height: AppSpacing.md),
+
+              // Wind
+              _buildChipSelector(
+                label: 'Wind',
+                options: WindOptions.all,
+                selectedValue: _selectedWind,
+                displayName: WindOptions.displayName,
+                onSelected: (value) => setState(() => _selectedWind = value),
+              ),
+
+              const SizedBox(height: AppSpacing.xl),
+
+              // Save button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isSaving ? null : _save,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gold,
+                    foregroundColor: AppColors.background,
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  ),
+                  child: _isSaving
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.background,
+                          ),
+                        )
+                      : Text(isEditing ? 'Update' : 'Save'),
+                ),
               ),
             ],
-
-            const SizedBox(height: AppSpacing.xl),
-
-            // Save button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isSaving ? null : _save,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.gold,
-                  foregroundColor: AppColors.background,
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                ),
-                child: _isSaving
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.background,
-                        ),
-                      )
-                    : Text(isEditing ? 'Update' : 'Save'),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildChipSelector({
+    required String label,
+    required List<String> options,
+    required String? selectedValue,
+    required String Function(String) displayName,
+    required void Function(String?) onSelected,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.textMuted,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: options.map((option) {
+            final isSelected = selectedValue == option;
+            return GestureDetector(
+              onTap: () {
+                // Toggle off if already selected
+                onSelected(isSelected ? null : option);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.gold.withValues(alpha: 0.2)
+                      : AppColors.surfaceBright,
+                  borderRadius: BorderRadius.circular(AppSpacing.xs),
+                  border: isSelected
+                      ? Border.all(color: AppColors.gold)
+                      : null,
+                ),
+                child: Text(
+                  displayName(option),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: isSelected ? AppColors.gold : AppColors.textPrimary,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 
@@ -336,6 +447,25 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
           ? double.tryParse(_slopeController.text)
           : null;
 
+      // Build weather conditions from selections
+      final temp = _tempController.text.isNotEmpty
+          ? double.tryParse(_tempController.text)
+          : null;
+
+      final hasConditions = temp != null ||
+          _selectedSky != null ||
+          _selectedSunPosition != null ||
+          _selectedWind != null;
+
+      final weather = hasConditions
+          ? WeatherConditions(
+              temperature: temp,
+              sky: _selectedSky,
+              sunPosition: _selectedSunPosition,
+              wind: _selectedWind,
+            )
+          : null;
+
       if (widget.existingMark != null) {
         await provider.updateSightMark(
           id: widget.existingMark!.id,
@@ -343,7 +473,7 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
           distance: distance,
           unit: _unit,
           sightValue: sightValue,
-          weather: widget.currentWeather,
+          weather: weather,
           slopeAngle: slope,
         );
       } else {
@@ -352,10 +482,33 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
           distance: distance,
           unit: _unit,
           sightValue: sightValue,
-          weather: widget.currentWeather,
+          weather: weather,
           slopeAngle: slope,
           confidenceScore: 0.7, // Default confidence for manual entry
         );
+
+        // Show reminder to write it down
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.edit_note, color: AppColors.gold, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Saved! Now write ${distance.toStringAsFixed(0)}${_unit.abbreviation} → $sightValue in your notebook.',
+                      style: const TextStyle(color: AppColors.textPrimary),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: AppColors.surfaceDark,
+              duration: const Duration(seconds: 4),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
 
       widget.onSaved?.call();
@@ -378,7 +531,6 @@ class SightMarkQuickPrompt extends StatelessWidget {
   final String bowId;
   final double distance;
   final DistanceUnit unit;
-  final WeatherConditions? weather;
   final VoidCallback? onDismiss;
   final VoidCallback? onSaved;
 
@@ -387,7 +539,6 @@ class SightMarkQuickPrompt extends StatelessWidget {
     required this.bowId,
     required this.distance,
     required this.unit,
-    this.weather,
     this.onDismiss,
     this.onSaved,
   });
@@ -467,7 +618,6 @@ class SightMarkQuickPrompt extends StatelessWidget {
         bowId: bowId,
         defaultDistance: distance,
         defaultUnit: unit,
-        currentWeather: weather,
         onSaved: () {
           Navigator.pop(ctx);
           onSaved?.call();

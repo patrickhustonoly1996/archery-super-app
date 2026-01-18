@@ -393,7 +393,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
                   onTap: () => _showFullScorecard(context, provider),
                   child: Container(
                     margin: const EdgeInsets.only(top: AppSpacing.sm),
-                    constraints: const BoxConstraints(maxHeight: 100),
+                    constraints: const BoxConstraints(maxHeight: 120),
                     child: FutureBuilder(
                       future: provider.getAllCompletedEndArrows(),
                       builder: (context, snapshot) {
