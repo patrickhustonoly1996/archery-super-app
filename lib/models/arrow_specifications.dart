@@ -1,5 +1,27 @@
 import 'dart:convert';
 
+/// Visual appearance of arrows for Auto-Plot identification
+/// Used to identify "my arrows" among other archers' arrows
+class ArrowAppearanceForAutoPlot {
+  final String? fletchColor;
+  final String? nockColor;
+  final String? wrapColor;
+
+  const ArrowAppearanceForAutoPlot({
+    this.fletchColor,
+    this.nockColor,
+    this.wrapColor,
+  });
+
+  bool get hasAnyFeatures => fletchColor != null || nockColor != null || wrapColor != null;
+
+  Map<String, dynamic> toJson() => {
+        if (fletchColor != null) 'fletchColor': fletchColor,
+        if (nockColor != null) 'nockColor': nockColor,
+        if (wrapColor != null) 'wrapColor': wrapColor,
+      };
+}
+
 /// Comprehensive arrow specifications for a quiver/arrow set
 class ArrowSpecifications {
   // === SHAFT ===
@@ -150,6 +172,16 @@ class ArrowSpecifications {
   }
 
   bool get hasAnySpecs => toMap().isNotEmpty;
+
+  /// Get visual appearance for Auto-Plot arrow identification
+  /// Returns colors that help identify "my arrows" among others
+  ArrowAppearanceForAutoPlot get appearanceForAutoPlot {
+    return ArrowAppearanceForAutoPlot(
+      fletchColor: fletchColor,
+      nockColor: nockColor,
+      wrapColor: wrapColor,
+    );
+  }
 
   /// Get a summary string for display
   String get summaryText {

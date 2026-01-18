@@ -1,190 +1,154 @@
 import 'dart:async';
-import 'dart:math' as math;
-import 'package:flutter/foundation.dart';
+import 'dart:convert';
+import 'dart:js_interop';
+import 'dart:typed_data';
+import 'dart:ui_web' as ui_web;
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:camera/camera.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:web/web.dart' as web;
 
 import '../theme/app_theme.dart';
 import '../providers/auto_plot_provider.dart';
-import '../services/scan_motion_service.dart';
 import '../services/scan_frame_service.dart';
 import '../services/vision_api_service.dart';
 import '../widgets/circular_sweep_guide.dart';
 import 'auto_plot_confirm_screen.dart';
 import 'auto_plot_upgrade_screen.dart';
 
-/// Screen for circular scan-based Auto-Plot capture.
-/// Uses a ritualistic circular motion to capture multiple frames
-/// and composite the best data for arrow detection.
-class AutoPlotScanScreen extends StatefulWidget {
+/// Web implementation of Auto-Plot scanning.
+/// Uses browser getUserMedia API since Flutter camera package has limited web support.
+/// Motion is simulated via timed auto-capture since browsers don't have gyroscope access.
+class AutoPlotScanScreenWeb extends StatefulWidget {
   final String targetType;
   final bool isTripleSpot;
 
-  const AutoPlotScanScreen({
+  const AutoPlotScanScreenWeb({
     super.key,
     required this.targetType,
     this.isTripleSpot = false,
   });
 
   @override
-  State<AutoPlotScanScreen> createState() => _AutoPlotScanScreenState();
+  State<AutoPlotScanScreenWeb> createState() => _AutoPlotScanScreenWebState();
 }
 
-class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
-    with WidgetsBindingObserver {
-  // Camera
-  CameraController? _cameraController;
-  List<CameraDescription>? _cameras;
-  bool _isCameraInitialized = false;
-  bool _hasCameraError = false;
-  String _cameraErrorMessage = '';
+class _AutoPlotScanScreenWebState extends State<AutoPlotScanScreenWeb> {
+  static int _viewIdCounter = 0;
+  late final String _viewId;
 
-  // Motion tracking
-  late ScanMotionService _motionService;
+  web.HTMLVideoElement? _videoElement;
+  web.HTMLCanvasElement? _canvasElement;
+  web.MediaStream? _mediaStream;
 
-  // Frame capture
-  final ScanFrameService _frameService = ScanFrameService();
-  Timer? _frameCaptureTimer;
+  bool _isInitialized = false;
+  bool _hasError = false;
+  String _errorMessage = '';
 
-  // State
+  // Scan state
   bool _isScanning = false;
   bool _isScanComplete = false;
   bool _isProcessing = false;
   double _scanProgress = 0.0;
-  bool _showSpeedWarning = false;
-  bool _showStabilityWarning = false;
+
+  // Frame capture
+  final ScanFrameService _frameService = ScanFrameService();
+  Timer? _scanTimer;
+  static const Duration _scanDuration = Duration(seconds: 3);
+  static const Duration _frameInterval = Duration(milliseconds: 200);
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-
-    // Use simulated motion service on web, real service on native
-    _motionService = kIsWeb
-        ? SimulatedScanMotionService()
-        : ScanMotionService();
-
-    _setupMotionCallbacks();
+    _viewId = 'auto-plot-scan-video-${_viewIdCounter++}';
     _initializeCamera();
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _stopScanning();
-    _cameraController?.dispose();
-    _motionService.dispose();
+    _stopCamera();
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (_cameraController == null || !_cameraController!.value.isInitialized) {
-      return;
+  void _stopCamera() {
+    if (_mediaStream != null) {
+      final tracks = _mediaStream!.getTracks().toDart;
+      for (final track in tracks) {
+        track.stop();
+      }
+      _mediaStream = null;
     }
-
-    if (state == AppLifecycleState.inactive) {
-      _cameraController?.dispose();
-    } else if (state == AppLifecycleState.resumed) {
-      _initializeCamera();
-    }
-  }
-
-  void _setupMotionCallbacks() {
-    _motionService.onProgressUpdate = (progress, velocity) {
-      if (mounted) {
-        setState(() {
-          _scanProgress = progress;
-        });
-      }
-    };
-
-    _motionService.onSpeedWarning = (isTooFast) {
-      if (mounted && _showSpeedWarning != isTooFast) {
-        setState(() => _showSpeedWarning = isTooFast);
-        if (isTooFast) {
-          HapticFeedback.lightImpact();
-        }
-      }
-    };
-
-    _motionService.onStabilityWarning = (isUnstable) {
-      if (mounted && _showStabilityWarning != isUnstable) {
-        setState(() => _showStabilityWarning = isUnstable);
-        if (isUnstable) {
-          HapticFeedback.mediumImpact();
-        }
-      }
-    };
-
-    _motionService.onScanComplete = () {
-      _onScanComplete();
-    };
   }
 
   Future<void> _initializeCamera() async {
-    if (kIsWeb) {
-      setState(() {
-        _hasCameraError = true;
-        _cameraErrorMessage = 'Camera scanning not supported on web.\nUse mobile app for best experience.';
-      });
-      return;
-    }
-
-    final status = await Permission.camera.request();
-    if (!status.isGranted) {
-      setState(() {
-        _hasCameraError = true;
-        _cameraErrorMessage = 'Camera permission required for scanning';
-      });
-      return;
-    }
-
     try {
-      _cameras = await availableCameras();
-      if (_cameras == null || _cameras!.isEmpty) {
-        setState(() {
-          _hasCameraError = true;
-          _cameraErrorMessage = 'No cameras available';
-        });
-        return;
-      }
+      // Create video element
+      _videoElement = web.document.createElement('video') as web.HTMLVideoElement;
+      _videoElement!.autoplay = true;
+      _videoElement!.playsInline = true;
+      _videoElement!.muted = true;
+      _videoElement!.style.width = '100%';
+      _videoElement!.style.height = '100%';
+      _videoElement!.style.objectFit = 'cover';
+      _videoElement!.setAttribute('playsinline', 'true');
 
-      final backCamera = _cameras!.firstWhere(
-        (c) => c.lensDirection == CameraLensDirection.back,
-        orElse: () => _cameras!.first,
+      // Create canvas for frame capture
+      _canvasElement = web.document.createElement('canvas') as web.HTMLCanvasElement;
+
+      // Request camera access - prefer back camera for target scanning
+      final constraints = web.MediaStreamConstraints(
+        video: _createVideoConstraints(),
+        audio: false.toJS,
       );
 
-      _cameraController = CameraController(
-        backCamera,
-        ResolutionPreset.high,
-        enableAudio: false,
-        imageFormatGroup: ImageFormatGroup.jpeg,
+      final navigator = web.window.navigator;
+      final mediaDevices = navigator.mediaDevices;
+
+      _mediaStream = await mediaDevices.getUserMedia(constraints).toDart;
+      _videoElement!.srcObject = _mediaStream;
+
+      await _videoElement!.play().toDart;
+
+      // Register the video element view factory
+      ui_web.platformViewRegistry.registerViewFactory(
+        _viewId,
+        (int viewId) => _videoElement!,
       );
 
-      await _cameraController!.initialize();
+      if (!mounted) return;
 
-      // Set focus mode for consistent captures
-      try {
-        if (_cameraController!.value.focusModeLockedSupported) {
-          await _cameraController!.setFocusMode(FocusMode.auto);
-        }
-      } catch (_) {
-        // Focus mode may not be supported on all devices
-      }
-
-      if (mounted) {
-        setState(() => _isCameraInitialized = true);
-      }
+      setState(() {
+        _isInitialized = true;
+      });
     } catch (e) {
       setState(() {
-        _hasCameraError = true;
-        _cameraErrorMessage = 'Camera initialization failed: $e';
+        _hasError = true;
+        _errorMessage = _getErrorMessage(e);
       });
     }
+  }
+
+  JSObject _createVideoConstraints() {
+    // Prefer back (environment) camera for scanning targets
+    final jsObject = <String, dynamic>{
+      'facingMode': {'ideal': 'environment'},
+      'width': {'ideal': 1920},
+      'height': {'ideal': 1080},
+    }.jsify();
+    return jsObject as JSObject;
+  }
+
+  String _getErrorMessage(dynamic error) {
+    final errorStr = error.toString().toLowerCase();
+    if (errorStr.contains('notallowed') || errorStr.contains('permission')) {
+      return 'Camera permission denied.\nAllow camera access in browser settings and reload.';
+    } else if (errorStr.contains('notfound') || errorStr.contains('no device')) {
+      return 'No camera found on this device.';
+    } else if (errorStr.contains('notreadable') || errorStr.contains('in use')) {
+      return 'Camera is in use by another app.';
+    }
+    return 'Failed to access camera: $error';
   }
 
   void _startScanning() async {
@@ -204,23 +168,37 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
 
     _frameService.clear();
 
-    // Haptic feedback to signal start
-    HapticFeedback.heavyImpact();
+    // On web, we do a timed auto-scan since there's no gyroscope
+    // User just needs to hold the phone pointed at target
+    final startTime = DateTime.now();
+    final totalMs = _scanDuration.inMilliseconds;
 
-    // Start motion tracking
-    await _motionService.startTracking();
+    _scanTimer = Timer.periodic(_frameInterval, (timer) async {
+      if (!_isScanning) {
+        timer.cancel();
+        return;
+      }
 
-    // Start frame capture timer
-    _frameCaptureTimer = Timer.periodic(
-      const Duration(milliseconds: 150),
-      (_) => _captureFrame(),
-    );
+      final elapsed = DateTime.now().difference(startTime).inMilliseconds;
+      final progress = (elapsed / totalMs).clamp(0.0, 1.0);
+
+      // Capture frame
+      await _captureFrame(progress);
+
+      setState(() {
+        _scanProgress = progress;
+      });
+
+      if (progress >= 1.0) {
+        timer.cancel();
+        _onScanComplete();
+      }
+    });
   }
 
   void _stopScanning() {
-    _frameCaptureTimer?.cancel();
-    _frameCaptureTimer = null;
-    _motionService.stopTracking();
+    _scanTimer?.cancel();
+    _scanTimer = null;
 
     if (mounted) {
       setState(() {
@@ -229,26 +207,31 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
     }
   }
 
-  Future<void> _captureFrame() async {
-    if (!_isScanning || _cameraController == null || !_cameraController!.value.isInitialized) {
-      return;
-    }
-
-    // Don't capture if there are warnings
-    if (_showSpeedWarning || _showStabilityWarning) {
+  Future<void> _captureFrame(double progress) async {
+    if (_videoElement == null ||
+        _canvasElement == null ||
+        _videoElement!.videoWidth == 0) {
       return;
     }
 
     try {
-      final xFile = await _cameraController!.takePicture();
-      final bytes = await xFile.readAsBytes();
+      final videoWidth = _videoElement!.videoWidth;
+      final videoHeight = _videoElement!.videoHeight;
 
-      // Add frame with current rotation angle
-      _frameService.addFrame(bytes, _scanProgress * 2 * math.pi);
+      _canvasElement!.width = videoWidth;
+      _canvasElement!.height = videoHeight;
 
-      if (mounted) {
-        setState(() {}); // Trigger rebuild to show frame count
-      }
+      final ctx = _canvasElement!.getContext('2d') as web.CanvasRenderingContext2D;
+      ctx.drawImage(_videoElement!, 0, 0);
+
+      // Get image data as JPEG
+      final dataUrl = _canvasElement!.toDataURL('image/jpeg', 0.85.toJS);
+      final base64 = dataUrl.split(',').last;
+      final bytes = Uint8List.fromList(base64Decode(base64));
+
+      // Add frame with simulated rotation angle based on progress
+      final angle = progress * 2 * 3.14159;
+      _frameService.addFrame(bytes, angle);
     } catch (e) {
       debugPrint('Frame capture error: $e');
     }
@@ -257,17 +240,12 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
   void _onScanComplete() async {
     _stopScanning();
 
-    // Haptic feedback for completion
-    HapticFeedback.heavyImpact();
-    await Future.delayed(const Duration(milliseconds: 100));
-    HapticFeedback.heavyImpact();
-
     setState(() {
       _isScanComplete = true;
     });
 
     // Auto-process after brief delay
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 300));
     _processComposite();
   }
 
@@ -439,13 +417,28 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
   }
 
   Widget _buildScanArea() {
-    if (_hasCameraError) {
+    if (_hasError) {
       return _buildErrorView();
     }
 
-    if (!_isCameraInitialized) {
+    if (!_isInitialized) {
       return const Center(
-        child: CircularProgressIndicator(color: AppColors.gold),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: AppColors.gold),
+            SizedBox(height: 16),
+            Text(
+              'Starting camera...',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Allow camera access when prompted',
+              style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+            ),
+          ],
+        ),
       );
     }
 
@@ -454,7 +447,7 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
       children: [
         // Camera preview
         Positioned.fill(
-          child: CameraPreview(_cameraController!),
+          child: HtmlElementView(viewType: _viewId),
         ),
 
         // Circular sweep guide overlay
@@ -467,26 +460,8 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
         // Instruction overlay
         Positioned(
           top: 16,
-          child: ScanInstructionOverlay(
-            isScanning: _isScanning,
-            isComplete: _isScanComplete,
-            progress: _scanProgress,
-            framesCollected: _frameService.frameCount,
-          ),
+          child: _buildInstructionOverlay(),
         ),
-
-        // Warning overlays
-        if (_showSpeedWarning)
-          Positioned(
-            bottom: 100,
-            child: _buildWarning('TOO FAST', 'Slow down the rotation'),
-          ),
-
-        if (_showStabilityWarning)
-          Positioned(
-            bottom: 100,
-            child: _buildWarning('UNSTABLE', 'Keep device steady'),
-          ),
 
         // Processing overlay
         if (_isProcessing)
@@ -517,6 +492,67 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
     );
   }
 
+  Widget _buildInstructionOverlay() {
+    String instruction;
+    if (_isScanComplete) {
+      instruction = 'SCAN COMPLETE';
+    } else if (_isScanning) {
+      instruction = 'Hold steady...';
+    } else {
+      instruction = 'TAP TO START SCAN';
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceDark.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            instruction,
+            style: TextStyle(
+              fontFamily: AppFonts.pixel,
+              fontSize: 16,
+              color: _isScanComplete ? AppColors.gold : AppColors.textPrimary,
+            ),
+          ),
+        ),
+        if (_isScanning) ...[
+          const SizedBox(height: 8),
+          Text(
+            '${(_scanProgress * 100).toInt()}% · ${_frameService.frameCount} frames',
+            style: TextStyle(
+              fontFamily: AppFonts.body,
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+        if (!_isScanning && !_isScanComplete) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceDark.withOpacity(0.7),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              'Point at target and hold steady for 3 seconds',
+              style: TextStyle(
+                fontFamily: AppFonts.body,
+                fontSize: 11,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   Widget _buildErrorView() {
     return Center(
       child: Padding(
@@ -524,15 +560,26 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, color: AppColors.error, size: 48),
+            const Icon(Icons.videocam_off, color: AppColors.error, size: 48),
             const SizedBox(height: 16),
             Text(
-              _cameraErrorMessage,
+              _errorMessage,
               style: TextStyle(
                 fontFamily: AppFonts.body,
                 color: AppColors.error,
               ),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _hasError = false;
+                  _errorMessage = '';
+                });
+                _initializeCamera();
+              },
+              child: const Text('Try Again'),
             ),
           ],
         ),
@@ -540,39 +587,8 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
     );
   }
 
-  Widget _buildWarning(String title, String subtitle) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.error.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontFamily: AppFonts.pixel,
-              fontSize: 16,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontFamily: AppFonts.body,
-              fontSize: 12,
-              color: AppColors.textPrimary.withOpacity(0.8),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildControls(AutoPlotProvider provider) {
-    final canStart = !_isScanning && !_isProcessing && provider.canScan && _isCameraInitialized;
+    final canStart = !_isScanning && !_isProcessing && provider.canScan && _isInitialized;
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -581,7 +597,6 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Target type indicator
             Text(
               'Target: ${widget.targetType}${widget.isTripleSpot ? ' (Triple)' : ''}',
               style: TextStyle(
@@ -590,19 +605,7 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
                 color: AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 8),
-            // Motion hint
-            if (!_isScanning && !_isProcessing)
-              Text(
-                'Move in a slow circle around the target',
-                style: TextStyle(
-                  fontFamily: AppFonts.body,
-                  fontSize: 11,
-                  color: AppColors.textMuted,
-                ),
-              ),
             const SizedBox(height: 16),
-            // Scan button
             GestureDetector(
               onTap: canStart ? _startScanning : null,
               child: Container(

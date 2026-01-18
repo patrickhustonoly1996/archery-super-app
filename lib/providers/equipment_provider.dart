@@ -383,12 +383,30 @@ class EquipmentProvider extends ChangeNotifier {
   Future<String> createStabilizer({
     required String bowId,
     String? name,
+    // Long rod
     String? longRodModel,
     double? longRodLength,
     double? longRodWeight,
+    String? longRodWeights,
+    // Left side rod
+    String? leftSideRodModel,
+    double? leftSideRodLength,
+    double? leftSideRodWeight,
+    String? leftWeights,
+    double? leftAngleHorizontal,
+    double? leftAngleVertical,
+    // Right side rod
+    String? rightSideRodModel,
+    double? rightSideRodLength,
+    double? rightSideRodWeight,
+    String? rightWeights,
+    double? rightAngleHorizontal,
+    double? rightAngleVertical,
+    // Legacy (kept for compatibility)
     String? sideRodModel,
     double? sideRodLength,
     double? sideRodWeight,
+    // Other
     double? extenderLength,
     String? vbarModel,
     double? vbarAngleHorizontal,
@@ -396,6 +414,7 @@ class EquipmentProvider extends ChangeNotifier {
     String? weightArrangement,
     String? damperModel,
     String? damperPositions,
+    String? setupPhotoPath,
     String? notes,
   }) async {
     final id = UniqueId.generate();
@@ -406,6 +425,19 @@ class EquipmentProvider extends ChangeNotifier {
       longRodModel: Value(longRodModel),
       longRodLength: Value(longRodLength),
       longRodWeight: Value(longRodWeight),
+      longRodWeights: Value(longRodWeights),
+      leftSideRodModel: Value(leftSideRodModel),
+      leftSideRodLength: Value(leftSideRodLength),
+      leftSideRodWeight: Value(leftSideRodWeight),
+      leftWeights: Value(leftWeights),
+      leftAngleHorizontal: Value(leftAngleHorizontal),
+      leftAngleVertical: Value(leftAngleVertical),
+      rightSideRodModel: Value(rightSideRodModel),
+      rightSideRodLength: Value(rightSideRodLength),
+      rightSideRodWeight: Value(rightSideRodWeight),
+      rightWeights: Value(rightWeights),
+      rightAngleHorizontal: Value(rightAngleHorizontal),
+      rightAngleVertical: Value(rightAngleVertical),
       sideRodModel: Value(sideRodModel),
       sideRodLength: Value(sideRodLength),
       sideRodWeight: Value(sideRodWeight),
@@ -416,6 +448,7 @@ class EquipmentProvider extends ChangeNotifier {
       weightArrangement: Value(weightArrangement),
       damperModel: Value(damperModel),
       damperPositions: Value(damperPositions),
+      setupPhotoPath: Value(setupPhotoPath),
       notes: Value(notes),
     ));
     return id;
@@ -425,12 +458,30 @@ class EquipmentProvider extends ChangeNotifier {
   Future<void> updateStabilizer({
     required String id,
     String? name,
+    // Long rod
     String? longRodModel,
     double? longRodLength,
     double? longRodWeight,
+    String? longRodWeights,
+    // Left side rod
+    String? leftSideRodModel,
+    double? leftSideRodLength,
+    double? leftSideRodWeight,
+    String? leftWeights,
+    double? leftAngleHorizontal,
+    double? leftAngleVertical,
+    // Right side rod
+    String? rightSideRodModel,
+    double? rightSideRodLength,
+    double? rightSideRodWeight,
+    String? rightWeights,
+    double? rightAngleHorizontal,
+    double? rightAngleVertical,
+    // Legacy
     String? sideRodModel,
     double? sideRodLength,
     double? sideRodWeight,
+    // Other
     double? extenderLength,
     String? vbarModel,
     double? vbarAngleHorizontal,
@@ -438,6 +489,7 @@ class EquipmentProvider extends ChangeNotifier {
     String? weightArrangement,
     String? damperModel,
     String? damperPositions,
+    String? setupPhotoPath,
     String? notes,
   }) async {
     await (_db.update(_db.stabilizers)..where((t) => t.id.equals(id))).write(
@@ -446,6 +498,19 @@ class EquipmentProvider extends ChangeNotifier {
         longRodModel: Value(longRodModel),
         longRodLength: Value(longRodLength),
         longRodWeight: Value(longRodWeight),
+        longRodWeights: Value(longRodWeights),
+        leftSideRodModel: Value(leftSideRodModel),
+        leftSideRodLength: Value(leftSideRodLength),
+        leftSideRodWeight: Value(leftSideRodWeight),
+        leftWeights: Value(leftWeights),
+        leftAngleHorizontal: Value(leftAngleHorizontal),
+        leftAngleVertical: Value(leftAngleVertical),
+        rightSideRodModel: Value(rightSideRodModel),
+        rightSideRodLength: Value(rightSideRodLength),
+        rightSideRodWeight: Value(rightSideRodWeight),
+        rightWeights: Value(rightWeights),
+        rightAngleHorizontal: Value(rightAngleHorizontal),
+        rightAngleVertical: Value(rightAngleVertical),
         sideRodModel: Value(sideRodModel),
         sideRodLength: Value(sideRodLength),
         sideRodWeight: Value(sideRodWeight),
@@ -456,6 +521,7 @@ class EquipmentProvider extends ChangeNotifier {
         weightArrangement: Value(weightArrangement),
         damperModel: Value(damperModel),
         damperPositions: Value(damperPositions),
+        setupPhotoPath: Value(setupPhotoPath),
         notes: Value(notes),
         updatedAt: Value(DateTime.now()),
       ),

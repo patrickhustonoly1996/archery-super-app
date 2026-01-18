@@ -18,7 +18,7 @@ import '../db/database.dart';
 import 'session_complete_screen.dart';
 import 'home_screen.dart';
 import 'auto_plot_capture_screen.dart';
-import 'auto_plot_scan_screen.dart';
+import 'auto_plot_scan_router.dart';
 import '../services/vision_api_service.dart';
 
 /// Preference key for triple spot view mode
@@ -760,12 +760,18 @@ class _ActionButtons extends StatelessWidget {
 
     // Initialize auto-plot provider
     final autoPlotProvider = context.read<AutoPlotProvider>();
+
+    // Load arrow appearance from active quiver for identification
+    final equipmentProvider = context.read<EquipmentProvider>();
+    await autoPlotProvider.loadArrowAppearanceFromQuiver(equipmentProvider.defaultQuiver);
+
     autoPlotProvider.startCapture(targetType);
 
     // Navigate to scan screen (circular scan for better accuracy)
+    // Uses platform-specific implementation (native camera on mobile, web APIs in browser)
     final result = await Navigator.of(context).push<List<DetectedArrow>>(
       MaterialPageRoute(
-        builder: (_) => AutoPlotScanScreen(
+        builder: (_) => AutoPlotScanRouter(
           targetType: targetType,
           isTripleSpot: isTripleSpot,
         ),

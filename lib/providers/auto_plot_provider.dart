@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:drift/drift.dart';
 import '../db/database.dart';
+import '../models/arrow_specifications.dart';
 import '../services/vision_api_service.dart';
 import '../utils/unique_id.dart';
 
@@ -46,6 +47,12 @@ class AutoPlotProvider extends ChangeNotifier {
   // Registered targets
   List<RegisteredTarget> _registeredTargets = [];
 
+  // Arrow appearance for identification
+  ArrowAppearanceForAutoPlot? _arrowAppearance;
+  String? _learnedAppearanceDescription; // Human-readable "green fletches, orange nocks"
+  bool _hasLearnedAppearance = false;
+  bool _isLearning = false;
+
   // Getters
   AutoPlotState get state => _state;
   AutoPlotTier get tier => _tier;
@@ -57,6 +64,10 @@ class AutoPlotProvider extends ChangeNotifier {
   Uint8List? get capturedImage => _capturedImage;
   String? get selectedTargetType => _selectedTargetType;
   List<RegisteredTarget> get registeredTargets => _registeredTargets;
+  ArrowAppearanceForAutoPlot? get arrowAppearance => _arrowAppearance;
+  String? get learnedAppearanceDescription => _learnedAppearanceDescription;
+  bool get hasLearnedAppearance => _hasLearnedAppearance;
+  bool get isLearning => _isLearning;
 
   /// Initialize provider - load usage and registered targets
   Future<void> initialize() async {
@@ -86,6 +97,70 @@ class AutoPlotProvider extends ChangeNotifier {
   void setTier(AutoPlotTier tier) {
     _tier = tier;
     notifyListeners();
+  }
+
+  /// Set arrow appearance for identification (from user's quiver settings)
+  void setArrowAppearance(ArrowAppearanceForAutoPlot? appearance) {
+    _arrowAppearance = appearance;
+    notifyListeners();
+  }
+
+  /// Load arrow appearance from quiver settings or learned appearance
+  /// Priority: 1) Quiver equipment profile colors, 2) Previously learned appearance
+  Future<void> loadArrowAppearanceFromQuiver(Quiver? quiver) async {
+    // First try quiver settings (explicit user-entered colors)
+    if (quiver?.settings != null) {
+      final arrowSpecs = ArrowSpecifications.fromJson(quiver!.settings);
+      final fromQuiver = arrowSpecs.appearanceForAutoPlot;
+      if (fromQuiver.hasAnyFeatures) {
+        _arrowAppearance = fromQuiver;
+        _hasLearnedAppearance = false;
+        notifyListeners();
+        return;
+      }
+    }
+
+    // If no quiver colors, we'll rely on previously learned appearance (if any)
+    // The learned appearance is already loaded in _arrowAppearance from Firestore
+    // during the API call (server stores and returns it)
+    notifyListeners();
+  }
+
+  /// Learn arrow appearance from user's manual selection
+  /// Call this after user confirms their arrows for the first time
+  Future<bool> learnArrowAppearance(List<DetectedArrow> selectedArrows) async {
+    if (_capturedImage == null || selectedArrows.isEmpty) {
+      return false;
+    }
+
+    _isLearning = true;
+    notifyListeners();
+
+    try {
+      final result = await _visionService.learnArrowAppearance(
+        image: _capturedImage!,
+        selectedArrows: selectedArrows,
+      );
+
+      if (result.isSuccess && result.appearance != null) {
+        _arrowAppearance = ArrowAppearanceForAutoPlot(
+          fletchColor: result.appearance!.fletchColor,
+          nockColor: result.appearance!.nockColor,
+          wrapColor: result.appearance!.wrapColor,
+        );
+        _learnedAppearanceDescription = result.description;
+        _hasLearnedAppearance = true;
+        _isLearning = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      // Silent failure - learning is a nice-to-have
+    }
+
+    _isLearning = false;
+    notifyListeners();
+    return false;
   }
 
   /// Check if a target type has a registered reference
@@ -182,12 +257,23 @@ class AutoPlotProvider extends ChangeNotifier {
       }
     }
 
+    // Convert arrow appearance for API
+    ArrowAppearance? apiAppearance;
+    if (_arrowAppearance != null && _arrowAppearance!.hasAnyFeatures) {
+      apiAppearance = ArrowAppearance(
+        fletchColor: _arrowAppearance!.fletchColor,
+        nockColor: _arrowAppearance!.nockColor,
+        wrapColor: _arrowAppearance!.wrapColor,
+      );
+    }
+
     // Call vision API
     final result = await _visionService.detectArrows(
       shotImage: imageData,
       referenceImage: referenceImage,
       targetType: _selectedTargetType!,
       isTripleSpot: registeredTarget?.isTripleSpot ?? _selectedTargetType!.contains('triple'),
+      arrowAppearance: apiAppearance,
     );
 
     if (result.isSuccess) {
