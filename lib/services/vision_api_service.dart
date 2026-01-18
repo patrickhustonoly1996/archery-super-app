@@ -8,14 +8,27 @@ class DetectedArrow {
   final double x; // -1.0 (left) to +1.0 (right), 0 = center
   final double y; // -1.0 (top) to +1.0 (bottom), 0 = center
   final int? faceIndex; // For triple-spot: 0, 1, 2
+  final double confidence; // 0.0-1.0, lower means less certain (line cutters)
+  final bool isLineCutter; // True if arrow is on/near a ring line
 
-  DetectedArrow({required this.x, required this.y, this.faceIndex});
+  DetectedArrow({
+    required this.x,
+    required this.y,
+    this.faceIndex,
+    this.confidence = 1.0,
+    this.isLineCutter = false,
+  });
+
+  /// Whether this arrow needs user verification (low confidence or line cutter)
+  bool get needsVerification => confidence < 0.5 || isLineCutter;
 
   factory DetectedArrow.fromJson(Map<String, dynamic> json) {
     return DetectedArrow(
       x: (json['x'] as num).toDouble(),
       y: (json['y'] as num).toDouble(),
       faceIndex: json['face'] as int?,
+      confidence: (json['confidence'] as num?)?.toDouble() ?? 1.0,
+      isLineCutter: json['isLineCutter'] as bool? ?? false,
     );
   }
 
@@ -23,7 +36,20 @@ class DetectedArrow {
         'x': x,
         'y': y,
         if (faceIndex != null) 'face': faceIndex,
+        'confidence': confidence,
+        'isLineCutter': isLineCutter,
       };
+
+  /// Create a copy with updated position (for adjustment)
+  DetectedArrow copyWith({double? x, double? y, int? faceIndex, double? confidence, bool? isLineCutter}) {
+    return DetectedArrow(
+      x: x ?? this.x,
+      y: y ?? this.y,
+      faceIndex: faceIndex ?? this.faceIndex,
+      confidence: confidence ?? this.confidence,
+      isLineCutter: isLineCutter ?? this.isLineCutter,
+    );
+  }
 }
 
 /// Result of vision API arrow detection

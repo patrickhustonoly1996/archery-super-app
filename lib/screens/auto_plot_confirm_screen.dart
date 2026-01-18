@@ -21,7 +21,10 @@ class AutoPlotConfirmScreen extends StatefulWidget {
 }
 
 class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
-  int? _selectedArrowIndex;
+  // Multi-select for tournament scenarios (up to 24 arrows, user picks their 6)
+  final Set<int> _selectedArrowIndices = {};
+  // Track if we're in "select my arrows" mode vs "adjust" mode
+  bool _isSelectionMode = true;
 
   @override
   Widget build(BuildContext context) {
@@ -65,14 +68,57 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 color: AppColors.surfaceDark,
-                child: Text(
-                  'Tap an arrow to select. Drag to adjust. Tap empty space to add.',
-                  style: TextStyle(
-                    fontFamily: AppFonts.body,
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                  textAlign: TextAlign.center,
+                child: Column(
+                  children: [
+                    Text(
+                      _isSelectionMode
+                          ? 'TAP YOUR ARROWS TO SELECT THEM'
+                          : 'Drag to adjust. Tap empty space to add.',
+                      style: TextStyle(
+                        fontFamily: _isSelectionMode ? AppFonts.pixel : AppFonts.body,
+                        fontSize: _isSelectionMode ? 14 : 12,
+                        color: _isSelectionMode ? AppColors.gold : AppColors.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (_isSelectionMode && provider.detectedArrows.length > 6) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        '${provider.detectedArrows.length} arrows detected - select yours',
+                        style: TextStyle(
+                          fontFamily: AppFonts.body,
+                          fontSize: 11,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                    // Line cutter hint
+                    if (provider.detectedArrows.any((a) => a.needsVerification)) ...[
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.orange,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Orange = line cutter - verify position',
+                            style: TextStyle(
+                              fontFamily: AppFonts.body,
+                              fontSize: 10,
+                              color: Colors.orange,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
                 ),
               ),
               // Target visualization with arrows
@@ -142,8 +188,13 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
     double targetSize,
     AutoPlotProvider provider,
   ) {
-    final isSelected = _selectedArrowIndex == index;
-    final markerSize = isSelected ? 24.0 : 18.0;
+    final isSelected = _selectedArrowIndices.contains(index);
+    final needsVerification = arrow.needsVerification;
+
+    // Smaller markers for dense scenarios (24 arrows)
+    final totalArrows = provider.detectedArrows.length;
+    final baseSize = totalArrows > 12 ? 14.0 : 18.0;
+    final markerSize = isSelected ? baseSize + 6 : baseSize;
 
     // Convert normalized coordinates (-1 to 1) to pixel position
     final centerX = targetSize / 2;
@@ -151,46 +202,111 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
     final x = centerX + (arrow.x * targetSize / 2);
     final y = centerY + (arrow.y * targetSize / 2);
 
+    // Color based on state: gold=selected, orange=line cutter, grey=normal
+    Color markerColor;
+    Color borderColor;
+    if (isSelected) {
+      markerColor = AppColors.gold;
+      borderColor = AppColors.background;
+    } else if (needsVerification) {
+      markerColor = Colors.orange;
+      borderColor = Colors.orange.shade800;
+    } else {
+      markerColor = AppColors.textSecondary.withOpacity(0.7);
+      borderColor = AppColors.textPrimary.withOpacity(0.5);
+    }
+
     return Positioned(
       left: x - markerSize / 2,
       top: y - markerSize / 2,
       child: GestureDetector(
         onTap: () {
           setState(() {
-            _selectedArrowIndex = _selectedArrowIndex == index ? null : index;
+            if (_isSelectionMode) {
+              // Multi-select toggle
+              if (_selectedArrowIndices.contains(index)) {
+                _selectedArrowIndices.remove(index);
+              } else {
+                _selectedArrowIndices.add(index);
+              }
+            } else {
+              // Single select for adjustment mode
+              if (_selectedArrowIndices.contains(index)) {
+                _selectedArrowIndices.remove(index);
+              } else {
+                _selectedArrowIndices.clear();
+                _selectedArrowIndices.add(index);
+              }
+            }
           });
         },
-        onPanUpdate: (details) {
+        onPanUpdate: !_isSelectionMode ? (details) {
           _handleArrowDrag(index, details.delta, targetSize, provider);
-        },
-        child: Container(
-          width: markerSize,
-          height: markerSize,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isSelected ? AppColors.gold : AppColors.error,
-            border: Border.all(
-              color: isSelected ? AppColors.background : AppColors.textPrimary,
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+        } : null,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: markerSize,
+              height: markerSize,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: markerColor,
+                border: Border.all(
+                  color: borderColor,
+                  width: isSelected ? 2 : 1,
+                ),
+                boxShadow: isSelected ? [
+                  BoxShadow(
+                    color: AppColors.gold.withOpacity(0.5),
+                    blurRadius: 6,
+                    spreadRadius: 1,
+                  ),
+                ] : needsVerification ? [
+                  BoxShadow(
+                    color: Colors.orange.withOpacity(0.5),
+                    blurRadius: 4,
+                    spreadRadius: 1,
+                  ),
+                ] : null,
               ),
-            ],
-          ),
-          child: Center(
-            child: Text(
-              '${index + 1}',
-              style: TextStyle(
-                fontFamily: AppFonts.pixel,
-                fontSize: isSelected ? 12 : 10,
-                color: isSelected ? AppColors.background : AppColors.textPrimary,
-              ),
+              child: totalArrows <= 12 ? Center(
+                child: Text(
+                  '${index + 1}',
+                  style: TextStyle(
+                    fontFamily: AppFonts.pixel,
+                    fontSize: isSelected ? 10 : 8,
+                    color: isSelected ? AppColors.background : AppColors.textPrimary,
+                  ),
+                ),
+              ) : null, // Hide numbers when > 12 arrows for cleaner view
             ),
-          ),
+            // Line cutter indicator (question mark badge)
+            if (needsVerification)
+              Positioned(
+                right: -4,
+                top: -4,
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.orange.shade800,
+                    border: Border.all(color: Colors.white, width: 1),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      '?',
+                      style: TextStyle(
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -240,7 +356,9 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
   }
 
   Widget _buildControls(AutoPlotProvider provider) {
-    final arrowCount = provider.detectedArrows.length;
+    final totalArrows = provider.detectedArrows.length;
+    final selectedCount = _selectedArrowIndices.length;
+    final isTournamentMode = totalArrows > 6; // More than one archer's arrows
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -249,61 +367,181 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Arrow count and delete button
+            // Selection info and controls
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '$arrowCount ${arrowCount == 1 ? 'arrow' : 'arrows'} detected',
-                  style: TextStyle(fontFamily: AppFonts.body, fontSize: 14),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _isSelectionMode
+                          ? '$selectedCount of $totalArrows selected'
+                          : '$selectedCount ${selectedCount == 1 ? 'arrow' : 'arrows'} selected',
+                      style: TextStyle(fontFamily: AppFonts.body, fontSize: 14),
+                    ),
+                    if (isTournamentMode && _isSelectionMode)
+                      Text(
+                        'Tap your arrows to select them',
+                        style: TextStyle(
+                          fontFamily: AppFonts.body,
+                          fontSize: 11,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                  ],
                 ),
-                if (_selectedArrowIndex != null)
-                  TextButton.icon(
-                    onPressed: () {
-                      provider.removeArrow(_selectedArrowIndex!);
-                      setState(() {
-                        _selectedArrowIndex = null;
-                      });
-                    },
-                    icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 18),
-                    label: Text(
-                      'DELETE',
-                      style: TextStyle(
-                        fontFamily: AppFonts.pixel,
-                        fontSize: 12,
-                        color: AppColors.error,
+                Row(
+                  children: [
+                    // Select All / Deselect All (useful for solo shooting)
+                    if (_isSelectionMode && !isTournamentMode)
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            if (selectedCount == totalArrows) {
+                              _selectedArrowIndices.clear();
+                            } else {
+                              _selectedArrowIndices.clear();
+                              _selectedArrowIndices.addAll(
+                                List.generate(totalArrows, (i) => i),
+                              );
+                            }
+                          });
+                        },
+                        child: Text(
+                          selectedCount == totalArrows ? 'DESELECT ALL' : 'SELECT ALL',
+                          style: TextStyle(
+                            fontFamily: AppFonts.pixel,
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    // Delete selected (in adjustment mode)
+                    if (!_isSelectionMode && selectedCount > 0)
+                      TextButton.icon(
+                        onPressed: () {
+                          // Delete in reverse order to maintain indices
+                          final sortedIndices = _selectedArrowIndices.toList()
+                            ..sort((a, b) => b.compareTo(a));
+                          for (final index in sortedIndices) {
+                            provider.removeArrow(index);
+                          }
+                          setState(() {
+                            _selectedArrowIndices.clear();
+                          });
+                        },
+                        icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 18),
+                        label: Text(
+                          'DELETE',
+                          style: TextStyle(
+                            fontFamily: AppFonts.pixel,
+                            fontSize: 12,
+                            color: AppColors.error,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Mode toggle and confirm buttons
+            if (_isSelectionMode) ...[
+              // In selection mode: show "Continue with selected" button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: selectedCount > 0
+                      ? () {
+                          if (isTournamentMode) {
+                            // In tournament mode, go to adjustment mode with selected arrows
+                            setState(() {
+                              _isSelectionMode = false;
+                            });
+                          } else {
+                            // Solo mode - confirm immediately
+                            _confirmSelectedArrows(provider);
+                          }
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gold,
+                    foregroundColor: AppColors.background,
+                    disabledBackgroundColor: AppColors.textSecondary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: Text(
+                    isTournamentMode
+                        ? 'CONTINUE WITH $selectedCount ARROWS'
+                        : 'CONFIRM & PLOT',
+                    style: TextStyle(fontFamily: AppFonts.pixel, fontSize: 16),
+                  ),
+                ),
+              ),
+            ] else ...[
+              // In adjustment mode: show adjust tip and confirm button
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        setState(() {
+                          _isSelectionMode = true;
+                        });
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.textSecondary,
+                        side: BorderSide(color: AppColors.surfaceLight),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: Text(
+                        'BACK',
+                        style: TextStyle(fontFamily: AppFonts.pixel, fontSize: 14),
                       ),
                     ),
                   ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Confirm button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: arrowCount > 0
-                    ? () {
-                        final arrows = provider.confirmArrows();
-                        Navigator.of(context).pop(arrows);
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.gold,
-                  foregroundColor: AppColors.background,
-                  disabledBackgroundColor: AppColors.textSecondary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: Text(
-                  'CONFIRM & PLOT',
-                  style: TextStyle(fontFamily: AppFonts.pixel, fontSize: 16),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: selectedCount > 0
+                          ? () => _confirmSelectedArrows(provider)
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.gold,
+                        foregroundColor: AppColors.background,
+                        disabledBackgroundColor: AppColors.textSecondary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: Text(
+                        'CONFIRM & PLOT',
+                        style: TextStyle(fontFamily: AppFonts.pixel, fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
+            ],
           ],
         ),
       ),
     );
+  }
+
+  void _confirmSelectedArrows(AutoPlotProvider provider) {
+    // Get only the selected arrows
+    final allArrows = provider.detectedArrows;
+    final selectedArrows = _selectedArrowIndices
+        .where((i) => i < allArrows.length)
+        .map((i) => allArrows[i])
+        .toList();
+
+    // Clear provider state
+    provider.reset();
+
+    // Return only selected arrows
+    Navigator.of(context).pop(selectedArrows);
   }
 }
 

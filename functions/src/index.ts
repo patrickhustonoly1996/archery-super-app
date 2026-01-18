@@ -17,6 +17,8 @@ interface DetectedArrow {
   x: number;
   y: number;
   face?: number;
+  confidence?: number; // 0.0-1.0, lower for line cutters
+  isLineCutter?: boolean; // true if arrow is on/near a ring line
 }
 
 interface DetectArrowsRequest {
@@ -83,7 +85,7 @@ export const detectArrows = functions
 
       const response = await anthropic.messages.create({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 1024,
+        max_tokens: 2048, // Increased for up to 24 arrows
         messages: [{ role: "user", content }],
       });
 
@@ -128,16 +130,27 @@ function buildPrompt(targetType: string, isTripleSpot: boolean): string {
 
 TARGET: ${targetDesc} - three faces arranged vertically
 
-Task: Identify all arrow positions on the target.
+IMPORTANT: This may be a tournament scenario with up to 4 archers shooting at the same target.
+There could be up to 24 arrows total (6 arrows × 4 archers). Arrows may:
+- Overlap or cross each other
+- Be tightly clustered in scoring zones
+- Have different colored fletches/nocks (ignore colors, just detect positions)
+- Partially obscure other arrows
 
-For each arrow, return its position as:
+Task: Identify ALL arrow positions on the target. Count carefully - missing arrows is worse than slight position errors.
+
+For each arrow, return:
 - "face": 0 (top), 1 (middle), or 2 (bottom)
 - "x": normalized from -1.0 (left edge of that face) to +1.0 (right edge)
 - "y": normalized from -1.0 (top of that face) to +1.0 (bottom)
 - (0, 0) = center of that face (X ring)
+- "confidence": 0.0-1.0 how certain you are of the exact position
+- "isLineCutter": true if arrow appears to be touching or very close to a ring line
+
+LINE CUTTERS: If an arrow shaft touches a ring line, it scores the higher value. Flag these with low confidence (0.3-0.5) and isLineCutter:true so the archer can verify.
 
 Return ONLY a JSON array, no other text:
-[{"face": 0, "x": 0.12, "y": -0.05}, {"face": 1, "x": -0.23, "y": 0.18}]
+[{"face": 0, "x": 0.12, "y": -0.05, "confidence": 0.95}, {"face": 1, "x": -0.23, "y": 0.18, "confidence": 0.4, "isLineCutter": true}]
 
 If no arrows are visible or you cannot reliably detect them, return:
 {"error": "reason"}`;
@@ -147,15 +160,26 @@ If no arrows are visible or you cannot reliably detect them, return:
 
 TARGET: ${targetDesc}
 
-Task: Identify all arrow positions on the target.
+IMPORTANT: This may be a tournament scenario with up to 4 archers shooting at the same target.
+There could be up to 24 arrows total (6 arrows × 4 archers). Arrows may:
+- Overlap or cross each other
+- Be tightly clustered in scoring zones
+- Have different colored fletches/nocks (ignore colors, just detect positions)
+- Partially obscure other arrows
 
-For each arrow, return its position as normalized coordinates where:
+Task: Identify ALL arrow positions on the target. Count carefully - missing arrows is worse than slight position errors.
+
+For each arrow, return:
+- "x": normalized from -1.0 (left edge) to +1.0 (right edge)
+- "y": normalized from -1.0 (top edge) to +1.0 (bottom edge)
 - (0, 0) = center of target (X ring)
-- x: -1.0 (left edge) to +1.0 (right edge)
-- y: -1.0 (top edge) to +1.0 (bottom edge)
+- "confidence": 0.0-1.0 how certain you are of the exact position
+- "isLineCutter": true if arrow appears to be touching or very close to a ring line
+
+LINE CUTTERS: If an arrow shaft touches a ring line, it scores the higher value. Flag these with low confidence (0.3-0.5) and isLineCutter:true so the archer can verify.
 
 Return ONLY a JSON array, no other text:
-[{"x": 0.12, "y": -0.05}, {"x": -0.23, "y": 0.18}]
+[{"x": 0.12, "y": -0.05, "confidence": 0.95}, {"x": -0.23, "y": 0.18, "confidence": 0.4, "isLineCutter": true}]
 
 If no arrows are visible or you cannot reliably detect them, return:
 {"error": "reason"}`;
@@ -247,6 +271,8 @@ function parseResponse(text: string): DetectArrowsResponse {
         x: Number(item.x),
         y: Number(item.y),
         face: item.face !== undefined ? Number(item.face) : undefined,
+        confidence: item.confidence !== undefined ? Number(item.confidence) : 1.0,
+        isLineCutter: item.isLineCutter === true,
       }));
       return { success: true, arrows };
     }
