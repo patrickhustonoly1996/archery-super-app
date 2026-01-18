@@ -77,6 +77,11 @@ class FirestoreSyncService {
       downloaded += sightMarksResult.downloaded;
       uploaded += sightMarksResult.uploaded;
 
+      // Sync user profile
+      final profileResult = await _syncUserProfile(db);
+      downloaded += profileResult.downloaded;
+      uploaded += profileResult.uploaded;
+
       // Update last sync timestamp
       await _userDoc.collection('metadata').doc('sync').set({
         'lastSync': FieldValue.serverTimestamp(),
@@ -890,6 +895,117 @@ class FirestoreSyncService {
       debugPrint('Sight marks: downloaded=$downloaded, uploaded=$uploaded');
     } catch (e) {
       debugPrint('Error syncing sight marks: $e');
+    }
+
+    return _MergeResult(downloaded, uploaded);
+  }
+
+  // ============================================================================
+  // USER PROFILE SYNC
+  // ============================================================================
+
+  Future<_MergeResult> _syncUserProfile(AppDatabase db) async {
+    int downloaded = 0;
+    int uploaded = 0;
+
+    try {
+      // Get local profile
+      final localProfile = await db.getUserProfile();
+      List<Federation> localFederations = [];
+      if (localProfile != null) {
+        localFederations = await db.getFederationsForProfile(localProfile.id);
+      }
+
+      // Get cloud profile
+      final cloudDoc = await _userDoc.collection('data').doc('user_profile').get();
+      final cloudData = cloudDoc.data();
+      final cloudProfile = cloudData?['profile'] as Map<String, dynamic>?;
+      final cloudFederations = (cloudData?['federations'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+
+      // Decide which wins based on updatedAt timestamp
+      DateTime? localUpdated = localProfile?.updatedAt;
+      DateTime? cloudUpdated = cloudProfile?['updatedAt'] != null
+          ? DateTime.parse(cloudProfile!['updatedAt'] as String)
+          : null;
+
+      bool cloudIsNewer = cloudUpdated != null &&
+          (localUpdated == null || cloudUpdated.isAfter(localUpdated));
+
+      if (cloudIsNewer && cloudProfile != null) {
+        // Download cloud profile
+        final profileId = cloudProfile['id'] as String;
+
+        await db.upsertUserProfile(UserProfilesCompanion(
+          id: Value(profileId),
+          primaryBowType: Value(cloudProfile['primaryBowType'] as String? ?? 'recurve'),
+          handedness: Value(cloudProfile['handedness'] as String? ?? 'right'),
+          name: Value(cloudProfile['name'] as String?),
+          clubName: Value(cloudProfile['clubName'] as String?),
+          yearsShootingStart: Value(cloudProfile['yearsShootingStart'] as int?),
+          shootingFrequency: Value((cloudProfile['shootingFrequency'] as num?)?.toDouble() ?? 3.0),
+          competitionLevels: Value(cloudProfile['competitionLevels'] as String? ?? '[]'),
+          notes: Value(cloudProfile['notes'] as String?),
+          createdAt: Value(cloudProfile['createdAt'] != null
+              ? DateTime.parse(cloudProfile['createdAt'] as String)
+              : DateTime.now()),
+          updatedAt: Value(cloudUpdated ?? DateTime.now()),
+        ));
+
+        // Delete local federations and replace with cloud ones
+        await db.deleteFederationsForProfile(profileId);
+        for (final f in cloudFederations) {
+          await db.insertFederation(FederationsCompanion.insert(
+            id: f['id'] as String,
+            profileId: profileId,
+            federationName: f['federationName'] as String,
+            membershipNumber: Value(f['membershipNumber'] as String?),
+            cardImagePath: Value(f['cardImagePath'] as String?),
+            expiryDate: Value(f['expiryDate'] != null
+                ? DateTime.parse(f['expiryDate'] as String)
+                : null),
+            isPrimary: Value(f['isPrimary'] as bool? ?? false),
+          ));
+        }
+
+        downloaded++;
+        debugPrint('User profile: downloaded from cloud');
+      } else if (localProfile != null) {
+        // Upload local profile to cloud
+        await _userDoc.collection('data').doc('user_profile').set({
+          'profile': {
+            'id': localProfile.id,
+            'primaryBowType': localProfile.primaryBowType,
+            'handedness': localProfile.handedness,
+            'name': localProfile.name,
+            'clubName': localProfile.clubName,
+            'yearsShootingStart': localProfile.yearsShootingStart,
+            'shootingFrequency': localProfile.shootingFrequency,
+            'competitionLevels': localProfile.competitionLevels,
+            'notes': localProfile.notes,
+            'createdAt': localProfile.createdAt.toIso8601String(),
+            'updatedAt': localProfile.updatedAt.toIso8601String(),
+          },
+          'federations': localFederations.map((f) => {
+            'id': f.id,
+            'profileId': f.profileId,
+            'federationName': f.federationName,
+            'membershipNumber': f.membershipNumber,
+            'cardImagePath': f.cardImagePath,
+            'expiryDate': f.expiryDate?.toIso8601String(),
+            'isPrimary': f.isPrimary,
+            'createdAt': f.createdAt.toIso8601String(),
+            'updatedAt': f.updatedAt.toIso8601String(),
+          }).toList(),
+          'lastUpdated': FieldValue.serverTimestamp(),
+        });
+
+        uploaded++;
+        debugPrint('User profile: uploaded to cloud');
+      }
+
+      debugPrint('User profile sync: downloaded=$downloaded, uploaded=$uploaded');
+    } catch (e) {
+      debugPrint('Error syncing user profile: $e');
     }
 
     return _MergeResult(downloaded, uploaded);
