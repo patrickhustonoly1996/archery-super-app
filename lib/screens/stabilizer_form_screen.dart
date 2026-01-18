@@ -30,22 +30,31 @@ class _StabilizerFormScreenState extends State<StabilizerFormScreen> {
   late TextEditingController _longRodModelController;
   late TextEditingController _longRodLengthController;
   late TextEditingController _longRodWeightController;
+  late TextEditingController _longRodWeightsController;
 
-  // Side rods
-  late TextEditingController _sideRodModelController;
-  late TextEditingController _sideRodLengthController;
-  late TextEditingController _sideRodWeightController;
+  // Left side rod
+  late TextEditingController _leftSideRodModelController;
+  late TextEditingController _leftSideRodLengthController;
+  late TextEditingController _leftSideRodWeightController;
+  late TextEditingController _leftWeightsController;
+  late TextEditingController _leftAngleHController;
+  late TextEditingController _leftAngleVController;
+
+  // Right side rod
+  late TextEditingController _rightSideRodModelController;
+  late TextEditingController _rightSideRodLengthController;
+  late TextEditingController _rightSideRodWeightController;
+  late TextEditingController _rightWeightsController;
+  late TextEditingController _rightAngleHController;
+  late TextEditingController _rightAngleVController;
 
   // Extender
   late TextEditingController _extenderLengthController;
 
   // V-bar
   late TextEditingController _vbarModelController;
-  late TextEditingController _vbarAngleHController;
-  late TextEditingController _vbarAngleVController;
 
-  // Weights & dampers
-  late TextEditingController _weightArrangementController;
+  // Dampers
   late TextEditingController _damperModelController;
   late TextEditingController _damperPositionsController;
 
@@ -59,6 +68,7 @@ class _StabilizerFormScreenState extends State<StabilizerFormScreen> {
 
     _nameController = TextEditingController(text: s?.name ?? '');
 
+    // Long rod
     _longRodModelController = TextEditingController(text: s?.longRodModel ?? '');
     _longRodLengthController = TextEditingController(
       text: s?.longRodLength?.toStringAsFixed(0) ?? '',
@@ -66,35 +76,50 @@ class _StabilizerFormScreenState extends State<StabilizerFormScreen> {
     _longRodWeightController = TextEditingController(
       text: s?.longRodWeight?.toStringAsFixed(1) ?? '',
     );
+    _longRodWeightsController = TextEditingController(text: s?.longRodWeights ?? '');
 
-    _sideRodModelController = TextEditingController(text: s?.sideRodModel ?? '');
-    _sideRodLengthController = TextEditingController(
-      text: s?.sideRodLength?.toStringAsFixed(0) ?? '',
+    // Left side rod - use new fields if available, fall back to legacy
+    _leftSideRodModelController = TextEditingController(
+      text: s?.leftSideRodModel ?? s?.sideRodModel ?? '',
     );
-    _sideRodWeightController = TextEditingController(
-      text: s?.sideRodWeight?.toStringAsFixed(1) ?? '',
+    _leftSideRodLengthController = TextEditingController(
+      text: (s?.leftSideRodLength ?? s?.sideRodLength)?.toStringAsFixed(0) ?? '',
+    );
+    _leftSideRodWeightController = TextEditingController(
+      text: (s?.leftSideRodWeight ?? s?.sideRodWeight)?.toStringAsFixed(1) ?? '',
+    );
+    _leftWeightsController = TextEditingController(text: s?.leftWeights ?? '');
+    _leftAngleHController = TextEditingController(
+      text: (s?.leftAngleHorizontal ?? s?.vbarAngleHorizontal)?.toStringAsFixed(0) ?? '',
+    );
+    _leftAngleVController = TextEditingController(
+      text: (s?.leftAngleVertical ?? s?.vbarAngleVertical)?.toStringAsFixed(0) ?? '',
+    );
+
+    // Right side rod - use new fields if available, fall back to legacy
+    _rightSideRodModelController = TextEditingController(
+      text: s?.rightSideRodModel ?? s?.sideRodModel ?? '',
+    );
+    _rightSideRodLengthController = TextEditingController(
+      text: (s?.rightSideRodLength ?? s?.sideRodLength)?.toStringAsFixed(0) ?? '',
+    );
+    _rightSideRodWeightController = TextEditingController(
+      text: (s?.rightSideRodWeight ?? s?.sideRodWeight)?.toStringAsFixed(1) ?? '',
+    );
+    _rightWeightsController = TextEditingController(text: s?.rightWeights ?? '');
+    _rightAngleHController = TextEditingController(
+      text: (s?.rightAngleHorizontal ?? s?.vbarAngleHorizontal)?.toStringAsFixed(0) ?? '',
+    );
+    _rightAngleVController = TextEditingController(
+      text: (s?.rightAngleVertical ?? s?.vbarAngleVertical)?.toStringAsFixed(0) ?? '',
     );
 
     _extenderLengthController = TextEditingController(
       text: s?.extenderLength?.toStringAsFixed(1) ?? '',
     );
-
     _vbarModelController = TextEditingController(text: s?.vbarModel ?? '');
-    _vbarAngleHController = TextEditingController(
-      text: s?.vbarAngleHorizontal?.toStringAsFixed(0) ?? '',
-    );
-    _vbarAngleVController = TextEditingController(
-      text: s?.vbarAngleVertical?.toStringAsFixed(0) ?? '',
-    );
-
-    _weightArrangementController = TextEditingController(
-      text: s?.weightArrangement ?? '',
-    );
     _damperModelController = TextEditingController(text: s?.damperModel ?? '');
-    _damperPositionsController = TextEditingController(
-      text: s?.damperPositions ?? '',
-    );
-
+    _damperPositionsController = TextEditingController(text: s?.damperPositions ?? '');
     _notesController = TextEditingController(text: s?.notes ?? '');
   }
 
@@ -104,14 +129,21 @@ class _StabilizerFormScreenState extends State<StabilizerFormScreen> {
     _longRodModelController.dispose();
     _longRodLengthController.dispose();
     _longRodWeightController.dispose();
-    _sideRodModelController.dispose();
-    _sideRodLengthController.dispose();
-    _sideRodWeightController.dispose();
+    _longRodWeightsController.dispose();
+    _leftSideRodModelController.dispose();
+    _leftSideRodLengthController.dispose();
+    _leftSideRodWeightController.dispose();
+    _leftWeightsController.dispose();
+    _leftAngleHController.dispose();
+    _leftAngleVController.dispose();
+    _rightSideRodModelController.dispose();
+    _rightSideRodLengthController.dispose();
+    _rightSideRodWeightController.dispose();
+    _rightWeightsController.dispose();
+    _rightAngleHController.dispose();
+    _rightAngleVController.dispose();
     _extenderLengthController.dispose();
     _vbarModelController.dispose();
-    _vbarAngleHController.dispose();
-    _vbarAngleVController.dispose();
-    _weightArrangementController.dispose();
     _damperModelController.dispose();
     _damperPositionsController.dispose();
     _notesController.dispose();
@@ -135,14 +167,26 @@ class _StabilizerFormScreenState extends State<StabilizerFormScreen> {
       final longRodModel = _nullIfEmpty(_longRodModelController.text);
       final longRodLength = double.tryParse(_longRodLengthController.text);
       final longRodWeight = double.tryParse(_longRodWeightController.text);
-      final sideRodModel = _nullIfEmpty(_sideRodModelController.text);
-      final sideRodLength = double.tryParse(_sideRodLengthController.text);
-      final sideRodWeight = double.tryParse(_sideRodWeightController.text);
+      final longRodWeights = _nullIfEmpty(_longRodWeightsController.text);
+
+      // Left side
+      final leftSideRodModel = _nullIfEmpty(_leftSideRodModelController.text);
+      final leftSideRodLength = double.tryParse(_leftSideRodLengthController.text);
+      final leftSideRodWeight = double.tryParse(_leftSideRodWeightController.text);
+      final leftWeights = _nullIfEmpty(_leftWeightsController.text);
+      final leftAngleH = double.tryParse(_leftAngleHController.text);
+      final leftAngleV = double.tryParse(_leftAngleVController.text);
+
+      // Right side
+      final rightSideRodModel = _nullIfEmpty(_rightSideRodModelController.text);
+      final rightSideRodLength = double.tryParse(_rightSideRodLengthController.text);
+      final rightSideRodWeight = double.tryParse(_rightSideRodWeightController.text);
+      final rightWeights = _nullIfEmpty(_rightWeightsController.text);
+      final rightAngleH = double.tryParse(_rightAngleHController.text);
+      final rightAngleV = double.tryParse(_rightAngleVController.text);
+
       final extenderLength = double.tryParse(_extenderLengthController.text);
       final vbarModel = _nullIfEmpty(_vbarModelController.text);
-      final vbarAngleH = double.tryParse(_vbarAngleHController.text);
-      final vbarAngleV = double.tryParse(_vbarAngleVController.text);
-      final weightArrangement = _nullIfEmpty(_weightArrangementController.text);
       final damperModel = _nullIfEmpty(_damperModelController.text);
       final damperPositions = _nullIfEmpty(_damperPositionsController.text);
       final notes = _nullIfEmpty(_notesController.text);
@@ -154,14 +198,21 @@ class _StabilizerFormScreenState extends State<StabilizerFormScreen> {
           longRodModel: longRodModel,
           longRodLength: longRodLength,
           longRodWeight: longRodWeight,
-          sideRodModel: sideRodModel,
-          sideRodLength: sideRodLength,
-          sideRodWeight: sideRodWeight,
+          longRodWeights: longRodWeights,
+          leftSideRodModel: leftSideRodModel,
+          leftSideRodLength: leftSideRodLength,
+          leftSideRodWeight: leftSideRodWeight,
+          leftWeights: leftWeights,
+          leftAngleHorizontal: leftAngleH,
+          leftAngleVertical: leftAngleV,
+          rightSideRodModel: rightSideRodModel,
+          rightSideRodLength: rightSideRodLength,
+          rightSideRodWeight: rightSideRodWeight,
+          rightWeights: rightWeights,
+          rightAngleHorizontal: rightAngleH,
+          rightAngleVertical: rightAngleV,
           extenderLength: extenderLength,
           vbarModel: vbarModel,
-          vbarAngleHorizontal: vbarAngleH,
-          vbarAngleVertical: vbarAngleV,
-          weightArrangement: weightArrangement,
           damperModel: damperModel,
           damperPositions: damperPositions,
           notes: notes,
@@ -173,14 +224,21 @@ class _StabilizerFormScreenState extends State<StabilizerFormScreen> {
           longRodModel: longRodModel,
           longRodLength: longRodLength,
           longRodWeight: longRodWeight,
-          sideRodModel: sideRodModel,
-          sideRodLength: sideRodLength,
-          sideRodWeight: sideRodWeight,
+          longRodWeights: longRodWeights,
+          leftSideRodModel: leftSideRodModel,
+          leftSideRodLength: leftSideRodLength,
+          leftSideRodWeight: leftSideRodWeight,
+          leftWeights: leftWeights,
+          leftAngleHorizontal: leftAngleH,
+          leftAngleVertical: leftAngleV,
+          rightSideRodModel: rightSideRodModel,
+          rightSideRodLength: rightSideRodLength,
+          rightSideRodWeight: rightSideRodWeight,
+          rightWeights: rightWeights,
+          rightAngleHorizontal: rightAngleH,
+          rightAngleVertical: rightAngleV,
           extenderLength: extenderLength,
           vbarModel: vbarModel,
-          vbarAngleHorizontal: vbarAngleH,
-          vbarAngleVertical: vbarAngleV,
-          weightArrangement: weightArrangement,
           damperModel: damperModel,
           damperPositions: damperPositions,
           notes: notes,
@@ -284,7 +342,7 @@ class _StabilizerFormScreenState extends State<StabilizerFormScreen> {
                   child: TextFormField(
                     controller: _longRodWeightController,
                     decoration: const InputDecoration(
-                      labelText: 'Weight',
+                      labelText: 'Rod Weight',
                       hintText: '8',
                       suffixText: 'oz',
                     ),
@@ -296,52 +354,39 @@ class _StabilizerFormScreenState extends State<StabilizerFormScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: AppSpacing.md),
+            TextFormField(
+              controller: _longRodWeightsController,
+              decoration: const InputDecoration(
+                labelText: 'Weights',
+                hintText: 'e.g., 4x 1oz stacked at end',
+              ),
+            ),
 
             const SizedBox(height: AppSpacing.xl),
-            _buildSectionHeader(context, 'SIDE RODS'),
+            _buildSectionHeader(context, 'LEFT SIDE ROD'),
             const SizedBox(height: AppSpacing.sm),
 
-            TextFormField(
-              controller: _sideRodModelController,
-              decoration: const InputDecoration(
-                labelText: 'Model',
-                hintText: 'e.g., Doinker Platinum',
-              ),
-              textCapitalization: TextCapitalization.words,
+            _buildSideRodSection(
+              modelController: _leftSideRodModelController,
+              lengthController: _leftSideRodLengthController,
+              weightController: _leftSideRodWeightController,
+              weightsController: _leftWeightsController,
+              angleHController: _leftAngleHController,
+              angleVController: _leftAngleVController,
             ),
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _sideRodLengthController,
-                    decoration: const InputDecoration(
-                      labelText: 'Length',
-                      hintText: '12',
-                      suffixText: '"',
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: TextFormField(
-                    controller: _sideRodWeightController,
-                    decoration: const InputDecoration(
-                      labelText: 'Weight (each)',
-                      hintText: '4',
-                      suffixText: 'oz',
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
-                    ],
-                  ),
-                ),
-              ],
+
+            const SizedBox(height: AppSpacing.xl),
+            _buildSectionHeader(context, 'RIGHT SIDE ROD'),
+            const SizedBox(height: AppSpacing.sm),
+
+            _buildSideRodSection(
+              modelController: _rightSideRodModelController,
+              lengthController: _rightSideRodLengthController,
+              weightController: _rightSideRodWeightController,
+              weightsController: _rightWeightsController,
+              angleHController: _rightAngleHController,
+              angleVController: _rightAngleVController,
             ),
 
             const SizedBox(height: AppSpacing.xl),
@@ -355,40 +400,6 @@ class _StabilizerFormScreenState extends State<StabilizerFormScreen> {
                 hintText: 'e.g., Beiter, Doinker',
               ),
               textCapitalization: TextCapitalization.words,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _vbarAngleHController,
-                    decoration: const InputDecoration(
-                      labelText: 'Horizontal Angle',
-                      hintText: '35',
-                      suffixText: '\u00B0',
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: TextFormField(
-                    controller: _vbarAngleVController,
-                    decoration: const InputDecoration(
-                      labelText: 'Vertical Angle',
-                      hintText: '10',
-                      suffixText: '\u00B0',
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
-                    ],
-                  ),
-                ),
-              ],
             ),
             const SizedBox(height: AppSpacing.md),
             TextFormField(
@@ -405,22 +416,13 @@ class _StabilizerFormScreenState extends State<StabilizerFormScreen> {
             ),
 
             const SizedBox(height: AppSpacing.xl),
-            _buildSectionHeader(context, 'WEIGHTS & DAMPERS'),
+            _buildSectionHeader(context, 'DAMPERS'),
             const SizedBox(height: AppSpacing.sm),
 
             TextFormField(
-              controller: _weightArrangementController,
-              decoration: const InputDecoration(
-                labelText: 'Weight Arrangement',
-                hintText: 'e.g., 3x1oz long, 2x1oz each side',
-              ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            TextFormField(
               controller: _damperModelController,
               decoration: const InputDecoration(
-                labelText: 'Damper Model',
+                labelText: 'Model',
                 hintText: 'e.g., Doinker A-Bomb',
               ),
               textCapitalization: TextCapitalization.words,
@@ -429,7 +431,7 @@ class _StabilizerFormScreenState extends State<StabilizerFormScreen> {
             TextFormField(
               controller: _damperPositionsController,
               decoration: const InputDecoration(
-                labelText: 'Damper Positions',
+                labelText: 'Positions',
                 hintText: 'e.g., End of long rod, between weights',
               ),
             ),
@@ -451,6 +453,104 @@ class _StabilizerFormScreenState extends State<StabilizerFormScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSideRodSection({
+    required TextEditingController modelController,
+    required TextEditingController lengthController,
+    required TextEditingController weightController,
+    required TextEditingController weightsController,
+    required TextEditingController angleHController,
+    required TextEditingController angleVController,
+  }) {
+    return Column(
+      children: [
+        TextFormField(
+          controller: modelController,
+          decoration: const InputDecoration(
+            labelText: 'Model',
+            hintText: 'e.g., Doinker Platinum',
+          ),
+          textCapitalization: TextCapitalization.words,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: lengthController,
+                decoration: const InputDecoration(
+                  labelText: 'Length',
+                  hintText: '12',
+                  suffixText: '"',
+                ),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: TextFormField(
+                controller: weightController,
+                decoration: const InputDecoration(
+                  labelText: 'Rod Weight',
+                  hintText: '4',
+                  suffixText: 'oz',
+                ),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        TextFormField(
+          controller: weightsController,
+          decoration: const InputDecoration(
+            labelText: 'Weights',
+            hintText: 'e.g., 2x 1oz',
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: angleHController,
+                decoration: const InputDecoration(
+                  labelText: 'Horizontal Angle',
+                  hintText: '35',
+                  suffixText: '\u00B0',
+                ),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: TextFormField(
+                controller: angleVController,
+                decoration: const InputDecoration(
+                  labelText: 'Vertical Angle',
+                  hintText: '10',
+                  suffixText: '\u00B0',
+                ),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
