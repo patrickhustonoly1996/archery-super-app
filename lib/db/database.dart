@@ -228,10 +228,26 @@ class Stabilizers extends Table {
   RealColumn get longRodWeight => real().nullable()(); // oz
   DateTimeColumn get longRodPurchaseDate => dateTime().nullable()();
 
-  // Side rods
+  // Left side rod
+  TextColumn get leftSideRodModel => text().nullable()();
+  RealColumn get leftSideRodLength => real().nullable()(); // inches
+  RealColumn get leftSideRodWeight => real().nullable()(); // oz (rod weight)
+  TextColumn get leftWeights => text().nullable()(); // e.g., "2x 1oz"
+  RealColumn get leftAngleHorizontal => real().nullable()(); // degrees from center
+  RealColumn get leftAngleVertical => real().nullable()(); // degrees down
+
+  // Right side rod
+  TextColumn get rightSideRodModel => text().nullable()();
+  RealColumn get rightSideRodLength => real().nullable()(); // inches
+  RealColumn get rightSideRodWeight => real().nullable()(); // oz (rod weight)
+  TextColumn get rightWeights => text().nullable()(); // e.g., "2x 1oz"
+  RealColumn get rightAngleHorizontal => real().nullable()(); // degrees from center
+  RealColumn get rightAngleVertical => real().nullable()(); // degrees down
+
+  // Legacy fields (kept for migration)
   TextColumn get sideRodModel => text().nullable()();
-  RealColumn get sideRodLength => real().nullable()(); // inches
-  RealColumn get sideRodWeight => real().nullable()(); // oz
+  RealColumn get sideRodLength => real().nullable()();
+  RealColumn get sideRodWeight => real().nullable()();
   DateTimeColumn get sideRodPurchaseDate => dateTime().nullable()();
 
   // Extender
@@ -239,11 +255,17 @@ class Stabilizers extends Table {
 
   // V-bar
   TextColumn get vbarModel => text().nullable()();
-  RealColumn get vbarAngleHorizontal => real().nullable()(); // degrees
-  RealColumn get vbarAngleVertical => real().nullable()(); // degrees
+  RealColumn get vbarAngleHorizontal => real().nullable()(); // legacy
+  RealColumn get vbarAngleVertical => real().nullable()(); // legacy
 
-  // Weights
-  TextColumn get weightArrangement => text().nullable()(); // e.g., "3x1oz long, 2x1oz sides"
+  // Long rod weights
+  TextColumn get longRodWeights => text().nullable()(); // e.g., "4x 1oz stacked"
+
+  // Legacy
+  TextColumn get weightArrangement => text().nullable()();
+
+  // Setup photo for documentation
+  TextColumn get setupPhotoPath => text().nullable()();
 
   // Dampers
   TextColumn get damperModel => text().nullable()();
@@ -636,7 +658,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 19;
+  int get schemaVersion => 20;
 
   @override
   MigrationStrategy get migration {
@@ -780,6 +802,23 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(bows, bows.eyeToArrowDistance);
           // Finger tabs table
           await m.createTable(fingerTabs);
+        }
+        if (from <= 19) {
+          // Stabilizer left/right side rod fields
+          await m.addColumn(stabilizers, stabilizers.leftSideRodModel);
+          await m.addColumn(stabilizers, stabilizers.leftSideRodLength);
+          await m.addColumn(stabilizers, stabilizers.leftSideRodWeight);
+          await m.addColumn(stabilizers, stabilizers.leftWeights);
+          await m.addColumn(stabilizers, stabilizers.leftAngleHorizontal);
+          await m.addColumn(stabilizers, stabilizers.leftAngleVertical);
+          await m.addColumn(stabilizers, stabilizers.rightSideRodModel);
+          await m.addColumn(stabilizers, stabilizers.rightSideRodLength);
+          await m.addColumn(stabilizers, stabilizers.rightSideRodWeight);
+          await m.addColumn(stabilizers, stabilizers.rightWeights);
+          await m.addColumn(stabilizers, stabilizers.rightAngleHorizontal);
+          await m.addColumn(stabilizers, stabilizers.rightAngleVertical);
+          await m.addColumn(stabilizers, stabilizers.longRodWeights);
+          await m.addColumn(stabilizers, stabilizers.setupPhotoPath);
         }
       },
     );

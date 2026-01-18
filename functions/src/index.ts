@@ -468,3 +468,4 @@ Return ONLY the JSON, no other text.`;
       return { success: false, error: `Failed to learn appearance: ${e}` };
     }
   });
+
