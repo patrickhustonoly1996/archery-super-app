@@ -1,8 +1,10 @@
+import 'dart:math' as math;
+
 import '../models/sight_mark.dart';
 
 /// Calculator for sight mark interpolation and prediction
 /// Uses quadratic curve fitting when possible (3+ marks) for accuracy,
-/// falls back to linear interpolation with 2 marks.
+/// falls back to power-law interpolation with 2 marks (models arrow drop).
 ///
 /// Future: This could be enhanced with crowdsourced data from thousands
 /// of archers to provide accurate predictions even for new users based
@@ -42,9 +44,9 @@ class SightMarkCalculator {
       return _quadraticPredict(filtered, targetDistance, unit);
     }
 
-    // With 2 marks, use linear interpolation
+    // With 2 marks, use power-law interpolation (models arrow ballistics)
     if (filtered.length == 2) {
-      return _linearPredict(filtered, targetDistance, unit);
+      return _twoPointPredict(filtered, targetDistance, unit);
     }
 
     // With 1 mark, can only return that if it's close
@@ -173,13 +175,20 @@ class SightMarkCalculator {
     );
   }
 
-  /// Linear interpolation between two points
-  static PredictedSightMark? _linearPredict(
+  /// Power-law interpolation between two points
+  /// Uses sightMark = c + k * distance^n where n ≈ 1.4
+  /// This models arrow drop physics better than linear interpolation,
+  /// producing increasing gaps at longer distances.
+  static PredictedSightMark? _twoPointPredict(
     List<SightMark> marks,
     double targetDistance,
     DistanceUnit unit,
   ) {
     if (marks.length < 2) return null;
+
+    // Power exponent - between linear (1.0) and quadratic (2.0)
+    // 1.4 is typical for arrow ballistics
+    const double n = 1.4;
 
     // Find bracketing points or nearest two
     SightMark? lower, upper;
@@ -199,10 +208,39 @@ class SightMarkCalculator {
 
     if (lower.distance == upper.distance) return null;
 
-    final ratio = (targetDistance - lower.distance) /
-        (upper.distance - lower.distance);
-    final predicted = lower.numericValue +
-        (upper.numericValue - lower.numericValue) * ratio;
+    final d1 = lower.distance;
+    final d2 = upper.distance;
+    final s1 = lower.numericValue;
+    final s2 = upper.numericValue;
+
+    // Solve for k and c in: sightMark = c + k * d^n
+    // s1 = c + k * d1^n
+    // s2 = c + k * d2^n
+    // k = (s2 - s1) / (d2^n - d1^n)
+    // c = s1 - k * d1^n
+
+    final d1n = math.pow(d1, n).toDouble();
+    final d2n = math.pow(d2, n).toDouble();
+
+    if ((d2n - d1n).abs() < 1e-10) {
+      // Distances too close, fall back to linear
+      final ratio = (targetDistance - d1) / (d2 - d1);
+      final predicted = s1 + (s2 - s1) * ratio;
+      return PredictedSightMark(
+        distance: targetDistance,
+        unit: unit,
+        predictedValue: predicted,
+        confidence: SightMarkConfidence.low,
+        source: 'linear fallback',
+        interpolatedFrom: [lower, upper],
+      );
+    }
+
+    final k = (s2 - s1) / (d2n - d1n);
+    final c = s1 - k * d1n;
+
+    // Predict using power model
+    final predicted = c + k * math.pow(targetDistance, n).toDouble();
 
     final isExtrapolating = targetDistance < marks.first.distance ||
         targetDistance > marks.last.distance;
@@ -214,10 +252,11 @@ class SightMarkCalculator {
       confidence: isExtrapolating
           ? SightMarkConfidence.low
           : SightMarkConfidence.medium,
-      source: isExtrapolating ? 'extrapolated' : 'interpolated',
+      source: isExtrapolating ? 'power extrapolated' : 'power interpolated',
       interpolatedFrom: [lower, upper],
     );
   }
+
 
   /// Calculate R² (coefficient of determination) for quadratic fit
   static double _calculateRSquared(
