@@ -107,7 +107,8 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
       _tickCount = 0;
     });
 
-    // Play inhale beep at start
+    // Cue first inhale with vibration + beep
+    _vibration.inhale();
     if (_beepsEnabled) {
       _beepService.playInhaleBeep();
     }
@@ -232,7 +233,8 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
       _tickCount = 0;
     });
 
-    // One beep for inhale (recovery starts)
+    // Cue first recovery inhale with vibration + beep
+    _vibration.inhale();
     if (_beepsEnabled) {
       _beepService.playInhaleBeep();
     }

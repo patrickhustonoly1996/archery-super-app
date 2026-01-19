@@ -11,8 +11,9 @@ class BeepService {
   BeepService._internal();
 
   AudioPlayer? _player;
-  BytesSource? _longBeepSource;   // Single longer beep for exhale
-  BytesSource? _doubleBeepSource; // Two quick beeps for inhale
+  BytesSource? _longBeepSource;      // Single longer beep for exhale
+  BytesSource? _doubleBeepSource;    // Two quick beeps for inhale
+  BytesSource? _holdStartBeepSource; // Three quick + one long for hold start
   bool _initialized = false;
 
   /// Initialize the beep service and pre-generate the beep sounds.
@@ -25,6 +26,7 @@ class BeepService {
     // Generate the beep audio data
     _longBeepSource = BytesSource(_generateBeepWav(beepCount: 1, durationMs: 250));   // Longer exhale beep
     _doubleBeepSource = BytesSource(_generateBeepWav(beepCount: 2, durationMs: 120)); // Two quick inhale beeps
+    _holdStartBeepSource = BytesSource(_generateHoldStartBeepWav());                   // Hold start pattern
 
     _initialized = true;
   }
@@ -46,6 +48,18 @@ class BeepService {
     try {
       await _player!.stop();
       await _player!.play(_longBeepSource!);
+    } catch (e) {
+      // Silently fail - beeps are non-critical
+    }
+  }
+
+  /// Play a distinctive beep pattern for hold start (matches vibration.holdStart()).
+  /// Three quick beeps then a longer tone - signals transition to breath hold.
+  Future<void> playHoldStartBeep() async {
+    if (!_initialized) await initialize();
+    try {
+      await _player!.stop();
+      await _player!.play(_holdStartBeepSource!);
     } catch (e) {
       // Silently fail - beeps are non-critical
     }
@@ -105,6 +119,67 @@ class BeepService {
     }
 
     // Create WAV file
+    return _createWavFile(samples, sampleRate);
+  }
+
+  /// Generate a WAV file for the hold start pattern.
+  /// Three quick beeps (matching light impacts) + pause + longer tone (matching extended buzz).
+  Uint8List _generateHoldStartBeepWav() {
+    const int sampleRate = 44100;
+    const double frequency = 440.0; // A4 note - slightly higher for distinction
+    const int quickBeepMs = 80;     // Short beeps
+    const int quickGapMs = 100;     // Gap between quick beeps (matches vibration)
+    const int pauseMs = 150;        // Pause before long tone (matches vibration)
+    const int longToneMs = 300;     // Extended tone
+    const double fadeMs = 15.0;     // Quick fade for snappiness
+
+    final int samplesPerQuickBeep = (sampleRate * quickBeepMs / 1000).round();
+    final int samplesPerQuickGap = (sampleRate * quickGapMs / 1000).round();
+    final int samplesPerPause = (sampleRate * pauseMs / 1000).round();
+    final int samplesPerLongTone = (sampleRate * longToneMs / 1000).round();
+    final int fadeSamples = (sampleRate * fadeMs / 1000).round();
+
+    // Total: 3 quick beeps + 2 gaps + pause + long tone
+    final int totalSamples = (samplesPerQuickBeep * 3) +
+        (samplesPerQuickGap * 2) +
+        samplesPerPause +
+        samplesPerLongTone;
+
+    final samples = Int16List(totalSamples);
+    int sampleIndex = 0;
+
+    // Helper to generate a beep at the current index
+    void generateBeep(int durationSamples) {
+      for (int i = 0; i < durationSamples; i++) {
+        double envelope = 1.0;
+        if (i < fadeSamples) {
+          envelope = math.sin((i / fadeSamples) * (math.pi / 2));
+        } else if (i > durationSamples - fadeSamples) {
+          final fadeIndex = durationSamples - i;
+          envelope = math.sin((fadeIndex / fadeSamples) * (math.pi / 2));
+        }
+        final t = i / sampleRate;
+        final sampleValue = math.sin(2 * math.pi * frequency * t) * envelope;
+        samples[sampleIndex++] = (sampleValue * 32767 * 0.4).round().clamp(-32768, 32767);
+      }
+    }
+
+    // Helper to add silence
+    void addSilence(int durationSamples) {
+      for (int i = 0; i < durationSamples; i++) {
+        samples[sampleIndex++] = 0;
+      }
+    }
+
+    // Generate the pattern: beep-gap-beep-gap-beep-pause-long
+    generateBeep(samplesPerQuickBeep);
+    addSilence(samplesPerQuickGap);
+    generateBeep(samplesPerQuickBeep);
+    addSilence(samplesPerQuickGap);
+    generateBeep(samplesPerQuickBeep);
+    addSilence(samplesPerPause);
+    generateBeep(samplesPerLongTone);
+
     return _createWavFile(samples, sampleRate);
   }
 
