@@ -1,6 +1,27 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Text size scaling options
+enum TextScaleOption {
+  small('Small', 0.85),
+  normal('Normal', 1.0),
+  large('Large', 1.15),
+  extraLarge('Extra Large', 1.3);
+
+  final String displayName;
+  final double scaleFactor;
+
+  const TextScaleOption(this.displayName, this.scaleFactor);
+
+  static TextScaleOption fromString(String? value) {
+    if (value == null) return TextScaleOption.normal;
+    return TextScaleOption.values.firstWhere(
+      (o) => o.name == value,
+      orElse: () => TextScaleOption.normal,
+    );
+  }
+}
+
 /// Types of colorblind accessibility modes
 enum ColorblindMode {
   /// Standard colors - no adjustments
@@ -57,14 +78,27 @@ enum ColorblindMode {
 class AccessibilityProvider extends ChangeNotifier {
   static const String _colorblindModeKey = 'colorblind_mode';
   static const String _showRingLabelsKey = 'show_ring_labels';
+  static const String _textScaleKey = 'text_scale';
+  static const String _reduceMotionKey = 'reduce_motion';
+  static const String _boldTextKey = 'bold_text';
+  static const String _screenReaderOptimizedKey = 'screen_reader_optimized';
 
   ColorblindMode _colorblindMode = ColorblindMode.none;
   bool _showRingLabels = false;
+  TextScaleOption _textScale = TextScaleOption.normal;
+  bool _reduceMotion = false;
+  bool _boldText = false;
+  bool _screenReaderOptimized = false;
   bool _isLoaded = false;
 
   // Getters
   ColorblindMode get colorblindMode => _colorblindMode;
   bool get showRingLabels => _showRingLabels;
+  TextScaleOption get textScale => _textScale;
+  double get textScaleFactor => _textScale.scaleFactor;
+  bool get reduceMotion => _reduceMotion;
+  bool get boldText => _boldText;
+  bool get screenReaderOptimized => _screenReaderOptimized;
   bool get isLoaded => _isLoaded;
 
   /// Whether any colorblind mode is active
@@ -79,6 +113,10 @@ class AccessibilityProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       _colorblindMode = ColorblindMode.fromString(prefs.getString(_colorblindModeKey));
       _showRingLabels = prefs.getBool(_showRingLabelsKey) ?? false;
+      _textScale = TextScaleOption.fromString(prefs.getString(_textScaleKey));
+      _reduceMotion = prefs.getBool(_reduceMotionKey) ?? false;
+      _boldText = prefs.getBool(_boldTextKey) ?? false;
+      _screenReaderOptimized = prefs.getBool(_screenReaderOptimizedKey) ?? false;
       _isLoaded = true;
       notifyListeners();
     } catch (e) {
@@ -115,6 +153,66 @@ class AccessibilityProvider extends ChangeNotifier {
       await prefs.setBool(_showRingLabelsKey, show);
     } catch (e) {
       debugPrint('Error saving ring labels setting: $e');
+    }
+  }
+
+  /// Set text scaling option
+  Future<void> setTextScale(TextScaleOption scale) async {
+    if (_textScale == scale) return;
+
+    _textScale = scale;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_textScaleKey, scale.name);
+    } catch (e) {
+      debugPrint('Error saving text scale: $e');
+    }
+  }
+
+  /// Toggle reduced motion (disables animations)
+  Future<void> setReduceMotion(bool reduce) async {
+    if (_reduceMotion == reduce) return;
+
+    _reduceMotion = reduce;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_reduceMotionKey, reduce);
+    } catch (e) {
+      debugPrint('Error saving reduce motion: $e');
+    }
+  }
+
+  /// Toggle bold text
+  Future<void> setBoldText(bool bold) async {
+    if (_boldText == bold) return;
+
+    _boldText = bold;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_boldTextKey, bold);
+    } catch (e) {
+      debugPrint('Error saving bold text: $e');
+    }
+  }
+
+  /// Toggle screen reader optimization (enhanced semantic labels)
+  Future<void> setScreenReaderOptimized(bool optimized) async {
+    if (_screenReaderOptimized == optimized) return;
+
+    _screenReaderOptimized = optimized;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_screenReaderOptimizedKey, optimized);
+    } catch (e) {
+      debugPrint('Error saving screen reader optimization: $e');
     }
   }
 }

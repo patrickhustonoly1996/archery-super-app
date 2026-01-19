@@ -65,9 +65,11 @@ class _ConnectivityIndicatorState extends State<ConnectivityIndicator>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Icon
+                // Icon - respect reduce motion setting
                 if (connectivity.isOffline)
                   _OfflineIcon(size: 16, color: errorColor)
+                else if (accessibility.reduceMotion)
+                  const _SyncIcon(size: 16) // Static icon when motion reduced
                 else
                   RotationTransition(
                     turns: _spinController,
