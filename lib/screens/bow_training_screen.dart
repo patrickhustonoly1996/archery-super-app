@@ -561,140 +561,114 @@ class _CompletionView extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.xl),
 
-              // Feedback section (simplified for custom sessions)
-              if (!isCustom) ...[
-                Text(
-                  'How did it feel?',
-                  style: Theme.of(context).textTheme.titleMedium,
+              // Feedback section - shown for all session types
+              Text(
+                'How did it feel?',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: AppSpacing.md),
+
+              _FeedbackSlider(
+                label: 'Shaking',
+                value: feedbackShaking,
+                onChanged: onShakingChanged,
+                lowLabel: 'None',
+                highLabel: 'Severe',
+              ),
+
+              _FeedbackSlider(
+                label: 'Structure',
+                value: feedbackStructure,
+                onChanged: onStructureChanged,
+                lowLabel: 'Perfect',
+                highLabel: 'Collapsing',
+              ),
+
+              _FeedbackSlider(
+                label: 'Rest',
+                value: feedbackRest,
+                onChanged: onRestChanged,
+                lowLabel: 'Too much',
+                highLabel: 'Not enough',
+              ),
+
+              const SizedBox(height: AppSpacing.xl),
+
+              // Notes field
+              TextField(
+                controller: notesController,
+                decoration: const InputDecoration(
+                  hintText: 'Add notes (optional)',
+                  hintStyle: TextStyle(color: AppColors.textMuted),
                 ),
-                const SizedBox(height: AppSpacing.md),
+                maxLines: 3,
+              ),
 
-                _FeedbackSlider(
-                  label: 'Shaking',
-                  value: feedbackShaking,
-                  onChanged: onShakingChanged,
-                  lowLabel: 'None',
-                  highLabel: 'Severe',
-                ),
+              const SizedBox(height: AppSpacing.xl),
 
-                _FeedbackSlider(
-                  label: 'Structure',
-                  value: feedbackStructure,
-                  onChanged: onStructureChanged,
-                  lowLabel: 'Perfect',
-                  highLabel: 'Collapsing',
-                ),
+              // Log/Save session button
+              ElevatedButton(
+                onPressed: () async {
+                  // Capture hold time before provider resets state
+                  final totalHoldSeconds = provider.totalHoldSecondsActual;
 
-                _FeedbackSlider(
-                  label: 'Rest',
-                  value: feedbackRest,
-                  onChanged: onRestChanged,
-                  lowLabel: 'Too much',
-                  highLabel: 'Not enough',
-                ),
-
-                const SizedBox(height: AppSpacing.xl),
-
-                // Notes field
-                TextField(
-                  controller: notesController,
-                  decoration: const InputDecoration(
-                    hintText: 'Add notes (optional)',
-                    hintStyle: TextStyle(color: AppColors.textMuted),
-                  ),
-                  maxLines: 3,
-                ),
-
-                const SizedBox(height: AppSpacing.xl),
-
-                // Log session button
-                ElevatedButton(
-                  onPressed: () async {
-                    // Capture hold time before provider resets state
-                    final totalHoldSeconds = provider.totalHoldSecondsActual;
-
-                    final result = await ErrorHandler.run(
-                      context,
-                      () => provider.completeSession(
+                  final result = await ErrorHandler.run(
+                    context,
+                    () => isCustom
+                        ? provider.completeCustomSession(
+                            feedbackShaking: feedbackShaking,
+                            feedbackStructure: feedbackStructure,
+                            feedbackRest: feedbackRest,
+                            notes: notesController.text.isEmpty
+                                ? null
+                                : notesController.text,
+                          )
+                        : provider.completeSession(
+                            feedbackShaking: feedbackShaking,
+                            feedbackStructure: feedbackStructure,
+                            feedbackRest: feedbackRest,
+                            notes: notesController.text.isEmpty
+                                ? null
+                                : notesController.text,
+                          ),
+                    successMessage: 'Session logged',
+                    errorMessage: 'Failed to save session',
+                  );
+                  if (result.success) {
+                    // Award XP for bow fitness
+                    if (context.mounted) {
+                      final skillsProvider = context.read<SkillsProvider>();
+                      await skillsProvider.awardBowTrainingXp(
+                        logId: 'bow_training_${DateTime.now().millisecondsSinceEpoch}',
+                        totalHoldSeconds: totalHoldSeconds,
                         feedbackShaking: feedbackShaking,
                         feedbackStructure: feedbackStructure,
                         feedbackRest: feedbackRest,
-                        notes: notesController.text.isEmpty
-                            ? null
-                            : notesController.text,
-                      ),
-                      successMessage: 'Session logged',
-                      errorMessage: 'Failed to save session',
-                    );
-                    if (result.success) {
-                      // Award XP for bow fitness
-                      if (context.mounted) {
-                        final skillsProvider = context.read<SkillsProvider>();
-                        await skillsProvider.awardBowTrainingXp(
-                          logId: 'bow_training_${DateTime.now().millisecondsSinceEpoch}',
-                          totalHoldSeconds: totalHoldSeconds,
-                          feedbackShaking: feedbackShaking,
-                          feedbackStructure: feedbackStructure,
-                          feedbackRest: feedbackRest,
-                        );
-                      }
-                      onComplete();
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                      }
+                      );
                     }
-                  },
-                  child: const Text('Log Session'),
-                ),
-              ] else ...[
-                // Save and done button for custom sessions
-                ElevatedButton(
-                  onPressed: () async {
-                    final result = await ErrorHandler.run(
-                      context,
-                      () => provider.completeCustomSession(),
-                      successMessage: 'Session saved',
-                      errorMessage: 'Failed to save session',
-                    );
-                    if (result.success) {
-                      onComplete();
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                      }
-                    }
-                  },
-                  child: const Text('Save Session'),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                // Discard button for custom sessions
-                TextButton(
-                  onPressed: () {
-                    provider.cancelSession();
                     onComplete();
-                    Navigator.pop(context);
-                  },
-                  child: Text(
-                    'Discard',
-                    style: TextStyle(color: AppColors.textMuted),
-                  ),
-                ),
-              ],
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
+                  }
+                },
+                child: const Text('Log Session'),
+              ),
 
               const SizedBox(height: AppSpacing.sm),
 
-              // Discard button (for OLY sessions only)
-              if (!isCustom)
-                TextButton(
-                  onPressed: () {
-                    provider.cancelSession();
-                    onComplete();
-                    Navigator.pop(context);
-                  },
-                  child: Text(
-                    'Discard',
-                    style: TextStyle(color: AppColors.textMuted),
-                  ),
+              // Discard button
+              TextButton(
+                onPressed: () {
+                  provider.cancelSession();
+                  onComplete();
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  'Discard',
+                  style: TextStyle(color: AppColors.textMuted),
                 ),
+              ),
             ],
           ),
         ),
