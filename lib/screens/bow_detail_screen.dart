@@ -334,7 +334,7 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.gold.withOpacity(0.1),
+            color: AppColors.gold.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(AppSpacing.md),
           ),
           child: BowIcon(
@@ -363,7 +363,7 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.gold.withOpacity(0.2),
+                        color: AppColors.gold.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -400,7 +400,7 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(
-          color: isPrimary ? AppColors.gold.withOpacity(0.3) : AppColors.surfaceBright,
+          color: isPrimary ? AppColors.gold.withValues(alpha: 0.3) : AppColors.surfaceBright,
         ),
         borderRadius: BorderRadius.circular(AppSpacing.sm),
       ),
@@ -414,8 +414,8 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
             ),
             decoration: BoxDecoration(
               color: isPrimary
-                  ? AppColors.gold.withOpacity(0.1)
-                  : AppColors.surfaceBright.withOpacity(0.5),
+                  ? AppColors.gold.withValues(alpha: 0.1)
+                  : AppColors.surfaceBright.withValues(alpha: 0.5),
               borderRadius: BorderRadius.vertical(
                 top: Radius.circular(AppSpacing.sm - 1),
               ),
@@ -565,7 +565,7 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
                   vertical: AppSpacing.sm,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceBright.withOpacity(0.5),
+                  color: AppColors.surfaceBright.withValues(alpha: 0.5),
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(AppSpacing.sm - 1),
                   ),
@@ -682,7 +682,7 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
                   vertical: AppSpacing.sm,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceBright.withOpacity(0.5),
+                  color: AppColors.surfaceBright.withValues(alpha: 0.5),
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(AppSpacing.sm - 1),
                   ),
@@ -776,7 +776,7 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
                             vertical: 1,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.gold.withOpacity(0.2),
+                            color: AppColors.gold.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -826,7 +826,7 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
 
         return Container(
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+            border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
             borderRadius: BorderRadius.circular(AppSpacing.sm),
           ),
           child: Column(
@@ -838,7 +838,7 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
                   vertical: AppSpacing.sm,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.gold.withOpacity(0.1),
+                  color: AppColors.gold.withValues(alpha: 0.1),
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(AppSpacing.sm - 1),
                   ),

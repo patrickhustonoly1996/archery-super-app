@@ -104,7 +104,7 @@ class FullScorecardWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
       decoration: BoxDecoration(
-        color: AppColors.surfaceLight.withOpacity(0.3),
+        color: AppColors.surfaceLight.withValues(alpha: 0.3),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(AppSpacing.sm - 1),
           topRight: Radius.circular(AppSpacing.sm - 1),
@@ -172,12 +172,12 @@ class FullScorecardWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: isComplete
             ? Colors.transparent
-            : AppColors.surfaceLight.withOpacity(0.1),
+            : AppColors.surfaceLight.withValues(alpha: 0.1),
         border: Border(
           bottom: BorderSide(
             color: isDistanceEnd
-                ? AppColors.gold.withOpacity(0.5)
-                : AppColors.surfaceLight.withOpacity(0.3),
+                ? AppColors.gold.withValues(alpha: 0.5)
+                : AppColors.surfaceLight.withValues(alpha: 0.3),
             width: isDistanceEnd ? 2 : 0.5,
           ),
         ),
@@ -308,9 +308,9 @@ class FullScorecardWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
       decoration: BoxDecoration(
-        color: AppColors.gold.withOpacity(0.1),
+        color: AppColors.gold.withValues(alpha: 0.1),
         border: Border(
-          bottom: BorderSide(color: AppColors.gold.withOpacity(0.5), width: 1),
+          bottom: BorderSide(color: AppColors.gold.withValues(alpha: 0.5), width: 1),
         ),
       ),
       child: Row(
@@ -381,7 +381,7 @@ class FullScorecardWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       decoration: BoxDecoration(
-        color: AppColors.surfaceLight.withOpacity(0.3),
+        color: AppColors.surfaceLight.withValues(alpha: 0.3),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(AppSpacing.sm - 1),
           bottomRight: Radius.circular(AppSpacing.sm - 1),
@@ -451,7 +451,7 @@ class FullScorecardWidget extends StatelessWidget {
   Color _getScoreColor(int score, bool isX) {
     if (isX) return AppColors.gold;
     if (score == 10) return AppColors.gold;
-    if (score >= 9) return AppColors.gold.withOpacity(0.8);
+    if (score >= 9) return AppColors.gold.withValues(alpha: 0.8);
     if (score >= 7) return const Color(0xFFFF5555); // Red
     if (score >= 5) return const Color(0xFF5599FF); // Blue
     return AppColors.textMuted;

@@ -224,7 +224,7 @@ class _InteractiveTripleSpotTargetState
         borderRadius: BorderRadius.circular(4),
         boxShadow: [
           BoxShadow(
-            color: AppColors.gold.withOpacity(0.3),
+            color: AppColors.gold.withValues(alpha: 0.3),
             blurRadius: 8,
             spreadRadius: 1,
           ),
@@ -262,17 +262,18 @@ class _InteractiveTripleSpotTargetState
         height: selectorSize + 4,
         padding: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.gold.withOpacity(0.2) : Colors.transparent,
+          color: isSelected ? AppColors.gold.withValues(alpha: 0.2) : Colors.transparent,
           border: Border.all(
             color: isSelected
                 ? AppColors.gold
-                : (hasArrow ? AppColors.gold.withOpacity(0.3) : AppColors.surfaceLight),
+                : (hasArrow ? AppColors.gold.withValues(alpha: 0.3) : AppColors.surfaceLight),
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             // Small target preview
             TargetFace(
@@ -281,9 +282,10 @@ class _InteractiveTripleSpotTargetState
               triSpot: true,
               compoundScoring: widget.compoundScoring,
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 2),
             // Face number and score
-            Column(
+            Flexible(
+              child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -305,6 +307,7 @@ class _InteractiveTripleSpotTargetState
                     ),
                   ),
               ],
+            ),
             ),
           ],
         ),
@@ -363,7 +366,7 @@ class TripleSpotToggle extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.gold.withOpacity(0.2) : Colors.transparent,
+          color: isSelected ? AppColors.gold.withValues(alpha: 0.2) : Colors.transparent,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

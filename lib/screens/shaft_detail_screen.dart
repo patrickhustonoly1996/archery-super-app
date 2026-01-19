@@ -466,7 +466,7 @@ class _ShaftDetailScreenState extends State<ShaftDetailScreen> {
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surfaceBright.withOpacity(0.5),
+        color: AppColors.surfaceBright.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(AppSpacing.xs),
       ),
       child: Text(
@@ -525,9 +525,9 @@ class _ShaftDetailScreenState extends State<ShaftDetailScreen> {
                   });
                 },
           backgroundColor: isRetired
-              ? AppColors.surfaceLight.withOpacity(0.3)
+              ? AppColors.surfaceLight.withValues(alpha: 0.3)
               : AppColors.surfaceDark,
-          selectedColor: AppColors.gold.withOpacity(0.2),
+          selectedColor: AppColors.gold.withValues(alpha: 0.2),
           checkmarkColor: AppColors.gold,
           labelStyle: TextStyle(
             color: isRetired

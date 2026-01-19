@@ -145,7 +145,7 @@ class _CircularSweepPainter extends CustomPainter {
 
     // Outer glow
     final glowPaint = Paint()
-      ..color = AppColors.gold.withOpacity(opacity * 0.3)
+      ..color = AppColors.gold.withValues(alpha: opacity * 0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 12
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
@@ -153,14 +153,14 @@ class _CircularSweepPainter extends CustomPainter {
 
     // Main ring
     final ringPaint = Paint()
-      ..color = AppColors.gold.withOpacity(opacity)
+      ..color = AppColors.gold.withValues(alpha: opacity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
     canvas.drawCircle(center, radius, ringPaint);
 
     // Inner subtle ring
     final innerRingPaint = Paint()
-      ..color = AppColors.gold.withOpacity(opacity * 0.4)
+      ..color = AppColors.gold.withValues(alpha: opacity * 0.4)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
     canvas.drawCircle(center, radius * 0.85, innerRingPaint);
@@ -174,7 +174,7 @@ class _CircularSweepPainter extends CustomPainter {
 
     // Glowing progress arc
     final glowPaint = Paint()
-      ..color = AppColors.gold.withOpacity(0.6 * glowValue)
+      ..color = AppColors.gold.withValues(alpha: 0.6 * glowValue)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 16
       ..strokeCap = StrokeCap.round
@@ -197,7 +197,7 @@ class _CircularSweepPainter extends CustomPainter {
 
       // Dot glow
       final dotGlowPaint = Paint()
-        ..color = AppColors.gold.withOpacity(0.8)
+        ..color = AppColors.gold.withValues(alpha: 0.8)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
       canvas.drawCircle(Offset(dotX, dotY), 10, dotGlowPaint);
 
@@ -209,7 +209,7 @@ class _CircularSweepPainter extends CustomPainter {
 
   void _drawTickMarks(Canvas canvas, Offset center, double radius) {
     final tickPaint = Paint()
-      ..color = AppColors.gold.withOpacity(isScanning ? 0.6 : 0.3)
+      ..color = AppColors.gold.withValues(alpha: isScanning ? 0.6 : 0.3)
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
 
@@ -232,7 +232,7 @@ class _CircularSweepPainter extends CustomPainter {
 
   void _drawCrosshair(Canvas canvas, Offset center, double radius) {
     final crosshairPaint = Paint()
-      ..color = AppColors.gold.withOpacity(isScanning ? 0.8 : 0.4)
+      ..color = AppColors.gold.withValues(alpha: isScanning ? 0.8 : 0.4)
       ..strokeWidth = 1;
 
     final crosshairSize = radius * 0.15;
@@ -253,14 +253,14 @@ class _CircularSweepPainter extends CustomPainter {
 
     // Center dot
     final dotPaint = Paint()
-      ..color = AppColors.gold.withOpacity(isScanning ? 1.0 : 0.5);
+      ..color = AppColors.gold.withValues(alpha: isScanning ? 1.0 : 0.5);
     canvas.drawCircle(center, 3, dotPaint);
   }
 
   void _drawMotionIndicators(Canvas canvas, Offset center, double radius) {
     // Draw curved arrows indicating clockwise motion
     final arrowPaint = Paint()
-      ..color = AppColors.gold.withOpacity(pulseValue * 0.8)
+      ..color = AppColors.gold.withValues(alpha: pulseValue * 0.8)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
@@ -300,7 +300,7 @@ class _CircularSweepPainter extends CustomPainter {
   void _drawCompletionBurst(Canvas canvas, Offset center, double radius) {
     // Draw radiating lines for completion effect
     final burstPaint = Paint()
-      ..color = AppColors.gold.withOpacity(glowValue * 0.6)
+      ..color = AppColors.gold.withValues(alpha: glowValue * 0.6)
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
 
@@ -360,7 +360,7 @@ class ScanInstructionOverlay extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.surfaceDark.withOpacity(0.9),
+            color: AppColors.surfaceDark.withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(

@@ -5,7 +5,6 @@ import '../theme/app_theme.dart';
 import '../models/arrow_coordinate.dart';
 import '../services/sync_service.dart';
 import '../utils/unique_id.dart';
-import '../utils/error_handler.dart';
 
 /// Manages the active scoring session state
 class SessionProvider extends ChangeNotifier {

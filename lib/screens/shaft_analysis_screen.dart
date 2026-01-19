@@ -154,7 +154,7 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
 
   Widget _buildWarningCard(String warning) {
     return Card(
-      color: AppColors.gold.withOpacity(0.1),
+      color: AppColors.gold.withValues(alpha: 0.1),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
@@ -175,7 +175,7 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
 
   Widget _buildRetirementCard(List<Shaft> candidates) {
     return Card(
-      color: AppColors.error.withOpacity(0.1),
+      color: AppColors.error.withValues(alpha: 0.1),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
@@ -235,7 +235,7 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: indicatorColor.withOpacity(0.2),
+                  color: indicatorColor.withValues(alpha: 0.2),
                   border: Border.all(color: indicatorColor, width: 2),
                   borderRadius: BorderRadius.circular(AppSpacing.sm),
                 ),

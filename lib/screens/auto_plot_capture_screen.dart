@@ -218,7 +218,7 @@ class _AutoPlotCaptureScreenState extends State<AutoPlotCaptureScreen> {
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      color: isLow ? AppColors.error.withOpacity(0.2) : AppColors.surfaceDark,
+      color: isLow ? AppColors.error.withValues(alpha: 0.2) : AppColors.surfaceDark,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -291,7 +291,7 @@ class _AutoPlotCaptureScreenState extends State<AutoPlotCaptureScreen> {
         children: [
           CameraPreview(_cameraController!),
           Container(
-            color: AppColors.background.withOpacity(0.8),
+            color: AppColors.background.withValues(alpha: 0.8),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -320,7 +320,7 @@ class _AutoPlotCaptureScreenState extends State<AutoPlotCaptureScreen> {
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.surfaceDark.withOpacity(0.9),
+              color: AppColors.surfaceDark.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -343,7 +343,7 @@ class _AutoPlotCaptureScreenState extends State<AutoPlotCaptureScreen> {
           height: size,
           decoration: BoxDecoration(
             border: Border.all(
-              color: AppColors.gold.withOpacity(0.5),
+              color: AppColors.gold.withValues(alpha: 0.5),
               width: 2,
             ),
             borderRadius: BorderRadius.circular(size / 2),

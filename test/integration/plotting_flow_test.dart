@@ -16,6 +16,10 @@ import 'package:archery_super_app/providers/equipment_provider.dart';
 import 'package:archery_super_app/providers/connectivity_provider.dart';
 import 'package:archery_super_app/providers/skills_provider.dart';
 import 'package:archery_super_app/providers/sight_marks_provider.dart';
+import 'package:archery_super_app/providers/auto_plot_provider.dart';
+import 'package:archery_super_app/providers/user_profile_provider.dart';
+import 'package:archery_super_app/providers/classification_provider.dart';
+import 'package:archery_super_app/services/vision_api_service.dart';
 import 'package:archery_super_app/screens/plotting_screen.dart';
 import 'package:archery_super_app/screens/session_start_screen.dart';
 import 'package:archery_super_app/screens/session_complete_screen.dart';
@@ -55,6 +59,12 @@ Widget buildTestApp({
           create: (context) =>
               SkillsProvider(context.read<AppDatabase>())..loadSkills(),
         ),
+        ChangeNotifierProvider(
+          create: (context) => AutoPlotProvider(
+            context.read<AppDatabase>(),
+            VisionApiService(),
+          ),
+        ),
       ],
       child: MaterialApp(
         theme: AppTheme.darkTheme,
@@ -84,6 +94,12 @@ Widget buildPlottingTestApp({
         ChangeNotifierProvider(
           create: (context) =>
               SkillsProvider(context.read<AppDatabase>())..loadSkills(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => AutoPlotProvider(
+            context.read<AppDatabase>(),
+            VisionApiService(),
+          ),
         ),
       ],
       child: MaterialApp(
@@ -350,6 +366,8 @@ void main() {
         final equipmentProvider = EquipmentProvider(db);
         final skillsProvider = SkillsProvider(db)..loadSkills();
         final sightMarksProvider = SightMarksProvider(db);
+        final userProfileProvider = UserProfileProvider(db);
+        final classificationProvider = ClassificationProvider(db);
         await tester.pumpWidget(
           Provider<AppDatabase>.value(
             value: db,
@@ -366,6 +384,12 @@ void main() {
                 ),
                 ChangeNotifierProvider<SightMarksProvider>.value(
                   value: sightMarksProvider,
+                ),
+                ChangeNotifierProvider<UserProfileProvider>.value(
+                  value: userProfileProvider,
+                ),
+                ChangeNotifierProvider<ClassificationProvider>.value(
+                  value: classificationProvider,
                 ),
               ],
               child: MaterialApp(
@@ -665,8 +689,8 @@ void main() {
         ));
         await tester.pumpAndSettle();
 
-        // Verify target faces are displayed (WA 18m uses trispot = 3 faces)
-        expect(find.byType(InteractiveTargetFace), findsNWidgets(3));
+        // Verify target face is displayed (single face with trispot rendering mode)
+        expect(find.byType(InteractiveTargetFace), findsOneWidget);
 
         // Verify arrows are displayed on the target
         expect(sessionProvider.allSessionArrows.length, equals(1));

@@ -47,7 +47,7 @@ class _QuiverIconPainter extends CustomPainter {
 
     // Fill quiver lightly
     final fillPaint = Paint()
-      ..color = color.withOpacity(0.15)
+      ..color = color.withValues(alpha: 0.15)
       ..style = PaintingStyle.fill;
     canvas.drawPath(quiverPath, fillPaint);
 

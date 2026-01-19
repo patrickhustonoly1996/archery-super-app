@@ -196,7 +196,7 @@ class CompactNockRotationSelector extends StatelessWidget {
           vertical: AppSpacing.xs,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.gold.withOpacity(0.2) : Colors.transparent,
+          color: isSelected ? AppColors.gold.withValues(alpha: 0.2) : Colors.transparent,
           border: Border.all(
             color: isSelected ? AppColors.gold : AppColors.surfaceLight,
           ),

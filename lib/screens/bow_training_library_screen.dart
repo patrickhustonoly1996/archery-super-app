@@ -286,12 +286,12 @@ class _SessionTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       color: isRecommended
-          ? AppColors.gold.withOpacity(0.1)
+          ? AppColors.gold.withValues(alpha: 0.1)
           : AppColors.surfaceDark,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.sm),
         side: isRecommended
-            ? BorderSide(color: AppColors.gold.withOpacity(0.5))
+            ? BorderSide(color: AppColors.gold.withValues(alpha: 0.5))
             : BorderSide.none,
       ),
       child: InkWell(
@@ -307,7 +307,7 @@ class _SessionTile extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   color: isRecommended
-                      ? AppColors.gold.withOpacity(0.2)
+                      ? AppColors.gold.withValues(alpha: 0.2)
                       : AppColors.surfaceLight,
                   borderRadius: BorderRadius.circular(AppSpacing.sm),
                 ),
@@ -350,7 +350,7 @@ class _SessionTile extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.gold.withOpacity(0.2),
+                              color: AppColors.gold.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(

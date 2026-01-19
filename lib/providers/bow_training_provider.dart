@@ -7,7 +7,6 @@ import '../services/sync_service.dart';
 import '../services/vibration_service.dart';
 import '../services/training_session_service.dart';
 import '../utils/unique_id.dart';
-import '../utils/error_handler.dart';
 
 /// Timer phases for bow training
 enum TimerPhase {

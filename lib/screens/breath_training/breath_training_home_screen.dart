@@ -204,7 +204,7 @@ class _SessionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: highlight
-          ? AppColors.gold.withOpacity(0.1)
+          ? AppColors.gold.withValues(alpha: 0.1)
           : AppColors.surfaceDark,
       borderRadius: BorderRadius.circular(AppSpacing.md),
       child: InkWell(
@@ -217,7 +217,7 @@ class _SessionCard extends StatelessWidget {
               ? BoxDecoration(
                   borderRadius: BorderRadius.circular(AppSpacing.md),
                   border: Border.all(
-                    color: AppColors.gold.withOpacity(0.5),
+                    color: AppColors.gold.withValues(alpha: 0.5),
                     width: 1,
                   ),
                 )
@@ -228,7 +228,7 @@ class _SessionCard extends StatelessWidget {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: AppColors.gold.withOpacity(0.1),
+                  color: AppColors.gold.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppSpacing.sm),
                 ),
                 child: Icon(

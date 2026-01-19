@@ -4,11 +4,9 @@ import '../theme/app_theme.dart';
 import '../providers/session_provider.dart';
 import '../providers/equipment_provider.dart';
 import '../providers/skills_provider.dart';
-import '../providers/sight_marks_provider.dart';
 import '../providers/user_profile_provider.dart';
 import '../providers/classification_provider.dart';
 import '../models/sight_mark.dart';
-import '../models/user_profile.dart';
 import '../models/classification.dart';
 import '../utils/handicap_calculator.dart';
 import '../widgets/stat_box.dart';
@@ -223,7 +221,7 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.gold.withOpacity(0.2),
+                    color: AppColors.gold.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -326,7 +324,7 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.gold.withOpacity(0.2),
+                    color: AppColors.gold.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -499,7 +497,7 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
                     height: 80,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.gold.withOpacity(0.1),
+                      color: AppColors.gold.withValues(alpha: 0.1),
                     ),
                     child: const Icon(
                       Icons.check_circle,

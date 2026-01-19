@@ -6,7 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:synchronized/synchronized.dart';
 import '../db/database.dart';
-import '../utils/unique_id.dart';
 
 /// Entity types supported by sync
 enum SyncEntityType {
@@ -57,8 +56,17 @@ class SyncService {
   factory SyncService() => _instance;
   SyncService._internal();
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  // Lazy Firebase initialization to avoid crashes in test environments
+  FirebaseFirestore? _firestoreInstance;
+  FirebaseAuth? _authInstance;
+  FirebaseFirestore get _firestore {
+    _firestoreInstance ??= FirebaseFirestore.instance;
+    return _firestoreInstance!;
+  }
+  FirebaseAuth get _auth {
+    _authInstance ??= FirebaseAuth.instance;
+    return _authInstance!;
+  }
   final Lock _syncLock = Lock();
 
   AppDatabase? _db;
@@ -70,7 +78,14 @@ class SyncService {
   /// Maximum retry count before giving up on a queued operation
   static const int _maxRetries = 5;
 
-  String? get _userId => _auth.currentUser?.uid;
+  String? get _userId {
+    try {
+      return _auth.currentUser?.uid;
+    } catch (e) {
+      // Firebase not initialized (e.g., test environment)
+      return null;
+    }
+  }
   bool get isAuthenticated => _userId != null;
   bool get isSyncing => _isSyncing;
 

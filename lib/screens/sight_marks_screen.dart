@@ -212,7 +212,7 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
                   vertical: AppSpacing.xs,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.gold.withOpacity(0.1),
+                  color: AppColors.gold.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppSpacing.xs),
                 ),
                 child: Text(
@@ -398,7 +398,7 @@ class _MarkDetailsSheet extends StatelessWidget {
                   label: const Text('Delete'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.error,
-                    side: BorderSide(color: AppColors.error.withOpacity(0.5)),
+                    side: BorderSide(color: AppColors.error.withValues(alpha: 0.5)),
                   ),
                 ),
               ),

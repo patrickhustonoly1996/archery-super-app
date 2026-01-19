@@ -337,7 +337,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                               dotData: FlDotData(show: false),
                               belowBarData: BarAreaData(
                                 show: true,
-                                color: Colors.green.withOpacity(0.25),
+                                color: Colors.green.withValues(alpha: 0.25),
                               ),
                             ),
                         ],
@@ -354,7 +354,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                           barRods: [
                             BarChartRodData(
                               toY: entry.value.arrowCount.toDouble(),
-                              color: AppColors.gold.withOpacity(0.7),
+                              color: AppColors.gold.withValues(alpha: 0.7),
                               width: barWidth,
                               borderRadius: BorderRadius.only(
                                 topLeft: Radius.circular(2),
@@ -477,7 +477,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           width: 12,
           height: isArea ? 8 : 2,
           decoration: BoxDecoration(
-            color: isArea ? color.withOpacity(0.4) : color,
+            color: isArea ? color.withValues(alpha: 0.4) : color,
             border: isArea ? Border.all(color: color, width: 1) : null,
           ),
         ),

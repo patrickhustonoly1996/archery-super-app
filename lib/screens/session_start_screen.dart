@@ -407,7 +407,7 @@ class _RoundTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Material(
-        color: isSelected ? AppColors.gold.withOpacity(0.1) : AppColors.surfaceDark,
+        color: isSelected ? AppColors.gold.withValues(alpha: 0.1) : AppColors.surfaceDark,
         borderRadius: BorderRadius.circular(AppSpacing.sm),
         child: InkWell(
           onTap: onTap,
@@ -446,7 +446,7 @@ class _RoundTile extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.gold.withOpacity(0.2),
+                      color: AppColors.gold.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(

@@ -457,8 +457,8 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
       ),
       decoration: BoxDecoration(
         color: isPrimary
-            ? AppColors.gold.withOpacity(0.1)
-            : AppColors.surfaceBright.withOpacity(0.5),
+            ? AppColors.gold.withValues(alpha: 0.1)
+            : AppColors.surfaceBright.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(AppSpacing.xs),
       ),
       child: Text(

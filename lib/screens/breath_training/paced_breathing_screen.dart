@@ -11,7 +11,6 @@ import '../../services/vibration_service.dart';
 import '../../services/training_session_service.dart';
 import '../../widgets/breathing_visualizer.dart';
 import '../../widgets/breathing_reminder.dart';
-import '../../providers/skills_provider.dart';
 
 /// Paced breathing session - inhale for 4, exhale for 6
 /// Session with configurable duration

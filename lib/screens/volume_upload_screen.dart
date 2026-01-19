@@ -67,7 +67,7 @@ class _VolumeUploadScreenState extends State<VolumeUploadScreen> {
               padding: const EdgeInsets.all(AppSpacing.md),
               margin: const EdgeInsets.only(bottom: AppSpacing.lg),
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
+                color: AppColors.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppSpacing.sm),
               ),
               child: Row(
@@ -714,7 +714,7 @@ class _InputOptionCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.gold.withOpacity(0.1),
+                  color: AppColors.gold.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppSpacing.sm),
                 ),
                 child: Icon(icon, color: AppColors.gold, size: 24),
@@ -968,7 +968,7 @@ class _ColumnTag extends StatelessWidget {
       margin: const EdgeInsets.only(left: 4),
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(3),
       ),
       child: Text(
@@ -1039,7 +1039,7 @@ class _PreviousImportsSheet extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: AppColors.gold.withOpacity(0.1),
+                    color: AppColors.gold.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(AppSpacing.sm),
                   ),
                   child: const Icon(Icons.table_chart, color: AppColors.gold, size: 20),

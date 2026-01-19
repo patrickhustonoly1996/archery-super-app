@@ -365,7 +365,7 @@ class _ProgressCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surfaceDark,
         borderRadius: BorderRadius.circular(AppSpacing.sm),
-        border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -373,7 +373,7 @@ class _ProgressCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.gold.withOpacity(0.1),
+              color: AppColors.gold.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppSpacing.sm),
             ),
             child: Center(
@@ -497,12 +497,12 @@ class _ActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       color: isHighlight
-          ? AppColors.gold.withOpacity(0.1)
+          ? AppColors.gold.withValues(alpha: 0.1)
           : AppColors.surfaceDark,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.sm),
         side: isHighlight
-            ? BorderSide(color: AppColors.gold.withOpacity(0.5))
+            ? BorderSide(color: AppColors.gold.withValues(alpha: 0.5))
             : BorderSide.none,
       ),
       child: InkWell(
@@ -554,7 +554,7 @@ class _RecentLogTile extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.xs),
-      color: AppColors.surfaceLight.withOpacity(0.5),
+      color: AppColors.surfaceLight.withValues(alpha: 0.5),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
@@ -693,7 +693,7 @@ class _CustomSessionBuilderState extends State<_CustomSessionBuilder> {
             max: 30,
             divisions: 5,
             activeColor: AppColors.gold,
-            inactiveColor: AppColors.gold.withOpacity(0.3),
+            inactiveColor: AppColors.gold.withValues(alpha: 0.3),
             onChanged: (value) => setState(() => _durationMinutes = value.toInt()),
           ),
           const SizedBox(height: AppSpacing.md),

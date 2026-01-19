@@ -152,7 +152,7 @@ class _ShaftCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: isRetired
-              ? AppColors.surfaceLight.withOpacity(0.3)
+              ? AppColors.surfaceLight.withValues(alpha: 0.3)
               : AppColors.surfaceDark,
           border: Border.all(
             color: isRetired ? AppColors.textMuted : AppColors.gold,

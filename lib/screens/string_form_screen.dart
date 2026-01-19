@@ -313,7 +313,7 @@ class _StringFormScreenState extends State<StringFormScreen> {
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surfaceBright.withOpacity(0.5),
+        color: AppColors.surfaceBright.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(AppSpacing.xs),
       ),
       child: Text(

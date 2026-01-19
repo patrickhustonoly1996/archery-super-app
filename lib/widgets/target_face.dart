@@ -539,7 +539,7 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
                   height: previewSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.gold.withOpacity(0.8),
+                    color: AppColors.gold.withValues(alpha: 0.8),
                     border: Border.all(color: Colors.black, width: 1.5),
                   ),
                 ),
@@ -560,7 +560,7 @@ class _OffsetLinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.gold.withOpacity(0.6)
+      ..color = AppColors.gold.withValues(alpha: 0.6)
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
 
@@ -620,7 +620,7 @@ class FixedZoomWindow extends StatelessWidget {
         border: Border.all(color: AppColors.gold, width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),

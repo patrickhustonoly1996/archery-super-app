@@ -249,7 +249,7 @@ class _EndCard extends StatelessWidget {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: AppColors.gold.withOpacity(0.1),
+                    color: AppColors.gold.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Center(
@@ -277,7 +277,7 @@ class _EndCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.gold.withOpacity(0.2),
+                      color: AppColors.gold.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
@@ -305,7 +305,7 @@ class _EndCard extends StatelessWidget {
                     height: 32,
                     decoration: BoxDecoration(
                       color: arrow.isX
-                          ? AppColors.gold.withOpacity(0.2)
+                          ? AppColors.gold.withValues(alpha: 0.2)
                           : AppColors.surfaceLight,
                       borderRadius: BorderRadius.circular(4),
                       border: arrow.isX

@@ -2,8 +2,6 @@ import 'package:flutter/foundation.dart';
 import '../db/database.dart';
 import '../services/xp_calculation_service.dart';
 import '../services/sync_service.dart';
-import '../utils/error_handler.dart';
-import '../utils/unique_id.dart';
 
 /// Represents a pending level-up for celebration display
 class LevelUpEvent {

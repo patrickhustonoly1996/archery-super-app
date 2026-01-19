@@ -187,7 +187,7 @@ class _BowTrainingIntroScreenState extends State<BowTrainingIntroScreen> {
                         child: OutlinedButton(
                           onPressed: () => _showCustomSessionBuilder(),
                           style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: AppColors.gold.withOpacity(0.5)),
+                            side: BorderSide(color: AppColors.gold.withValues(alpha: 0.5)),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                           child: const Row(
@@ -256,7 +256,7 @@ class _LevelIndicator extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surfaceDark,
         borderRadius: BorderRadius.circular(AppSpacing.sm),
-        border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -266,7 +266,7 @@ class _LevelIndicator extends StatelessWidget {
               vertical: AppSpacing.xs,
             ),
             decoration: BoxDecoration(
-              color: AppColors.gold.withOpacity(0.1),
+              color: AppColors.gold.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppSpacing.xs),
             ),
             child: Text(
@@ -385,7 +385,7 @@ class _RatioSelector extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppColors.gold.withOpacity(0.15)
+                      ? AppColors.gold.withValues(alpha: 0.15)
                       : AppColors.surfaceDark,
                   borderRadius: BorderRadius.circular(AppSpacing.sm),
                   border: Border.all(
@@ -409,7 +409,7 @@ class _RatioSelector extends StatelessWidget {
                       option.description,
                       style: TextStyle(
                         color: isSelected
-                            ? AppColors.gold.withOpacity(0.8)
+                            ? AppColors.gold.withValues(alpha: 0.8)
                             : AppColors.textMuted,
                         fontSize: 11,
                       ),
@@ -699,9 +699,9 @@ class _InstructionsView extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.error.withOpacity(0.1),
+            color: AppColors.error.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(AppSpacing.sm),
-            border: Border.all(color: AppColors.error.withOpacity(0.3)),
+            border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
@@ -745,7 +745,7 @@ class _InstructionItem extends StatelessWidget {
             width: 24,
             height: 24,
             decoration: BoxDecoration(
-              color: AppColors.gold.withOpacity(0.2),
+              color: AppColors.gold.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
@@ -927,7 +927,7 @@ class _ResultView extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.surfaceDark,
             borderRadius: BorderRadius.circular(AppSpacing.md),
-            border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+            border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
           ),
           child: Column(
             children: [
@@ -1181,7 +1181,7 @@ class _ProgressSummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surfaceDark,
         borderRadius: BorderRadius.circular(AppSpacing.sm),
-        border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -1189,7 +1189,7 @@ class _ProgressSummaryCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.gold.withOpacity(0.1),
+              color: AppColors.gold.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppSpacing.sm),
             ),
             child: Center(
@@ -1263,12 +1263,12 @@ class _StructuredSessionCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       color: isRecommended
-          ? AppColors.gold.withOpacity(0.1)
+          ? AppColors.gold.withValues(alpha: 0.1)
           : AppColors.surfaceDark,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.sm),
         side: isRecommended
-            ? BorderSide(color: AppColors.gold.withOpacity(0.5))
+            ? BorderSide(color: AppColors.gold.withValues(alpha: 0.5))
             : BorderSide.none,
       ),
       child: InkWell(
@@ -1284,7 +1284,7 @@ class _StructuredSessionCard extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   color: isRecommended
-                      ? AppColors.gold.withOpacity(0.2)
+                      ? AppColors.gold.withValues(alpha: 0.2)
                       : AppColors.surfaceLight,
                   borderRadius: BorderRadius.circular(AppSpacing.sm),
                 ),
@@ -1376,7 +1376,7 @@ class _MostUsedSessionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.xs),
-      color: AppColors.surfaceLight.withOpacity(0.5),
+      color: AppColors.surfaceLight.withValues(alpha: 0.5),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.sm),
@@ -1417,7 +1417,7 @@ class _MostUsedSessionCard extends StatelessWidget {
                   vertical: 2,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.gold.withOpacity(0.1),
+                  color: AppColors.gold.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppSpacing.xs),
                 ),
                 child: Text(
@@ -1536,7 +1536,7 @@ class _RecentLogTile extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.xs),
-      color: AppColors.surfaceLight.withOpacity(0.5),
+      color: AppColors.surfaceLight.withValues(alpha: 0.5),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
@@ -1786,7 +1786,7 @@ class _CustomSessionChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surfaceDark,
           borderRadius: BorderRadius.circular(AppSpacing.sm),
-          border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+          border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -2060,7 +2060,7 @@ class _EmptyExerciseList extends StatelessWidget {
           Icon(
             Icons.fitness_center,
             size: 48,
-            color: AppColors.textMuted.withOpacity(0.5),
+            color: AppColors.textMuted.withValues(alpha: 0.5),
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
@@ -2113,7 +2113,7 @@ class _ExerciseListItem extends StatelessWidget {
         ),
         trailing: IconButton(
           onPressed: onRemove,
-          icon: Icon(Icons.close, color: AppColors.error.withOpacity(0.7)),
+          icon: Icon(Icons.close, color: AppColors.error.withValues(alpha: 0.7)),
         ),
       ),
     );

@@ -385,7 +385,7 @@ class _AutoPlotScanScreenWebState extends State<AutoPlotScanScreenWeb> {
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      color: isLow ? AppColors.error.withOpacity(0.2) : AppColors.surfaceDark,
+      color: isLow ? AppColors.error.withValues(alpha: 0.2) : AppColors.surfaceDark,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -466,7 +466,7 @@ class _AutoPlotScanScreenWebState extends State<AutoPlotScanScreenWeb> {
         // Processing overlay
         if (_isProcessing)
           Container(
-            color: AppColors.background.withOpacity(0.85),
+            color: AppColors.background.withValues(alpha: 0.85),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -508,7 +508,7 @@ class _AutoPlotScanScreenWebState extends State<AutoPlotScanScreenWeb> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.surfaceDark.withOpacity(0.9),
+            color: AppColors.surfaceDark.withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
@@ -536,7 +536,7 @@ class _AutoPlotScanScreenWebState extends State<AutoPlotScanScreenWeb> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.surfaceDark.withOpacity(0.7),
+              color: AppColors.surfaceDark.withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(

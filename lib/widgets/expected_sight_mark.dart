@@ -42,10 +42,10 @@ class ExpectedSightMark extends StatelessWidget {
           margin: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.gold.withOpacity(0.1),
+            color: AppColors.gold.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(AppSpacing.sm),
             border: Border.all(
-              color: AppColors.gold.withOpacity(0.3),
+              color: AppColors.gold.withValues(alpha: 0.3),
             ),
           ),
           child: Row(
@@ -54,7 +54,7 @@ class ExpectedSightMark extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: AppColors.gold.withOpacity(0.2),
+                  color: AppColors.gold.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(AppSpacing.xs),
                 ),
                 child: const Icon(

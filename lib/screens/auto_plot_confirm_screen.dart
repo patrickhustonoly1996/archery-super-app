@@ -306,8 +306,8 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> with Widg
       markerColor = Colors.orange;
       borderColor = Colors.orange.shade800;
     } else {
-      markerColor = AppColors.textSecondary.withOpacity(0.7);
-      borderColor = AppColors.textPrimary.withOpacity(0.5);
+      markerColor = AppColors.textSecondary.withValues(alpha: 0.7);
+      borderColor = AppColors.textPrimary.withValues(alpha: 0.5);
     }
 
     return Positioned(
@@ -354,13 +354,13 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> with Widg
                 ),
                 boxShadow: isSelected ? [
                   BoxShadow(
-                    color: AppColors.gold.withOpacity(0.5),
+                    color: AppColors.gold.withValues(alpha: 0.5),
                     blurRadius: 6,
                     spreadRadius: 1,
                   ),
                 ] : needsVerification ? [
                   BoxShadow(
-                    color: Colors.orange.withOpacity(0.5),
+                    color: Colors.orange.withValues(alpha: 0.5),
                     blurRadius: 4,
                     spreadRadius: 1,
                   ),
@@ -569,9 +569,9 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> with Widg
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: AppColors.gold.withOpacity(0.15),
+                  color: AppColors.gold.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.gold.withOpacity(0.5)),
+                  border: Border.all(color: AppColors.gold.withValues(alpha: 0.5)),
                 ),
                 child: Row(
                   children: [
@@ -843,7 +843,7 @@ class _TargetPainter extends CustomPainter {
 
       // Draw ring outline
       final outlinePaint = Paint()
-        ..color = i < 4 ? Colors.grey : Colors.black.withOpacity(0.3)
+        ..color = i < 4 ? Colors.grey : Colors.black.withValues(alpha: 0.3)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1;
       canvas.drawCircle(center, ringRadius, outlinePaint);
@@ -882,7 +882,7 @@ class _TargetPainter extends CustomPainter {
         canvas.drawCircle(center, ringRadius, paint);
 
         final outlinePaint = Paint()
-          ..color = Colors.black.withOpacity(0.3)
+          ..color = Colors.black.withValues(alpha: 0.3)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1;
         canvas.drawCircle(center, ringRadius, outlinePaint);

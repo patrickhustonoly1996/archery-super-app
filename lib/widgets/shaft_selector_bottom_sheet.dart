@@ -227,7 +227,7 @@ class _ShaftButton extends StatelessWidget {
     // Determine visual state
     final isDisabled = isRetired || isUsedThisEnd;
     final backgroundColor = isDisabled
-        ? AppColors.surfaceLight.withOpacity(0.3)
+        ? AppColors.surfaceLight.withValues(alpha: 0.3)
         : AppColors.surfaceDark;
     final borderColor = isDisabled ? AppColors.textMuted : AppColors.gold;
     final textColor = isDisabled ? AppColors.textMuted : AppColors.gold;

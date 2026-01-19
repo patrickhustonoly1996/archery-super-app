@@ -421,7 +421,7 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      color: isLow ? AppColors.error.withOpacity(0.2) : AppColors.surfaceDark,
+      color: isLow ? AppColors.error.withValues(alpha: 0.2) : AppColors.surfaceDark,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -509,7 +509,7 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
         // Processing overlay
         if (_isProcessing)
           Container(
-            color: AppColors.background.withOpacity(0.85),
+            color: AppColors.background.withValues(alpha: 0.85),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -562,7 +562,7 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.error.withOpacity(0.9),
+        color: AppColors.error.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -581,7 +581,7 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
             style: TextStyle(
               fontFamily: AppFonts.body,
               fontSize: 12,
-              color: AppColors.textPrimary.withOpacity(0.8),
+              color: AppColors.textPrimary.withValues(alpha: 0.8),
             ),
           ),
         ],

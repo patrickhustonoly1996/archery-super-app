@@ -493,7 +493,7 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
                             vertical: AppSpacing.xs,
                           ),
                           decoration: BoxDecoration(
-                            color: _selectedColor.withOpacity(0.8),
+                            color: _selectedColor.withValues(alpha: 0.8),
                             borderRadius: BorderRadius.circular(AppSpacing.xs),
                           ),
                           child: const Text(
@@ -537,7 +537,7 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
                             vertical: AppSpacing.md,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.success.withOpacity(0.9),
+                            color: AppColors.success.withValues(alpha: 0.9),
                             borderRadius: BorderRadius.circular(AppSpacing.sm),
                           ),
                           child: const Row(
@@ -595,7 +595,7 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
                   activeTrackColor: AppColors.gold,
                   inactiveTrackColor: AppColors.surfaceLight,
                   thumbColor: AppColors.gold,
-                  overlayColor: AppColors.gold.withOpacity(0.2),
+                  overlayColor: AppColors.gold.withValues(alpha: 0.2),
                 ),
                 child: Slider(
                   value: _delaySeconds,
@@ -685,7 +685,7 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
                           boxShadow: isSelected
                               ? [
                                   BoxShadow(
-                                    color: color.withOpacity(0.5),
+                                    color: color.withValues(alpha: 0.5),
                                     blurRadius: 8,
                                     spreadRadius: 2,
                                   )

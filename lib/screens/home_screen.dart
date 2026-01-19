@@ -9,9 +9,7 @@ import '../providers/equipment_provider.dart';
 import '../providers/skills_provider.dart';
 import '../services/auth_service.dart';
 import '../widgets/pixel_bow_icon.dart';
-import '../widgets/pixel_archer_icon.dart';
 import '../widgets/pixel_profile_icon.dart';
-import '../widgets/connectivity_indicator.dart';
 import '../widgets/level_badge.dart';
 import 'session_start_screen.dart';
 import 'plotting_screen.dart';
@@ -27,7 +25,6 @@ import 'delayed_camera_screen.dart';
 import 'performance_profile_screen.dart';
 import 'user_profile_screen.dart';
 import 'education/courses_home_screen.dart';
-import 'subscription_screen.dart';
 import 'chiptune_test_screen.dart'; // TODO: Remove after testing sounds
 
 class HomeScreen extends StatefulWidget {

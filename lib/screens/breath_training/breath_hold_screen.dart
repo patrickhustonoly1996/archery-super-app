@@ -1028,7 +1028,7 @@ class _RoundProgress extends StatelessWidget {
               color: isCompleted
                   ? AppColors.gold
                   : isCurrent
-                      ? AppColors.gold.withOpacity(0.3)
+                      ? AppColors.gold.withValues(alpha: 0.3)
                       : AppColors.surfaceLight,
               border: isCurrent
                   ? Border.all(color: AppColors.gold, width: 2)

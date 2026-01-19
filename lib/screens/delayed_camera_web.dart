@@ -536,7 +536,7 @@ class _WebCameraScreenState extends State<_WebCameraScreen> {
                             vertical: AppSpacing.xs,
                           ),
                           decoration: BoxDecoration(
-                            color: _selectedColor.withOpacity(0.8),
+                            color: _selectedColor.withValues(alpha: 0.8),
                             borderRadius: BorderRadius.circular(AppSpacing.xs),
                           ),
                           child: const Text(
@@ -610,7 +610,7 @@ class _WebCameraScreenState extends State<_WebCameraScreen> {
                   activeTrackColor: AppColors.gold,
                   inactiveTrackColor: AppColors.surfaceLight,
                   thumbColor: AppColors.gold,
-                  overlayColor: AppColors.gold.withOpacity(0.2),
+                  overlayColor: AppColors.gold.withValues(alpha: 0.2),
                 ),
                 child: Slider(
                   value: _delaySeconds,
@@ -690,7 +690,7 @@ class _WebCameraScreenState extends State<_WebCameraScreen> {
                           boxShadow: isSelected
                               ? [
                                   BoxShadow(
-                                    color: color.withOpacity(0.5),
+                                    color: color.withValues(alpha: 0.5),
                                     blurRadius: 8,
                                     spreadRadius: 2,
                                   )

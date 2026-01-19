@@ -156,8 +156,8 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
                                 _isSignUp = false;
                                 _errorMessage = null;
                               }),
-                              splashColor: AppColors.gold.withOpacity(0.3),
-                              highlightColor: AppColors.gold.withOpacity(0.1),
+                              splashColor: AppColors.gold.withValues(alpha: 0.3),
+                              highlightColor: AppColors.gold.withValues(alpha: 0.1),
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 14),
                                 child: Text(
@@ -182,8 +182,8 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
                                 _isSignUp = true;
                                 _errorMessage = null;
                               }),
-                              splashColor: AppColors.gold.withOpacity(0.3),
-                              highlightColor: AppColors.gold.withOpacity(0.1),
+                              splashColor: AppColors.gold.withValues(alpha: 0.3),
+                              highlightColor: AppColors.gold.withValues(alpha: 0.1),
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 14),
                                 child: Text(
@@ -210,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
                     Container(
                       padding: const EdgeInsets.all(AppSpacing.md),
                       decoration: BoxDecoration(
-                        color: AppColors.error.withOpacity(0.1),
+                        color: AppColors.error.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(AppSpacing.sm),
                         border: Border.all(color: AppColors.error),
                       ),
@@ -282,7 +282,7 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
                     const SizedBox(height: AppSpacing.xl),
                     Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+                        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       clipBehavior: Clip.antiAlias,
@@ -293,8 +293,8 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
                             _isSignUp = true;
                             _errorMessage = null;
                           }),
-                          splashColor: AppColors.gold.withOpacity(0.2),
-                          highlightColor: AppColors.gold.withOpacity(0.1),
+                          splashColor: AppColors.gold.withValues(alpha: 0.2),
+                          highlightColor: AppColors.gold.withValues(alpha: 0.1),
                           child: Padding(
                             padding: const EdgeInsets.all(AppSpacing.md),
                             child: Column(

@@ -12,7 +12,6 @@ import 'bow_form_screen.dart';
 import 'bow_detail_screen.dart';
 import 'quiver_form_screen.dart';
 import 'quiver_detail_screen.dart';
-import 'shaft_management_screen.dart';
 import 'tuning_history_screen.dart';
 
 class EquipmentScreen extends StatefulWidget {
@@ -182,7 +181,7 @@ class _BowTile extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.gold.withOpacity(0.2),
+                              color: AppColors.gold.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -342,7 +341,7 @@ class _QuiverTile extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.gold.withOpacity(0.2),
+                              color: AppColors.gold.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(

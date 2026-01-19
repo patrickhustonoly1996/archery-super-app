@@ -222,9 +222,9 @@ class _ActiveTimerView extends StatelessWidget {
                           vertical: AppSpacing.sm,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.gold.withOpacity(0.15),
+                          color: AppColors.gold.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(AppSpacing.sm),
-                          border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+                          border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
                         ),
                         child: Text(
                           provider.movementCue!,
@@ -747,7 +747,7 @@ class _FeedbackSlider extends StatelessWidget {
               activeTrackColor: _getValueColor(value),
               inactiveTrackColor: AppColors.surfaceDark,
               thumbColor: _getValueColor(value),
-              overlayColor: _getValueColor(value).withOpacity(0.2),
+              overlayColor: _getValueColor(value).withValues(alpha: 0.2),
             ),
             child: Slider(
               value: value.toDouble(),

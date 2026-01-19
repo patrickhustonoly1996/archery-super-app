@@ -438,7 +438,7 @@ class _UnifiedScoreTile extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.gold.withOpacity(0.2),
+                        color: AppColors.gold.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -473,12 +473,12 @@ class _HandicapBox extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         color: isPlotted
-            ? AppColors.gold.withOpacity(0.1)
+            ? AppColors.gold.withValues(alpha: 0.1)
             : AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(AppSpacing.sm),
         border: Border.all(
           color:
-              isPlotted ? AppColors.gold.withOpacity(0.3) : Colors.transparent,
+              isPlotted ? AppColors.gold.withValues(alpha: 0.3) : Colors.transparent,
           width: 1,
         ),
       ),
@@ -512,7 +512,7 @@ class _CategoryBadge extends StatelessWidget {
         vertical: 2,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(

@@ -1,11 +1,6 @@
-import 'dart:async';
-import 'dart:collection';
-import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../theme/app_theme.dart';
 
@@ -85,7 +80,7 @@ class GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.gold.withOpacity(0.4)
+      ..color = AppColors.gold.withValues(alpha: 0.4)
       ..strokeWidth = 1;
 
     final thirdWidth = size.width / 3;
@@ -115,7 +110,7 @@ class GridPainter extends CustomPainter {
 
     // Center crosshairs
     final centerPaint = Paint()
-      ..color = AppColors.gold.withOpacity(0.6)
+      ..color = AppColors.gold.withValues(alpha: 0.6)
       ..strokeWidth = 1;
 
     final cx = size.width / 2;
@@ -179,7 +174,7 @@ class ReferenceLinesPainter extends CustomPainter {
     // Draw current line being drawn
     if (currentStart != null && currentEnd != null) {
       final paint = Paint()
-        ..color = currentColor.withOpacity(0.7)
+        ..color = currentColor.withValues(alpha: 0.7)
         ..strokeWidth = 3
         ..strokeCap = StrokeCap.round;
 

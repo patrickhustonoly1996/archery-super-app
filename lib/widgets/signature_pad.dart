@@ -151,7 +151,7 @@ class _SignaturePadState extends State<SignaturePad> {
               'Sign here',
               style: TextStyle(
                 fontFamily: AppFonts.body,
-                color: AppColors.textMuted.withOpacity(0.5),
+                color: AppColors.textMuted.withValues(alpha: 0.5),
                 fontSize: 12,
               ),
             ),

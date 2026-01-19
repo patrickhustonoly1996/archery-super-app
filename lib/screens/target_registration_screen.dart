@@ -223,7 +223,7 @@ class _TargetRegistrationScreenState extends State<TargetRegistrationScreen> {
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.surfaceDark.withOpacity(0.9),
+              color: AppColors.surfaceDark.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(

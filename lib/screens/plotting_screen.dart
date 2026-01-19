@@ -17,7 +17,6 @@ import '../utils/undo_manager.dart';
 import '../db/database.dart';
 import 'session_complete_screen.dart';
 import 'home_screen.dart';
-import 'auto_plot_capture_screen.dart';
 import 'auto_plot_scan_router.dart';
 import '../services/vision_api_service.dart';
 import '../utils/target_coordinate_system.dart';
@@ -1036,7 +1035,7 @@ class _TripleSpotViewToggle extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: AppColors.surfaceDark.withOpacity(0.9),
+          color: AppColors.surfaceDark.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(4),
           border: Border.all(color: AppColors.surfaceLight),
         ),

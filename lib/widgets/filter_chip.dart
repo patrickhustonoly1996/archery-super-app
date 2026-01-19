@@ -51,10 +51,10 @@ class AppFilterChip extends StatelessWidget {
           vertical: AppSpacing.sm,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.15) : AppColors.surfaceLight,
+          color: isSelected ? color.withValues(alpha: 0.15) : AppColors.surfaceLight,
           borderRadius: BorderRadius.circular(AppSpacing.sm),
           border: Border.all(
-            color: isSelected ? color.withOpacity(0.5) : Colors.transparent,
+            color: isSelected ? color.withValues(alpha: 0.5) : Colors.transparent,
             width: 1,
           ),
         ),

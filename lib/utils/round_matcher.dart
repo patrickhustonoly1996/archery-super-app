@@ -149,18 +149,11 @@ class RoundMatcher {
   }
 
   /// Get the max score for a round by name.
-  /// Returns the stored maxScore or calculates from arrows × 10.
+  /// Returns the stored maxScore from the round configuration.
   int? getMaxScore(String roundName) {
     final round = findMatch(roundName);
     if (round == null) return null;
-
-    // Use stored maxScore if available
-    if (round.maxScore != null) {
-      return round.maxScore;
-    }
-
-    // Calculate from arrows (assuming 10-point max per arrow)
-    return round.arrowsPerEnd * round.totalEnds * 10;
+    return round.maxScore;
   }
 
   /// Normalize a string for comparison.
