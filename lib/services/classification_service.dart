@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart' show Value;
+
 import '../models/classification.dart';
 import '../models/user_profile.dart';
 import '../db/database.dart';

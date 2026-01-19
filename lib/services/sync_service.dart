@@ -404,11 +404,19 @@ class SyncService {
         final local = localMap[id];
         final cloud = cloudMap[id];
 
+        // Sessions use completedAt or startedAt as the "updated" timestamp
+        final localUpdatedAt = local?.completedAt ?? local?.startedAt;
+        final cloudUpdatedAt = cloud?['updatedAt'] != null
+            ? DateTime.parse(cloud!['updatedAt'] as String)
+            : cloud?['completedAt'] != null
+                ? DateTime.parse(cloud!['completedAt'] as String)
+                : cloud?['startedAt'] != null
+                    ? DateTime.parse(cloud!['startedAt'] as String)
+                    : null;
+
         final decision = _resolveConflict(
-          localUpdatedAt: local?.updatedAt,
-          cloudUpdatedAt: cloud?['updatedAt'] != null
-              ? DateTime.parse(cloud!['updatedAt'] as String)
-              : null,
+          localUpdatedAt: localUpdatedAt,
+          cloudUpdatedAt: cloudUpdatedAt,
           localDeletedAt: local?.deletedAt,
           cloudDeletedAt: cloud?['deletedAt'] != null
               ? DateTime.parse(cloud!['deletedAt'] as String)
@@ -455,6 +463,9 @@ class SyncService {
     final ends = await _db!.getEndsForSession(session.id);
     final arrows = await _db!.getArrowsForSession(session.id);
 
+    // Session doesn't have createdAt/updatedAt - use startedAt/completedAt
+    final effectiveUpdatedAt = session.completedAt ?? session.startedAt;
+
     return {
       'id': session.id,
       'roundTypeId': session.roundTypeId,
@@ -468,8 +479,8 @@ class SyncService {
       'bowId': session.bowId,
       'quiverId': session.quiverId,
       'shaftTaggingEnabled': session.shaftTaggingEnabled,
-      'createdAt': session.createdAt.toIso8601String(),
-      'updatedAt': session.updatedAt.toIso8601String(),
+      'createdAt': session.startedAt.toIso8601String(),
+      'updatedAt': effectiveUpdatedAt.toIso8601String(),
       'deletedAt': session.deletedAt?.toIso8601String(),
       'ends': ends.map((e) => {
         'id': e.id,

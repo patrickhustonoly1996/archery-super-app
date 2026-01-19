@@ -48,6 +48,11 @@ class EquipmentProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Get a specific bow by ID
+  Future<Bow?> getBow(String id) async {
+    return await _db.getBow(id);
+  }
+
   /// Create a new bow with all tuning data
   Future<String> createBow({
     required String name,
