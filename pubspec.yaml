@@ -79,6 +79,9 @@ dependencies:
   # URL launching for Stripe checkout and video playback
   url_launcher: ^6.2.5
 
+  # Mutex lock for sync operations
+  synchronized: ^3.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

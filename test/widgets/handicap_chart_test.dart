@@ -166,6 +166,7 @@ void main() {
           sessionType: 'practice',
           source: 'manual',
           importedAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         );
 
         await tester.pumpWidget(
@@ -247,6 +248,7 @@ void main() {
             sessionType: 'practice',
             source: 'manual',
             importedAt: DateTime.now(),
+            updatedAt: DateTime.now(),
           ),
         ];
 
@@ -522,6 +524,7 @@ void main() {
           sessionType: 'practice',
           source: 'manual',
           importedAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         );
 
         await tester.pumpWidget(
@@ -548,6 +551,7 @@ void main() {
           sessionType: 'practice',
           source: 'manual',
           importedAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         );
 
         await tester.pumpWidget(
@@ -574,6 +578,7 @@ void main() {
           sessionType: 'practice',
           source: 'manual',
           importedAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         );
 
         await tester.pumpWidget(
@@ -601,6 +606,7 @@ void main() {
           sessionType: 'practice',
           source: 'manual',
           importedAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         );
 
         await tester.pumpWidget(
@@ -630,6 +636,7 @@ void main() {
           sessionType: 'practice',
           source: 'manual',
           importedAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         );
 
         await tester.pumpWidget(
@@ -665,6 +672,7 @@ void main() {
           sessionType: 'practice',
           source: 'manual',
           importedAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         );
 
         await tester.pumpWidget(
@@ -940,6 +948,7 @@ void main() {
             sessionType: 'practice',
             source: 'manual',
             importedAt: DateTime.now(),
+            updatedAt: DateTime.now(),
           ),
           ImportedScore(
             id: 'is2',
@@ -949,6 +958,7 @@ void main() {
             sessionType: 'competition',
             source: 'manual',
             importedAt: DateTime.now(),
+            updatedAt: DateTime.now(),
           ),
         ];
 

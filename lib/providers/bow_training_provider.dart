@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/widgets.dart';
 import 'package:drift/drift.dart';
 import '../db/database.dart';
-import '../services/firestore_sync_service.dart';
+import '../services/sync_service.dart';
 import '../services/vibration_service.dart';
 import '../services/training_session_service.dart';
 import '../utils/unique_id.dart';
@@ -804,23 +804,10 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
-  /// Trigger cloud backup in background (non-blocking)
+  /// Trigger cloud sync in background (non-blocking)
   void _triggerCloudBackup() {
-    Future.microtask(() async {
-      try {
-        final syncService = FirestoreSyncService();
-        if (syncService.isAuthenticated) {
-          await ErrorHandler.runBackground(
-            () => syncService.backupAllData(_db),
-            errorMessage: 'Cloud backup failed',
-            onRetry: _triggerCloudBackup,
-          );
-        }
-      } catch (e) {
-        // Firebase not initialized (tests) or other initialization error
-        debugPrint('Cloud backup skipped: $e');
-      }
-    });
+    // SyncService handles its own error handling and retry logic
+    SyncService().syncAll();
   }
 
   // ===========================================================================

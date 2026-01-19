@@ -2,7 +2,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart';
 import '../db/database.dart';
 import '../models/user_profile.dart';
-import '../services/firestore_sync_service.dart';
+import '../services/sync_service.dart';
 import '../utils/unique_id.dart';
 
 /// Manages user profile state
@@ -32,6 +32,21 @@ class UserProfileProvider extends ChangeNotifier {
   List<CompetitionLevel> get competitionLevels =>
       CompetitionLevel.fromJsonList(_profile?.competitionLevels);
   String? get notes => _profile?.notes;
+
+  // Classification-related getters
+  Gender? get gender => Gender.fromStringNullable(_profile?.gender);
+  DateTime? get dateOfBirth => _profile?.dateOfBirth;
+
+  /// Get the archer's age category based on date of birth
+  /// Returns null if date of birth is not set
+  AgeCategory? get ageCategory {
+    final dob = dateOfBirth;
+    if (dob == null) return null;
+    return AgeCategory.fromDateOfBirth(dob);
+  }
+
+  /// Check if the profile has classification-related fields set
+  bool get hasClassificationInfo => gender != null && dateOfBirth != null;
 
   /// Calculate years of experience
   int? get yearsExperience {
@@ -77,6 +92,8 @@ class UserProfileProvider extends ChangeNotifier {
     int? yearsShootingStart,
     double? shootingFrequency,
     List<CompetitionLevel>? competitionLevels,
+    Gender? gender,
+    DateTime? dateOfBirth,
     String? notes,
   }) async {
     try {
@@ -97,6 +114,8 @@ class UserProfileProvider extends ChangeNotifier {
         competitionLevels: competitionLevels != null
             ? Value(CompetitionLevel.toJsonList(competitionLevels))
             : const Value.absent(),
+        gender: gender != null ? Value(gender.value) : const Value.absent(),
+        dateOfBirth: dateOfBirth != null ? Value(dateOfBirth) : const Value.absent(),
         notes: notes != null ? Value(notes) : const Value.absent(),
         updatedAt: Value(DateTime.now()),
       );
@@ -211,15 +230,7 @@ class UserProfileProvider extends ChangeNotifier {
   // ===========================================================================
 
   void _triggerCloudBackup() {
-    Future.microtask(() async {
-      try {
-        final syncService = FirestoreSyncService();
-        if (syncService.isAuthenticated) {
-          await syncService.syncAllData(_db);
-        }
-      } catch (_) {
-        // Firebase not initialized (e.g., in tests) - skip backup
-      }
-    });
+    // SyncService handles its own error handling and retry logic
+    SyncService().syncAll();
   }
 }

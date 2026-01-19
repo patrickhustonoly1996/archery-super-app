@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 import '../db/database.dart';
+import '../utils/target_coordinate_system.dart';
 
 /// Renders an archery target face with plotted arrows
 class TargetFace extends StatelessWidget {
@@ -313,11 +314,18 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   }
 
   /// Check if normalized position is near a ring boundary
+  /// Returns the ring number where IN = that score, OUT = score - 1
+  /// Special cases: ring 11 = X ring boundary (IN=X, OUT=10)
+  ///                ring 1 = outer edge (IN=1, OUT=Miss)
   ({bool isNear, int? ring}) _checkBoundaryProximity(double normX, double normY) {
     final distanceFromCenter = math.sqrt(normX * normX + normY * normY);
 
+    // Ring boundaries with their "IN" score
+    // X ring boundary: IN = X (counts as 10), OUT = regular 10
+    // Ring 10 boundary: IN = 10, OUT = 9
+    // Ring 1 boundary: IN = 1, OUT = Miss (0)
     final ringBoundaries = [
-      (TargetRings.x, 10),
+      (TargetRings.x, 11),      // X ring - use 11 to distinguish from 10
       (TargetRings.ring10, 10),
       (TargetRings.ring9, 9),
       (TargetRings.ring8, 8),
@@ -401,6 +409,18 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
       } else {
         widget.onArrowPlotted(normalizedX, normalizedY);
       }
+    } else {
+      // Arrow placed outside target - show feedback
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Arrow off target - drag onto face to plot',
+            style: TextStyle(fontFamily: AppFonts.body),
+          ),
+          duration: const Duration(seconds: 2),
+          backgroundColor: AppColors.surfaceDark,
+        ),
+      );
     }
 
     // Reset state
@@ -428,6 +448,9 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   }
 
   Future<bool?> _showLineCutterDialog(int nearRing) async {
+    // Use extracted helper for testability
+    final labels = LineCutterLabels.forRing(nearRing);
+
     return showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -442,7 +465,7 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
           ),
         ),
         content: Text(
-          'Arrow is on the $nearRing line.\nIn or out?',
+          'Arrow is on the ${labels.ringLabel} line.\nIn or out?',
           style: TextStyle(
             fontFamily: 'Share Tech Mono',
             color: AppColors.textPrimary,
@@ -452,7 +475,7 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text(
-              'OUT (${nearRing - 1})',
+              labels.outLabel,
               style: TextStyle(color: AppColors.textSecondary),
             ),
           ),
@@ -462,7 +485,7 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
               backgroundColor: AppColors.gold,
               foregroundColor: AppColors.backgroundDark,
             ),
-            child: Text('IN ($nearRing)'),
+            child: Text(labels.inLabel),
           ),
         ],
       ),

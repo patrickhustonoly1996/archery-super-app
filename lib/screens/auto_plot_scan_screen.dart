@@ -87,7 +87,16 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
     }
 
     if (state == AppLifecycleState.inactive) {
+      // Stop scanning first to prevent capture attempts on disposed camera
+      if (_isScanning) {
+        _stopScanning();
+        _resetScan();
+      }
       _cameraController?.dispose();
+      _cameraController = null;
+      if (mounted) {
+        setState(() => _isCameraInitialized = false);
+      }
     } else if (state == AppLifecycleState.resumed) {
       _initializeCamera();
     }
@@ -271,6 +280,13 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
 
   Future<void> _processComposite() async {
     if (_isProcessing) return;
+
+    // Check if we have any frames to process
+    if (_frameService.frameCount == 0) {
+      _showError('No frames captured. Please try again with better lighting.');
+      _resetScan();
+      return;
+    }
 
     setState(() {
       _isProcessing = true;
@@ -473,17 +489,21 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
           ),
         ),
 
-        // Warning overlays
-        if (_showSpeedWarning)
+        // Warning overlays - stacked to avoid overlap
+        if (_showSpeedWarning || _showStabilityWarning)
           Positioned(
             bottom: 100,
-            child: _buildWarning('TOO FAST', 'Slow down the rotation'),
-          ),
-
-        if (_showStabilityWarning)
-          Positioned(
-            bottom: 100,
-            child: _buildWarning('UNSTABLE', 'Keep device steady'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_showSpeedWarning)
+                  _buildWarning('TOO FAST', 'Slow down the rotation'),
+                if (_showSpeedWarning && _showStabilityWarning)
+                  const SizedBox(height: 8),
+                if (_showStabilityWarning)
+                  _buildWarning('UNSTABLE', 'Keep device steady'),
+              ],
+            ),
           ),
 
         // Processing overlay
@@ -571,6 +591,7 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
 
   Widget _buildControls(AutoPlotProvider provider) {
     final canStart = !_isScanning && !_isProcessing && provider.canScan && _isCameraInitialized;
+    final canStop = _isScanning && !_isProcessing;
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -599,17 +620,33 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
                   color: AppColors.textMuted,
                 ),
               ),
+            if (_isScanning)
+              Text(
+                'Tap to cancel scan',
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  fontSize: 11,
+                  color: AppColors.error,
+                ),
+              ),
             const SizedBox(height: 16),
-            // Scan button
+            // Scan button - can start OR stop
             GestureDetector(
-              onTap: canStart ? _startScanning : null,
+              onTap: canStart
+                  ? _startScanning
+                  : canStop
+                      ? () {
+                          _stopScanning();
+                          _resetScan();
+                        }
+                      : null,
               child: Container(
                 width: 72,
                 height: 72,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: canStart ? AppColors.gold : AppColors.textSecondary,
+                    color: (canStart || canStop) ? (_isScanning ? AppColors.error : AppColors.gold) : AppColors.textSecondary,
                     width: 4,
                   ),
                 ),

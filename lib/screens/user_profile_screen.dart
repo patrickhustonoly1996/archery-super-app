@@ -28,6 +28,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   int? _yearsShootingStart;
   double _shootingFrequency = 3.0;
   Set<CompetitionLevel> _selectedCompetitionLevels = {};
+  Gender? _selectedGender;
+  DateTime? _selectedDateOfBirth;
 
   bool _isLoading = true;
   bool _hasChanges = false;
@@ -60,6 +62,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         _yearsShootingStart = provider.yearsShootingStart;
         _shootingFrequency = provider.shootingFrequency;
         _selectedCompetitionLevels = provider.competitionLevels.toSet();
+        _selectedGender = provider.gender;
+        _selectedDateOfBirth = provider.dateOfBirth;
         _isLoading = false;
       });
     }
@@ -83,6 +87,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       yearsShootingStart: _yearsShootingStart,
       shootingFrequency: _shootingFrequency,
       competitionLevels: _selectedCompetitionLevels.toList(),
+      gender: _selectedGender,
+      dateOfBirth: _selectedDateOfBirth,
       notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
     );
 
@@ -170,6 +176,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                   const SizedBox(height: 32),
 
+                  // Classification section
+                  _buildSectionHeader('CLASSIFICATION'),
+                  const SizedBox(height: 12),
+                  _buildGenderSelector(),
+                  const SizedBox(height: 16),
+                  _buildDateOfBirthPicker(),
+                  if (_selectedDateOfBirth != null) ...[
+                    const SizedBox(height: 12),
+                    _buildAgeCategoryDisplay(),
+                  ],
+
+                  const SizedBox(height: 32),
+
                   // Federation memberships section
                   _buildSectionHeader('FEDERATION MEMBERSHIPS'),
                   const SizedBox(height: 12),
@@ -191,6 +210,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                   // Bow type defaults info card
                   _buildBowTypeInfoCard(),
+
+                  const SizedBox(height: 32),
+
+                  // Acknowledgement footer
+                  _buildAcknowledgementFooter(),
 
                   // Debug section (only in debug mode)
                   if (kDebugMode) ...[
@@ -551,6 +575,236 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           }).toList(),
         ),
       ],
+    );
+  }
+
+  Widget _buildGenderSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Gender (for classification)',
+          style: TextStyle(
+            fontFamily: AppFonts.body,
+            fontSize: 12,
+            color: AppColors.textMuted,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: Gender.values.map((gender) {
+            final isSelected = _selectedGender == gender;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() => _selectedGender = gender);
+                  _markChanged();
+                },
+                child: Container(
+                  margin: EdgeInsets.only(right: gender == Gender.male ? 8 : 0),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.gold.withValues(alpha: 0.1) : AppColors.surfaceLight,
+                    border: Border.all(
+                      color: isSelected ? AppColors.gold : AppColors.surfaceBright,
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      gender.displayName,
+                      style: TextStyle(
+                        fontFamily: AppFonts.body,
+                        fontSize: 14,
+                        color: isSelected ? AppColors.gold : AppColors.textPrimary,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Used to calculate AGB classification thresholds',
+          style: TextStyle(
+            fontFamily: AppFonts.body,
+            fontSize: 11,
+            color: AppColors.textMuted,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateOfBirthPicker() {
+    final formattedDate = _selectedDateOfBirth != null
+        ? '${_selectedDateOfBirth!.day}/${_selectedDateOfBirth!.month}/${_selectedDateOfBirth!.year}'
+        : 'Not set';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Date of Birth',
+          style: TextStyle(
+            fontFamily: AppFonts.body,
+            fontSize: 12,
+            color: AppColors.textMuted,
+          ),
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: _showDatePicker,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceLight,
+              border: Border.all(color: AppColors.surfaceBright),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    formattedDate,
+                    style: TextStyle(
+                      fontFamily: AppFonts.body,
+                      fontSize: 14,
+                      color: _selectedDateOfBirth != null
+                          ? AppColors.textPrimary
+                          : AppColors.textMuted,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.calendar_today,
+                  size: 20,
+                  color: AppColors.textMuted,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Used to determine your age category for classifications',
+          style: TextStyle(
+            fontFamily: AppFonts.body,
+            fontSize: 11,
+            color: AppColors.textMuted,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _showDatePicker() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDateOfBirth ?? DateTime(now.year - 25, 1, 1),
+      firstDate: DateTime(1920),
+      lastDate: now,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: AppColors.gold,
+              onPrimary: AppColors.background,
+              surface: AppColors.surfaceLight,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() => _selectedDateOfBirth = picked);
+      _markChanged();
+    }
+  }
+
+  Widget _buildAgeCategoryDisplay() {
+    final ageCategory = _selectedDateOfBirth != null
+        ? AgeCategory.fromDateOfBirth(_selectedDateOfBirth!)
+        : null;
+
+    if (ageCategory == null) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLight,
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.person_outline,
+            size: 20,
+            color: AppColors.gold,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Age Category',
+                  style: TextStyle(
+                    fontFamily: AppFonts.body,
+                    fontSize: 11,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+                Text(
+                  ageCategory.displayName,
+                  style: TextStyle(
+                    fontFamily: AppFonts.body,
+                    fontSize: 14,
+                    color: AppColors.gold,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAcknowledgementFooter() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLight,
+        border: Border.all(color: AppColors.surfaceBright),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline,
+            size: 20,
+            color: AppColors.textMuted,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Handicap and classification calculations based on archeryutils',
+              style: TextStyle(
+                fontFamily: AppFonts.body,
+                fontSize: 12,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

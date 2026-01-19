@@ -72,12 +72,15 @@ class ScanMotionService {
   }
 
   /// Calibrate gyroscope to remove bias
+  /// Returns quickly and calibrates in background - doesn't block tracking
   Future<void> _calibrate() async {
     _calibrationSamples.clear();
+    _isCalibrated = false;
 
     final completer = Completer<void>();
+    StreamSubscription<GyroscopeEvent>? calibrationSub;
 
-    final calibrationSub = gyroscopeEventStream(
+    calibrationSub = gyroscopeEventStream(
       samplingPeriod: const Duration(milliseconds: 20),
     ).listen((event) {
       _calibrationSamples.add(event.z);
@@ -87,19 +90,31 @@ class ScanMotionService {
         _gyroOffsetZ = _calibrationSamples.reduce((a, b) => a + b) /
             _calibrationSamples.length;
         _isCalibrated = true;
-        completer.complete();
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
+        // Cancel subscription immediately after calibration
+        calibrationSub?.cancel();
       }
     });
 
-    await completer.future.timeout(
-      const Duration(seconds: 2),
-      onTimeout: () {
+    // Use a timer instead of timeout to ensure cleanup happens
+    final timeoutTimer = Timer(const Duration(seconds: 2), () {
+      if (!_isCalibrated) {
         _gyroOffsetZ = 0.0;
         _isCalibrated = true;
-      },
-    );
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
+      }
+      // Always cancel subscription on timeout
+      calibrationSub?.cancel();
+    });
 
-    await calibrationSub.cancel();
+    await completer.future;
+
+    // Cancel timer if we completed before timeout
+    timeoutTimer.cancel();
   }
 
   void _handleGyroscopeEvent(GyroscopeEvent event) {

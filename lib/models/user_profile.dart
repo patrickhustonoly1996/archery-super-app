@@ -1,5 +1,86 @@
 import 'dart:convert';
 
+/// Enum for gender (for classification calculations)
+enum Gender {
+  male('male', 'Male'),
+  female('female', 'Female');
+
+  const Gender(this.value, this.displayName);
+  final String value;
+  final String displayName;
+
+  static Gender fromString(String value) {
+    return Gender.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => Gender.male,
+    );
+  }
+
+  static Gender? fromStringNullable(String? value) {
+    if (value == null) return null;
+    try {
+      return Gender.values.firstWhere((e) => e.value == value);
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+/// Enum for AGB age categories (for classification calculations)
+/// Age categories determine handicap adjustments
+enum AgeCategory {
+  // Adult categories
+  adult('adult', 'Adult', 0),
+  under21('under_21', 'Under 21', 0), // Same as adult
+  fiftyPlus('50+', '50+', 1),
+  sixtyPlus('60+', '60+', 2),
+  seventyPlus('70+', '70+', 3),
+
+  // Junior categories
+  under18('under_18', 'Under 18', 2),
+  under16('under_16', 'Under 16', 4),
+  under15('under_15', 'Under 15', 5),
+  under14('under_14', 'Under 14', 6),
+  under12('under_12', 'Under 12', 8);
+
+  const AgeCategory(this.value, this.displayName, this.ageStep);
+  final String value;
+  final String displayName;
+
+  /// Age step used in classification threshold calculation
+  /// threshold = datum + (ageStep × 3) + genderAdj + (classIndex × 7)
+  final int ageStep;
+
+  static AgeCategory fromString(String value) {
+    return AgeCategory.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => AgeCategory.adult,
+    );
+  }
+
+  /// Calculate age category from date of birth
+  static AgeCategory fromDateOfBirth(DateTime dob) {
+    final now = DateTime.now();
+    final age = now.year - dob.year -
+        (now.month < dob.month || (now.month == dob.month && now.day < dob.day) ? 1 : 0);
+
+    // Junior categories
+    if (age < 12) return AgeCategory.under12;
+    if (age < 14) return AgeCategory.under14;
+    if (age < 15) return AgeCategory.under15;
+    if (age < 16) return AgeCategory.under16;
+    if (age < 18) return AgeCategory.under18;
+    if (age < 21) return AgeCategory.under21;
+
+    // Senior/veteran categories
+    if (age >= 70) return AgeCategory.seventyPlus;
+    if (age >= 60) return AgeCategory.sixtyPlus;
+    if (age >= 50) return AgeCategory.fiftyPlus;
+
+    return AgeCategory.adult;
+  }
+}
+
 /// Enum for primary bow types
 enum BowType {
   recurve('recurve', 'Recurve'),

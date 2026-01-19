@@ -501,16 +501,15 @@ class FullScorecardWidget extends StatelessWidget {
 
   int _getDistanceEndCount() {
     // For multi-distance rounds, return the end number where first distance ends
-    // WA 1440: 36 arrows per distance = 6 ends at 6 arrows/end
-    // WA 720: 36 arrows = 6 ends per distance for outdoor
+    // NOTE: Most WA/AGB rounds are single-distance. Multi-distance rounds like
+    // WA 1440 (4 distances) or Double rounds need proper round type metadata.
+    // For now, disable this feature until round type has explicit distance data.
+    // TODO: Add distanceBoundaries field to RoundType table
     if (roundType == null) return 0;
 
-    final category = roundType!.category;
-    if (category == 'wa_outdoor') {
-      // WA outdoor typically has 2 distances
-      return totalEnds ~/ 2;
-    }
-    return 0; // Indoor rounds are single distance
+    // Only show distance subtotal for explicitly known multi-distance rounds
+    // Currently no rounds have this metadata, so return 0
+    return 0;
   }
 
   bool _shouldShowDistanceSubtotal() {

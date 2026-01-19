@@ -31,14 +31,26 @@ class ScanFrameService {
   static const double kMinQualityScore = 0.3; // Minimum acceptable quality
   static const int kRegionCount = 8; // Divide circle into 8 regions
 
+  // Callback for frame quality issues (allows UI to show warnings)
+  Function(String reason)? onFrameDropped;
+
+  // Track dropped frame statistics
+  int _droppedFrameCount = 0;
+
+  /// Get count of dropped frames in current scan
+  int get droppedFrameCount => _droppedFrameCount;
+
   /// Add a captured frame
-  void addFrame(Uint8List imageData, double rotationAngle) {
+  /// Returns true if frame was accepted, false if dropped for quality
+  bool addFrame(Uint8List imageData, double rotationAngle) {
     // Calculate quality score (runs in isolate for performance)
     final qualityScore = _quickQualityEstimate(imageData);
 
     if (qualityScore < kMinQualityScore) {
-      // Skip low quality frames
-      return;
+      // Skip low quality frames but notify caller
+      _droppedFrameCount++;
+      onFrameDropped?.call('Frame too blurry (quality: ${(qualityScore * 100).toInt()}%)');
+      return false;
     }
 
     final frame = ScanFrame(
@@ -54,6 +66,8 @@ class ScanFrameService {
     if (_frames.length > kMaxFrames) {
       _pruneFrames();
     }
+
+    return true;
   }
 
   /// Quick quality estimate based on image variance (blur detection)
@@ -188,6 +202,7 @@ class ScanFrameService {
   /// Clear all captured frames
   void clear() {
     _frames.clear();
+    _droppedFrameCount = 0;
   }
 
   /// Get all frames (for debugging/preview)
@@ -195,6 +210,7 @@ class ScanFrameService {
 }
 
 /// Isolate function for composite generation
+/// Optimized to reduce memory pressure by limiting concurrent image decoding
 Future<Uint8List> _generateCompositeIsolate(List<ScanFrame> frames) async {
   // Sort frames by quality
   final sortedFrames = List<ScanFrame>.from(frames)
@@ -211,62 +227,66 @@ Future<Uint8List> _generateCompositeIsolate(List<ScanFrame> frames) async {
   final regionCount = 8;
   final stripWidth = baseImage.width ~/ regionCount;
 
-  // Create output image
+  // Create output image - start with base image content
   final composite = img.Image(
     width: baseImage.width,
     height: baseImage.height,
   );
 
-  // Decode all images
-  final decodedImages = <img.Image>[];
-  final frameQualities = <double>[];
-  for (final frame in sortedFrames.take(8)) {
+  // Copy base image to composite first
+  for (int y = 0; y < baseImage.height; y++) {
+    for (int x = 0; x < baseImage.width; x++) {
+      composite.setPixel(x, y, baseImage.getPixel(x, y));
+    }
+  }
+
+  // Limit to top 4 frames to reduce memory pressure (was 8)
+  // Process one region at a time, decoding only needed images
+  final maxFramesToUse = math.min(4, sortedFrames.length);
+
+  // Track which frame is best for each region
+  final bestFrameForRegion = List<int>.filled(regionCount, 0);
+  final bestQualityForRegion = List<double>.filled(regionCount, 0);
+
+  // First pass: find best frame for each region using quick quality check
+  // Decode one frame at a time to reduce peak memory
+  for (int frameIdx = 0; frameIdx < maxFramesToUse; frameIdx++) {
+    final frame = sortedFrames[frameIdx];
     final decoded = img.decodeJpg(frame.imageData);
-    if (decoded != null) {
-      // Resize to match base if needed
-      if (decoded.width != baseImage.width || decoded.height != baseImage.height) {
-        decodedImages.add(
-          img.copyResize(decoded, width: baseImage.width, height: baseImage.height),
-        );
-      } else {
-        decodedImages.add(decoded);
-      }
-      frameQualities.add(frame.qualityScore);
-    }
-  }
+    if (decoded == null) continue;
 
-  if (decodedImages.isEmpty) {
-    throw StateError('No valid images to composite');
-  }
+    // Resize if needed
+    final image = (decoded.width != baseImage.width || decoded.height != baseImage.height)
+        ? img.copyResize(decoded, width: baseImage.width, height: baseImage.height)
+        : decoded;
 
-  // For each region, select the best frame based on local quality
-  for (int region = 0; region < regionCount; region++) {
-    final startX = region * stripWidth;
-    final endX = (region == regionCount - 1) ? baseImage.width : (region + 1) * stripWidth;
+    // Check each region's quality
+    for (int region = 0; region < regionCount; region++) {
+      final startX = region * stripWidth;
+      final endX = (region == regionCount - 1) ? baseImage.width : (region + 1) * stripWidth;
 
-    // Find best image for this region based on local variance
-    int bestImageIdx = 0;
-    double bestLocalQuality = 0;
-
-    for (int imgIdx = 0; imgIdx < decodedImages.length; imgIdx++) {
-      final localQuality = _calculateRegionQuality(
-        decodedImages[imgIdx],
-        startX,
-        endX,
-      );
-      if (localQuality > bestLocalQuality) {
-        bestLocalQuality = localQuality;
-        bestImageIdx = imgIdx;
+      final localQuality = _calculateRegionQuality(image, startX, endX);
+      if (localQuality > bestQualityForRegion[region]) {
+        bestQualityForRegion[region] = localQuality;
+        bestFrameForRegion[region] = frameIdx;
       }
     }
 
-    // Copy this region from the best image
-    final sourceImage = decodedImages[bestImageIdx];
-    for (int y = 0; y < composite.height; y++) {
-      for (int x = startX; x < endX; x++) {
-        composite.setPixel(x, y, sourceImage.getPixel(x, y));
+    // If this frame is best for any region, copy those regions now
+    // This avoids needing to decode the frame again later
+    for (int region = 0; region < regionCount; region++) {
+      if (bestFrameForRegion[region] == frameIdx) {
+        final startX = region * stripWidth;
+        final endX = (region == regionCount - 1) ? baseImage.width : (region + 1) * stripWidth;
+
+        for (int y = 0; y < composite.height; y++) {
+          for (int x = startX; x < endX; x++) {
+            composite.setPixel(x, y, image.getPixel(x, y));
+          }
+        }
       }
     }
+    // Image goes out of scope here, allowing GC
   }
 
   // Apply slight blur at region boundaries to reduce seams

@@ -28,6 +28,9 @@ class AutoPlotProvider extends ChangeNotifier {
   final VisionApiService _visionService;
   EntitlementProvider? _entitlementProvider;
 
+  // Mutex to prevent concurrent processImage calls
+  bool _isProcessingImage = false;
+
   AutoPlotProvider(this._db, this._visionService);
 
   /// Set the entitlement provider for access checks
@@ -92,6 +95,10 @@ class AutoPlotProvider extends ChangeNotifier {
 
   /// Message explaining why user can't scan
   String? get upgradeMessage {
+    // Check if entitlement provider is configured first
+    if (_entitlementProvider == null) {
+      return 'Unable to verify subscription. Please restart the app.';
+    }
     if (!hasAutoPlotAccess) {
       return 'Auto-Plot requires Competitor tier or higher. Upgrade to unlock.';
     }
@@ -265,6 +272,11 @@ class AutoPlotProvider extends ChangeNotifier {
 
   /// Process a captured image
   Future<void> processImage(Uint8List imageData) async {
+    // Prevent concurrent processing (race condition guard)
+    if (_isProcessingImage) {
+      return;
+    }
+
     if (!canScan) {
       _state = AutoPlotState.error;
       _errorMessage = upgradeMessage ?? 'Unable to scan. Please check your subscription.';
@@ -272,49 +284,65 @@ class AutoPlotProvider extends ChangeNotifier {
       return;
     }
 
+    // Guard against missing targetType (should call startCapture first)
+    final targetType = _selectedTargetType;
+    if (targetType == null) {
+      _state = AutoPlotState.error;
+      _errorMessage = 'No target type selected. Please start capture first.';
+      notifyListeners();
+      return;
+    }
+
+    _isProcessingImage = true;
     _capturedImage = imageData;
     _state = AutoPlotState.processing;
     _errorMessage = null;
     notifyListeners();
 
-    // Get reference image if available
-    Uint8List? referenceImage;
-    final registeredTarget = getRegisteredTargetForType(_selectedTargetType!);
-    if (registeredTarget != null) {
-      final file = File(registeredTarget.imagePath);
-      if (await file.exists()) {
-        referenceImage = await file.readAsBytes();
+    try {
+      // Get reference image if available
+      Uint8List? referenceImage;
+      final registeredTarget = getRegisteredTargetForType(targetType);
+      if (registeredTarget != null) {
+        final file = File(registeredTarget.imagePath);
+        if (await file.exists()) {
+          referenceImage = await file.readAsBytes();
+        }
       }
-    }
 
-    // Convert arrow appearance for API
-    ArrowAppearance? apiAppearance;
-    if (_arrowAppearance != null && _arrowAppearance!.hasAnyFeatures) {
-      apiAppearance = ArrowAppearance(
-        fletchColor: _arrowAppearance!.fletchColor,
-        nockColor: _arrowAppearance!.nockColor,
-        wrapColor: _arrowAppearance!.wrapColor,
+      // Convert arrow appearance for API
+      ArrowAppearance? apiAppearance;
+      if (_arrowAppearance != null && _arrowAppearance!.hasAnyFeatures) {
+        apiAppearance = ArrowAppearance(
+          fletchColor: _arrowAppearance!.fletchColor,
+          nockColor: _arrowAppearance!.nockColor,
+          wrapColor: _arrowAppearance!.wrapColor,
+        );
+      }
+
+      // Call vision API
+      final result = await _visionService.detectArrows(
+        shotImage: imageData,
+        referenceImage: referenceImage,
+        targetType: targetType,
+        isTripleSpot: registeredTarget?.isTripleSpot ?? targetType.contains('triple'),
+        arrowAppearance: apiAppearance,
       );
-    }
 
-    // Call vision API
-    final result = await _visionService.detectArrows(
-      shotImage: imageData,
-      referenceImage: referenceImage,
-      targetType: _selectedTargetType!,
-      isTripleSpot: registeredTarget?.isTripleSpot ?? _selectedTargetType!.contains('triple'),
-      arrowAppearance: apiAppearance,
-    );
+      if (result.isSuccess) {
+        _detectedArrows = result.arrows;
+        _state = AutoPlotState.confirming;
 
-    if (result.isSuccess) {
-      _detectedArrows = result.arrows;
-      _state = AutoPlotState.confirming;
-
-      // Refresh usage from server (Firebase Function incremented it)
-      await _loadUsage();
-    } else {
-      _state = AutoPlotState.error;
-      _errorMessage = result.error;
+        // Refresh usage from server (Firebase Function incremented it)
+        await _loadUsage();
+      } else {
+        _state = AutoPlotState.error;
+        _errorMessage = result.error;
+        // Also refresh usage on error - scan may have been consumed
+        await _loadUsage();
+      }
+    } finally {
+      _isProcessingImage = false;
     }
 
     notifyListeners();
@@ -369,6 +397,18 @@ class AutoPlotProvider extends ChangeNotifier {
     _detectedArrows = [];
     _capturedImage = null;
     _selectedTargetType = null;
+    _isProcessingImage = false;
     notifyListeners();
+  }
+
+  /// Check if entitlement provider is properly configured
+  bool get isEntitlementConfigured => _entitlementProvider != null;
+
+  /// Get a diagnostic message if entitlement is not configured
+  String? get entitlementDiagnostic {
+    if (_entitlementProvider == null) {
+      return 'Entitlement provider not set. Auto-Plot access cannot be verified.';
+    }
+    return null;
   }
 }

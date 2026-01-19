@@ -235,7 +235,7 @@ class _SessionStartScreenState extends State<SessionStartScreen> {
                   const SizedBox(height: AppSpacing.xl),
 
                   // Expected sight mark (show when bow and round are selected)
-                  if (_selectedBowId != null && _selectedRoundId != null)
+                  if (_selectedBowId != null && _selectedRoundId != null && _roundTypes.isNotEmpty)
                     Builder(
                       builder: (context) {
                         final round = _roundTypes.firstWhere(

@@ -19,10 +19,11 @@ import 'providers/sight_marks_provider.dart';
 import 'providers/auto_plot_provider.dart';
 import 'providers/user_profile_provider.dart';
 import 'providers/entitlement_provider.dart';
+import 'providers/classification_provider.dart';
 import 'services/vision_api_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
-import 'services/firestore_sync_service.dart';
+import 'services/sync_service.dart';
 import 'widgets/splash_branding.dart';
 
 /// Global scaffold messenger key for showing snackbars from anywhere in the app
@@ -55,6 +56,13 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
   // Database created immediately - no blocking initialization
   // Drift/WASM connections are lazy; actual connection opens on first query
   late final AppDatabase _database = AppDatabase();
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize SyncService singleton with database reference
+    SyncService().initialize(_database);
+  }
 
   @override
   void dispose() {
@@ -113,6 +121,9 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
             create: (context) =>
                 EntitlementProvider(context.read<AppDatabase>())..loadEntitlement(),
           ),
+          ChangeNotifierProvider(
+            create: (context) => ClassificationProvider(context.read<AppDatabase>()),
+          ),
         ],
         child: MaterialApp(
           title: 'Archery Super App',
@@ -145,7 +156,6 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
   bool _firebaseReady = false;
   bool _wasLoggedIn = false; // Local flag for offline resilience
   DateTime? _lastSyncAttempt;
-  bool _isSyncing = false;
 
   @override
   void initState() {
@@ -257,8 +267,10 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
       return;
     }
 
-    // Don't start another sync if one is already running
-    if (_isSyncing) {
+    final syncService = SyncService();
+
+    // SyncService handles its own mutex lock, but we still debounce here
+    if (syncService.isSyncing) {
       debugPrint('Skipping sync: already syncing');
       return;
     }
@@ -270,9 +282,7 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
       if (!mounted) return;
 
       try {
-        final db = context.read<AppDatabase>();
         final connectivityProvider = context.read<ConnectivityProvider>();
-        final syncService = FirestoreSyncService();
 
         // Only sync if we're online
         if (!connectivityProvider.isOnline) {
@@ -286,11 +296,10 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
           return;
         }
 
-        _isSyncing = true;
         connectivityProvider.setSyncing(true);
 
         try {
-          final result = await syncService.syncAllData(db);
+          final result = await syncService.syncAll();
 
           // If we downloaded data, refresh relevant providers
           if (result.downloaded > 0 && mounted) {
@@ -302,7 +311,7 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
 
           if (result.totalSynced > 0) {
             debugPrint('Sync completed: ${result.message} (↓${result.downloaded} ↑${result.uploaded})');
-          } else {
+          } else if (!result.alreadySyncing) {
             debugPrint('Sync completed: already in sync');
           }
         } catch (e) {
@@ -310,14 +319,12 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
           // Don't show error snackbar for routine sync failures
           // The user can retry by reopening the app
         } finally {
-          _isSyncing = false;
           if (mounted) {
             connectivityProvider.setSyncing(false);
           }
         }
       } catch (e) {
         // Firebase not initialized (tests) or other initialization error
-        _isSyncing = false;
         debugPrint('Background sync skipped: $e');
       }
     });

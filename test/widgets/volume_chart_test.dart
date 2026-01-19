@@ -93,6 +93,7 @@ void main() {
           sessionType: 'practice',
           source: 'manual',
           importedAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         );
 
         await tester.pumpWidget(
@@ -474,7 +475,7 @@ void main() {
           ),
         ];
 
-        final importedScores = [
+        final importedScores = <ImportedScore>[
           ImportedScore(
             id: 'is1',
             date: DateTime(2026, 1, 11),
@@ -483,6 +484,7 @@ void main() {
             sessionType: 'practice',
             source: 'manual',
             importedAt: DateTime.now(),
+            updatedAt: DateTime.now(),
           ),
         ];
 
@@ -526,6 +528,7 @@ void main() {
             sessionType: 'practice',
             source: 'manual',
             importedAt: DateTime.now(),
+            updatedAt: DateTime.now(),
           ),
           ImportedScore(
             id: 'is2',
@@ -535,6 +538,7 @@ void main() {
             sessionType: 'practice',
             source: 'manual',
             importedAt: DateTime.now(),
+            updatedAt: DateTime.now(),
           ),
         ];
 

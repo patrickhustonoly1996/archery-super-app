@@ -54,3 +54,6 @@ tmpclaude-*
 
 # Firebase cache
 .firebase/
+
+# Node.js (for chiptune tooling)
+node_modules/

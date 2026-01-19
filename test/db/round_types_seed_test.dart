@@ -34,6 +34,8 @@ void main() {
           'agb_metric',
           'nfaa_indoor',
           'nfaa_field',
+          'ifaa_field',
+          'ifaa_indoor',
           'practice',
         };
 

@@ -5,10 +5,15 @@ import '../providers/session_provider.dart';
 import '../providers/equipment_provider.dart';
 import '../providers/skills_provider.dart';
 import '../providers/sight_marks_provider.dart';
+import '../providers/user_profile_provider.dart';
+import '../providers/classification_provider.dart';
 import '../models/sight_mark.dart';
+import '../models/user_profile.dart';
+import '../models/classification.dart';
 import '../utils/handicap_calculator.dart';
 import '../widgets/stat_box.dart';
 import '../widgets/sight_mark_entry_form.dart';
+import '../widgets/classification_badge.dart';
 import 'home_screen.dart';
 
 class SessionCompleteScreen extends StatefulWidget {
@@ -22,9 +27,12 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
   bool _hasCheckedTopPercentile = false;
   bool _hasAwardedXp = false;
   bool _hasPromptedSightMark = false;
+  bool _hasCheckedClassification = false;
   bool? _isTopScore;
   bool _snapshotSaved = false;
   bool _sightMarkSaved = false;
+  String? _classificationAchieved;
+  bool _isClassificationComplete = false;
 
   @override
   void initState() {
@@ -33,6 +41,7 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
       _checkTopPercentile();
       _awardSessionXp();
       _promptSightMark();
+      _checkClassification();
     });
   }
 
@@ -98,6 +107,72 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
     if (mounted && isTop == true) {
       setState(() => _isTopScore = true);
       _showKitSnapshotPrompt();
+    }
+  }
+
+  /// Check if this session qualifies for any classifications
+  Future<void> _checkClassification() async {
+    if (_hasCheckedClassification) return;
+    _hasCheckedClassification = true;
+
+    final sessionProvider = context.read<SessionProvider>();
+    final userProfileProvider = context.read<UserProfileProvider>();
+    final classificationProvider = context.read<ClassificationProvider>();
+
+    final session = sessionProvider.currentSession;
+    final roundType = sessionProvider.roundType;
+    final profile = userProfileProvider.profile;
+
+    if (session == null || roundType == null || profile == null) return;
+
+    // Check if user has classification info set
+    final gender = userProfileProvider.gender;
+    final ageCategory = userProfileProvider.ageCategory;
+
+    if (gender == null || ageCategory == null) {
+      // User hasn't set up classification info yet
+      return;
+    }
+
+    // Calculate handicap for the score
+    final handicap = HandicapCalculator.calculateHandicap(
+      roundType.id,
+      sessionProvider.totalScore,
+    );
+
+    if (handicap == null) {
+      // Round not supported for handicap calculation
+      return;
+    }
+
+    // Get bowstyle from the session's bow or default to user profile
+    String bowstyle = userProfileProvider.primaryBowType.value;
+    if (session.bowId != null) {
+      final equipmentProvider = context.read<EquipmentProvider>();
+      final bow = await equipmentProvider.getBow(session.bowId!);
+      if (bow != null) {
+        bowstyle = bow.bowType;
+      }
+    }
+
+    // Check and record the classification
+    final classification = await classificationProvider.checkAndRecordScore(
+      profileId: profile.id,
+      handicap: handicap.round(),
+      bowstyle: bowstyle,
+      ageCategory: ageCategory,
+      gender: gender,
+      sessionId: session.id,
+      score: sessionProvider.totalScore,
+      roundId: roundType.id,
+      isIndoor: roundType.isIndoor,
+    );
+
+    if (classification != null && mounted) {
+      setState(() {
+        _classificationAchieved = classification.classification;
+        _isClassificationComplete = classification.secondSessionId != null;
+      });
     }
   }
 
@@ -335,6 +410,63 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
     }
   }
 
+  Widget _buildClassificationCard() {
+    final sessionProvider = context.read<SessionProvider>();
+    final roundType = sessionProvider.roundType;
+    final scope = roundType?.isIndoor == true
+        ? ClassificationScope.indoor
+        : ClassificationScope.outdoor;
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.gold.withValues(alpha: 0.1),
+        border: Border.all(color: AppColors.gold),
+        borderRadius: BorderRadius.circular(AppSpacing.sm),
+      ),
+      child: Row(
+        children: [
+          ClassificationBadge(
+            classificationCode: _classificationAchieved!,
+            scope: scope,
+            isCompact: true,
+            showScope: false,
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _isClassificationComplete
+                      ? 'Classification Complete!'
+                      : 'Qualifying Score!',
+                  style: TextStyle(
+                    fontFamily: AppFonts.pixel,
+                    fontSize: 14,
+                    color: AppColors.gold,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _isClassificationComplete
+                      ? 'You\'ve achieved two qualifying scores for ${_classificationAchieved!}'
+                      : 'First qualifying score for ${_classificationAchieved!}. One more to go!',
+                  style: TextStyle(
+                    fontFamily: AppFonts.body,
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<SessionProvider>(
@@ -442,6 +574,12 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
                       ),
                     ],
                   ),
+
+                  // Classification achievement notification
+                  if (_classificationAchieved != null) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    _buildClassificationCard(),
+                  ],
 
                   const SizedBox(height: AppSpacing.xl),
 

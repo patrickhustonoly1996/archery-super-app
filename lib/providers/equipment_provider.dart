@@ -99,7 +99,7 @@ class EquipmentProvider extends ChangeNotifier {
     return bowId;
   }
 
-  /// Create a new quiver with shafts
+  /// Create a new quiver with shafts (atomically in a transaction)
   Future<void> createQuiver({
     required String name,
     String? bowId,
@@ -108,23 +108,27 @@ class EquipmentProvider extends ChangeNotifier {
   }) async {
     final quiverId = UniqueId.generate();
 
-    await _db.insertQuiver(QuiversCompanion.insert(
-      id: quiverId,
-      name: name,
-      bowId: Value(bowId),
-      shaftCount: Value(shaftCount),
-      isDefault: Value(setAsDefault),
-    ));
-
-    // Create shafts for the quiver
+    // Build shaft companions list
+    final shaftsList = <ShaftsCompanion>[];
     for (int i = 1; i <= shaftCount; i++) {
-      final shaftId = '${quiverId}_shaft_$i';
-      await _db.insertShaft(ShaftsCompanion.insert(
-        id: shaftId,
+      shaftsList.add(ShaftsCompanion.insert(
+        id: '${quiverId}_shaft_$i',
         quiverId: quiverId,
         number: i,
       ));
     }
+
+    // Create quiver and shafts atomically
+    await _db.createQuiverWithShafts(
+      quiver: QuiversCompanion.insert(
+        id: quiverId,
+        name: name,
+        bowId: Value(bowId),
+        shaftCount: Value(shaftCount),
+        isDefault: Value(setAsDefault),
+      ),
+      shaftsList: shaftsList,
+    );
 
     if (setAsDefault) {
       await _db.setDefaultQuiver(quiverId);

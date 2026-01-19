@@ -20,6 +20,7 @@ import 'home_screen.dart';
 import 'auto_plot_capture_screen.dart';
 import 'auto_plot_scan_router.dart';
 import '../services/vision_api_service.dart';
+import '../utils/target_coordinate_system.dart';
 
 /// Preference key for triple spot view mode
 const String kTripleSpotViewPref = 'indoor_triple_spot_view';
@@ -85,6 +86,9 @@ class _PlottingScreenState extends State<PlottingScreen> {
   int? _viewingEndIndex;
   List<Arrow>? _viewingEndArrows;
 
+  // Prevent duplicate navigation to session complete screen
+  bool _navigatingToComplete = false;
+
   @override
   void initState() {
     super.initState();
@@ -105,12 +109,23 @@ class _PlottingScreenState extends State<PlottingScreen> {
 
   /// View arrows from a past end
   Future<void> _viewPastEnd(int endIndex, SessionProvider provider) async {
-    final end = provider.ends[endIndex];
-    final arrows = await provider.getArrowsForEnd(end.id);
+    // Immediately highlight the selected end chip for visual feedback
     setState(() {
       _viewingEndIndex = endIndex;
-      _viewingEndArrows = arrows;
+      // Keep previous arrows while loading (prevents flash to empty)
+      // If no previous arrows, this will briefly show empty which is acceptable
     });
+
+    // Load arrows from database
+    final end = provider.ends[endIndex];
+    final arrows = await provider.getArrowsForEnd(end.id);
+
+    // Update with loaded arrows (if still viewing this end)
+    if (mounted && _viewingEndIndex == endIndex) {
+      setState(() {
+        _viewingEndArrows = arrows;
+      });
+    }
   }
 
   /// Return to current end (exit history view)
@@ -218,13 +233,16 @@ class _PlottingScreenState extends State<PlottingScreen> {
   Widget build(BuildContext context) {
     return Consumer<SessionProvider>(
       builder: (context, provider, _) {
-        if (provider.isSessionComplete) {
-          // Navigate to completion screen
+        if (provider.isSessionComplete && !_navigatingToComplete) {
+          // Navigate to completion screen (only once)
+          _navigatingToComplete = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const SessionCompleteScreen()),
-            );
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const SessionCompleteScreen()),
+              );
+            }
           });
           return const SizedBox.shrink();
         }
@@ -343,6 +361,8 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                     compoundScoring: _compoundScoring,
                                     autoAdvance: _autoAdvanceEnabled,
                                     advanceOrder: _autoAdvanceOrder,
+                                    selectedFace: _selectedFaceIndex,
+                                    onFaceChanged: (face) => setState(() => _selectedFaceIndex = face),
                                     onArrowPlotted: (x, y, faceIndex) async {
                                       await _plotArrowWithFace(
                                         context, provider, x, y, faceIndex,
@@ -421,12 +441,10 @@ class _PlottingScreenState extends State<PlottingScreen> {
                         child: GestureDetector(
                           onTap: _toggleConfidenceMultiplier,
                           onLongPress: _toggleRingNotation,
-                          child: FutureBuilder(
-                            // Key forces rebuild when arrows or confidence change
-                            key: ValueKey('last12_${provider.ends.length}_${provider.arrowsInCurrentEnd}_${_confidenceMultiplier}_$_showRingNotation'),
-                            future: provider.getLastNArrows(12),
-                            builder: (context, snapshot) {
-                              final arrows = snapshot.data ?? [];
+                          child: Builder(
+                            builder: (context) {
+                              // Use synchronous cached data - no FutureBuilder needed
+                              final arrows = provider.lastNArrows(12);
                               final confLabel = _confidenceMultiplier == 1.0 ? '67%' : '95%';
                               return GroupCentreWidget(
                                 arrows: arrows,
@@ -508,22 +526,17 @@ class _PlottingScreenState extends State<PlottingScreen> {
                   child: Container(
                     margin: const EdgeInsets.only(top: AppSpacing.sm),
                     constraints: const BoxConstraints(maxHeight: 120),
-                    child: FutureBuilder(
-                      future: provider.getAllCompletedEndArrows(),
-                      builder: (context, snapshot) {
-                        final completedArrows = snapshot.data ?? [];
-                        return FullScorecardWidget(
-                          completedEnds: provider.ends,
-                          completedEndArrows: completedArrows,
-                          currentEndArrows: provider.currentEndArrows,
-                          currentEndNumber: provider.currentEndNumber,
-                          arrowsPerEnd: provider.arrowsPerEnd,
-                          totalEnds: provider.totalEnds,
-                          roundName: provider.roundType?.name ?? '',
-                          maxScore: provider.roundType?.maxScore,
-                          roundType: provider.roundType,
-                        );
-                      },
+                    // Use synchronous cached data - no FutureBuilder needed
+                    child: FullScorecardWidget(
+                      completedEnds: provider.ends,
+                      completedEndArrows: provider.completedEndArrowsByEnd,
+                      currentEndArrows: provider.currentEndArrows,
+                      currentEndNumber: provider.currentEndNumber,
+                      arrowsPerEnd: provider.arrowsPerEnd,
+                      totalEnds: provider.totalEnds,
+                      roundName: provider.roundType?.name ?? '',
+                      maxScore: provider.roundType?.maxScore,
+                      roundType: provider.roundType,
                     ),
                   ),
                 ),
@@ -563,27 +576,30 @@ class _PlottingScreenState extends State<PlottingScreen> {
           .map((a) => a.shaftNumber!)
           .toSet();
 
-      await showModalBottomSheet(
+      final result = await showModalBottomSheet<ShaftSelectionResult>(
         context: context,
         backgroundColor: Colors.transparent,
         builder: (_) => ShaftSelectorBottomSheet(
           shafts: shafts,
           usedShaftNumbers: usedShaftNumbers,
-          onShaftSelected: (shaftNumber, {String? nockRotation, int rating = 5}) {
-            provider.plotArrow(
-              x: x,
-              y: y,
-              faceIndex: faceIndex,
-              shaftNumber: shaftNumber,
-              nockRotation: nockRotation,
-              rating: rating,
-            );
-          },
-          onSkip: () {
-            provider.plotArrow(x: x, y: y, faceIndex: faceIndex);
-          },
         ),
       );
+
+      // Handle result: selection, skip, or dismiss
+      if (result != null && result.shaftNumber != null) {
+        // User selected a shaft
+        await provider.plotArrow(
+          x: x,
+          y: y,
+          faceIndex: faceIndex,
+          shaftNumber: result.shaftNumber,
+          nockRotation: result.nockRotation,
+          rating: result.rating,
+        );
+      } else {
+        // User skipped or dismissed - plot without shaft tracking
+        await provider.plotArrow(x: x, y: y, faceIndex: faceIndex);
+      }
     } else {
       // No shaft tagging - plot directly
       await provider.plotArrow(x: x, y: y, faceIndex: faceIndex);
@@ -781,16 +797,43 @@ class _ActionButtons extends StatelessWidget {
 
     // Process detected arrows
     if (result != null && result.isNotEmpty && context.mounted) {
-      // For triple spot, auto-assign face indices cycling through 0, 1, 2
-      // This distributes arrows across the three faces
-      for (int i = 0; i < result.length; i++) {
-        final arrow = result[i];
-        final assignedFaceIndex = isTripleSpot ? (i % 3) : 0;
-        // Convert normalized coordinates to what the plotting system expects
+      int arrowsWithoutFaceIndex = 0;
+
+      for (final arrow in result) {
+        int faceIndex;
+
+        if (arrow.faceIndex != null) {
+          // Use API-detected face index
+          faceIndex = arrow.faceIndex!;
+        } else if (isTripleSpot) {
+          // For tri-spot without API face detection, assign based on current face distribution
+          faceIndex = TripleSpotFaceDistributor.nextFaceIndexFromArrows(
+            provider.currentEndArrows,
+            (a) => a.faceIndex,
+          );
+          arrowsWithoutFaceIndex++;
+        } else {
+          // Single face - always 0
+          faceIndex = 0;
+        }
+
         await provider.plotArrow(
           x: arrow.x,
           y: arrow.y,
-          faceIndex: arrow.faceIndex ?? assignedFaceIndex,
+          faceIndex: faceIndex,
+        );
+      }
+
+      // Warn user if we had to guess face assignments
+      if (arrowsWithoutFaceIndex > 0 && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '$arrowsWithoutFaceIndex arrow${arrowsWithoutFaceIndex > 1 ? 's' : ''} auto-assigned to faces. Use Undo if incorrect.',
+            ),
+            duration: const Duration(seconds: 4),
+            backgroundColor: AppColors.surfaceDark,
+          ),
         );
       }
     }

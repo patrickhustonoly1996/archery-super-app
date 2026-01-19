@@ -35,7 +35,9 @@ Arrow createFakeArrow({
     isX: isX,
     sequence: 1,
     shaftNumber: shaftNumber,
+    rating: 5,
     createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
   );
 }
 
@@ -59,7 +61,9 @@ Arrow createFakeArrowNormalized({
     isX: isX,
     sequence: 1,
     shaftNumber: null,
+    rating: 5,
     createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
   );
 }
 
@@ -394,7 +398,9 @@ void main() {
         isX: false,
         sequence: 1,
         shaftNumber: null,
+        rating: 5,
         createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       // The widget checks: if (arrow.xMm != 0 || arrow.yMm != 0)
@@ -414,7 +420,9 @@ void main() {
         isX: false,
         sequence: 1,
         shaftNumber: null,
+        rating: 5,
         createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       // Should use legacy path

@@ -20,7 +20,7 @@ void main() {
     test('creates in-memory database successfully', () async {
       await withTestDb((db) async {
         expect(db, matcher.isNotNull);
-        expect(db.schemaVersion, equals(20));
+        expect(db.schemaVersion, equals(24));
       });
     });
 
@@ -1059,6 +1059,48 @@ void main() {
         expect(shafts.length, equals(12));
         expect(shafts[0].number, equals(1));
         expect(shafts[11].number, equals(12));
+      });
+    });
+
+    test('createQuiverWithShafts creates both atomically', () async {
+      await withTestDb((db) async {
+        final bowId = 'bow_1';
+        await db.insertBow(createTestBow(id: bowId, name: 'Test Bow'));
+
+        final quiverId = 'quiver_atomic';
+        const shaftCount = 6;
+
+        // Build shaft companions list
+        final shaftsList = <ShaftsCompanion>[];
+        for (int i = 1; i <= shaftCount; i++) {
+          shaftsList.add(ShaftsCompanion.insert(
+            id: '${quiverId}_shaft_$i',
+            quiverId: quiverId,
+            number: i,
+          ));
+        }
+
+        // Create quiver and shafts atomically
+        await db.createQuiverWithShafts(
+          quiver: QuiversCompanion.insert(
+            id: quiverId,
+            name: 'Atomic Quiver',
+            bowId: Value(bowId),
+            shaftCount: Value(shaftCount),
+          ),
+          shaftsList: shaftsList,
+        );
+
+        // Verify quiver was created
+        final quiver = await db.getQuiver(quiverId);
+        expect(quiver, matcher.isNotNull);
+        expect(quiver!.name, equals('Atomic Quiver'));
+        expect(quiver.shaftCount, equals(6));
+
+        // Verify all shafts were created
+        final shafts = await db.getShaftsForQuiver(quiverId);
+        expect(shafts.length, equals(6));
+        expect(shafts.map((s) => s.number).toList(), equals([1, 2, 3, 4, 5, 6]));
       });
     });
 

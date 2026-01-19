@@ -1,4 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'sync_service.dart';
 
 /// Simple authentication service wrapping Firebase Auth
 class AuthService {
@@ -35,8 +37,14 @@ class AuthService {
     );
   }
 
-  /// Sign out
+  /// Sign out - clears all local user data first (Bug #1 fix)
   Future<void> signOut() async {
+    // Clear local data to prevent data leak between accounts
+    await SyncService().clearLocalData();
+    // Clear "was logged in" flag
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('was_logged_in');
+    // Now sign out
     await _auth.signOut();
   }
 

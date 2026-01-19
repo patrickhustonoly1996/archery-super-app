@@ -484,4 +484,158 @@ void main() {
       );
     });
   });
+
+  group('LineCutterLabels', () {
+    test('X ring boundary (11) shows X and 10 labels', () {
+      final labels = LineCutterLabels.forRing(11);
+
+      expect(labels.ringLabel, equals('X'));
+      expect(labels.inLabel, equals('IN (X)'));
+      expect(labels.outLabel, equals('OUT (10)'));
+    });
+
+    test('ring 1 boundary shows Miss for out', () {
+      final labels = LineCutterLabels.forRing(1);
+
+      expect(labels.ringLabel, equals('1'));
+      expect(labels.inLabel, equals('IN (1)'));
+      expect(labels.outLabel, equals('OUT (Miss)'));
+    });
+
+    test('standard ring (10) shows correct labels', () {
+      final labels = LineCutterLabels.forRing(10);
+
+      expect(labels.ringLabel, equals('10'));
+      expect(labels.inLabel, equals('IN (10)'));
+      expect(labels.outLabel, equals('OUT (9)'));
+    });
+
+    test('standard ring (5) shows correct labels', () {
+      final labels = LineCutterLabels.forRing(5);
+
+      expect(labels.ringLabel, equals('5'));
+      expect(labels.inLabel, equals('IN (5)'));
+      expect(labels.outLabel, equals('OUT (4)'));
+    });
+
+    test('all standard rings generate valid labels', () {
+      // Test rings 2-10 (not 1 or 11 which are edge cases)
+      for (int ring = 2; ring <= 10; ring++) {
+        final labels = LineCutterLabels.forRing(ring);
+
+        expect(labels.ringLabel, equals('$ring'));
+        expect(labels.inLabel, equals('IN ($ring)'));
+        expect(labels.outLabel, equals('OUT (${ring - 1})'));
+      }
+    });
+  });
+
+  group('TripleSpotFaceDistributor', () {
+    test('empty arrows returns face 0', () {
+      final result = TripleSpotFaceDistributor.nextFaceIndex(
+        face0Count: 0,
+        face1Count: 0,
+        face2Count: 0,
+      );
+      expect(result, equals(0));
+    });
+
+    test('distributes evenly starting with face 0', () {
+      // First arrow goes to face 0
+      expect(
+        TripleSpotFaceDistributor.nextFaceIndex(
+          face0Count: 0,
+          face1Count: 0,
+          face2Count: 0,
+        ),
+        equals(0),
+      );
+
+      // Second arrow goes to face 1 (face 0 has 1)
+      expect(
+        TripleSpotFaceDistributor.nextFaceIndex(
+          face0Count: 1,
+          face1Count: 0,
+          face2Count: 0,
+        ),
+        equals(1),
+      );
+
+      // Third arrow goes to face 2 (faces 0,1 have 1 each)
+      expect(
+        TripleSpotFaceDistributor.nextFaceIndex(
+          face0Count: 1,
+          face1Count: 1,
+          face2Count: 0,
+        ),
+        equals(2),
+      );
+
+      // Fourth arrow goes to face 0 (all have 1)
+      expect(
+        TripleSpotFaceDistributor.nextFaceIndex(
+          face0Count: 1,
+          face1Count: 1,
+          face2Count: 1,
+        ),
+        equals(0),
+      );
+    });
+
+    test('prefers lower face index when counts equal', () {
+      // When 0 and 1 are equal and both less than 2
+      expect(
+        TripleSpotFaceDistributor.nextFaceIndex(
+          face0Count: 1,
+          face1Count: 1,
+          face2Count: 2,
+        ),
+        equals(0),
+      );
+
+      // When 1 and 2 are equal and both less than 0
+      expect(
+        TripleSpotFaceDistributor.nextFaceIndex(
+          face0Count: 2,
+          face1Count: 1,
+          face2Count: 1,
+        ),
+        equals(1),
+      );
+    });
+
+    test('fills underpopulated face', () {
+      // Face 2 is empty, others have arrows
+      expect(
+        TripleSpotFaceDistributor.nextFaceIndex(
+          face0Count: 2,
+          face1Count: 2,
+          face2Count: 0,
+        ),
+        equals(2),
+      );
+
+      // Face 1 is empty
+      expect(
+        TripleSpotFaceDistributor.nextFaceIndex(
+          face0Count: 1,
+          face1Count: 0,
+          face2Count: 1,
+        ),
+        equals(1),
+      );
+    });
+
+    test('handles unbalanced distribution', () {
+      // Simulate 3 arrows all on face 0 - next should go to face 1
+      expect(
+        TripleSpotFaceDistributor.nextFaceIndex(
+          face0Count: 3,
+          face1Count: 0,
+          face2Count: 0,
+        ),
+        equals(1),
+      );
+    });
+  });
 }

@@ -62,6 +62,8 @@ class Ends extends Table {
       text().withDefault(const Constant('active'))(); // active, committed
   DateTimeColumn get committedAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()(); // soft delete for sync
 
   @override
   Set<Column> get primaryKey => {id};
@@ -85,6 +87,8 @@ class Arrows extends Table {
   TextColumn get nockRotation => text().nullable()(); // Clock position: '12', '4', '8' etc.
   IntColumn get rating => integer().withDefault(const Constant(5))(); // Shot quality 1-5 stars (5=good, 3=exclude from analysis)
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()(); // soft delete for sync
 
   @override
   Set<Column> get primaryKey => {id};
@@ -104,6 +108,8 @@ class ImportedScores extends Table {
   TextColumn get source =>
       text().withDefault(const Constant('manual'))(); // csv, manual, web
   DateTimeColumn get importedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()(); // soft delete for sync
 
   @override
   Set<Column> get primaryKey => {id};
@@ -312,6 +318,7 @@ class VolumeEntries extends Table {
   TextColumn get notes => text().nullable()(); // Optional notes about the session
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()(); // soft delete for sync
 
   @override
   Set<Column> get primaryKey => {id};
@@ -325,6 +332,8 @@ class Milestones extends Table {
   TextColumn get description => text().nullable()(); // Optional longer description
   TextColumn get color => text().withDefault(const Constant('#FFD700'))(); // Hex color for the line
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()(); // soft delete for sync
 
   @override
   Set<Column> get primaryKey => {id};
@@ -426,6 +435,8 @@ class OlyTrainingLogs extends Table {
   TextColumn get notes => text().nullable()();
   DateTimeColumn get startedAt => dateTime()();
   DateTimeColumn get completedAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()(); // soft delete for sync
 
   @override
   Set<Column> get primaryKey => {id};
@@ -465,6 +476,8 @@ class BreathTrainingLogs extends Table {
   IntColumn get durationMinutes => integer().nullable()(); // For paced breathing
   DateTimeColumn get completedAt => dateTime()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()(); // soft delete for sync
 
   @override
   Set<Column> get primaryKey => {id};
@@ -675,6 +688,9 @@ class UserProfiles extends Table {
   IntColumn get yearsShootingStart => integer().nullable()(); // Year started shooting
   RealColumn get shootingFrequency => real().withDefault(const Constant(3.0))(); // Days per week (0-7)
   TextColumn get competitionLevels => text().withDefault(const Constant('[]'))(); // JSON array: ['local', 'regional', 'national', 'international', 'national_team']
+  // Classification-related fields
+  TextColumn get gender => text().nullable()(); // 'male' or 'female' for classification calculations
+  DateTimeColumn get dateOfBirth => dateTime().nullable()(); // For age category calculation
   // Notes (bottom) - for club access codes, etc.
   TextColumn get notes => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
@@ -695,9 +711,67 @@ class Federations extends Table {
   BoolColumn get isPrimary => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()(); // soft delete for sync
 
   @override
   Set<Column> get primaryKey => {id};
+}
+
+/// AGB Classification achievements
+/// Tracks when a user achieves a classification (requires two qualifying scores)
+class Classifications extends Table {
+  TextColumn get id => text()();
+  TextColumn get profileId => text().references(UserProfiles, #id)();
+  TextColumn get classification => text()(); // 'GMB', 'MB', 'B1', 'B2', 'B3', 'A1', 'A2', 'A3'
+  TextColumn get classificationScope => text()(); // 'outdoor' or 'indoor'
+  TextColumn get bowstyle => text()(); // 'recurve', 'compound', 'barebow', 'longbow', 'traditional'
+  // First qualifying score
+  TextColumn get firstSessionId => text().nullable().references(Sessions, #id)();
+  DateTimeColumn get firstAchievedAt => dateTime().nullable()();
+  IntColumn get firstScore => integer().nullable()();
+  TextColumn get firstRoundId => text().nullable()();
+  // Second qualifying score
+  TextColumn get secondSessionId => text().nullable().references(Sessions, #id)();
+  DateTimeColumn get secondAchievedAt => dateTime().nullable()();
+  IntColumn get secondScore => integer().nullable()();
+  TextColumn get secondRoundId => text().nullable()();
+  // Claim status
+  BoolColumn get isClaimed => boolean().withDefault(const Constant(false))(); // User has confirmed/claimed this
+  DateTimeColumn get claimedAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// ============================================================================
+// SYNC SYSTEM
+// ============================================================================
+
+/// Sync queue - persists pending operations for offline sync
+class SyncQueue extends Table {
+  TextColumn get id => text()();
+  TextColumn get entityType => text()(); // 'session', 'bow', 'importedScore', etc.
+  TextColumn get entityId => text()();
+  TextColumn get operation => text()(); // 'create', 'update', 'delete'
+  TextColumn get payload => text()(); // JSON serialized entity data
+  IntColumn get retryCount => integer().withDefault(const Constant(0))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get lastAttemptAt => dateTime().nullable()();
+  TextColumn get lastError => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Sync metadata - tracks last sync per entity type
+class SyncMetadata extends Table {
+  TextColumn get entityType => text()();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {entityType};
 }
 
 // ============================================================================
@@ -745,10 +819,14 @@ class Federations extends Table {
   // User Profile System
   UserProfiles,
   Federations,
+  Classifications,
   // Entitlement & Education System
   Entitlements,
   CourseProgress,
   Purchases,
+  // Sync System
+  SyncQueue,
+  SyncMetadata,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -757,7 +835,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 22;
+  int get schemaVersion => 24;
 
   @override
   MigrationStrategy get migration {
@@ -931,6 +1009,57 @@ class AppDatabase extends _$AppDatabase {
         if (from <= 21) {
           // Shot rating for analysis filtering
           await m.addColumn(arrows, arrows.rating);
+        }
+        if (from <= 22) {
+          // Sync system tables and columns
+          await m.createTable(syncQueue);
+          await m.createTable(syncMetadata);
+
+          // Add sync-related columns to existing tables
+          // ImportedScores: updatedAt, deletedAt
+          await m.addColumn(importedScores, importedScores.updatedAt);
+          await m.addColumn(importedScores, importedScores.deletedAt);
+
+          // Ends: updatedAt, deletedAt
+          await m.addColumn(ends, ends.updatedAt);
+          await m.addColumn(ends, ends.deletedAt);
+
+          // Arrows: updatedAt, deletedAt
+          await m.addColumn(arrows, arrows.updatedAt);
+          await m.addColumn(arrows, arrows.deletedAt);
+
+          // VolumeEntries: deletedAt (updatedAt already exists)
+          await m.addColumn(volumeEntries, volumeEntries.deletedAt);
+
+          // OlyTrainingLogs: createdAt, deletedAt
+          await m.addColumn(olyTrainingLogs, olyTrainingLogs.createdAt);
+          await m.addColumn(olyTrainingLogs, olyTrainingLogs.deletedAt);
+
+          // BreathTrainingLogs: updatedAt, deletedAt
+          await m.addColumn(breathTrainingLogs, breathTrainingLogs.updatedAt);
+          await m.addColumn(breathTrainingLogs, breathTrainingLogs.deletedAt);
+
+          // Milestones: updatedAt, deletedAt
+          await m.addColumn(milestones, milestones.updatedAt);
+          await m.addColumn(milestones, milestones.deletedAt);
+
+          // Federations: deletedAt (updatedAt already exists)
+          await m.addColumn(federations, federations.deletedAt);
+        }
+        if (from <= 23) {
+          // AGB Classification system
+          await m.createTable(classifications);
+
+          // Add gender and dateOfBirth to user profiles for classification calculations
+          await m.addColumn(userProfiles, userProfiles.gender);
+          await m.addColumn(userProfiles, userProfiles.dateOfBirth);
+
+          // Fix Worcester round: should use 5-zone scoring, not 10-zone
+          await customStatement('''
+            UPDATE round_types
+            SET scoring_type = '5-zone'
+            WHERE id = 'worcester'
+          ''');
         }
       },
     );
@@ -1331,6 +1460,19 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> insertQuiver(QuiversCompanion quiver) =>
       into(quivers).insert(quiver);
+
+  /// Create a quiver with shafts atomically in a transaction
+  Future<void> createQuiverWithShafts({
+    required QuiversCompanion quiver,
+    required List<ShaftsCompanion> shaftsList,
+  }) async {
+    return transaction(() async {
+      await into(quivers).insert(quiver);
+      for (final shaft in shaftsList) {
+        await into(shafts).insert(shaft);
+      }
+    });
+  }
 
   Future<bool> updateQuiver(QuiversCompanion quiver) =>
       update(quivers).replace(quiver);
@@ -2347,6 +2489,107 @@ class AppDatabase extends _$AppDatabase {
       (delete(federations)..where((t) => t.profileId.equals(profileId))).go();
 
   // ===========================================================================
+  // CLASSIFICATIONS
+  // ===========================================================================
+
+  /// Get all classifications for a profile
+  Future<List<Classification>> getClassificationsForProfile(String profileId) =>
+      (select(classifications)
+            ..where((t) => t.profileId.equals(profileId))
+            ..orderBy([(t) => OrderingTerm.asc(t.classificationScope), (t) => OrderingTerm.asc(t.classification)]))
+          .get();
+
+  /// Get classifications by scope (indoor/outdoor)
+  Future<List<Classification>> getClassificationsByScope(String profileId, String scope) =>
+      (select(classifications)
+            ..where((t) => t.profileId.equals(profileId) & t.classificationScope.equals(scope)))
+          .get();
+
+  /// Get classification by ID
+  Future<Classification?> getClassification(String id) =>
+      (select(classifications)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  /// Get a specific classification for a profile by classification code, scope, and bowstyle
+  Future<Classification?> getClassificationForProfileAndCode(
+    String profileId,
+    String classificationCode,
+    String scope,
+    String bowstyle,
+  ) =>
+      (select(classifications)..where((t) =>
+          t.profileId.equals(profileId) &
+          t.classification.equals(classificationCode) &
+          t.classificationScope.equals(scope) &
+          t.bowstyle.equals(bowstyle)))
+      .getSingleOrNull();
+
+  /// Get the highest claimed classification for a profile and scope
+  Future<Classification?> getHighestClaimedClassification(String profileId, String scope) async {
+    final claimed = await (select(classifications)
+          ..where((t) =>
+              t.profileId.equals(profileId) &
+              t.classificationScope.equals(scope) &
+              t.isClaimed.equals(true)))
+        .get();
+
+    if (claimed.isEmpty) return null;
+
+    // Classification order: GMB < MB < B1 < B2 < B3 < A1 < A2 < A3
+    // Lower index = higher classification
+    const order = ['GMB', 'MB', 'B1', 'B2', 'B3', 'A1', 'A2', 'A3'];
+    claimed.sort((a, b) {
+      final aIndex = order.indexOf(a.classification);
+      final bIndex = order.indexOf(b.classification);
+      return aIndex.compareTo(bIndex);
+    });
+
+    return claimed.first;
+  }
+
+  /// Insert a new classification
+  Future<int> insertClassification(ClassificationsCompanion classification) =>
+      into(classifications).insert(classification);
+
+  /// Update classification
+  Future<bool> updateClassification(ClassificationsCompanion classification) =>
+      update(classifications).replace(classification);
+
+  /// Update classification with second score (completing the achievement)
+  Future<int> updateClassificationSecondScore({
+    required String classificationId,
+    required String sessionId,
+    required int score,
+    required String roundId,
+  }) =>
+      (update(classifications)..where((t) => t.id.equals(classificationId))).write(
+        ClassificationsCompanion(
+          secondSessionId: Value(sessionId),
+          secondAchievedAt: Value(DateTime.now()),
+          secondScore: Value(score),
+          secondRoundId: Value(roundId),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+
+  /// Claim a classification (user confirms they want to claim it)
+  Future<int> claimClassification(String classificationId) =>
+      (update(classifications)..where((t) => t.id.equals(classificationId))).write(
+        ClassificationsCompanion(
+          isClaimed: const Value(true),
+          claimedAt: Value(DateTime.now()),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+
+  /// Delete classification
+  Future<int> deleteClassification(String id) =>
+      (delete(classifications)..where((t) => t.id.equals(id))).go();
+
+  /// Delete all classifications for a profile
+  Future<int> deleteClassificationsForProfile(String profileId) =>
+      (delete(classifications)..where((t) => t.profileId.equals(profileId))).go();
+
+  // ===========================================================================
   // ENTITLEMENTS
   // ===========================================================================
 
@@ -2468,6 +2711,155 @@ class AppDatabase extends _$AppDatabase {
   /// Delete a purchase
   Future<int> deletePurchase(String id) =>
       (delete(purchases)..where((t) => t.id.equals(id))).go();
+
+  // ===========================================================================
+  // SYNC SYSTEM
+  // ===========================================================================
+
+  /// Clear all user data on logout (Bug #1 fix: account switching data leak)
+  Future<void> clearAllUserData() async {
+    await transaction(() async {
+      // Clear all user data tables (order matters for foreign keys)
+      await delete(arrows).go();
+      await delete(ends).go();
+      await delete(sessions).go();
+      await delete(importedScores).go();
+      await delete(shafts).go();
+      await delete(quivers).go();
+      await delete(sightMarks).go();
+      await delete(sightMarkPreferencesTable).go();
+      await delete(stabilizers).go();
+      await delete(bowStrings).go();
+      await delete(fingerTabs).go();
+      await delete(bows).go();
+      await delete(volumeEntries).go();
+      await delete(volumeImports).go();
+      await delete(olyTrainingLogs).go();
+      await delete(userTrainingProgress).go();
+      await delete(breathTrainingLogs).go();
+      await delete(milestones).go();
+      await delete(kitSnapshots).go();
+      await delete(tuningSessions).go();
+      await delete(skillLevels).go();
+      await delete(xpHistory).go();
+      await delete(registeredTargets).go();
+      await delete(autoPlotUsage).go();
+      await delete(federations).go();
+      await delete(userProfiles).go();
+      await delete(entitlements).go();
+      await delete(courseProgress).go();
+      await delete(purchases).go();
+      await delete(syncQueue).go();
+      await delete(syncMetadata).go();
+      // Re-seed skill levels for the new user
+      await _seedSkillLevels();
+    });
+  }
+
+  /// Enqueue a sync operation for later processing
+  Future<int> enqueueSyncOp({
+    required String entityType,
+    required String entityId,
+    required String operation,
+    required String payload,
+  }) =>
+      into(syncQueue).insert(
+        SyncQueueCompanion.insert(
+          id: UniqueId.withPrefix('sq'),
+          entityType: entityType,
+          entityId: entityId,
+          operation: operation,
+          payload: payload,
+        ),
+      );
+
+  /// Get all pending sync operations ordered by creation time
+  Future<List<SyncQueueData>> getPendingOperations() =>
+      (select(syncQueue)..orderBy([(t) => OrderingTerm.asc(t.createdAt)])).get();
+
+  /// Get pending operations with retry count under limit
+  Future<List<SyncQueueData>> getRetryableOperations({int maxRetries = 5}) =>
+      (select(syncQueue)
+            ..where((t) => t.retryCount.isSmallerThanValue(maxRetries))
+            ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+          .get();
+
+  /// Remove a completed sync operation from the queue
+  Future<int> removeSyncOperation(String id) =>
+      (delete(syncQueue)..where((t) => t.id.equals(id))).go();
+
+  /// Mark a sync operation as attempted (for retry tracking)
+  Future<int> markSyncOperationAttempted(String id, String? error) async {
+    // Fetch current retry count and increment
+    final op = await (select(syncQueue)..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (op == null) return 0;
+
+    return (update(syncQueue)..where((t) => t.id.equals(id))).write(
+      SyncQueueCompanion(
+        retryCount: Value(op.retryCount + 1),
+        lastAttemptAt: Value(DateTime.now()),
+        lastError: Value(error),
+      ),
+    );
+  }
+
+  /// Clear all sync operations (after successful full sync)
+  Future<int> clearSyncQueue() => delete(syncQueue).go();
+
+  /// Get sync metadata for an entity type
+  Future<SyncMetadataData?> getSyncMetadata(String entityType) =>
+      (select(syncMetadata)..where((t) => t.entityType.equals(entityType)))
+          .getSingleOrNull();
+
+  /// Update sync metadata for an entity type
+  Future<void> updateSyncMetadata(String entityType, DateTime syncedAt) async {
+    await into(syncMetadata).insertOnConflictUpdate(
+      SyncMetadataCompanion.insert(
+        entityType: entityType,
+        lastSyncedAt: Value(syncedAt),
+      ),
+    );
+  }
+
+  /// Get all data for sync (including soft-deleted items)
+  Future<List<Session>> getAllSessionsForSync() =>
+      (select(sessions)..orderBy([(t) => OrderingTerm.desc(t.startedAt)])).get();
+
+  Future<List<Bow>> getAllBowsForSync() =>
+      (select(bows)..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
+
+  Future<List<Quiver>> getAllQuiversForSync() =>
+      (select(quivers)..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
+
+  Future<List<Shaft>> getAllShaftsForSync() =>
+      select(shafts).get();
+
+  Future<List<ImportedScore>> getAllImportedScoresForSync() =>
+      (select(importedScores)..orderBy([(t) => OrderingTerm.desc(t.date)])).get();
+
+  Future<List<VolumeEntry>> getAllVolumeEntriesForSync() =>
+      (select(volumeEntries)..orderBy([(t) => OrderingTerm.desc(t.date)])).get();
+
+  Future<List<OlyTrainingLog>> getAllOlyTrainingLogsForSync() =>
+      (select(olyTrainingLogs)..orderBy([(t) => OrderingTerm.desc(t.completedAt)])).get();
+
+  Future<List<BreathTrainingLog>> getAllBreathTrainingLogsForSync() =>
+      (select(breathTrainingLogs)..orderBy([(t) => OrderingTerm.desc(t.completedAt)])).get();
+
+  Future<List<Milestone>> getAllMilestonesForSync() =>
+      (select(milestones)..orderBy([(t) => OrderingTerm.asc(t.date)])).get();
+
+  Future<List<SightMark>> getAllSightMarksForSync() =>
+      (select(sightMarks)..orderBy([(t) => OrderingTerm.asc(t.distance)])).get();
+
+  Future<List<Federation>> getAllFederationsForSync() =>
+      select(federations).get();
+
+  Future<List<End>> getAllEndsForSync() =>
+      (select(ends)..orderBy([(t) => OrderingTerm.asc(t.createdAt)])).get();
+
+  Future<List<Arrow>> getAllArrowsForSync() =>
+      (select(arrows)..orderBy([(t) => OrderingTerm.asc(t.createdAt)])).get();
 }
 
 QueryExecutor _openConnection() {

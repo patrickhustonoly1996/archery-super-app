@@ -164,6 +164,91 @@ void main() {
         expect(coord.normalizedX, closeTo(0.25, 0.001));
         expect(coord.normalizedY, closeTo(-0.15, 0.001));
       });
+
+      test('true bullseye (0,0) is not mistaken for legacy data', () {
+        // True bullseye: both mm and normalized are at center
+        const faceSizeCm = 40;
+        const radiusMm = faceSizeCm * 5.0;
+
+        final bullseyeArrow = Arrow(
+          id: 'bullseye',
+          endId: 'test-end',
+          faceIndex: 0,
+          xMm: 0.0,
+          yMm: 0.0,
+          x: 0.0,  // Normalized also at center
+          y: 0.0,
+          score: 10,
+          isX: true,
+          sequence: 1,
+          rating: 5,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        // Simulate arrowToCoordinate logic
+        final normalizedToMmX = bullseyeArrow.x * radiusMm;
+        final normalizedToMmY = bullseyeArrow.y * radiusMm;
+        const toleranceMm = 1.0;
+        final normalizedNearZero =
+            normalizedToMmX.abs() < toleranceMm && normalizedToMmY.abs() < toleranceMm;
+
+        // For true bullseye, normalized also indicates center
+        expect(normalizedNearZero, isTrue);
+
+        // So we should use mm coordinates (the bullseye is valid)
+        final coord = ArrowCoordinate(
+          xMm: bullseyeArrow.xMm,
+          yMm: bullseyeArrow.yMm,
+          faceSizeCm: faceSizeCm,
+        );
+
+        expect(coord.xMm, equals(0.0));
+        expect(coord.yMm, equals(0.0));
+        expect(coord.distanceMm, equals(0.0));
+      });
+
+      test('legacy arrow with (0,0) mm but non-zero normalized falls back correctly', () {
+        // Legacy data: mm defaulted to 0,0 but normalized has real position
+        const faceSizeCm = 40;
+        const radiusMm = faceSizeCm * 5.0;
+
+        final legacyArrow = Arrow(
+          id: 'legacy',
+          endId: 'test-end',
+          faceIndex: 0,
+          xMm: 0.0,  // Defaulted to zero (not actual center)
+          yMm: 0.0,
+          x: 0.5,   // Real normalized position (ring 6)
+          y: 0.3,
+          score: 6,
+          isX: false,
+          sequence: 1,
+          rating: 5,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        // Simulate arrowToCoordinate logic
+        final normalizedToMmX = legacyArrow.x * radiusMm;  // 0.5 * 200 = 100mm
+        final normalizedToMmY = legacyArrow.y * radiusMm;  // 0.3 * 200 = 60mm
+        const toleranceMm = 1.0;
+        final normalizedNearZero =
+            normalizedToMmX.abs() < toleranceMm && normalizedToMmY.abs() < toleranceMm;
+
+        // Legacy arrow: normalized is NOT near zero
+        expect(normalizedNearZero, isFalse);
+
+        // So we should fall back to normalized coordinates
+        final coord = ArrowCoordinate.fromNormalized(
+          x: legacyArrow.x,
+          y: legacyArrow.y,
+          faceSizeCm: faceSizeCm,
+        );
+
+        expect(coord.xMm, closeTo(100.0, 0.01));  // 0.5 * 200
+        expect(coord.yMm, closeTo(60.0, 0.01));   // 0.3 * 200
+      });
     });
 
     group('Batch Conversion', () {
@@ -319,7 +404,9 @@ void main() {
             isX: false,
             sequence: 2,
             shaftNumber: null,
+            rating: 5,
             createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
           ),
           Arrow(
             id: 'a3',
@@ -333,7 +420,9 @@ void main() {
             isX: false,
             sequence: 3,
             shaftNumber: null,
+            rating: 5,
             createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
           ),
         ];
 

@@ -3,7 +3,7 @@ import 'package:drift/drift.dart';
 import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../models/arrow_coordinate.dart';
-import '../services/firestore_sync_service.dart';
+import '../services/sync_service.dart';
 import '../utils/unique_id.dart';
 import '../utils/error_handler.dart';
 
@@ -356,23 +356,10 @@ class SessionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Trigger cloud backup in background (non-blocking)
+  /// Trigger cloud sync in background (non-blocking)
   void _triggerCloudBackup() {
-    Future.microtask(() async {
-      try {
-        final syncService = FirestoreSyncService();
-        if (syncService.isAuthenticated) {
-          await ErrorHandler.runBackground(
-            () => syncService.backupAllData(_db),
-            errorMessage: 'Cloud backup failed',
-            onRetry: _triggerCloudBackup,
-          );
-        }
-      } catch (e) {
-        // Firebase not initialized (tests) or other initialization error
-        debugPrint('Cloud backup skipped: $e');
-      }
-    });
+    // SyncService handles its own error handling and retry logic
+    SyncService().syncAll();
   }
 
   /// Abandon current session (soft delete for undo support)
@@ -428,36 +415,37 @@ class SessionProvider extends ChangeNotifier {
   }
 
   /// Get last N arrows from completed ends + current end for rolling average
-  Future<List<Arrow>> getLastNArrows(int count) async {
+  /// This is the synchronous version using cached data for immediate UI updates.
+  List<Arrow> lastNArrows(int count) {
     if (_currentSession == null) return [];
 
-    final allArrows = <Arrow>[];
+    final allArrows = allSessionArrows;
+    if (allArrows.length <= count) return allArrows;
+    return allArrows.sublist(allArrows.length - count);
+  }
 
-    // Current end arrows are the MOST RECENT - process them first
-    for (int i = _currentEndArrows.length - 1; i >= 0 && allArrows.length < count; i--) {
-      allArrows.add(_currentEndArrows[i]);
-    }
-
-    // Then get arrows from completed ends (newest first)
-    for (int i = _ends.length - 1; i >= 0 && allArrows.length < count; i--) {
-      final endArrows = await _db.getArrowsForEnd(_ends[i].id);
-      // Add arrows in reverse (most recent first)
-      for (int j = endArrows.length - 1; j >= 0 && allArrows.length < count; j--) {
-        allArrows.add(endArrows[j]);
-      }
-    }
-
-    return allArrows.reversed.toList(); // Return in chronological order
+  /// Get last N arrows from completed ends + current end for rolling average
+  /// Async version (legacy - prefer lastNArrows for cached access)
+  Future<List<Arrow>> getLastNArrows(int count) async {
+    // Use synchronous cached version
+    return lastNArrows(count);
   }
 
   /// Get all arrows for all completed ends (for scorecard display)
-  Future<List<List<Arrow>>> getAllCompletedEndArrows() async {
+  /// Synchronous version using cached data.
+  List<List<Arrow>> get completedEndArrowsByEnd {
     final endArrows = <List<Arrow>>[];
     for (final end in _ends) {
-      final arrows = await _db.getArrowsForEnd(end.id);
+      final arrows = _completedEndArrows.where((a) => a.endId == end.id).toList();
       endArrows.add(arrows);
     }
     return endArrows;
+  }
+
+  /// Get all arrows for all completed ends (for scorecard display)
+  /// Async version (legacy - prefer completedEndArrowsByEnd for cached access)
+  Future<List<List<Arrow>>> getAllCompletedEndArrows() async {
+    return completedEndArrowsByEnd;
   }
 
   /// Get arrows for a specific face index (tri-spot mode)
@@ -512,7 +500,14 @@ class SessionProvider extends ChangeNotifier {
 
   /// Convert an Arrow to ArrowCoordinate using session's face size
   ArrowCoordinate arrowToCoordinate(Arrow arrow) {
-    // Prefer mm coordinates if available (non-zero), fall back to normalized
+    // Check if mm coordinates are valid by comparing with normalized
+    // If both are close to zero OR consistent with each other, use mm
+    // This handles both true bullseyes AND distinguishes from legacy default (0,0)
+    final radiusMm = faceSizeCm * 5.0;
+    final normalizedToMmX = arrow.x * radiusMm;
+    final normalizedToMmY = arrow.y * radiusMm;
+
+    // If mm coords are non-zero, use them directly
     if (arrow.xMm != 0 || arrow.yMm != 0) {
       return ArrowCoordinate(
         xMm: arrow.xMm,
@@ -520,7 +515,24 @@ class SessionProvider extends ChangeNotifier {
         faceSizeCm: faceSizeCm,
       );
     }
-    // Legacy fallback: convert from normalized
+
+    // Both mm are 0. Check if this is a true bullseye or legacy default.
+    // True bullseye: normalized coords also near zero
+    // Legacy default: normalized coords indicate non-center position
+    const toleranceMm = 1.0; // 1mm tolerance for "near zero"
+    final normalizedNearZero =
+        normalizedToMmX.abs() < toleranceMm && normalizedToMmY.abs() < toleranceMm;
+
+    if (normalizedNearZero) {
+      // True bullseye - normalized also indicates center
+      return ArrowCoordinate(
+        xMm: arrow.xMm,
+        yMm: arrow.yMm,
+        faceSizeCm: faceSizeCm,
+      );
+    }
+
+    // Legacy arrow: mm defaulted to 0,0 but normalized has real data
     return ArrowCoordinate.fromNormalized(
       x: arrow.x,
       y: arrow.y,

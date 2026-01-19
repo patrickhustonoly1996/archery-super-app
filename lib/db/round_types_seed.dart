@@ -831,6 +831,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 300,
       isIndoor: true,
       faceCount: const Value(1),
+      scoringType: const Value('5-zone'), // Worcester uses 5-4-3-2-1 scoring
     ),
     RoundTypesCompanion.insert(
       id: 'vegas_300',
@@ -983,6 +984,75 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 280,
       isIndoor: false,
       faceCount: const Value(1),
+    ),
+
+    // =========================================================================
+    // IFAA (International Field Archery Association)
+    // =========================================================================
+    RoundTypesCompanion.insert(
+      id: 'ifaa_field',
+      name: 'IFAA Field Round',
+      category: 'ifaa_field',
+      distance: 80, // Mixed distances 6.7-80 yards
+      faceSize: 65,
+      arrowsPerEnd: 4,
+      totalEnds: 28,
+      maxScore: 560, // 5-4-3 scoring (5 max per arrow)
+      isIndoor: false,
+      faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
+    ),
+    RoundTypesCompanion.insert(
+      id: 'ifaa_hunter',
+      name: 'IFAA Hunter Round',
+      category: 'ifaa_field',
+      distance: 70, // Mixed distances 14-70 yards
+      faceSize: 65,
+      arrowsPerEnd: 4,
+      totalEnds: 28,
+      maxScore: 560,
+      isIndoor: false,
+      faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
+    ),
+    RoundTypesCompanion.insert(
+      id: 'ifaa_expert',
+      name: 'IFAA Expert Round',
+      category: 'ifaa_field',
+      distance: 60, // 60 yards fixed
+      faceSize: 41, // Worcester-style face
+      arrowsPerEnd: 5,
+      totalEnds: 20,
+      maxScore: 500,
+      isIndoor: false,
+      faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
+    ),
+    RoundTypesCompanion.insert(
+      id: 'ifaa_flint',
+      name: 'IFAA Flint Round',
+      category: 'ifaa_field',
+      distance: 60, // Mixed distances, walk-up
+      faceSize: 65,
+      arrowsPerEnd: 4,
+      totalEnds: 28,
+      maxScore: 560,
+      isIndoor: false,
+      faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
+    ),
+    RoundTypesCompanion.insert(
+      id: 'ifaa_indoor',
+      name: 'IFAA Indoor',
+      category: 'ifaa_indoor',
+      distance: 10, // 10 yards (9.14m)
+      faceSize: 41, // Worcester-style face
+      arrowsPerEnd: 5,
+      totalEnds: 12,
+      maxScore: 300,
+      isIndoor: true,
+      faceCount: const Value(1),
+      scoringType: const Value('5-zone'),
     ),
 
     // =========================================================================

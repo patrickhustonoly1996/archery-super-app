@@ -3,10 +3,28 @@ import '../theme/app_theme.dart';
 import '../db/database.dart';
 import 'nock_rotation_selector.dart';
 
+/// Result returned from ShaftSelectorBottomSheet
+class ShaftSelectionResult {
+  final int? shaftNumber;
+  final String? nockRotation;
+  final int rating;
+  final bool skipped;
+
+  const ShaftSelectionResult({
+    this.shaftNumber,
+    this.nockRotation,
+    this.rating = 5,
+    this.skipped = false,
+  });
+
+  /// User explicitly skipped shaft selection
+  factory ShaftSelectionResult.skip() => const ShaftSelectionResult(skipped: true);
+}
+
 class ShaftSelectorBottomSheet extends StatefulWidget {
   final List<Shaft> shafts;
-  final Function(int shaftNumber, {String? nockRotation, int rating}) onShaftSelected;
-  final VoidCallback onSkip;
+  final Function(int shaftNumber, {String? nockRotation, int rating})? onShaftSelected;
+  final VoidCallback? onSkip;
   /// Shaft numbers already used in this end (disabled but not retired)
   final Set<int> usedShaftNumbers;
   /// Whether to show nock rotation selector
@@ -17,8 +35,8 @@ class ShaftSelectorBottomSheet extends StatefulWidget {
   const ShaftSelectorBottomSheet({
     super.key,
     required this.shafts,
-    required this.onShaftSelected,
-    required this.onSkip,
+    this.onShaftSelected,
+    this.onSkip,
     this.usedShaftNumbers = const {},
     this.showNockRotation = false,
     this.showRating = true,
@@ -94,8 +112,14 @@ class _ShaftSelectorBottomSheetState extends State<ShaftSelectorBottomSheet> {
                 isUsedThisEnd: isUsedThisEnd,
                 onTap: isAvailable
                     ? () {
-                        Navigator.pop(context);
-                        widget.onShaftSelected(
+                        // Return result for new API, also call legacy callback
+                        final result = ShaftSelectionResult(
+                          shaftNumber: shaft.number,
+                          nockRotation: _selectedNockRotation,
+                          rating: _rating,
+                        );
+                        Navigator.pop(context, result);
+                        widget.onShaftSelected?.call(
                           shaft.number,
                           nockRotation: _selectedNockRotation,
                           rating: _rating,
@@ -113,8 +137,9 @@ class _ShaftSelectorBottomSheetState extends State<ShaftSelectorBottomSheet> {
             width: double.infinity,
             child: OutlinedButton(
               onPressed: () {
-                Navigator.pop(context);
-                widget.onSkip();
+                // Return skip result for new API, also call legacy callback
+                Navigator.pop(context, ShaftSelectionResult.skip());
+                widget.onSkip?.call();
               },
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.textSecondary,

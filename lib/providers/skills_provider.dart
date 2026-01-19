@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../db/database.dart';
 import '../services/xp_calculation_service.dart';
-import '../services/firestore_sync_service.dart';
+import '../services/sync_service.dart';
 import '../utils/error_handler.dart';
 import '../utils/unique_id.dart';
 
@@ -422,18 +422,7 @@ class SkillsProvider extends ChangeNotifier {
   // ==========================================================================
 
   void _triggerCloudBackup() {
-    Future.microtask(() async {
-      try {
-        final syncService = FirestoreSyncService();
-        if (syncService.isAuthenticated) {
-          await ErrorHandler.runBackground(
-            () => syncService.backupAllData(_db),
-            errorMessage: 'Skills cloud backup failed',
-          );
-        }
-      } catch (_) {
-        // Firebase not initialized (e.g., in tests) - skip backup
-      }
-    });
+    // SyncService handles its own error handling and retry logic
+    SyncService().syncAll();
   }
 }

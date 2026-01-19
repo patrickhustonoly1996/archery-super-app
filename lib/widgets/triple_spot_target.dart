@@ -107,6 +107,9 @@ class TripleSpotTarget extends StatelessWidget {
 
 /// Interactive triple spot target for plotting arrows.
 /// Shows 3 faces and allows tapping to select which face to plot on.
+///
+/// Can be used as controlled (provide selectedFace + onFaceChanged) or
+/// uncontrolled (internal state manages selection).
 class InteractiveTripleSpotTarget extends StatefulWidget {
   final List<Arrow> arrows;
   final double size;
@@ -118,6 +121,10 @@ class InteractiveTripleSpotTarget extends StatefulWidget {
   final bool autoAdvance;
   /// Advance order: 'column' (0→1→2→0) or 'triangular' (0→2→1→0)
   final String advanceOrder;
+  /// Optional: controlled face selection (survives parent rebuilds)
+  final int? selectedFace;
+  /// Optional: callback when face selection changes
+  final ValueChanged<int>? onFaceChanged;
 
   const InteractiveTripleSpotTarget({
     super.key,
@@ -129,6 +136,8 @@ class InteractiveTripleSpotTarget extends StatefulWidget {
     this.compoundScoring = false,
     this.autoAdvance = false,
     this.advanceOrder = 'column',
+    this.selectedFace,
+    this.onFaceChanged,
   });
 
   @override
@@ -138,7 +147,21 @@ class InteractiveTripleSpotTarget extends StatefulWidget {
 
 class _InteractiveTripleSpotTargetState
     extends State<InteractiveTripleSpotTarget> {
-  int _selectedFace = 0;
+  int _internalSelectedFace = 0;
+
+  /// Get current selected face (controlled or internal)
+  int get _selectedFace => widget.selectedFace ?? _internalSelectedFace;
+
+  /// Update face selection
+  void _setSelectedFace(int face) {
+    if (widget.selectedFace != null) {
+      // Controlled mode - notify parent
+      widget.onFaceChanged?.call(face);
+    } else {
+      // Uncontrolled mode - update internal state
+      setState(() => _internalSelectedFace = face);
+    }
+  }
 
   /// Calculate next face based on advance order
   int _getNextFace(int current) {
@@ -154,7 +177,7 @@ class _InteractiveTripleSpotTargetState
   void _onArrowPlotted(double x, double y, int faceIndex) {
     widget.onArrowPlotted(x, y, faceIndex);
     if (widget.autoAdvance) {
-      setState(() => _selectedFace = _getNextFace(faceIndex));
+      _setSelectedFace(_getNextFace(faceIndex));
     }
   }
 
@@ -233,7 +256,7 @@ class _InteractiveTripleSpotTargetState
         : 0;
 
     return GestureDetector(
-      onTap: () => setState(() => _selectedFace = faceIndex),
+      onTap: () => _setSelectedFace(faceIndex),
       child: Container(
         width: selectorSize + 24, // Extra width for label
         height: selectorSize + 4,

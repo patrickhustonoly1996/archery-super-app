@@ -7,7 +7,7 @@ import 'package:csv/csv.dart';
 import 'package:drift/drift.dart' hide Column;
 import '../db/database.dart';
 import '../theme/app_theme.dart';
-import '../services/firestore_sync_service.dart';
+import '../services/sync_service.dart';
 import '../services/import_service.dart';
 import '../utils/error_handler.dart';
 import '../utils/unique_id.dart';
@@ -32,23 +32,10 @@ class _ImportScreenState extends State<ImportScreen> {
   int _skippedRows = 0;
   List<String> _skippedReasons = [];
 
-  /// Trigger cloud backup in background (non-blocking)
+  /// Trigger cloud sync in background (non-blocking)
   void _triggerCloudBackup(AppDatabase db) {
-    Future.microtask(() async {
-      try {
-        final syncService = FirestoreSyncService();
-        if (syncService.isAuthenticated) {
-          await ErrorHandler.runBackground(
-            () => syncService.backupAllData(db),
-            errorMessage: 'Cloud backup failed',
-            onRetry: () => _triggerCloudBackup(db),
-          );
-        }
-      } catch (e) {
-        // Firebase not initialized (tests) or other initialization error
-        debugPrint('Cloud backup skipped: $e');
-      }
-    });
+    // SyncService handles its own error handling and retry logic
+    SyncService().syncAll();
   }
 
   Future<void> _pickAndParseCSV() async {

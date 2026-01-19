@@ -36,7 +36,9 @@ Arrow createFakeArrow({
     isX: isX,
     sequence: 1,
     shaftNumber: shaftNumber,
+    rating: 5,
     createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
   );
 }
 
@@ -61,7 +63,9 @@ Arrow createFakeArrowNormalized({
     isX: isX,
     sequence: 1,
     shaftNumber: shaftNumber,
+    rating: 5,
     createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
   );
 }
 

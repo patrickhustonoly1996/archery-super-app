@@ -284,3 +284,95 @@ class TargetCoordinateSystem {
   String toString() =>
       'TargetCoordinateSystem(face: ${faceSizeCm}cm, widget: ${widgetSize}px, px/mm: ${pixelsPerMm.toStringAsFixed(2)})';
 }
+
+// ============================================================================
+// LINECUTTER HELPER
+// ============================================================================
+
+/// Labels for linecutter dialog based on ring boundary.
+/// Extracted for testability.
+class LineCutterLabels {
+  final String ringLabel;
+  final String inLabel;
+  final String outLabel;
+
+  const LineCutterLabels({
+    required this.ringLabel,
+    required this.inLabel,
+    required this.outLabel,
+  });
+
+  /// Generate labels for a given ring boundary.
+  ///
+  /// Ring numbers:
+  /// - 11 = X ring boundary (IN=X, OUT=10)
+  /// - 10 = ring 10 boundary (IN=10, OUT=9)
+  /// - 1 = outer edge (IN=1, OUT=Miss)
+  factory LineCutterLabels.forRing(int nearRing) {
+    if (nearRing == 11) {
+      // X ring boundary
+      return const LineCutterLabels(
+        ringLabel: 'X',
+        inLabel: 'IN (X)',
+        outLabel: 'OUT (10)',
+      );
+    } else if (nearRing == 1) {
+      // Outer edge - out is a miss
+      return const LineCutterLabels(
+        ringLabel: '1',
+        inLabel: 'IN (1)',
+        outLabel: 'OUT (Miss)',
+      );
+    } else {
+      // Standard ring
+      return LineCutterLabels(
+        ringLabel: '$nearRing',
+        inLabel: 'IN ($nearRing)',
+        outLabel: 'OUT (${nearRing - 1})',
+      );
+    }
+  }
+}
+
+// ============================================================================
+// TRIPLE SPOT FACE DISTRIBUTION
+// ============================================================================
+
+/// Helper for distributing arrows across triple-spot faces.
+/// Extracted for testability.
+class TripleSpotFaceDistributor {
+  /// Determines which face (0, 1, or 2) should receive the next arrow
+  /// based on current distribution.
+  ///
+  /// Returns the face with the fewest arrows, preferring lower indices
+  /// when counts are equal.
+  static int nextFaceIndex({
+    required int face0Count,
+    required int face1Count,
+    required int face2Count,
+  }) {
+    if (face0Count <= face1Count && face0Count <= face2Count) {
+      return 0;
+    } else if (face1Count <= face2Count) {
+      return 1;
+    } else {
+      return 2;
+    }
+  }
+
+  /// Convenience method that counts face indices from a list of arrows.
+  /// Each arrow must have a `faceIndex` property.
+  static int nextFaceIndexFromArrows<T>(
+    List<T> arrows,
+    int Function(T) getFaceIndex,
+  ) {
+    final face0Count = arrows.where((a) => getFaceIndex(a) == 0).length;
+    final face1Count = arrows.where((a) => getFaceIndex(a) == 1).length;
+    final face2Count = arrows.where((a) => getFaceIndex(a) == 2).length;
+    return nextFaceIndex(
+      face0Count: face0Count,
+      face1Count: face1Count,
+      face2Count: face2Count,
+    );
+  }
+}

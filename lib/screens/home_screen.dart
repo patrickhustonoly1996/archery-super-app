@@ -28,6 +28,7 @@ import 'performance_profile_screen.dart';
 import 'user_profile_screen.dart';
 import 'education/courses_home_screen.dart';
 import 'subscription_screen.dart';
+import 'chiptune_test_screen.dart'; // TODO: Remove after testing sounds
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -179,6 +180,16 @@ class _HomeScreenState extends State<HomeScreen>
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const PerformanceProfileScreen()),
+      ),
+    ),
+    // TODO: Remove after testing sounds
+    _MenuItem(
+      label: 'SOUNDS',
+      sublabel: 'Test chiptunes',
+      pixelIcon: PixelIconType.lightning,
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ChiptuneTestScreen()),
       ),
     ),
     _MenuItem(
@@ -538,12 +549,16 @@ class _QuickStartSheetState extends State<_QuickStartSheet> {
     final defaultBow = equipmentProvider.defaultBow;
     final defaultQuiver = equipmentProvider.defaultQuiver;
 
+    // Only enable shaft tagging if quiver has active (non-retired) shafts
+    final hasActiveShafts = defaultQuiver != null &&
+        equipmentProvider.getShaftsForQuiver(defaultQuiver.id).isNotEmpty;
+
     await sessionProvider.startSession(
       roundTypeId: _selectedRoundType!.id,
       sessionType: 'practice',
       bowId: defaultBow?.id,
       quiverId: defaultQuiver?.id,
-      shaftTaggingEnabled: defaultQuiver != null,
+      shaftTaggingEnabled: hasActiveShafts,
       arrowsPerEndOverride: _arrowsPerEnd != _selectedRoundType!.arrowsPerEnd
           ? _arrowsPerEnd
           : null,

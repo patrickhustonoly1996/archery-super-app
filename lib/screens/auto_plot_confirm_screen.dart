@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -31,6 +32,8 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> with Widg
   int _autoAcceptSecondsRemaining = 0;
   static const int _autoAcceptDelay = 8; // seconds to wait before auto-accepting
   bool _autoSelectApplied = false;
+  // Track if we're currently learning arrows (prevent navigation issues)
+  bool _isLearningInProgress = false;
 
   @override
   void initState() {
@@ -51,16 +54,11 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> with Widg
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // If user locks screen or switches away while auto-accept is running,
-    // immediately accept (they've walked away to retrieve arrows)
+    // If user switches away while auto-accept is running, just cancel the timer.
+    // Don't auto-confirm - user may have accidentally backgrounded the app.
+    // They can manually confirm when they return.
     if (state == AppLifecycleState.paused && _autoAcceptTimer != null) {
-      _autoAcceptTimer?.cancel();
-      _autoAcceptTimer = null;
-      // Auto-accept immediately
-      final provider = context.read<AutoPlotProvider>();
-      if (_selectedArrowIndices.isNotEmpty) {
-        _confirmSelectedArrows(provider);
-      }
+      _cancelAutoAccept();
     }
   }
 
@@ -271,10 +269,10 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> with Widg
   }
 
   Widget _buildTargetFace(double size) {
-    // Standard 10-ring target
+    // Use appropriate target painter based on type
     return CustomPaint(
       size: Size(size, size),
-      painter: _TargetPainter(),
+      painter: _TargetPainter(isTripleSpot: widget.isTripleSpot),
     );
   }
 
@@ -481,12 +479,23 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> with Widg
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _isSelectionMode
-                          ? '$selectedCount of $totalArrows selected'
-                          : '$selectedCount ${selectedCount == 1 ? 'arrow' : 'arrows'} selected',
+                      totalArrows == 0
+                          ? 'No arrows detected'
+                          : _isSelectionMode
+                              ? '$selectedCount of $totalArrows selected'
+                              : '$selectedCount ${selectedCount == 1 ? 'arrow' : 'arrows'} selected',
                       style: TextStyle(fontFamily: AppFonts.body, fontSize: 14),
                     ),
-                    if (isTournamentMode && _isSelectionMode)
+                    if (totalArrows == 0)
+                      Text(
+                        'Switch to adjust mode to add manually',
+                        style: TextStyle(
+                          fontFamily: AppFonts.body,
+                          fontSize: 11,
+                          color: AppColors.gold,
+                        ),
+                      )
+                    else if (isTournamentMode && _isSelectionMode)
                       Text(
                         'Tap your arrows to select them',
                         style: TextStyle(
@@ -528,12 +537,14 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> with Widg
                       TextButton.icon(
                         onPressed: () {
                           // Delete in reverse order to maintain indices
+                          // After deletion, clear all selections since indices shift
                           final sortedIndices = _selectedArrowIndices.toList()
                             ..sort((a, b) => b.compareTo(a));
                           for (final index in sortedIndices) {
                             provider.removeArrow(index);
                           }
                           setState(() {
+                            // Clear ALL selections - indices are now invalid
                             _selectedArrowIndices.clear();
                           });
                         },
@@ -599,37 +610,59 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> with Widg
             // Mode toggle and confirm buttons
             if (_isSelectionMode) ...[
               // In selection mode: show "Continue with selected" button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: selectedCount > 0
-                      ? () {
-                          _cancelAutoAccept();
-                          if (isTournamentMode) {
-                            // In tournament mode, go to adjustment mode with selected arrows
-                            setState(() {
-                              _isSelectionMode = false;
-                            });
-                          } else {
-                            // Solo mode - confirm immediately
-                            _confirmSelectedArrows(provider);
-                          }
-                        }
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.gold,
-                    foregroundColor: AppColors.background,
-                    disabledBackgroundColor: AppColors.textSecondary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+              // Special case: if no arrows detected, show button to switch to adjust mode
+              if (totalArrows == 0)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _isSelectionMode = false;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.gold,
+                      foregroundColor: AppColors.background,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: Text(
+                      'ADD ARROWS MANUALLY',
+                      style: TextStyle(fontFamily: AppFonts.pixel, fontSize: 16),
+                    ),
                   ),
-                  child: Text(
-                    isTournamentMode
-                        ? 'CONTINUE WITH $selectedCount ARROWS'
-                        : 'CONFIRM & PLOT',
-                    style: TextStyle(fontFamily: AppFonts.pixel, fontSize: 16),
+                )
+              else
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: selectedCount > 0
+                        ? () {
+                            _cancelAutoAccept();
+                            if (isTournamentMode) {
+                              // In tournament mode, go to adjustment mode with selected arrows
+                              setState(() {
+                                _isSelectionMode = false;
+                              });
+                            } else {
+                              // Solo mode - confirm immediately
+                              _confirmSelectedArrows(provider);
+                            }
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.gold,
+                      foregroundColor: AppColors.background,
+                      disabledBackgroundColor: AppColors.textSecondary,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: Text(
+                      isTournamentMode
+                          ? 'CONTINUE WITH $selectedCount ARROWS'
+                          : 'CONFIRM & PLOT',
+                      style: TextStyle(fontFamily: AppFonts.pixel, fontSize: 16),
+                    ),
                   ),
                 ),
-              ),
             ] else ...[
               // In adjustment mode: show adjust tip and confirm button
               Row(
@@ -690,20 +723,21 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> with Widg
 
     // If this was a manual selection (no arrows were auto-selected as "mine")
     // and user doesn't have learned appearance, learn from this selection
-    // Note: We learn BEFORE reset since reset clears the captured image
+    // Note: We need to copy the image BEFORE reset since reset clears it
     final wasManualSelection = !allArrows.any((a) => a.isMyArrow);
     final shouldLearn = wasManualSelection && !provider.hasLearnedAppearance && selectedArrows.isNotEmpty;
 
-    if (shouldLearn) {
+    // Copy image data before any reset (learning needs it)
+    final imageForLearning = shouldLearn ? provider.capturedImage : null;
+
+    if (shouldLearn && imageForLearning != null) {
       // Learn in background - don't block the user
-      // Pass the arrows before reset
-      _learnArrowsInBackground(provider, List.from(selectedArrows));
+      // Pass copied data so it survives navigation
+      _learnArrowsInBackground(provider, List.from(selectedArrows), imageForLearning);
     }
 
-    // Return only selected arrows (don't reset yet if learning - provider handles it)
-    if (!shouldLearn) {
-      provider.reset();
-    }
+    // Always reset provider before navigating away
+    provider.reset();
 
     Navigator.of(context).pop(selectedArrows);
   }
@@ -711,9 +745,13 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> with Widg
   Future<void> _learnArrowsInBackground(
     AutoPlotProvider provider,
     List<DetectedArrow> selectedArrows,
+    Uint8List imageData,
   ) async {
-    // Show brief notification
-    ScaffoldMessenger.of(context).showSnackBar(
+    _isLearningInProgress = true;
+
+    // Show brief notification - use rootScaffold to survive navigation
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    scaffoldMessenger.showSnackBar(
       SnackBar(
         content: Row(
           children: [
@@ -734,17 +772,24 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> with Widg
       ),
     );
 
-    final success = await provider.learnArrowAppearance(selectedArrows);
+    // Use the vision service directly with the copied image data
+    // This avoids dependency on provider state which may have been reset
+    final visionService = VisionApiService();
+    final result = await visionService.learnArrowAppearance(
+      image: imageData,
+      selectedArrows: selectedArrows,
+    );
 
-    // Reset provider after learning (image was needed for learning)
-    provider.reset();
+    _isLearningInProgress = false;
 
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
+    // Only show success notification if the result was successful
+    // Use the captured scaffoldMessenger reference (not context) to be safe
+    if (result.isSuccess) {
+      scaffoldMessenger.showSnackBar(
         SnackBar(
           content: Text(
-            provider.learnedAppearanceDescription != null
-                ? 'Learned: ${provider.learnedAppearanceDescription}'
+            result.description != null
+                ? 'Learned: ${result.description}'
                 : 'Arrows learned - will auto-identify next time',
           ),
           duration: const Duration(seconds: 3),
@@ -757,8 +802,20 @@ class _AutoPlotConfirmScreenState extends State<AutoPlotConfirmScreen> with Widg
 
 /// Custom painter for the target face
 class _TargetPainter extends CustomPainter {
+  final bool isTripleSpot;
+
+  _TargetPainter({this.isTripleSpot = false});
+
   @override
   void paint(Canvas canvas, Size size) {
+    if (isTripleSpot) {
+      _paintTripleSpot(canvas, size);
+    } else {
+      _paintSingleTarget(canvas, size);
+    }
+  }
+
+  void _paintSingleTarget(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final maxRadius = size.width / 2;
 
@@ -801,6 +858,39 @@ class _TargetPainter extends CustomPainter {
     canvas.drawCircle(center, xRingRadius, xRingPaint);
   }
 
+  void _paintTripleSpot(Canvas canvas, Size size) {
+    // Triple spot: 3 smaller targets arranged vertically
+    final spotRadius = size.width / 6;
+    final spacing = size.height / 3;
+
+    for (int spot = 0; spot < 3; spot++) {
+      final centerY = spacing / 2 + spot * spacing;
+      final center = Offset(size.width / 2, centerY);
+
+      // Simplified 5-ring spot target (gold center only)
+      final spotColors = [
+        const Color(0xFF00AAFF), // outer blue
+        const Color(0xFFFF0000), // red
+        const Color(0xFFFFD700), // gold
+      ];
+
+      for (int i = 0; i < 3; i++) {
+        final ringRadius = spotRadius * (3 - i) / 3;
+        final paint = Paint()
+          ..color = spotColors[i]
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(center, ringRadius, paint);
+
+        final outlinePaint = Paint()
+          ..color = Colors.black.withOpacity(0.3)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1;
+        canvas.drawCircle(center, ringRadius, outlinePaint);
+      }
+    }
+  }
+
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _TargetPainter oldDelegate) =>
+      oldDelegate.isTripleSpot != isTripleSpot;
 }

@@ -49,7 +49,9 @@ Arrow createFakeArrow({
     isX: isX,
     sequence: sequence,
     shaftNumber: shaftNumber,
+    rating: 5, // Default to good shot
     createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
   );
 }
 
@@ -78,7 +80,9 @@ Arrow createFakeArrowNormalized({
     isX: isX,
     sequence: sequence,
     shaftNumber: shaftNumber,
+    rating: 5, // Default to good shot
     createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
   );
 }
 
@@ -249,6 +253,7 @@ End createFakeEnd({
     endXs: endXs,
     status: status,
     createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
     committedAt: status == 'committed' ? DateTime.now() : null,
   );
 }
