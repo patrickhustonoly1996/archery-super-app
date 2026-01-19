@@ -114,35 +114,37 @@ class ClassificationBadge extends StatelessWidget {
   }
 
   Color _getBadgeColor() {
-    // Gold/higher tiers for top classifications
-    switch (classificationCode) {
-      case 'GMB':
-        return const Color(0xFFFFD700); // Gold
-      case 'MB':
-        return const Color(0xFFC0C0C0); // Silver
-      case 'B1':
-        return const Color(0xFFCD7F32); // Bronze
-      case 'B2':
-      case 'B3':
-        return const Color(0xFF4A90D9); // Blue
-      case 'A1':
-      case 'A2':
-      case 'A3':
-        return const Color(0xFF6B8E23); // Olive/Green
-      default:
-        return AppColors.textMuted;
-    }
+    // Traditional archery award colours
+    // White → Black → Blue → Red → Gold → Purple
+    return getClassificationTier(classificationCode).color;
   }
 
   Color _getTextColor() {
     // For compact badges with solid background
-    switch (classificationCode) {
+    return getClassificationTier(classificationCode).textColor;
+  }
+
+  /// Get the award tier for a classification code
+  static AwardTier getClassificationTier(String code) {
+    switch (code) {
       case 'GMB':
-        return AppColors.background;
+        return AwardTier.purple; // Grand Master Bowman - highest
       case 'MB':
-        return AppColors.background;
+        return AwardTier.gold; // Master Bowman
+      case 'B1':
+        return AwardTier.gold; // Bowman 1st Class
+      case 'B2':
+        return AwardTier.red; // Bowman 2nd Class
+      case 'B3':
+        return AwardTier.red; // Bowman 3rd Class
+      case 'A1':
+        return AwardTier.blue; // Archer 1st Class
+      case 'A2':
+        return AwardTier.black; // Archer 2nd Class
+      case 'A3':
+        return AwardTier.white; // Archer 3rd Class - lowest
       default:
-        return Colors.white;
+        return AwardTier.white;
     }
   }
 

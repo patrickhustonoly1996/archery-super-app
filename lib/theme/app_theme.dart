@@ -59,6 +59,95 @@ class AppColors {
   static const ring1 = Color(0xFFEEEEEE);
 }
 
+/// Traditional archery award colours
+/// Progression: White → Black → Blue → Red → Gold → Purple
+///
+/// Used for:
+/// - AGB Classifications (A3 → GMB)
+/// - Streak awards (3 → 90 days)
+/// - Skill milestones
+class AwardColors {
+  // The 6 traditional archery award colours (lowest to highest)
+  static const white = Color(0xFFEEEEEE);
+  static const black = Color(0xFF212121);
+  static const blue = Color(0xFF42A5F5);
+  static const red = Color(0xFFE53935);
+  static const gold = Color(0xFFFFD700);
+  static const purple = Color(0xFF9C27B0);
+
+  /// All award colours in progression order (lowest to highest)
+  static const List<Color> progression = [white, black, blue, red, gold, purple];
+
+  /// Get text colour for contrast on award background
+  static Color getTextColor(Color awardColor) {
+    if (awardColor == white || awardColor == gold) {
+      return AppColors.background; // Dark text on light backgrounds
+    }
+    return Colors.white; // White text on dark backgrounds
+  }
+}
+
+/// Award tier enumeration for unified colour system
+enum AwardTier {
+  white(0, 'White', AwardColors.white),
+  black(1, 'Black', AwardColors.black),
+  blue(2, 'Blue', AwardColors.blue),
+  red(3, 'Red', AwardColors.red),
+  gold(4, 'Gold', AwardColors.gold),
+  purple(5, 'Purple', AwardColors.purple);
+
+  const AwardTier(this.index, this.displayName, this.color);
+
+  @override
+  final int index;
+  final String displayName;
+  final Color color;
+
+  /// Get contrasting text colour for this tier
+  Color get textColor => AwardColors.getTextColor(color);
+
+  /// Get tier from index (clamped to valid range)
+  static AwardTier fromIndex(int index) {
+    return AwardTier.values[index.clamp(0, 5)];
+  }
+}
+
+/// Streak tier thresholds (days)
+/// Maps consecutive days to award tiers
+class StreakTiers {
+  static const int whiteDays = 3;
+  static const int blackDays = 7;
+  static const int blueDays = 14;
+  static const int redDays = 30;
+  static const int goldDays = 60;
+  static const int purpleDays = 90;
+
+  /// Get award tier for a streak length
+  static AwardTier getTier(int streakDays) {
+    if (streakDays >= purpleDays) return AwardTier.purple;
+    if (streakDays >= goldDays) return AwardTier.gold;
+    if (streakDays >= redDays) return AwardTier.red;
+    if (streakDays >= blueDays) return AwardTier.blue;
+    if (streakDays >= blackDays) return AwardTier.black;
+    if (streakDays >= whiteDays) return AwardTier.white;
+    return AwardTier.white; // Default for < 3 days (not yet earned)
+  }
+
+  /// Get days required for next tier (null if at max)
+  static int? getDaysToNextTier(int currentStreak) {
+    if (currentStreak < whiteDays) return whiteDays;
+    if (currentStreak < blackDays) return blackDays;
+    if (currentStreak < blueDays) return blueDays;
+    if (currentStreak < redDays) return redDays;
+    if (currentStreak < goldDays) return goldDays;
+    if (currentStreak < purpleDays) return purpleDays;
+    return null; // Already at max tier
+  }
+
+  /// Check if streak has earned any tier
+  static bool hasEarnedTier(int streakDays) => streakDays >= whiteDays;
+}
+
 class AppSpacing {
   static const double grid = 8.0;
 
