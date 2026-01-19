@@ -1,0 +1,289 @@
+{
+  "@@locale": "en",
+  "@@last_modified": "2026-01-19",
+
+  "appTitle": "Archery Super App",
+  "@appTitle": {
+    "description": "The application title"
+  },
+
+  "archery": "ARCHERY",
+  "@archery": {
+    "description": "Main logo text"
+  },
+
+  "superApp": "SUPER APP",
+  "@superApp": {
+    "description": "Logo subtitle"
+  },
+
+  "selectMode": "SELECT MODE",
+  "@selectMode": {
+    "description": "Footer text on home screen"
+  },
+
+  "loading": "LOADING",
+  "@loading": {
+    "description": "Loading indicator text"
+  },
+
+  "menuResume": "RESUME",
+  "@menuResume": {
+    "description": "Resume menu item"
+  },
+
+  "menuResumeRound": "Continue round",
+  "@menuResumeRound": {
+    "description": "Resume scoring sublabel"
+  },
+
+  "menuResumeDrill": "Resume drill",
+  "@menuResumeDrill": {
+    "description": "Resume bow training sublabel"
+  },
+
+  "menuResumeBreath": "Resume breath",
+  "@menuResumeBreath": {
+    "description": "Resume breath training sublabel"
+  },
+
+  "menuQuickStart": "QUICK START",
+  "@menuQuickStart": {
+    "description": "Quick start menu item"
+  },
+
+  "menuQuickStartSub": "Fast session",
+  "@menuQuickStartSub": {
+    "description": "Quick start sublabel"
+  },
+
+  "menuScore": "SCORE",
+  "@menuScore": {
+    "description": "Score menu item"
+  },
+
+  "menuScoreSub": "New session",
+  "@menuScoreSub": {
+    "description": "Score sublabel"
+  },
+
+  "menuScores": "SCORES",
+  "@menuScores": {
+    "description": "Scores/history menu item"
+  },
+
+  "menuScoresSub": "Score record",
+  "@menuScoresSub": {
+    "description": "Scores sublabel"
+  },
+
+  "menuStats": "STATS",
+  "@menuStats": {
+    "description": "Statistics menu item"
+  },
+
+  "menuStatsSub": "Trends & data",
+  "@menuStatsSub": {
+    "description": "Stats sublabel"
+  },
+
+  "menuBowDrills": "BOW DRILLS",
+  "@menuBowDrills": {
+    "description": "Bow drills menu item"
+  },
+
+  "menuBowDrillsSub": "Timed training",
+  "@menuBowDrillsSub": {
+    "description": "Bow drills sublabel"
+  },
+
+  "menuDelayCam": "DELAY CAM",
+  "@menuDelayCam": {
+    "description": "Delay camera menu item"
+  },
+
+  "menuDelayCamSub": "Form review",
+  "@menuDelayCamSub": {
+    "description": "Delay camera sublabel"
+  },
+
+  "menuBreathe": "BREATHE",
+  "@menuBreathe": {
+    "description": "Breathing exercises menu item"
+  },
+
+  "menuBreatheSub": "Focus & calm",
+  "@menuBreatheSub": {
+    "description": "Breathing sublabel"
+  },
+
+  "menuLearn": "LEARN",
+  "@menuLearn": {
+    "description": "Learn/courses menu item"
+  },
+
+  "menuLearnSub": "Video courses",
+  "@menuLearnSub": {
+    "description": "Learn sublabel"
+  },
+
+  "menuGear": "GEAR",
+  "@menuGear": {
+    "description": "Equipment menu item"
+  },
+
+  "menuGearSub": "Bows & arrows",
+  "@menuGearSub": {
+    "description": "Gear sublabel"
+  },
+
+  "menuProfile": "PROFILE",
+  "@menuProfile": {
+    "description": "Profile menu item"
+  },
+
+  "menuProfileSub": "Performance radar",
+  "@menuProfileSub": {
+    "description": "Profile sublabel"
+  },
+
+  "menuSettings": "SETTINGS",
+  "@menuSettings": {
+    "description": "Settings menu item"
+  },
+
+  "menuSettingsSub": "App options",
+  "@menuSettingsSub": {
+    "description": "Settings sublabel"
+  },
+
+  "menuSignOut": "SIGN OUT",
+  "@menuSignOut": {
+    "description": "Sign out menu item"
+  },
+
+  "menuSignOutSub": "Log out",
+  "@menuSignOutSub": {
+    "description": "Sign out sublabel"
+  },
+
+  "settingsTitle": "SETTINGS",
+  "@settingsTitle": {
+    "description": "Settings screen title"
+  },
+
+  "settingsLanguage": "LANGUAGE",
+  "@settingsLanguage": {
+    "description": "Language setting label"
+  },
+
+  "settingsLanguageDescription": "Choose your preferred language",
+  "@settingsLanguageDescription": {
+    "description": "Language setting description"
+  },
+
+  "settingsImport": "IMPORT DATA",
+  "@settingsImport": {
+    "description": "Import data setting"
+  },
+
+  "settingsImportDescription": "Import scores from file",
+  "@settingsImportDescription": {
+    "description": "Import description"
+  },
+
+  "quickStartTitle": "QUICK START",
+  "@quickStartTitle": {
+    "description": "Quick start sheet title"
+  },
+
+  "quickStartRoundType": "ROUND TYPE",
+  "@quickStartRoundType": {
+    "description": "Round type label"
+  },
+
+  "quickStartArrowsPerEnd": "ARROWS PER END",
+  "@quickStartArrowsPerEnd": {
+    "description": "Arrows per end label"
+  },
+
+  "quickStartNoRecent": "No recent sessions found.\nStart a regular session first.",
+  "@quickStartNoRecent": {
+    "description": "Message when no recent sessions exist"
+  },
+
+  "quickStartButton": "START SHOOTING",
+  "@quickStartButton": {
+    "description": "Start shooting button text"
+  },
+
+  "languageEnglish": "English",
+  "@languageEnglish": {
+    "description": "English language name"
+  },
+
+  "languageFrench": "French",
+  "@languageFrench": {
+    "description": "French language name"
+  },
+
+  "languageGerman": "German",
+  "@languageGerman": {
+    "description": "German language name"
+  },
+
+  "languageSpanish": "Spanish",
+  "@languageSpanish": {
+    "description": "Spanish language name"
+  },
+
+  "languageItalian": "Italian",
+  "@languageItalian": {
+    "description": "Italian language name"
+  },
+
+  "languageKorean": "Korean",
+  "@languageKorean": {
+    "description": "Korean language name"
+  },
+
+  "languageJapanese": "Japanese",
+  "@languageJapanese": {
+    "description": "Japanese language name"
+  },
+
+  "languageNativeEnglish": "English",
+  "@languageNativeEnglish": {
+    "description": "English in native script"
+  },
+
+  "languageNativeFrench": "Francais",
+  "@languageNativeFrench": {
+    "description": "French in native script"
+  },
+
+  "languageNativeGerman": "Deutsch",
+  "@languageNativeGerman": {
+    "description": "German in native script"
+  },
+
+  "languageNativeSpanish": "Espanol",
+  "@languageNativeSpanish": {
+    "description": "Spanish in native script"
+  },
+
+  "languageNativeItalian": "Italiano",
+  "@languageNativeItalian": {
+    "description": "Italian in native script"
+  },
+
+  "languageNativeKorean": "Korean",
+  "@languageNativeKorean": {
+    "description": "Korean in native script"
+  },
+
+  "languageNativeJapanese": "Japanese",
+  "@languageNativeJapanese": {
+    "description": "Japanese in native script"
+  }
+}
