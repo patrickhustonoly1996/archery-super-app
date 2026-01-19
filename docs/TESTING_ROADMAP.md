@@ -24,7 +24,7 @@ The codebase **doubled** since the last roadmap was written. Tests didn't keep u
 
 ## Current Coverage (Honest)
 
-### Services: 6/20 tested (30%)
+### Services: 7/20 tested (35%)
 
 | Status | Service | Risk Level | Notes |
 |--------|---------|------------|-------|
@@ -38,7 +38,7 @@ The codebase **doubled** since the last roadmap was written. Tests didn't keep u
 | ❌ | **stripe_service** | **CRITICAL** | Payment failures |
 | ❌ | **classification_service** | HIGH | Wrong classifications shown |
 | ❌ | **xp_calculation_service** | HIGH | XP/levels could break |
-| ❌ | **training_session_service** | HIGH | Training data loss |
+| ✅ | training_session_service | - | Tested |
 | ❌ | **vision_api_service** | MEDIUM | Auto-plot failures |
 | ❌ | **scorecard_export_service** | MEDIUM | Export bugs |
 | ❌ | **weather_service** | LOW | Weather display bugs |
@@ -468,11 +468,11 @@ void main() {
 
 | Test File | Assigned To | Status | Tests | Date |
 |-----------|-------------|--------|-------|------|
-| sync_service_test | - | NOT STARTED | 0 | - |
+| sync_service_test | Claude | ✅ COMPLETE | 47 | 2026-01-19 |
 | entitlement_provider_test | - | NOT STARTED | 0 | - |
 | stripe_service_test | - | NOT STARTED | 0 | - |
-| user_profile_provider_test | - | NOT STARTED | 0 | - |
-| training_session_service_test | - | NOT STARTED | 0 | - |
+| user_profile_provider_test | Claude | ✅ COMPLETE | 129 | 2026-01-19 |
+| training_session_service_test | Claude | ✅ COMPLETE | 36 | 2026-01-19 |
 | classification_service_test | - | NOT STARTED | 0 | - |
 | classification_provider_test | - | NOT STARTED | 0 | - |
 | sight_marks_provider_test | - | NOT STARTED | 0 | - |
