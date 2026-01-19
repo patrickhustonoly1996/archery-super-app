@@ -163,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen>
     _MenuItem(
       label: 'GEAR',
       sublabel: 'Bows & arrows',
-      pixelIcon: PixelIconType.gear,
+      pixelIcon: PixelIconType.bow,
       skillId: 'equipment',
       onTap: () => Navigator.push(
         context,
