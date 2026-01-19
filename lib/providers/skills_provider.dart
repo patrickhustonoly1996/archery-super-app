@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../db/database.dart';
 import '../services/xp_calculation_service.dart';
 import '../services/sync_service.dart';
+import '../widgets/xp_badge_celebration.dart';
 
 /// Represents a pending level-up for celebration display
 class LevelUpEvent {
@@ -35,12 +36,17 @@ class SkillsProvider extends ChangeNotifier {
   // Pending level-up events for celebration
   final List<LevelUpEvent> _pendingLevelUps = [];
 
+  // Pending XP award events for badge celebration (significant awards only)
+  final List<XpAwardEvent> _pendingXpAwards = [];
+
   // Getters
   List<SkillLevel> get skills => _skills;
   int get totalLevel => _totalLevel;
   bool get isLoaded => _isLoaded;
   List<LevelUpEvent> get pendingLevelUps => List.unmodifiable(_pendingLevelUps);
   bool get hasPendingLevelUp => _pendingLevelUps.isNotEmpty;
+  List<XpAwardEvent> get pendingXpAwards => List.unmodifiable(_pendingXpAwards);
+  bool get hasPendingXpAward => _pendingXpAwards.isNotEmpty;
 
   /// Get a specific skill by ID
   SkillLevel? getSkill(String skillId) {
@@ -178,6 +184,26 @@ class SkillsProvider extends ChangeNotifier {
   /// Clear all pending level-ups
   void clearPendingLevelUps() {
     _pendingLevelUps.clear();
+    notifyListeners();
+  }
+
+  /// Queue an XP award celebration (for significant awards)
+  void queueXpAwardCelebration(XpAwardEvent event) {
+    _pendingXpAwards.add(event);
+    notifyListeners();
+  }
+
+  /// Clear the next pending XP award (after celebration is shown)
+  XpAwardEvent? consumeNextXpAward() {
+    if (_pendingXpAwards.isEmpty) return null;
+    final event = _pendingXpAwards.removeAt(0);
+    notifyListeners();
+    return event;
+  }
+
+  /// Clear all pending XP awards
+  void clearPendingXpAwards() {
+    _pendingXpAwards.clear();
     notifyListeners();
   }
 
@@ -320,6 +346,30 @@ class SkillsProvider extends ChangeNotifier {
           sourceId: sessionId,
           reason: 'Competition score: $competitionScore',
         );
+
+        // Check for PB (beat practice by 2%+)
+        if (avgPracticeScore != null && avgPracticeScore > 0) {
+          final percentOfPractice = competitionScore / avgPracticeScore;
+          if (percentOfPractice >= 1.02) {
+            queueXpAwardCelebration(XpAwardEvent(
+              skillName: 'Competition',
+              xpAmount: compXp,
+              reason: 'Beat practice by ${((percentOfPractice - 1) * 100).toStringAsFixed(1)}%!',
+              achievementType: AchievementType.personalBest,
+            ));
+          }
+        }
+
+        // Also show competition badge for high scores
+        final scorePercent = competitionScore / (maxScore ?? 720);
+        if (scorePercent >= 0.9) {
+          queueXpAwardCelebration(XpAwardEvent(
+            skillName: 'Competition',
+            xpAmount: compXp,
+            reason: '90%+ of max score!',
+            achievementType: AchievementType.competition,
+          ));
+        }
       }
     }
   }
@@ -347,6 +397,17 @@ class SkillsProvider extends ChangeNotifier {
         sourceId: logId,
         reason: '${totalHoldSeconds}s total hold time',
       );
+
+      // Queue celebration for excellent form
+      final avgFeedback = (feedbackShaking + feedbackStructure + feedbackRest) / 3;
+      if (avgFeedback <= 3 && totalHoldSeconds >= 30) {
+        queueXpAwardCelebration(XpAwardEvent(
+          skillName: 'Bow Fitness',
+          xpAmount: xp,
+          reason: 'Excellent form!',
+          achievementType: AchievementType.excellentForm,
+        ));
+      }
     }
   }
 
@@ -412,6 +473,30 @@ class SkillsProvider extends ChangeNotifier {
         source: 'consistency',
         reason: '$daysThisWeek days trained${streakDays > 0 ? ', $streakDays day streak' : ''}',
       );
+
+      // Queue celebration for streak milestones
+      if (streakDays == 7) {
+        queueXpAwardCelebration(XpAwardEvent(
+          skillName: 'Consistency',
+          xpAmount: xp,
+          reason: '7 day training streak!',
+          achievementType: AchievementType.streak7,
+        ));
+      } else if (streakDays == 14) {
+        queueXpAwardCelebration(XpAwardEvent(
+          skillName: 'Consistency',
+          xpAmount: xp,
+          reason: '14 day training streak!',
+          achievementType: AchievementType.streak14,
+        ));
+      } else if (streakDays == 30) {
+        queueXpAwardCelebration(XpAwardEvent(
+          skillName: 'Consistency',
+          xpAmount: xp,
+          reason: '30 day training streak!',
+          achievementType: AchievementType.streak30,
+        ));
+      }
     }
   }
 
