@@ -383,7 +383,7 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
   }
 
   void _handlePrep() {
-    if (_phaseSecondsRemaining <= 0) {
+    if (_phaseSecondsRemaining < 0) {
       _vibration.inhale(); // Cue first inhale
       if (_beepsEnabled) _beepService.playInhaleBeep();
       // Prep done - start paced breathing
@@ -422,7 +422,7 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
   }
 
   void _handlePacedBreathing() {
-    if (_phaseSecondsRemaining <= 0) {
+    if (_phaseSecondsRemaining < 0) {
       if (_breathPhase == BreathPhase.inhale) {
         _vibration.exhale(); // Cue exhale phase
         if (_beepsEnabled) _beepService.playExhaleBeep();
@@ -453,7 +453,7 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
   void _handleHolding() {
     _totalHoldTime++;
 
-    if (_phaseSecondsRemaining <= 0) {
+    if (_phaseSecondsRemaining < 0) {
       _vibration.heavy();
 
       // Track best hold (this round's target was completed)
@@ -515,7 +515,7 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
   }
 
   void _handleRecovery() {
-    if (_phaseSecondsRemaining <= 0) {
+    if (_phaseSecondsRemaining < 0) {
       if (_breathPhase == BreathPhase.inhale) {
         _vibration.exhale(); // Cue exhale phase
         if (_beepsEnabled) _beepService.playExhaleBeep();

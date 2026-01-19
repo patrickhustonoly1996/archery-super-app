@@ -188,8 +188,8 @@ class _PacedBreathingScreenState extends State<PacedBreathingScreen> {
           return;
         }
 
-        if (_phaseSecondsRemaining <= 0) {
-          // Phase complete - switch
+        if (_phaseSecondsRemaining < 0) {
+          // Phase complete (after showing 0) - switch
           if (_phase == BreathPhase.inhale) {
             _phase = BreathPhase.exhale;
             _phaseSecondsRemaining = _exhaleSeconds;

@@ -228,7 +228,7 @@ class _BreathTrainingHomeScreenState extends State<BreathTrainingHomeScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'During competition, a slow exhale before release helps steady your shot. Practice this rhythm daily.',
+                            'Slow exhale training builds mental and physiological control for tournament calm, and creates dynamic intra-abdominal pressure for core stability during the shot.',
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],

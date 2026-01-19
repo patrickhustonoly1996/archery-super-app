@@ -135,7 +135,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
     setState(() {
       _phaseSecondsRemaining--;
 
-      if (_phaseSecondsRemaining <= 0) {
+      if (_phaseSecondsRemaining < 0) {
         if (_breathPhase == BreathPhase.inhale) {
           _breathPhase = BreathPhase.exhale;
           _phaseSecondsRemaining = _exhaleSeconds;
@@ -182,7 +182,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
   void _tickPreparation(Timer timer) {
     setState(() {
       _preparationCountdown--;
-      if (_preparationCountdown <= 0) {
+      if (_preparationCountdown < 0) {
         _timer?.cancel();
         _startExhale();
       }
@@ -261,7 +261,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
     setState(() {
       _phaseSecondsRemaining--;
 
-      if (_phaseSecondsRemaining <= 0) {
+      if (_phaseSecondsRemaining < 0) {
         if (_breathPhase == BreathPhase.inhale) {
           _breathPhase = BreathPhase.exhale;
           _phaseSecondsRemaining = _exhaleSeconds;
