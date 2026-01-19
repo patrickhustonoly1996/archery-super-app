@@ -4,7 +4,117 @@ A running document of software concepts explained as we build the Archery Super 
 
 ---
 
-## 1. Testing (Why 672 Tests Matter)
+## 1. Vibe Coding - Working Effectively with AI
+
+### What is "Vibe Coding"?
+
+Vibe coding is a development approach where you:
+1. **Describe what you want** in natural language
+2. **Let AI generate the code** based on your description
+3. **Iterate quickly** through conversation
+4. **Focus on outcomes** rather than implementation details
+
+### Principles for Better Vibe Coding
+
+#### 1. Be Specific About User Experience
+**Less Effective:**
+> "Add a loading spinner"
+
+**More Effective:**
+> "When the user taps 'Save', show a loading spinner on the button itself (not full screen), disable the button to prevent double-taps, and show a green checkmark when complete. If it fails, show a red error message below the button with a 'Retry' option."
+
+#### 2. Describe Edge Cases
+**Less Effective:**
+> "Add login"
+
+**More Effective:**
+> "Add login with these behaviors:
+> - Show validation errors inline as user types
+> - Handle network errors with 'Check your connection' message and retry button
+> - Handle wrong password with 3 attempts before lockout
+> - Remember email on this device for next time
+> - Show password with eye toggle icon"
+
+#### 3. Reference Existing Patterns
+**Less Effective:**
+> "Make a new screen for viewing training history"
+
+**More Effective:**
+> "Create a training history screen following the same patterns as `history_screen.dart`:
+> - Same dark theme with gold accents
+> - Same card layout for list items
+> - Same pull-to-refresh behavior
+> - Same empty state pattern (icon + message + CTA button)"
+
+#### 4. Ask for Tests
+**Less Effective:**
+> "Add a handicap calculator"
+
+**More Effective:**
+> "Add a handicap calculator that computes WA handicap from a score and round type. Also write unit tests that verify:
+> - Known handicap values for common scores
+> - Edge cases (perfect score, zero score)
+> - Different round types (WA720, Portsmouth)"
+
+#### 5. Request Defensive Code
+**Less Effective:**
+> "Save the session to the database"
+
+**More Effective:**
+> "Save the session to the database with:
+> - Validation that session has at least one arrow
+> - Transaction to ensure all ends save atomically
+> - Error handling that shows user-friendly message on failure
+> - Retry logic for transient database errors
+> - Cloud backup triggered after successful local save"
+
+### Common Vibe Coding Mistakes to Avoid
+
+#### Mistake 1: Accepting First Output
+AI-generated code often works for the "happy path" but misses edge cases. Always ask:
+- "What happens if the network fails?"
+- "What if the user has no data yet?"
+- "What if they tap the button twice quickly?"
+
+#### Mistake 2: Forgetting Mobile Constraints
+Desktop assumptions creep into AI code. Remember to specify:
+- Touch target sizes (minimum 48px)
+- Offline behavior
+- Battery/performance impact
+- Different screen sizes
+
+#### Mistake 3: Skipping Validation
+AI often generates optimistic code. Request:
+- Input validation on all forms
+- Null checks on optional data
+- Bounds checking on arrays
+- Type validation on external data (imports, API responses)
+
+#### Mistake 4: Ignoring State Management
+Ask explicitly for:
+- Loading states during async operations
+- Error states with recovery options
+- Empty states with guidance
+- Optimistic updates with rollback
+
+### Vibe Coding Checklist
+
+Before accepting generated code, verify:
+
+- [ ] **Happy path works** - Basic flow functions correctly
+- [ ] **Error handling exists** - Try/catch with user feedback
+- [ ] **Loading states shown** - User knows something is happening
+- [ ] **Empty states handled** - Guidance when no data
+- [ ] **Validation present** - Inputs are checked
+- [ ] **Edge cases covered** - Nulls, empty strings, boundaries
+- [ ] **Consistent with codebase** - Follows existing patterns
+- [ ] **Accessible** - Screen reader labels, touch targets
+- [ ] **Testable** - Can write unit tests for logic
+- [ ] **Documented** - Comments on non-obvious code
+
+---
+
+## 2. Testing (Why 1,348 Tests Matter)
 
 ### The Problem Testing Solves
 

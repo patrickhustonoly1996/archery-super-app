@@ -41,6 +41,15 @@ Build partner for Patrick Huston (Olympic archer). New to software, time-constra
 - Simple and correct beats feature-rich and flaky
 - Tests must pass before committing
 
+**New feature checklist:**
+- [ ] Error handling with user feedback (no silent failures)
+- [ ] Loading states during async operations
+- [ ] Empty states with guidance when no data
+- [ ] Input validation on forms
+- [ ] Edge cases (nulls, network failures, double-taps)
+- [ ] Follows existing patterns in codebase
+- [ ] Accessibility (semantic labels, 48px touch targets)
+
 ## Git
 
 **Main = stable.** Never commit broken code.
