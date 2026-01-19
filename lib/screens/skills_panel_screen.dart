@@ -297,6 +297,115 @@ class _SkillCard extends StatelessWidget {
   }
 }
 
+/// Skill explanation and XP earning information.
+class _SkillInfo {
+  final String description;
+  final List<String> howToEarnXp;
+
+  const _SkillInfo({required this.description, required this.howToEarnXp});
+
+  static _SkillInfo forSkill(String skillId) {
+    switch (skillId) {
+      case 'archery_skill':
+        return const _SkillInfo(
+          description:
+              'Your core archery ability based on scoring performance. '
+              'Lower handicap means better skill.',
+          howToEarnXp: [
+            'Complete scored rounds',
+            'XP = (150 - handicap) x 10',
+            'Elite (HC 0): 1,500 XP/round',
+            'Average (HC 60): 900 XP/round',
+            'Beginner (HC 100+): 500 XP/round',
+          ],
+        );
+      case 'volume':
+        return const _SkillInfo(
+          description:
+              'Tracks your total arrows shot. More arrows = more practice = '
+              'more muscle memory.',
+          howToEarnXp: [
+            '1 XP per arrow shot',
+            'Every arrow counts!',
+          ],
+        );
+      case 'consistency':
+        return const _SkillInfo(
+          description:
+              'Measures how regularly you train. Building a consistent '
+              'practice habit is key to improvement.',
+          howToEarnXp: [
+            '50 XP per training day',
+            'Streak bonus: +10%/day (max 7 days)',
+            '7-day streak = +70% bonus',
+          ],
+        );
+      case 'bow_fitness':
+        return const _SkillInfo(
+          description:
+              'Physical conditioning for archery. Strong holds and good '
+              'structure lead to better shots.',
+          howToEarnXp: [
+            '1 XP per second of hold time',
+            'Good form (feedback 1-5): +25%',
+            'Excellent form (feedback 1-3): +50%',
+            'Do OLY training sessions',
+          ],
+        );
+      case 'breath_work':
+        return const _SkillInfo(
+          description:
+              'Breath control for mental calm and shot execution. Proper '
+              'breathing helps manage pressure.',
+          howToEarnXp: [
+            '1 XP per 2 seconds of breath hold',
+            '1 XP per 2 seconds of exhale',
+            'Complete breath training sessions',
+          ],
+        );
+      case 'equipment':
+        return const _SkillInfo(
+          description:
+              'Knowledge of your gear and how to tune it. Well-maintained '
+              'equipment performs consistently.',
+          howToEarnXp: [
+            '25 XP per equipment change logged',
+            'Log tuning sessions',
+            'Save kit snapshots',
+          ],
+        );
+      case 'competition':
+        return const _SkillInfo(
+          description:
+              'Experience shooting under pressure. Competition tests your '
+              'skills when it counts.',
+          howToEarnXp: [
+            '100 XP for competing',
+            '+50 XP if matching practice score',
+            '+50 XP if beating practice by 2%+',
+            '+50-100 XP for 80-90%+ of max score',
+          ],
+        );
+      case 'analysis':
+        return const _SkillInfo(
+          description:
+              'Understanding your shot patterns. Plotting arrows reveals '
+              'tendencies and areas for improvement.',
+          howToEarnXp: [
+            '15 XP for plotting any session',
+            '+10 XP for 30+ arrows plotted',
+            '+10 XP for 60+ arrows plotted',
+          ],
+        );
+      default:
+        return const _SkillInfo(
+          description: 'Track your progress in this skill.',
+          howToEarnXp: ['Complete related activities'],
+        );
+    }
+  }
+}
+
 /// Detailed view for a single skill showing XP history.
 class _SkillDetailSheet extends StatefulWidget {
   final SkillLevel skill;
@@ -494,6 +603,10 @@ class _SkillDetailSheetState extends State<_SkillDetailSheet> {
               ),
               const SizedBox(height: 24),
 
+              // Skill explanation and how to earn XP
+              _buildSkillExplanation(widget.skill.id),
+              const SizedBox(height: 24),
+
               // Recent XP history
               Text(
                 'RECENT XP',
@@ -606,6 +719,97 @@ class _SkillDetailSheetState extends State<_SkillDetailSheet> {
     } else {
       return '${date.day}/${date.month}';
     }
+  }
+
+  Widget _buildSkillExplanation(String skillId) {
+    final info = _SkillInfo.forSkill(skillId);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // About this skill
+        Text(
+          'ABOUT THIS SKILL',
+          style: TextStyle(
+            fontFamily: AppFonts.pixel,
+            fontSize: 12,
+            color: AppColors.textMuted,
+            letterSpacing: 1,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceDark,
+            border: Border.all(color: AppColors.surfaceLight),
+          ),
+          child: Text(
+            info.description,
+            style: TextStyle(
+              fontFamily: AppFonts.body,
+              fontSize: 13,
+              color: AppColors.textPrimary,
+              height: 1.4,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // How to earn XP
+        Text(
+          'HOW TO EARN XP',
+          style: TextStyle(
+            fontFamily: AppFonts.pixel,
+            fontSize: 12,
+            color: AppColors.textMuted,
+            letterSpacing: 1,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceDark,
+            border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: info.howToEarnXp.map((item) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '\u2022 ',
+                      style: TextStyle(
+                        fontFamily: AppFonts.body,
+                        fontSize: 13,
+                        color: AppColors.gold,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        item,
+                        style: TextStyle(
+                          fontFamily: AppFonts.body,
+                          fontSize: 13,
+                          color: AppColors.textPrimary,
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
   }
 }
 
