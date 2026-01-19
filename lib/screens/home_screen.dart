@@ -893,18 +893,44 @@ class _ProfileIconButton extends StatelessWidget {
           context,
           MaterialPageRoute(builder: (_) => const UserProfileScreen()),
         ),
-        child: Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: AppColors.gold.withValues(alpha: 0.3),
-              width: 1,
-            ),
-          ),
-          child: const Center(
-            child: PixelProfileIcon(size: 24),
-          ),
+        child: Consumer<SkillsProvider>(
+          builder: (context, skillsProvider, _) {
+            return Container(
+              width: 40,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: AppColors.gold.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Profile icon
+                  const SizedBox(height: 4),
+                  const PixelProfileIcon(size: 24),
+                  const SizedBox(height: 2),
+                  // Level badge (like playing card corner)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: AppColors.gold.withValues(alpha: 0.2),
+                    ),
+                    child: Text(
+                      '${skillsProvider.totalLevel}',
+                      style: TextStyle(
+                        fontFamily: AppFonts.pixel,
+                        fontSize: 10,
+                        color: AppColors.gold,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -923,7 +949,35 @@ class _CollapsedProfileButton extends StatelessWidget {
           context,
           MaterialPageRoute(builder: (_) => const UserProfileScreen()),
         ),
-        child: const PixelProfileIcon(size: 20),
+        child: Consumer<SkillsProvider>(
+          builder: (context, skillsProvider, _) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: AppColors.gold.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const PixelProfileIcon(size: 16),
+                  const SizedBox(height: 1),
+                  Text(
+                    '${skillsProvider.totalLevel}',
+                    style: TextStyle(
+                      fontFamily: AppFonts.pixel,
+                      fontSize: 8,
+                      color: AppColors.gold,
+                      height: 1,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

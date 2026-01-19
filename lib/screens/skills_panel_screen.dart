@@ -297,10 +297,40 @@ class _SkillCard extends StatelessWidget {
   }
 }
 
+/// Icon types for XP earning concepts.
+enum _XpConceptIcon {
+  target, // Completing rounds, hitting targets
+  formula, // XP calculation formulas
+  arrow, // Arrow counts
+  calendar, // Training days
+  flame, // Streaks
+  timer, // Hold time, duration
+  checkmark, // Good form, quality
+  star, // Excellence, bonuses
+  dumbbell, // Training sessions
+  lungs, // Breath work
+  wrench, // Equipment tuning
+  camera, // Snapshots
+  trophy, // Competition
+  equals, // Matching scores
+  upArrow, // Beating scores, improvement
+  percent, // Score percentages
+  chart, // Analysis, plotting
+  plus, // Bonus XP
+}
+
+/// A single XP earning method with icon.
+class _XpEarnItem {
+  final _XpConceptIcon icon;
+  final String text;
+
+  const _XpEarnItem(this.icon, this.text);
+}
+
 /// Skill explanation and XP earning information.
 class _SkillInfo {
   final String description;
-  final List<String> howToEarnXp;
+  final List<_XpEarnItem> howToEarnXp;
 
   const _SkillInfo({required this.description, required this.howToEarnXp});
 
@@ -312,11 +342,11 @@ class _SkillInfo {
               'Your core archery ability based on scoring performance. '
               'Lower handicap means better skill.',
           howToEarnXp: [
-            'Complete scored rounds',
-            'XP = (150 - handicap) x 10',
-            'Elite (HC 0): 1,500 XP/round',
-            'Average (HC 60): 900 XP/round',
-            'Beginner (HC 100+): 500 XP/round',
+            _XpEarnItem(_XpConceptIcon.target, 'Complete scored rounds'),
+            _XpEarnItem(_XpConceptIcon.formula, 'XP = (150 - handicap) x 10'),
+            _XpEarnItem(_XpConceptIcon.star, 'Elite (HC 0): 1,500 XP/round'),
+            _XpEarnItem(_XpConceptIcon.checkmark, 'Average (HC 60): 900 XP/round'),
+            _XpEarnItem(_XpConceptIcon.arrow, 'Beginner (HC 100+): 500 XP/round'),
           ],
         );
       case 'volume':
@@ -325,8 +355,8 @@ class _SkillInfo {
               'Tracks your total arrows shot. More arrows = more practice = '
               'more muscle memory.',
           howToEarnXp: [
-            '1 XP per arrow shot',
-            'Every arrow counts!',
+            _XpEarnItem(_XpConceptIcon.arrow, '1 XP per arrow shot'),
+            _XpEarnItem(_XpConceptIcon.star, 'Every arrow counts!'),
           ],
         );
       case 'consistency':
@@ -335,9 +365,9 @@ class _SkillInfo {
               'Measures how regularly you train. Building a consistent '
               'practice habit is key to improvement.',
           howToEarnXp: [
-            '50 XP per training day',
-            'Streak bonus: +10%/day (max 7 days)',
-            '7-day streak = +70% bonus',
+            _XpEarnItem(_XpConceptIcon.calendar, '50 XP per training day'),
+            _XpEarnItem(_XpConceptIcon.flame, 'Streak bonus: +10%/day (max 7 days)'),
+            _XpEarnItem(_XpConceptIcon.star, '7-day streak = +70% bonus'),
           ],
         );
       case 'bow_fitness':
@@ -346,10 +376,10 @@ class _SkillInfo {
               'Physical conditioning for archery. Strong holds and good '
               'structure lead to better shots.',
           howToEarnXp: [
-            '1 XP per second of hold time',
-            'Good form (feedback 1-5): +25%',
-            'Excellent form (feedback 1-3): +50%',
-            'Do OLY training sessions',
+            _XpEarnItem(_XpConceptIcon.timer, '1 XP per second of hold time'),
+            _XpEarnItem(_XpConceptIcon.checkmark, 'Good form (feedback 1-5): +25%'),
+            _XpEarnItem(_XpConceptIcon.star, 'Excellent form (feedback 1-3): +50%'),
+            _XpEarnItem(_XpConceptIcon.dumbbell, 'Do OLY training sessions'),
           ],
         );
       case 'breath_work':
@@ -358,9 +388,9 @@ class _SkillInfo {
               'Breath control for mental calm and shot execution. Proper '
               'breathing helps manage pressure.',
           howToEarnXp: [
-            '1 XP per 2 seconds of breath hold',
-            '1 XP per 2 seconds of exhale',
-            'Complete breath training sessions',
+            _XpEarnItem(_XpConceptIcon.lungs, '1 XP per 2 seconds of breath hold'),
+            _XpEarnItem(_XpConceptIcon.lungs, '1 XP per 2 seconds of exhale'),
+            _XpEarnItem(_XpConceptIcon.dumbbell, 'Complete breath training sessions'),
           ],
         );
       case 'equipment':
@@ -369,9 +399,9 @@ class _SkillInfo {
               'Knowledge of your gear and how to tune it. Well-maintained '
               'equipment performs consistently.',
           howToEarnXp: [
-            '25 XP per equipment change logged',
-            'Log tuning sessions',
-            'Save kit snapshots',
+            _XpEarnItem(_XpConceptIcon.wrench, '25 XP per equipment change logged'),
+            _XpEarnItem(_XpConceptIcon.wrench, 'Log tuning sessions'),
+            _XpEarnItem(_XpConceptIcon.camera, 'Save kit snapshots'),
           ],
         );
       case 'competition':
@@ -380,10 +410,10 @@ class _SkillInfo {
               'Experience shooting under pressure. Competition tests your '
               'skills when it counts.',
           howToEarnXp: [
-            '100 XP for competing',
-            '+50 XP if matching practice score',
-            '+50 XP if beating practice by 2%+',
-            '+50-100 XP for 80-90%+ of max score',
+            _XpEarnItem(_XpConceptIcon.trophy, '100 XP for competing'),
+            _XpEarnItem(_XpConceptIcon.equals, '+50 XP if matching practice score'),
+            _XpEarnItem(_XpConceptIcon.upArrow, '+50 XP if beating practice by 2%+'),
+            _XpEarnItem(_XpConceptIcon.percent, '+50-100 XP for 80-90%+ of max score'),
           ],
         );
       case 'analysis':
@@ -392,15 +422,15 @@ class _SkillInfo {
               'Understanding your shot patterns. Plotting arrows reveals '
               'tendencies and areas for improvement.',
           howToEarnXp: [
-            '15 XP for plotting any session',
-            '+10 XP for 30+ arrows plotted',
-            '+10 XP for 60+ arrows plotted',
+            _XpEarnItem(_XpConceptIcon.chart, '15 XP for plotting any session'),
+            _XpEarnItem(_XpConceptIcon.plus, '+10 XP for 30+ arrows plotted'),
+            _XpEarnItem(_XpConceptIcon.star, '+10 XP for 60+ arrows plotted'),
           ],
         );
       default:
         return const _SkillInfo(
           description: 'Track your progress in this skill.',
-          howToEarnXp: ['Complete related activities'],
+          howToEarnXp: [_XpEarnItem(_XpConceptIcon.star, 'Complete related activities')],
         );
     }
   }
@@ -779,21 +809,19 @@ class _SkillDetailSheetState extends State<_SkillDetailSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: info.howToEarnXp.map((item) {
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 3),
+                padding: const EdgeInsets.symmetric(vertical: 5),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      '\u2022 ',
-                      style: TextStyle(
-                        fontFamily: AppFonts.body,
-                        fontSize: 13,
-                        color: AppColors.gold,
-                      ),
+                    Container(
+                      width: 20,
+                      height: 20,
+                      margin: const EdgeInsets.only(right: 10),
+                      child: _XpConceptIconWidget(icon: item.icon, size: 14),
                     ),
                     Expanded(
                       child: Text(
-                        item,
+                        item.text,
                         style: TextStyle(
                           fontFamily: AppFonts.body,
                           fontSize: 13,
@@ -1118,4 +1146,461 @@ class _SkillIconPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _SkillIconPainter oldDelegate) =>
       skillId != oldDelegate.skillId;
+}
+
+/// Pixel icon for XP earning concepts.
+class _XpConceptIconWidget extends StatelessWidget {
+  final _XpConceptIcon icon;
+  final double size;
+
+  const _XpConceptIconWidget({required this.icon, this.size = 14});
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size(size, size),
+      painter: _XpConceptIconPainter(icon: icon),
+    );
+  }
+}
+
+class _XpConceptIconPainter extends CustomPainter {
+  final _XpConceptIcon icon;
+
+  _XpConceptIconPainter({required this.icon});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = size.width / 10;
+    final paint = Paint()..color = AppColors.gold;
+    final dim = Paint()..color = AppColors.gold.withValues(alpha: 0.5);
+
+    switch (icon) {
+      case _XpConceptIcon.target:
+        _drawTarget(canvas, p, paint, dim);
+      case _XpConceptIcon.formula:
+        _drawFormula(canvas, p, paint, dim);
+      case _XpConceptIcon.arrow:
+        _drawArrow(canvas, p, paint, dim);
+      case _XpConceptIcon.calendar:
+        _drawCalendar(canvas, p, paint, dim);
+      case _XpConceptIcon.flame:
+        _drawFlame(canvas, p, paint, dim);
+      case _XpConceptIcon.timer:
+        _drawTimer(canvas, p, paint, dim);
+      case _XpConceptIcon.checkmark:
+        _drawCheckmark(canvas, p, paint, dim);
+      case _XpConceptIcon.star:
+        _drawStar(canvas, p, paint, dim);
+      case _XpConceptIcon.dumbbell:
+        _drawDumbbell(canvas, p, paint, dim);
+      case _XpConceptIcon.lungs:
+        _drawLungs(canvas, p, paint, dim);
+      case _XpConceptIcon.wrench:
+        _drawWrench(canvas, p, paint, dim);
+      case _XpConceptIcon.camera:
+        _drawCamera(canvas, p, paint, dim);
+      case _XpConceptIcon.trophy:
+        _drawTrophy(canvas, p, paint, dim);
+      case _XpConceptIcon.equals:
+        _drawEquals(canvas, p, paint, dim);
+      case _XpConceptIcon.upArrow:
+        _drawUpArrow(canvas, p, paint, dim);
+      case _XpConceptIcon.percent:
+        _drawPercent(canvas, p, paint, dim);
+      case _XpConceptIcon.chart:
+        _drawChart(canvas, p, paint, dim);
+      case _XpConceptIcon.plus:
+        _drawPlus(canvas, p, paint, dim);
+    }
+  }
+
+  void _px(Canvas c, int x, int y, double p, Paint paint) {
+    c.drawRect(Rect.fromLTWH(x * p, y * p, p, p), paint);
+  }
+
+  void _drawTarget(Canvas c, double p, Paint paint, Paint dim) {
+    // Outer ring
+    for (int i = 3; i <= 6; i++) {
+      _px(c, i, 0, p, dim);
+      _px(c, i, 9, p, dim);
+      _px(c, 0, i, p, dim);
+      _px(c, 9, i, p, dim);
+    }
+    _px(c, 1, 1, p, dim);
+    _px(c, 8, 1, p, dim);
+    _px(c, 1, 8, p, dim);
+    _px(c, 8, 8, p, dim);
+    // Inner ring
+    for (int i = 3; i <= 6; i++) {
+      _px(c, i, 2, p, paint);
+      _px(c, i, 7, p, paint);
+      _px(c, 2, i, p, paint);
+      _px(c, 7, i, p, paint);
+    }
+    // Center dot
+    _px(c, 4, 4, p, paint);
+    _px(c, 5, 4, p, paint);
+    _px(c, 4, 5, p, paint);
+    _px(c, 5, 5, p, paint);
+  }
+
+  void _drawFormula(Canvas c, double p, Paint paint, Paint dim) {
+    // "fx" symbol
+    // f
+    _px(c, 2, 1, p, paint);
+    _px(c, 3, 1, p, paint);
+    _px(c, 1, 2, p, paint);
+    _px(c, 1, 3, p, paint);
+    _px(c, 1, 4, p, paint);
+    _px(c, 2, 3, p, paint);
+    _px(c, 3, 3, p, paint);
+    _px(c, 1, 5, p, dim);
+    // x
+    _px(c, 5, 4, p, paint);
+    _px(c, 8, 4, p, paint);
+    _px(c, 6, 5, p, paint);
+    _px(c, 7, 5, p, paint);
+    _px(c, 6, 6, p, paint);
+    _px(c, 7, 6, p, paint);
+    _px(c, 5, 7, p, paint);
+    _px(c, 8, 7, p, paint);
+  }
+
+  void _drawArrow(Canvas c, double p, Paint paint, Paint dim) {
+    // Arrow pointing right
+    for (int x = 1; x <= 7; x++) {
+      _px(c, x, 4, p, paint);
+    }
+    _px(c, 6, 2, p, dim);
+    _px(c, 7, 3, p, paint);
+    _px(c, 8, 4, p, paint);
+    _px(c, 7, 5, p, paint);
+    _px(c, 6, 6, p, dim);
+    // Fletching
+    _px(c, 0, 3, p, dim);
+    _px(c, 0, 5, p, dim);
+  }
+
+  void _drawCalendar(Canvas c, double p, Paint paint, Paint dim) {
+    // Box
+    for (int x = 1; x <= 8; x++) {
+      _px(c, x, 1, p, paint);
+      _px(c, x, 8, p, paint);
+    }
+    for (int y = 1; y <= 8; y++) {
+      _px(c, 1, y, p, paint);
+      _px(c, 8, y, p, paint);
+    }
+    // Grid dots
+    _px(c, 3, 4, p, dim);
+    _px(c, 5, 4, p, dim);
+    _px(c, 7, 4, p, dim);
+    _px(c, 3, 6, p, paint);
+    _px(c, 5, 6, p, paint);
+  }
+
+  void _drawFlame(Canvas c, double p, Paint paint, Paint dim) {
+    // Flame shape
+    _px(c, 4, 0, p, dim);
+    _px(c, 5, 0, p, dim);
+    _px(c, 4, 1, p, paint);
+    _px(c, 5, 1, p, paint);
+    _px(c, 3, 2, p, paint);
+    _px(c, 4, 2, p, paint);
+    _px(c, 5, 2, p, paint);
+    _px(c, 6, 2, p, paint);
+    _px(c, 2, 3, p, dim);
+    _px(c, 3, 3, p, paint);
+    _px(c, 4, 3, p, paint);
+    _px(c, 5, 3, p, paint);
+    _px(c, 6, 3, p, paint);
+    _px(c, 7, 3, p, dim);
+    _px(c, 2, 4, p, paint);
+    _px(c, 3, 4, p, paint);
+    _px(c, 4, 4, p, paint);
+    _px(c, 5, 4, p, paint);
+    _px(c, 6, 4, p, paint);
+    _px(c, 7, 4, p, paint);
+    _px(c, 2, 5, p, paint);
+    _px(c, 3, 5, p, paint);
+    _px(c, 6, 5, p, paint);
+    _px(c, 7, 5, p, paint);
+    _px(c, 3, 6, p, paint);
+    _px(c, 4, 6, p, paint);
+    _px(c, 5, 6, p, paint);
+    _px(c, 6, 6, p, paint);
+    _px(c, 4, 7, p, dim);
+    _px(c, 5, 7, p, dim);
+  }
+
+  void _drawTimer(Canvas c, double p, Paint paint, Paint dim) {
+    // Clock circle
+    for (int i = 2; i <= 7; i++) {
+      _px(c, i, 1, p, paint);
+      _px(c, i, 8, p, paint);
+    }
+    _px(c, 1, 2, p, paint);
+    _px(c, 1, 7, p, paint);
+    _px(c, 8, 2, p, paint);
+    _px(c, 8, 7, p, paint);
+    for (int y = 3; y <= 6; y++) {
+      _px(c, 0, y, p, paint);
+      _px(c, 9, y, p, paint);
+    }
+    // Clock hands
+    _px(c, 4, 4, p, paint);
+    _px(c, 5, 4, p, paint);
+    _px(c, 4, 3, p, paint);
+    _px(c, 6, 4, p, dim);
+    _px(c, 7, 4, p, dim);
+  }
+
+  void _drawCheckmark(Canvas c, double p, Paint paint, Paint dim) {
+    _px(c, 1, 5, p, dim);
+    _px(c, 2, 6, p, paint);
+    _px(c, 3, 7, p, paint);
+    _px(c, 4, 6, p, paint);
+    _px(c, 5, 5, p, paint);
+    _px(c, 6, 4, p, paint);
+    _px(c, 7, 3, p, paint);
+    _px(c, 8, 2, p, paint);
+    _px(c, 9, 1, p, dim);
+  }
+
+  void _drawStar(Canvas c, double p, Paint paint, Paint dim) {
+    _px(c, 4, 0, p, paint);
+    _px(c, 5, 0, p, paint);
+    _px(c, 4, 1, p, paint);
+    _px(c, 5, 1, p, paint);
+    _px(c, 3, 2, p, paint);
+    _px(c, 4, 2, p, paint);
+    _px(c, 5, 2, p, paint);
+    _px(c, 6, 2, p, paint);
+    for (int x = 0; x <= 9; x++) _px(c, x, 3, p, paint);
+    for (int x = 1; x <= 8; x++) _px(c, x, 4, p, dim);
+    _px(c, 2, 5, p, paint);
+    _px(c, 3, 5, p, paint);
+    _px(c, 6, 5, p, paint);
+    _px(c, 7, 5, p, paint);
+    _px(c, 1, 6, p, paint);
+    _px(c, 2, 6, p, paint);
+    _px(c, 7, 6, p, paint);
+    _px(c, 8, 6, p, paint);
+  }
+
+  void _drawDumbbell(Canvas c, double p, Paint paint, Paint dim) {
+    // Left weight
+    _px(c, 0, 3, p, paint);
+    _px(c, 0, 4, p, paint);
+    _px(c, 0, 5, p, paint);
+    _px(c, 0, 6, p, paint);
+    _px(c, 1, 3, p, paint);
+    _px(c, 1, 4, p, paint);
+    _px(c, 1, 5, p, paint);
+    _px(c, 1, 6, p, paint);
+    // Bar
+    for (int x = 2; x <= 7; x++) {
+      _px(c, x, 4, p, dim);
+      _px(c, x, 5, p, dim);
+    }
+    // Right weight
+    _px(c, 8, 3, p, paint);
+    _px(c, 8, 4, p, paint);
+    _px(c, 8, 5, p, paint);
+    _px(c, 8, 6, p, paint);
+    _px(c, 9, 3, p, paint);
+    _px(c, 9, 4, p, paint);
+    _px(c, 9, 5, p, paint);
+    _px(c, 9, 6, p, paint);
+  }
+
+  void _drawLungs(Canvas c, double p, Paint paint, Paint dim) {
+    // Trachea
+    _px(c, 4, 0, p, paint);
+    _px(c, 5, 0, p, paint);
+    _px(c, 4, 1, p, paint);
+    _px(c, 5, 1, p, paint);
+    // Branch
+    _px(c, 3, 2, p, dim);
+    _px(c, 6, 2, p, dim);
+    // Left lung
+    _px(c, 1, 3, p, paint);
+    _px(c, 2, 3, p, paint);
+    _px(c, 3, 3, p, paint);
+    for (int y = 4; y <= 6; y++) {
+      _px(c, 0, y, p, paint);
+      _px(c, 1, y, p, paint);
+      _px(c, 2, y, p, paint);
+      _px(c, 3, y, p, paint);
+    }
+    _px(c, 1, 7, p, dim);
+    _px(c, 2, 7, p, dim);
+    // Right lung
+    _px(c, 6, 3, p, paint);
+    _px(c, 7, 3, p, paint);
+    _px(c, 8, 3, p, paint);
+    for (int y = 4; y <= 6; y++) {
+      _px(c, 6, y, p, paint);
+      _px(c, 7, y, p, paint);
+      _px(c, 8, y, p, paint);
+      _px(c, 9, y, p, paint);
+    }
+    _px(c, 7, 7, p, dim);
+    _px(c, 8, 7, p, dim);
+  }
+
+  void _drawWrench(Canvas c, double p, Paint paint, Paint dim) {
+    // Wrench head
+    _px(c, 0, 0, p, paint);
+    _px(c, 1, 0, p, paint);
+    _px(c, 2, 0, p, paint);
+    _px(c, 0, 1, p, paint);
+    _px(c, 2, 1, p, paint);
+    _px(c, 1, 2, p, paint);
+    _px(c, 2, 2, p, paint);
+    // Handle (diagonal)
+    _px(c, 3, 3, p, paint);
+    _px(c, 4, 4, p, paint);
+    _px(c, 5, 5, p, paint);
+    _px(c, 6, 6, p, paint);
+    _px(c, 7, 7, p, dim);
+    _px(c, 8, 8, p, dim);
+  }
+
+  void _drawCamera(Canvas c, double p, Paint paint, Paint dim) {
+    // Top
+    _px(c, 3, 1, p, paint);
+    _px(c, 4, 1, p, paint);
+    _px(c, 5, 1, p, paint);
+    // Body
+    for (int x = 1; x <= 8; x++) {
+      _px(c, x, 2, p, paint);
+      _px(c, x, 7, p, paint);
+    }
+    for (int y = 2; y <= 7; y++) {
+      _px(c, 1, y, p, paint);
+      _px(c, 8, y, p, paint);
+    }
+    // Lens
+    _px(c, 4, 4, p, paint);
+    _px(c, 5, 4, p, paint);
+    _px(c, 3, 5, p, paint);
+    _px(c, 6, 5, p, paint);
+    _px(c, 4, 6, p, dim);
+    _px(c, 5, 6, p, dim);
+  }
+
+  void _drawTrophy(Canvas c, double p, Paint paint, Paint dim) {
+    // Cup top
+    for (int x = 2; x <= 7; x++) _px(c, x, 0, p, paint);
+    // Cup body
+    _px(c, 2, 1, p, paint);
+    _px(c, 7, 1, p, paint);
+    _px(c, 2, 2, p, paint);
+    _px(c, 7, 2, p, paint);
+    // Handles
+    _px(c, 1, 1, p, dim);
+    _px(c, 8, 1, p, dim);
+    // Inside
+    for (int x = 3; x <= 6; x++) {
+      _px(c, x, 1, p, dim);
+      _px(c, x, 2, p, dim);
+    }
+    // Cup narrow
+    _px(c, 3, 3, p, paint);
+    _px(c, 6, 3, p, paint);
+    _px(c, 3, 4, p, paint);
+    _px(c, 4, 4, p, paint);
+    _px(c, 5, 4, p, paint);
+    _px(c, 6, 4, p, paint);
+    // Stem
+    _px(c, 4, 5, p, paint);
+    _px(c, 5, 5, p, paint);
+    _px(c, 4, 6, p, paint);
+    _px(c, 5, 6, p, paint);
+    // Base
+    for (int x = 2; x <= 7; x++) {
+      _px(c, x, 7, p, paint);
+      _px(c, x, 8, p, paint);
+    }
+  }
+
+  void _drawEquals(Canvas c, double p, Paint paint, Paint dim) {
+    // Two horizontal lines
+    for (int x = 1; x <= 8; x++) {
+      _px(c, x, 3, p, paint);
+      _px(c, x, 6, p, paint);
+    }
+  }
+
+  void _drawUpArrow(Canvas c, double p, Paint paint, Paint dim) {
+    // Arrow pointing up
+    _px(c, 4, 0, p, paint);
+    _px(c, 5, 0, p, paint);
+    _px(c, 3, 1, p, paint);
+    _px(c, 4, 1, p, paint);
+    _px(c, 5, 1, p, paint);
+    _px(c, 6, 1, p, paint);
+    _px(c, 2, 2, p, dim);
+    _px(c, 3, 2, p, paint);
+    _px(c, 4, 2, p, paint);
+    _px(c, 5, 2, p, paint);
+    _px(c, 6, 2, p, paint);
+    _px(c, 7, 2, p, dim);
+    // Shaft
+    for (int y = 3; y <= 8; y++) {
+      _px(c, 4, y, p, paint);
+      _px(c, 5, y, p, paint);
+    }
+  }
+
+  void _drawPercent(Canvas c, double p, Paint paint, Paint dim) {
+    // Top circle
+    _px(c, 1, 1, p, paint);
+    _px(c, 2, 1, p, paint);
+    _px(c, 1, 2, p, paint);
+    _px(c, 2, 2, p, paint);
+    // Diagonal
+    _px(c, 7, 1, p, dim);
+    _px(c, 6, 2, p, paint);
+    _px(c, 5, 3, p, paint);
+    _px(c, 4, 4, p, paint);
+    _px(c, 3, 5, p, paint);
+    _px(c, 2, 6, p, paint);
+    _px(c, 1, 7, p, dim);
+    // Bottom circle
+    _px(c, 6, 6, p, paint);
+    _px(c, 7, 6, p, paint);
+    _px(c, 6, 7, p, paint);
+    _px(c, 7, 7, p, paint);
+  }
+
+  void _drawChart(Canvas c, double p, Paint paint, Paint dim) {
+    // Axes
+    for (int y = 0; y <= 8; y++) _px(c, 0, y, p, dim);
+    for (int x = 0; x <= 9; x++) _px(c, x, 8, p, dim);
+    // Bars
+    for (int y = 5; y <= 7; y++) _px(c, 2, y, p, paint);
+    for (int y = 2; y <= 7; y++) _px(c, 4, y, p, paint);
+    for (int y = 4; y <= 7; y++) _px(c, 6, y, p, paint);
+    for (int y = 1; y <= 7; y++) _px(c, 8, y, p, paint);
+  }
+
+  void _drawPlus(Canvas c, double p, Paint paint, Paint dim) {
+    // Vertical line
+    for (int y = 1; y <= 7; y++) {
+      _px(c, 4, y, p, paint);
+      _px(c, 5, y, p, paint);
+    }
+    // Horizontal line
+    for (int x = 1; x <= 7; x++) {
+      _px(c, x, 3, p, paint);
+      _px(c, x, 4, p, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _XpConceptIconPainter oldDelegate) =>
+      icon != oldDelegate.icon;
 }

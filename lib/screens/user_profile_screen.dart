@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/user_profile_provider.dart';
+import '../providers/skills_provider.dart';
 import '../db/database.dart';
 import '../models/user_profile.dart';
 import '../widgets/pixel_archer_icon.dart';
+import '../widgets/pixel_profile_icon.dart';
 import '../services/sample_data_seeder.dart';
 import 'federation_form_screen.dart';
+import 'skills_panel_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -144,6 +147,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  // Skills level card - tap to see details
+                  _buildSkillsCard(),
+                  const SizedBox(height: 24),
+
                   // Core shooting info section
                   _buildSectionHeader('SHOOTING STYLE'),
                   const SizedBox(height: 12),
@@ -242,6 +249,98 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               icon: const Icon(Icons.check, color: AppColors.backgroundDark),
             )
           : null,
+    );
+  }
+
+  Widget _buildSkillsCard() {
+    return Consumer<SkillsProvider>(
+      builder: (context, skillsProvider, _) {
+        final totalLevel = skillsProvider.totalLevel;
+
+        return GestureDetector(
+          onTap: () => SkillsPanelScreen.show(context),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceDark,
+              border: Border.all(color: AppColors.gold, width: 2),
+            ),
+            child: Row(
+              children: [
+                // Profile icon with level (like a playing card)
+                Container(
+                  width: 64,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.gold.withValues(alpha: 0.15),
+                    border: Border.all(color: AppColors.gold, width: 1),
+                  ),
+                  child: Column(
+                    children: [
+                      const PixelProfileIcon(size: 32),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        color: AppColors.gold.withValues(alpha: 0.3),
+                        child: Text(
+                          '$totalLevel',
+                          style: TextStyle(
+                            fontFamily: AppFonts.pixel,
+                            fontSize: 16,
+                            color: AppColors.gold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Level info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'TOTAL LEVEL',
+                        style: TextStyle(
+                          fontFamily: AppFonts.pixel,
+                          fontSize: 12,
+                          color: AppColors.textMuted,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Level $totalLevel',
+                        style: TextStyle(
+                          fontFamily: AppFonts.pixel,
+                          fontSize: 24,
+                          color: AppColors.gold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Tap to view all skills',
+                        style: TextStyle(
+                          fontFamily: AppFonts.body,
+                          fontSize: 12,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Arrow
+                const Icon(
+                  Icons.chevron_right,
+                  color: AppColors.gold,
+                  size: 28,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
