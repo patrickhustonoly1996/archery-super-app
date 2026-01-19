@@ -1,103 +1,374 @@
 # Archery Super App Testing Roadmap
 
-Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 files.
+## Overview
 
-## Context
-
-- Framework: Flutter with flutter_test and mockito
-- Run tests: `flutter test`
-- Run single: `flutter test test/services/sync_service_test.dart`
-- Generate mocks: `dart run build_runner build --delete-conflicting-outputs`
-- Current tests: 1445
-- Target tests: 2000
-
-## Rules
-
-1. Data tests first - any test involving save/load/sync
-2. Mock external services - don't hit real Stripe/Firebase
-3. Run flutter test after each file to verify
-4. All public methods need at least one test
-5. Cover edge cases: null, empty, zero, max values
+Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 files. Framework: Flutter with flutter_test and mockito.
 
 ## User Stories
 
-### US-001: Sync Service Tests [critical]
-Create test/services/sync_service_test.dart - THE data loss fix. Source: lib/services/sync_service.dart. Tests: syncToCloud, syncFromCloud, conflictResolution, partialSync, offlineQueue, retryLogic, dataIntegrity, deletionSync, concurrentSync, networkFailure. Estimate: 45 tests.
+### US-001: Sync Service Tests
+**As a** developer
+**I want** comprehensive tests for sync_service.dart
+**So that** data never vanishes when syncing to cloud
 
-### US-002: User Profile Provider Tests [critical]
-Create test/providers/user_profile_provider_test.dart - User identity and settings. Source: lib/providers/user_profile_provider.dart. Tests: loadProfile, updateProfile, createProfile, validateProfile, profileMigration, defaultValues. Estimate: 25 tests.
+#### Acceptance Criteria
+- [ ] Create test/services/sync_service_test.dart
+- [ ] Test syncToCloud uploads local changes correctly
+- [ ] Test syncFromCloud downloads remote changes correctly
+- [ ] Test conflictResolution where local wins on offline edits
+- [ ] Test partialSync handles interrupted sync gracefully
+- [ ] Test offlineQueue queues changes when offline
+- [ ] Test retryLogic retries failed syncs
+- [ ] Test dataIntegrity synced data matches original
+- [ ] Test deletionSync deletes propagate correctly
+- [ ] Test networkFailure graceful degradation
+- [ ] Run flutter test and verify all pass
 
-### US-003: Training Session Service Tests [critical]
-Create test/services/training_session_service_test.dart - Training data loss prevention. Source: lib/services/training_session_service.dart. Tests: startSession, recordSet, completeSession, resumeSession, cancelSession, sessionStatistics. Estimate: 30 tests.
+### US-002: User Profile Provider Tests
+**As a** developer
+**I want** comprehensive tests for user_profile_provider.dart
+**So that** user identity and settings are never corrupted
 
-### US-004: Stripe Service Tests [critical]
-Create test/services/stripe_service_test.dart - Payment bugs = lost revenue. Source: lib/services/stripe_service.dart. Tests: createSubscription, verifySubscription, cancelSubscription, webhookHandling, gracePeriod, expirationHandling, priceIdMapping, errorRecovery. Estimate: 35 tests.
+#### Acceptance Criteria
+- [ ] Create test/providers/user_profile_provider_test.dart
+- [ ] Test loadProfile loads from database correctly
+- [ ] Test updateProfile persists changes
+- [ ] Test createProfile new user flow works
+- [ ] Test validateProfile rejects invalid data
+- [ ] Test defaultValues sensible defaults for missing fields
+- [ ] Run flutter test and verify all pass
 
-### US-005: Entitlement Provider Tests [critical]
-Create test/providers/entitlement_provider_test.dart - Paywall logic. Source: lib/providers/entitlement_provider.dart. Tests: checkEntitlement, baseSubscription, autoPlotSubscription, gracePeriod, readOnlyMode, featureGating, subscriptionUpgrade, subscriptionDowngrade, offlineEntitlement, entitlementRefresh. Estimate: 40 tests.
+### US-003: Training Session Service Tests
+**As a** developer
+**I want** comprehensive tests for training_session_service.dart
+**So that** training data is never lost
 
-### US-006: Classification Service Tests [high]
-Create test/services/classification_service_test.dart - Archery classification calculations. Source: lib/services/classification_service.dart. Tests: calculateClassification, bowstyleClassification, ageGroupClassification, genderClassification, roundTypeClassification, progressTracking, historicalClassification. Estimate: 35 tests.
+#### Acceptance Criteria
+- [ ] Create test/services/training_session_service_test.dart
+- [ ] Test startSession creates session correctly
+- [ ] Test recordSet records training sets
+- [ ] Test completeSession finalizes and persists
+- [ ] Test resumeSession resumes incomplete sessions
+- [ ] Test cancelSession cleanup without corruption
+- [ ] Test sessionStatistics calculates correctly
+- [ ] Run flutter test and verify all pass
 
-### US-007: Classification Provider Tests [high]
-Create test/providers/classification_provider_test.dart - Classification state management. Source: lib/providers/classification_provider.dart. Tests: loadClassifications, currentClassification, classificationHistory, nextClassificationTarget, classificationNotifications. Estimate: 25 tests.
+### US-004: Stripe Service Tests
+**As a** developer
+**I want** comprehensive tests for stripe_service.dart
+**So that** payment bugs do not cause lost revenue
 
-### US-008: Sight Marks Provider Tests [high]
-Create test/providers/sight_marks_provider_test.dart - Sight mark CRUD. Source: lib/providers/sight_marks_provider.dart. Tests: addSightMark, updateSightMark, deleteSightMark, getSightMarkForDistance, interpolateSightMark, sightMarkHistory, bowSpecificMarks. Estimate: 30 tests.
+#### Acceptance Criteria
+- [ ] Create test/services/stripe_service_test.dart
+- [ ] Test createSubscription initiates payment flow
+- [ ] Test verifySubscription checks status correctly
+- [ ] Test cancelSubscription flow works
+- [ ] Test gracePeriod 72hr grace period works
+- [ ] Test expirationHandling expired subs lock correctly
+- [ ] Test priceIdMapping correct prices for tiers
+- [ ] Test errorRecovery handles Stripe API failures
+- [ ] Run flutter test and verify all pass
 
-### US-009: Sight Mark Calculator Tests [high]
-Create test/utils/sight_mark_calculator_test.dart - Sight mark math. Source: lib/utils/sight_mark_calculator.dart. Tests: calculateSightMark, interpolation, extrapolation, clickConversion, unitConversion, edgeCases. Estimate: 25 tests.
+### US-005: Entitlement Provider Tests
+**As a** developer
+**I want** comprehensive tests for entitlement_provider.dart
+**So that** paywall logic works correctly
 
-### US-010: XP Calculation Service Tests [high]
-Create test/services/xp_calculation_service_test.dart - Gamification XP system. Source: lib/services/xp_calculation_service.dart. Tests: calculateXP, levelCalculation, levelUpDetection, xpMultipliers, xpHistory, leaderboardXP. Estimate: 30 tests.
+#### Acceptance Criteria
+- [ ] Create test/providers/entitlement_provider_test.dart
+- [ ] Test checkEntitlement returns correct access level
+- [ ] Test baseSubscription features unlock at £2/month
+- [ ] Test autoPlotSubscription unlocks at £7.20/month
+- [ ] Test gracePeriod 72hr grace after expiry
+- [ ] Test readOnlyMode correct behavior after grace
+- [ ] Test featureGating each feature checks correctly
+- [ ] Test offlineEntitlement works without network
+- [ ] Run flutter test and verify all pass
 
-### US-011: Round Matcher Tests [high]
-Create test/utils/round_matcher_test.dart - Round type detection. Source: lib/utils/round_matcher.dart. Tests: matchRound, ambiguousRounds, partialRounds, customRounds, indoorVsOutdoor, fieldRounds. Estimate: 25 tests.
+### US-006: Classification Service Tests
+**As a** developer
+**I want** comprehensive tests for classification_service.dart
+**So that** archery classifications are calculated correctly
 
-### US-012: Auto-Plot Provider Tests [medium]
-Create test/providers/auto_plot_provider_test.dart - Auto-plot state. Source: lib/providers/auto_plot_provider.dart. Tests: startAutoPlot, processFrame, detectArrows, confirmPlot, cancelAutoPlot, quotaTracking. Estimate: 25 tests.
+#### Acceptance Criteria
+- [ ] Create test/services/classification_service_test.dart
+- [ ] Test calculateClassification correct for scores
+- [ ] Test bowstyleClassification different bow types
+- [ ] Test ageGroupClassification age groups applied
+- [ ] Test genderClassification gender categories
+- [ ] Test roundTypeClassification indoor/outdoor/field
+- [ ] Test progressTracking tracks toward next classification
+- [ ] Run flutter test and verify all pass
 
-### US-013: Vision API Service Tests [medium]
-Create test/services/vision_api_service_test.dart - Auto-plot AI. Source: lib/services/vision_api_service.dart. Tests: analyzeImage, parseResponse, errorHandling, rateLimiting, imagePreprocessing, coordinateMapping. Estimate: 30 tests.
+### US-007: Classification Provider Tests
+**As a** developer
+**I want** comprehensive tests for classification_provider.dart
+**So that** classification state is managed correctly
 
-### US-014: Skills Provider Tests [medium]
-Create test/providers/skills_provider_test.dart - Skills tracking. Source: lib/providers/skills_provider.dart. Tests: loadSkills, updateSkill, skillProgress, skillCategories, skillRecommendations. Estimate: 20 tests.
+#### Acceptance Criteria
+- [ ] Create test/providers/classification_provider_test.dart
+- [ ] Test loadClassifications loads from database
+- [ ] Test currentClassification returns current correctly
+- [ ] Test classificationHistory returns history
+- [ ] Test nextClassificationTarget calculates next goal
+- [ ] Run flutter test and verify all pass
 
-### US-015: Shaft Analysis Tests [medium]
-Create test/utils/shaft_analysis_test.dart - Shaft wear analysis. Source: lib/utils/shaft_analysis.dart. Tests: analyzeShaft, shotCount, wearIndicators, replacementSuggestion, shaftComparison. Estimate: 25 tests.
+### US-008: Sight Marks Provider Tests
+**As a** developer
+**I want** comprehensive tests for sight_marks_provider.dart
+**So that** sight mark CRUD operations work correctly
 
-### US-016: Tuning Suggestions Tests [medium]
-Create test/utils/tuning_suggestions_test.dart - Tuning advice. Source: lib/utils/tuning_suggestions.dart. Tests: analyzeTuning, suggestAdjustments, prioritizeSuggestions, tuningHistory, patternRecognition. Estimate: 25 tests.
+#### Acceptance Criteria
+- [ ] Create test/providers/sight_marks_provider_test.dart
+- [ ] Test addSightMark creates new sight mark
+- [ ] Test updateSightMark updates existing
+- [ ] Test deleteSightMark removes correctly
+- [ ] Test getSightMarkForDistance returns correct mark
+- [ ] Test interpolateSightMark calculates between marks
+- [ ] Test bowSpecificMarks different marks per bow
+- [ ] Run flutter test and verify all pass
 
-### US-017: Undo Manager Tests [medium]
-Create test/utils/undo_manager_test.dart - Undo/redo. Source: lib/utils/undo_manager.dart. Tests: pushAction, undo, redo, clearHistory, maxStackSize, actionTypes. Estimate: 20 tests.
+### US-009: Sight Mark Calculator Tests
+**As a** developer
+**I want** comprehensive tests for sight_mark_calculator.dart
+**So that** sight mark math is accurate
 
-### US-018: Scorecard Export Service Tests [medium]
-Create test/services/scorecard_export_service_test.dart - Export functionality. Source: lib/services/scorecard_export_service.dart. Tests: exportToPdf, exportToCsv, exportToImage, formatScores, includeMetadata, errorHandling. Estimate: 25 tests.
+#### Acceptance Criteria
+- [ ] Create test/utils/sight_mark_calculator_test.dart
+- [ ] Test calculateSightMark basic calculation
+- [ ] Test interpolation between known distances
+- [ ] Test extrapolation beyond known distances
+- [ ] Test clickConversion sight clicks to distance
+- [ ] Test unitConversion metric/imperial handling
+- [ ] Test edgeCases zero, negative, extreme values
+- [ ] Run flutter test and verify all pass
 
-### US-019: Weather Service Tests [low]
-Create test/services/weather_service_test.dart - Weather API. Source: lib/services/weather_service.dart. Tests: fetchWeather, parseResponse, cacheWeather, offlineHandling. Estimate: 20 tests.
+### US-010: XP Calculation Service Tests
+**As a** developer
+**I want** comprehensive tests for xp_calculation_service.dart
+**So that** gamification XP system works correctly
 
-### US-020: Membership Card Service Tests [low]
-Create test/services/membership_card_service_test.dart - Card generation. Source: lib/services/membership_card_service.dart. Tests: generateCard, validateMembership, cardData. Estimate: 15 tests.
+#### Acceptance Criteria
+- [ ] Create test/services/xp_calculation_service_test.dart
+- [ ] Test calculateXP correct XP for actions
+- [ ] Test levelCalculation XP to level conversion
+- [ ] Test levelUpDetection detects level boundaries
+- [ ] Test xpMultipliers streak/bonus multipliers
+- [ ] Test xpHistory tracks XP gains
+- [ ] Run flutter test and verify all pass
 
-### US-021: Signature Service Tests [low]
-Create test/services/signature_service_test.dart - Signature capture. Source: lib/services/signature_service.dart. Tests: captureSignature, saveSignature, loadSignature. Estimate: 15 tests.
+### US-011: Round Matcher Tests
+**As a** developer
+**I want** comprehensive tests for round_matcher.dart
+**So that** round type detection works correctly
 
-### US-022: Connectivity Provider Tests [low]
-Create test/providers/connectivity_provider_test.dart - Online/offline. Source: lib/providers/connectivity_provider.dart. Tests: checkConnectivity, onConnectivityChange, offlineMode. Estimate: 15 tests.
+#### Acceptance Criteria
+- [ ] Create test/utils/round_matcher_test.dart
+- [ ] Test matchRound identifies from arrow count/scores
+- [ ] Test ambiguousRounds handles similar rounds
+- [ ] Test partialRounds incomplete round detection
+- [ ] Test indoorVsOutdoor distinguishes correctly
+- [ ] Test fieldRounds field archery rounds
+- [ ] Run flutter test and verify all pass
 
-### US-023: Spider Graph Provider Tests [low]
-Create test/providers/spider_graph_provider_test.dart - Graph display. Source: lib/providers/spider_graph_provider.dart. Tests: loadGraphData, calculateAxes, normalizeData. Estimate: 15 tests.
+### US-012: Auto-Plot Provider Tests
+**As a** developer
+**I want** comprehensive tests for auto_plot_provider.dart
+**So that** auto-plot state is managed correctly
 
-### US-024: Error Handler Tests [low]
-Create test/utils/error_handler_test.dart - Error formatting. Source: lib/utils/error_handler.dart. Tests: handleError, formatMessage, logError. Estimate: 15 tests.
+#### Acceptance Criteria
+- [ ] Create test/providers/auto_plot_provider_test.dart
+- [ ] Test startAutoPlot initiates scanning
+- [ ] Test detectArrows arrow detection state
+- [ ] Test confirmPlot confirms detected positions
+- [ ] Test cancelAutoPlot cleanup on cancel
+- [ ] Test quotaTracking tracks monthly usage
+- [ ] Run flutter test and verify all pass
 
-### US-025: Chiptune Service Tests [low]
-Create test/services/chiptune_service_test.dart - Audio playback. Source: lib/services/chiptune_service.dart. Tests: playSound, stopSound, volumeControl. Estimate: 15 tests.
+### US-013: Vision API Service Tests
+**As a** developer
+**I want** comprehensive tests for vision_api_service.dart
+**So that** auto-plot AI integration works correctly
 
-### US-026: Chiptune Generator Tests [low]
-Create test/services/chiptune_generator_test.dart - Audio generation. Source: lib/services/chiptune_generator.dart. Tests: generateTone, waveformTypes, frequencyRange. Estimate: 15 tests.
+#### Acceptance Criteria
+- [ ] Create test/services/vision_api_service_test.dart
+- [ ] Test analyzeImage sends image for analysis
+- [ ] Test parseResponse parses API response
+- [ ] Test errorHandling handles API failures
+- [ ] Test coordinateMapping maps to target coords
+- [ ] Run flutter test and verify all pass
 
-### US-027: Vibration Service Tests [low]
-Create test/services/vibration_service_test.dart - Haptics. Source: lib/services/vibration_service.dart. Tests: vibrate, vibratePattern, checkSupport. Estimate: 10 tests.
+### US-014: Skills Provider Tests
+**As a** developer
+**I want** comprehensive tests for skills_provider.dart
+**So that** skills tracking works correctly
+
+#### Acceptance Criteria
+- [ ] Create test/providers/skills_provider_test.dart
+- [ ] Test loadSkills loads skill data
+- [ ] Test updateSkill updates skill level
+- [ ] Test skillProgress calculates progress
+- [ ] Run flutter test and verify all pass
+
+### US-015: Shaft Analysis Tests
+**As a** developer
+**I want** comprehensive tests for shaft_analysis.dart
+**So that** shaft wear analysis is accurate
+
+#### Acceptance Criteria
+- [ ] Create test/utils/shaft_analysis_test.dart
+- [ ] Test analyzeShaft calculates wear metrics
+- [ ] Test shotCount tracks shots per shaft
+- [ ] Test wearIndicators identifies wear patterns
+- [ ] Test replacementSuggestion suggests when to replace
+- [ ] Run flutter test and verify all pass
+
+### US-016: Tuning Suggestions Tests
+**As a** developer
+**I want** comprehensive tests for tuning_suggestions.dart
+**So that** tuning advice logic is accurate
+
+#### Acceptance Criteria
+- [ ] Create test/utils/tuning_suggestions_test.dart
+- [ ] Test analyzeTuning analyzes arrow patterns
+- [ ] Test suggestAdjustments recommends changes
+- [ ] Test prioritizeSuggestions orders by impact
+- [ ] Run flutter test and verify all pass
+
+### US-017: Undo Manager Tests
+**As a** developer
+**I want** comprehensive tests for undo_manager.dart
+**So that** undo/redo works correctly
+
+#### Acceptance Criteria
+- [ ] Create test/utils/undo_manager_test.dart
+- [ ] Test pushAction adds action to stack
+- [ ] Test undo reverts last action
+- [ ] Test redo reapplies undone action
+- [ ] Test clearHistory clears undo stack
+- [ ] Test maxStackSize respects stack limit
+- [ ] Run flutter test and verify all pass
+
+### US-018: Scorecard Export Service Tests
+**As a** developer
+**I want** comprehensive tests for scorecard_export_service.dart
+**So that** export functionality works correctly
+
+#### Acceptance Criteria
+- [ ] Create test/services/scorecard_export_service_test.dart
+- [ ] Test exportToPdf generates PDF correctly
+- [ ] Test exportToCsv generates CSV correctly
+- [ ] Test formatScores formats scores for export
+- [ ] Test errorHandling handles export failures
+- [ ] Run flutter test and verify all pass
+
+### US-019: Weather Service Tests
+**As a** developer
+**I want** comprehensive tests for weather_service.dart
+**So that** weather API works correctly
+
+#### Acceptance Criteria
+- [ ] Create test/services/weather_service_test.dart
+- [ ] Test fetchWeather gets current weather
+- [ ] Test parseResponse parses API response
+- [ ] Test cacheWeather caches results
+- [ ] Test offlineHandling works with cache
+- [ ] Run flutter test and verify all pass
+
+### US-020: Membership Card Service Tests
+**As a** developer
+**I want** comprehensive tests for membership_card_service.dart
+**So that** card generation works correctly
+
+#### Acceptance Criteria
+- [ ] Create test/services/membership_card_service_test.dart
+- [ ] Test generateCard creates card image
+- [ ] Test validateMembership checks status
+- [ ] Run flutter test and verify all pass
+
+### US-021: Signature Service Tests
+**As a** developer
+**I want** comprehensive tests for signature_service.dart
+**So that** signature capture works correctly
+
+#### Acceptance Criteria
+- [ ] Create test/services/signature_service_test.dart
+- [ ] Test captureSignature captures data
+- [ ] Test saveSignature persists signature
+- [ ] Test loadSignature retrieves saved
+- [ ] Run flutter test and verify all pass
+
+### US-022: Connectivity Provider Tests
+**As a** developer
+**I want** comprehensive tests for connectivity_provider.dart
+**So that** online/offline detection works correctly
+
+#### Acceptance Criteria
+- [ ] Create test/providers/connectivity_provider_test.dart
+- [ ] Test checkConnectivity detects status
+- [ ] Test onConnectivityChange notifies on change
+- [ ] Run flutter test and verify all pass
+
+### US-023: Spider Graph Provider Tests
+**As a** developer
+**I want** comprehensive tests for spider_graph_provider.dart
+**So that** graph display works correctly
+
+#### Acceptance Criteria
+- [ ] Create test/providers/spider_graph_provider_test.dart
+- [ ] Test loadGraphData loads data for graph
+- [ ] Test calculateAxes calculates axis values
+- [ ] Test normalizeData normalizes for display
+- [ ] Run flutter test and verify all pass
+
+### US-024: Error Handler Tests
+**As a** developer
+**I want** comprehensive tests for error_handler.dart
+**So that** error formatting works correctly
+
+#### Acceptance Criteria
+- [ ] Create test/utils/error_handler_test.dart
+- [ ] Test handleError processes errors correctly
+- [ ] Test formatMessage user-friendly messages
+- [ ] Run flutter test and verify all pass
+
+### US-025: Chiptune Service Tests
+**As a** developer
+**I want** comprehensive tests for chiptune_service.dart
+**So that** audio playback works correctly
+
+#### Acceptance Criteria
+- [ ] Create test/services/chiptune_service_test.dart
+- [ ] Test playSound plays audio
+- [ ] Test stopSound stops audio
+- [ ] Test volumeControl adjusts volume
+- [ ] Run flutter test and verify all pass
+
+### US-026: Chiptune Generator Tests
+**As a** developer
+**I want** comprehensive tests for chiptune_generator.dart
+**So that** audio generation works correctly
+
+#### Acceptance Criteria
+- [ ] Create test/services/chiptune_generator_test.dart
+- [ ] Test generateTone creates audio tone
+- [ ] Test waveformTypes different waveforms
+- [ ] Run flutter test and verify all pass
+
+### US-027: Vibration Service Tests
+**As a** developer
+**I want** comprehensive tests for vibration_service.dart
+**So that** haptics work correctly
+
+#### Acceptance Criteria
+- [ ] Create test/services/vibration_service_test.dart
+- [ ] Test vibrate triggers vibration
+- [ ] Test vibratePattern vibration patterns
+- [ ] Test checkSupport checks device support
+- [ ] Run flutter test and verify all pass
+
+## Quality Gates
+
+These commands must pass for every user story:
+- `flutter test` - All tests pass
+- `dart run build_runner build` - Mocks generate successfully
