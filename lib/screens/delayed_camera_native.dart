@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -8,6 +9,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
+import 'package:ffmpeg_kit_flutter_full_gpl/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_full_gpl/return_code.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../theme/app_theme.dart';
 import 'delayed_camera_screen.dart';
@@ -196,7 +200,12 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
 
       _frameBuffer.add(TimestampedFrame(bytes: bytes, timestamp: now));
 
-      final cutoff = now - ((_delaySeconds + 2) * 1000).toInt();
+      // Keep 22 seconds of frames for 20s video export
+      const videoBufferSeconds = 22.0;
+      final bufferSeconds = videoBufferSeconds > (_delaySeconds + 2)
+          ? videoBufferSeconds
+          : (_delaySeconds + 2);
+      final cutoff = now - (bufferSeconds * 1000).toInt();
       while (_frameBuffer.isNotEmpty && _frameBuffer.first.timestamp < cutoff) {
         _frameBuffer.removeFirst();
       }
@@ -223,8 +232,21 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
   }
 
   Future<void> _saveEpicShot() async {
-    if (_displayFrame == null) {
-      _showSnackBar('No frame to save');
+    // Get frames from the last 20 seconds (delayed by current delay setting)
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final delayMs = (_delaySeconds * 1000).toInt();
+    const videoDurationMs = 20000; // 20 seconds of video
+
+    // We want frames from (now - delay - 20s) to (now - delay)
+    final endTime = now - delayMs;
+    final startTime = endTime - videoDurationMs;
+
+    final framesToEncode = _frameBuffer
+        .where((f) => f.timestamp >= startTime && f.timestamp <= endTime)
+        .toList();
+
+    if (framesToEncode.length < 10) {
+      _showSnackBar('Not enough footage yet - keep recording');
       return;
     }
 
@@ -233,29 +255,68 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
     });
 
     try {
-      final result = await ImageGallerySaverPlus.saveImage(
-        _displayFrame!,
-        quality: 95,
-        name: 'archery_shot_${DateTime.now().millisecondsSinceEpoch}',
-      );
+      final tempDir = await getTemporaryDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final framesDir = Directory('${tempDir.path}/frames_$timestamp');
+      await framesDir.create(recursive: true);
 
-      if (result['isSuccess'] == true) {
-        setState(() {
-          _showSavedMessage = true;
-        });
-
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) {
-            setState(() {
-              _showSavedMessage = false;
-            });
-          }
-        });
-      } else {
-        _showSnackBar('Failed to save');
+      // Write frames to temp files
+      for (int i = 0; i < framesToEncode.length; i++) {
+        final frameFile = File('${framesDir.path}/frame_${i.toString().padLeft(5, '0')}.jpg');
+        await frameFile.writeAsBytes(framesToEncode[i].bytes);
       }
+
+      // Calculate actual FPS from captured frames
+      final actualDurationMs =
+          framesToEncode.last.timestamp - framesToEncode.first.timestamp;
+      final fps = actualDurationMs > 0
+          ? (framesToEncode.length * 1000 / actualDurationMs).clamp(5.0, 30.0)
+          : 10.0;
+
+      final outputPath = '${tempDir.path}/archery_shot_$timestamp.mp4';
+
+      // Encode frames to video using FFmpeg
+      final ffmpegCommand =
+          '-framerate $fps -i ${framesDir.path}/frame_%05d.jpg -c:v mpeg4 -q:v 5 -pix_fmt yuv420p $outputPath';
+
+      final session = await FFmpegKit.execute(ffmpegCommand);
+      final returnCode = await session.getReturnCode();
+
+      if (ReturnCode.isSuccess(returnCode)) {
+        // Save video to gallery
+        final result = await ImageGallerySaverPlus.saveFile(outputPath);
+
+        if (result['isSuccess'] == true) {
+          setState(() {
+            _showSavedMessage = true;
+          });
+
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              setState(() {
+                _showSavedMessage = false;
+              });
+            }
+          });
+        } else {
+          _showSnackBar('Failed to save to Photos');
+        }
+      } else {
+        final logs = await session.getAllLogsAsString();
+        debugPrint('FFmpeg failed: $logs');
+        _showSnackBar('Video encoding failed');
+      }
+
+      // Cleanup temp files
+      try {
+        await framesDir.delete(recursive: true);
+        final outputFile = File(outputPath);
+        if (await outputFile.exists()) {
+          await outputFile.delete();
+        }
+      } catch (_) {}
     } catch (e) {
-      _showSnackBar('Error saving: $e');
+      _showSnackBar('Error saving video: $e');
     } finally {
       setState(() {
         _isSaving = false;
@@ -546,7 +607,7 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
                               Icon(Icons.check_circle, color: Colors.white),
                               SizedBox(width: AppSpacing.sm),
                               Text(
-                                'Saved to Photos',
+                                'Video Saved to Photos',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
@@ -635,8 +696,8 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
                       strokeWidth: 2,
                     ),
                   )
-                : const Icon(Icons.save_alt),
-            label: const Text('That was epic - Save it'),
+                : const Icon(Icons.videocam),
+            label: const Text('Save last 20s to Photos'),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
             ),
