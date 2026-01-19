@@ -1,0 +1,692 @@
+{
+  "meta": {
+    "title": "Archery Super App Testing Roadmap",
+    "created": "2026-01-19",
+    "assignee": "Ralph",
+    "owner": "Patrick Huston",
+    "goal": "Ship a reliable app - no data loss, no payment bugs",
+    "current_tests": 1445,
+    "target_tests": 2000,
+    "estimated_new_tests": 560
+  },
+  "summary": {
+    "services_tested": "6/20 (30%)",
+    "providers_tested": "5/13 (38%)",
+    "utils_tested": "7/18 (39%)",
+    "critical_gap": "sync_service has zero tests - likely cause of data loss bugs"
+  },
+  "test_structure": {
+    "pattern": "test/{category}/{source_file}_test.dart",
+    "example": "lib/services/sync_service.dart -> test/services/sync_service_test.dart",
+    "framework": "flutter_test + mockito",
+    "run_command": "flutter test",
+    "run_single": "flutter test test/services/sync_service_test.dart"
+  },
+  "phases": [
+    {
+      "phase": 1,
+      "name": "Data Integrity",
+      "priority": "CRITICAL",
+      "description": "Data never vanishes. What you enter stays entered.",
+      "files": [
+        {
+          "id": "1.1",
+          "source_file": "lib/services/sync_service.dart",
+          "test_file": "test/services/sync_service_test.dart",
+          "name": "Sync Service",
+          "risk": "CRITICAL",
+          "why": "This is THE bug factory. Data syncs wrong = data lost.",
+          "estimated_tests": 45,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "syncToCloud() - uploads local changes correctly",
+            "syncFromCloud() - downloads remote changes correctly",
+            "conflictResolution() - local wins when offline edits conflict",
+            "partialSync() - handles interrupted sync gracefully",
+            "offlineQueue() - queues changes when offline",
+            "retryLogic() - retries failed syncs",
+            "dataIntegrity() - synced data matches original exactly",
+            "deletionSync() - deletes propagate correctly",
+            "concurrentSync() - multiple devices don't corrupt",
+            "networkFailure() - graceful degradation on network loss"
+          ]
+        },
+        {
+          "id": "1.2",
+          "source_file": "lib/providers/user_profile_provider.dart",
+          "test_file": "test/providers/user_profile_provider_test.dart",
+          "name": "User Profile Provider",
+          "risk": "CRITICAL",
+          "why": "User's identity and settings. Corruption = bad experience.",
+          "estimated_tests": 25,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "loadProfile() - loads from database correctly",
+            "updateProfile() - persists changes",
+            "createProfile() - new user flow works",
+            "validateProfile() - rejects invalid data",
+            "profileMigration() - handles schema changes",
+            "defaultValues() - sensible defaults for missing fields"
+          ]
+        },
+        {
+          "id": "1.3",
+          "source_file": "lib/services/training_session_service.dart",
+          "test_file": "test/services/training_session_service_test.dart",
+          "name": "Training Session Service",
+          "risk": "HIGH",
+          "why": "Training data is valuable. Loss = frustrated user.",
+          "estimated_tests": 30,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "startSession() - creates session correctly",
+            "recordSet() - records training sets",
+            "completeSession() - finalizes and persists",
+            "resumeSession() - resumes incomplete sessions",
+            "cancelSession() - cleanup without corruption",
+            "sessionStatistics() - calculates correctly"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Money & Access",
+      "priority": "CRITICAL",
+      "description": "Paying users get access. Non-paying users hit paywall. No exceptions.",
+      "files": [
+        {
+          "id": "2.1",
+          "source_file": "lib/services/stripe_service.dart",
+          "test_file": "test/services/stripe_service_test.dart",
+          "name": "Stripe Service",
+          "risk": "CRITICAL",
+          "why": "Payment bugs = lost revenue or angry customers.",
+          "estimated_tests": 35,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "createSubscription() - initiates payment flow",
+            "verifySubscription() - checks subscription status correctly",
+            "cancelSubscription() - cancellation flow works",
+            "webhookHandling() - processes Stripe webhooks",
+            "gracePeriod() - 72hr grace period works",
+            "expirationHandling() - expired subs lock correctly",
+            "priceIdMapping() - correct prices for tiers",
+            "errorRecovery() - handles Stripe API failures"
+          ]
+        },
+        {
+          "id": "2.2",
+          "source_file": "lib/providers/entitlement_provider.dart",
+          "test_file": "test/providers/entitlement_provider_test.dart",
+          "name": "Entitlement Provider",
+          "risk": "CRITICAL",
+          "why": "This gates features. Wrong = free access or locked out paying users.",
+          "estimated_tests": 40,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "checkEntitlement() - returns correct access level",
+            "baseSubscription() - base features unlock at £2/month",
+            "autoPlotSubscription() - auto-plot unlocks at £7.20/month",
+            "gracePeriod() - 72hr grace after expiry",
+            "readOnlyMode() - correct behavior after grace",
+            "featureGating() - each feature checks correctly",
+            "subscriptionUpgrade() - upgrade path works",
+            "subscriptionDowngrade() - downgrade path works",
+            "offlineEntitlement() - works without network",
+            "entitlementRefresh() - refreshes on app open"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Core Features",
+      "priority": "HIGH",
+      "description": "Main features work correctly every time.",
+      "files": [
+        {
+          "id": "3.1",
+          "source_file": "lib/services/classification_service.dart",
+          "test_file": "test/services/classification_service_test.dart",
+          "name": "Classification Service",
+          "risk": "HIGH",
+          "why": "Wrong classifications shown to users.",
+          "estimated_tests": 35,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "calculateClassification() - correct classification for scores",
+            "bowstyleClassification() - different bow types handled",
+            "ageGroupClassification() - age groups applied correctly",
+            "genderClassification() - gender categories correct",
+            "roundTypeClassification() - indoor/outdoor/field",
+            "progressTracking() - tracks toward next classification",
+            "historicalClassification() - past classifications preserved"
+          ]
+        },
+        {
+          "id": "3.2",
+          "source_file": "lib/providers/classification_provider.dart",
+          "test_file": "test/providers/classification_provider_test.dart",
+          "name": "Classification Provider",
+          "risk": "HIGH",
+          "why": "Classification display and state management.",
+          "estimated_tests": 25,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "loadClassifications() - loads from database",
+            "currentClassification() - returns current correctly",
+            "classificationHistory() - returns history",
+            "nextClassificationTarget() - calculates next goal",
+            "classificationNotifications() - notifies on achievement"
+          ]
+        },
+        {
+          "id": "3.3",
+          "source_file": "lib/providers/sight_marks_provider.dart",
+          "test_file": "test/providers/sight_marks_provider_test.dart",
+          "name": "Sight Marks Provider",
+          "risk": "HIGH",
+          "why": "Sight mark CRUD operations.",
+          "estimated_tests": 30,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "addSightMark() - creates new sight mark",
+            "updateSightMark() - updates existing",
+            "deleteSightMark() - removes correctly",
+            "getSightMarkForDistance() - returns correct mark",
+            "interpolateSightMark() - calculates between known marks",
+            "sightMarkHistory() - tracks changes over time",
+            "bowSpecificMarks() - different marks per bow"
+          ]
+        },
+        {
+          "id": "3.4",
+          "source_file": "lib/utils/sight_mark_calculator.dart",
+          "test_file": "test/utils/sight_mark_calculator_test.dart",
+          "name": "Sight Mark Calculator",
+          "risk": "HIGH",
+          "why": "Sight mark math - wrong values = missed shots.",
+          "estimated_tests": 25,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "calculateSightMark() - basic calculation correct",
+            "interpolation() - between known distances",
+            "extrapolation() - beyond known distances",
+            "clickConversion() - sight clicks to distance",
+            "unitConversion() - metric/imperial handling",
+            "edgeCases() - zero, negative, extreme values"
+          ]
+        },
+        {
+          "id": "3.5",
+          "source_file": "lib/services/xp_calculation_service.dart",
+          "test_file": "test/services/xp_calculation_service_test.dart",
+          "name": "XP Calculation Service",
+          "risk": "HIGH",
+          "why": "XP/levels could break, affecting gamification.",
+          "estimated_tests": 30,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "calculateXP() - correct XP for actions",
+            "levelCalculation() - XP to level conversion",
+            "levelUpDetection() - detects level boundaries",
+            "xpMultipliers() - streak/bonus multipliers work",
+            "xpHistory() - tracks XP gains",
+            "leaderboardXP() - XP for leaderboard purposes"
+          ]
+        },
+        {
+          "id": "3.6",
+          "source_file": "lib/utils/round_matcher.dart",
+          "test_file": "test/utils/round_matcher_test.dart",
+          "name": "Round Matcher",
+          "risk": "HIGH",
+          "why": "Round type detection for scoring.",
+          "estimated_tests": 25,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "matchRound() - identifies round from arrow count/scores",
+            "ambiguousRounds() - handles similar rounds",
+            "partialRounds() - incomplete round detection",
+            "customRounds() - user-defined rounds",
+            "indoorVsOutdoor() - distinguishes correctly",
+            "fieldRounds() - field archery rounds"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "Secondary Features",
+      "priority": "MEDIUM",
+      "description": "Important features that should work reliably.",
+      "files": [
+        {
+          "id": "4.1",
+          "source_file": "lib/providers/auto_plot_provider.dart",
+          "test_file": "test/providers/auto_plot_provider_test.dart",
+          "name": "Auto-Plot Provider",
+          "risk": "MEDIUM",
+          "why": "Auto-plot state management.",
+          "estimated_tests": 25,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "startAutoPlot() - initiates scanning",
+            "processFrame() - handles camera frames",
+            "detectArrows() - arrow detection state",
+            "confirmPlot() - confirms detected positions",
+            "cancelAutoPlot() - cleanup on cancel",
+            "quotaTracking() - tracks monthly usage"
+          ]
+        },
+        {
+          "id": "4.2",
+          "source_file": "lib/services/vision_api_service.dart",
+          "test_file": "test/services/vision_api_service_test.dart",
+          "name": "Vision API Service",
+          "risk": "MEDIUM",
+          "why": "Auto-plot AI integration.",
+          "estimated_tests": 30,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "analyzeImage() - sends image for analysis",
+            "parseResponse() - parses API response",
+            "errorHandling() - handles API failures",
+            "rateLimiting() - respects rate limits",
+            "imagePreprocessing() - prepares images correctly",
+            "coordinateMapping() - maps detected to target coords"
+          ]
+        },
+        {
+          "id": "4.3",
+          "source_file": "lib/providers/skills_provider.dart",
+          "test_file": "test/providers/skills_provider_test.dart",
+          "name": "Skills Provider",
+          "risk": "MEDIUM",
+          "why": "Skills tracking and progress.",
+          "estimated_tests": 20,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "loadSkills() - loads skill data",
+            "updateSkill() - updates skill level",
+            "skillProgress() - calculates progress",
+            "skillCategories() - organizes by category",
+            "skillRecommendations() - suggests next skills"
+          ]
+        },
+        {
+          "id": "4.4",
+          "source_file": "lib/utils/shaft_analysis.dart",
+          "test_file": "test/utils/shaft_analysis_test.dart",
+          "name": "Shaft Analysis",
+          "risk": "MEDIUM",
+          "why": "Shaft wear analysis calculations.",
+          "estimated_tests": 25,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "analyzeShaft() - calculates wear metrics",
+            "shotCount() - tracks shots per shaft",
+            "wearIndicators() - identifies wear patterns",
+            "replacementSuggestion() - suggests when to replace",
+            "shaftComparison() - compares shaft performance"
+          ]
+        },
+        {
+          "id": "4.5",
+          "source_file": "lib/utils/tuning_suggestions.dart",
+          "test_file": "test/utils/tuning_suggestions_test.dart",
+          "name": "Tuning Suggestions",
+          "risk": "MEDIUM",
+          "why": "Tuning advice logic.",
+          "estimated_tests": 25,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "analyzeTuning() - analyzes arrow patterns",
+            "suggestAdjustments() - recommends changes",
+            "prioritizeSuggestions() - orders by impact",
+            "tuningHistory() - tracks tuning changes",
+            "patternRecognition() - identifies common issues"
+          ]
+        },
+        {
+          "id": "4.6",
+          "source_file": "lib/utils/undo_manager.dart",
+          "test_file": "test/utils/undo_manager_test.dart",
+          "name": "Undo Manager",
+          "risk": "MEDIUM",
+          "why": "Undo/redo state management.",
+          "estimated_tests": 20,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "pushAction() - adds action to stack",
+            "undo() - reverts last action",
+            "redo() - reapplies undone action",
+            "clearHistory() - clears undo stack",
+            "maxStackSize() - respects stack limit",
+            "actionTypes() - handles different action types"
+          ]
+        },
+        {
+          "id": "4.7",
+          "source_file": "lib/services/scorecard_export_service.dart",
+          "test_file": "test/services/scorecard_export_service_test.dart",
+          "name": "Scorecard Export Service",
+          "risk": "MEDIUM",
+          "why": "Export functionality for scorecards.",
+          "estimated_tests": 25,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "exportToPdf() - generates PDF correctly",
+            "exportToCsv() - generates CSV correctly",
+            "exportToImage() - generates image correctly",
+            "formatScores() - formats scores for export",
+            "includeMetadata() - includes session metadata",
+            "errorHandling() - handles export failures"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 5,
+      "name": "Polish",
+      "priority": "LOW",
+      "description": "Lower risk - bugs here are annoying but not data-destroying.",
+      "files": [
+        {
+          "id": "5.1",
+          "source_file": "lib/services/weather_service.dart",
+          "test_file": "test/services/weather_service_test.dart",
+          "name": "Weather Service",
+          "risk": "LOW",
+          "estimated_tests": 20,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "fetchWeather() - gets current weather",
+            "parseResponse() - parses API response",
+            "cacheWeather() - caches results",
+            "offlineHandling() - works offline with cache"
+          ]
+        },
+        {
+          "id": "5.2",
+          "source_file": "lib/services/membership_card_service.dart",
+          "test_file": "test/services/membership_card_service_test.dart",
+          "name": "Membership Card Service",
+          "risk": "LOW",
+          "estimated_tests": 15,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "generateCard() - creates card image",
+            "validateMembership() - checks membership status",
+            "cardData() - includes correct data"
+          ]
+        },
+        {
+          "id": "5.3",
+          "source_file": "lib/services/signature_service.dart",
+          "test_file": "test/services/signature_service_test.dart",
+          "name": "Signature Service",
+          "risk": "LOW",
+          "estimated_tests": 15,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "captureSignature() - captures signature data",
+            "saveSignature() - persists signature",
+            "loadSignature() - retrieves saved signature"
+          ]
+        },
+        {
+          "id": "5.4",
+          "source_file": "lib/providers/connectivity_provider.dart",
+          "test_file": "test/providers/connectivity_provider_test.dart",
+          "name": "Connectivity Provider",
+          "risk": "LOW",
+          "estimated_tests": 15,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "checkConnectivity() - detects online/offline",
+            "onConnectivityChange() - notifies on change",
+            "offlineMode() - enables offline mode"
+          ]
+        },
+        {
+          "id": "5.5",
+          "source_file": "lib/providers/spider_graph_provider.dart",
+          "test_file": "test/providers/spider_graph_provider_test.dart",
+          "name": "Spider Graph Provider",
+          "risk": "LOW",
+          "estimated_tests": 15,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "loadGraphData() - loads data for graph",
+            "calculateAxes() - calculates axis values",
+            "normalizeData() - normalizes for display"
+          ]
+        },
+        {
+          "id": "5.6",
+          "source_file": "lib/utils/error_handler.dart",
+          "test_file": "test/utils/error_handler_test.dart",
+          "name": "Error Handler",
+          "risk": "LOW",
+          "estimated_tests": 15,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "handleError() - processes errors correctly",
+            "formatMessage() - user-friendly messages",
+            "logError() - logs for debugging"
+          ]
+        },
+        {
+          "id": "5.7",
+          "source_file": "lib/services/chiptune_service.dart",
+          "test_file": "test/services/chiptune_service_test.dart",
+          "name": "Chiptune Service",
+          "risk": "LOW",
+          "estimated_tests": 15,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "playSound() - plays audio",
+            "stopSound() - stops audio",
+            "volumeControl() - adjusts volume"
+          ]
+        },
+        {
+          "id": "5.8",
+          "source_file": "lib/services/chiptune_generator.dart",
+          "test_file": "test/services/chiptune_generator_test.dart",
+          "name": "Chiptune Generator",
+          "risk": "LOW",
+          "estimated_tests": 15,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "generateTone() - creates audio tone",
+            "waveformTypes() - different waveforms",
+            "frequencyRange() - valid frequency range"
+          ]
+        },
+        {
+          "id": "5.9",
+          "source_file": "lib/services/vibration_service.dart",
+          "test_file": "test/services/vibration_service_test.dart",
+          "name": "Vibration Service",
+          "risk": "LOW",
+          "estimated_tests": 10,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "vibrate() - triggers vibration",
+            "vibratePattern() - vibration patterns",
+            "checkSupport() - checks device support"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 6,
+      "name": "Education & Video",
+      "priority": "MEDIUM",
+      "description": "Course and video content delivery (Bunny.net integration).",
+      "files": [
+        {
+          "id": "6.1",
+          "source_file": "lib/data/courses.dart",
+          "test_file": "test/data/courses_test.dart",
+          "name": "Courses Data",
+          "risk": "MEDIUM",
+          "why": "Course structure and lesson data.",
+          "estimated_tests": 20,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "allCourses - contains expected courses",
+            "lessonOrder - lessons ordered correctly",
+            "videoIds - all video IDs present (not placeholder)",
+            "accessTypes - free/paid marked correctly",
+            "durations - all durations set"
+          ]
+        },
+        {
+          "id": "6.2",
+          "source_file": "lib/screens/education/lesson_player_screen.dart",
+          "test_file": "test/screens/education/lesson_player_screen_test.dart",
+          "name": "Lesson Player Screen",
+          "risk": "MEDIUM",
+          "why": "Video playback and progress tracking.",
+          "estimated_tests": 25,
+          "status": "NOT_STARTED",
+          "assigned_to": null,
+          "completed_date": null,
+          "tests_to_write": [
+            "loadLesson() - loads lesson data",
+            "playVideo() - initiates video playback",
+            "trackProgress() - tracks watch progress",
+            "markComplete() - marks lesson complete",
+            "nextLesson() - navigates to next lesson"
+          ]
+        }
+      ]
+    }
+  ],
+  "definition_of_done": {
+    "per_test_file": [
+      "All public methods have at least one test",
+      "Edge cases covered (null, empty, zero, max values)",
+      "Error cases covered (network failure, invalid input)",
+      "All tests pass locally",
+      "Full flutter test passes",
+      "No flaky tests (run 3x to verify)"
+    ]
+  },
+  "test_template": {
+    "language": "dart",
+    "imports": [
+      "package:flutter_test/flutter_test.dart",
+      "package:mockito/mockito.dart",
+      "package:mockito/annotations.dart"
+    ],
+    "structure": "group('ClassName', () {\n  late ClassName sut;\n  late MockDependency mockDep;\n\n  setUp(() {\n    mockDep = MockDependency();\n    sut = ClassName(dependency: mockDep);\n  });\n\n  group('methodName', () {\n    test('does X when Y', () {\n      // Arrange\n      when(mockDep.something()).thenReturn(value);\n\n      // Act\n      final result = sut.methodName();\n\n      // Assert\n      expect(result, expectedValue);\n      verify(mockDep.something()).called(1);\n    });\n  });\n});"
+  },
+  "priority_rules": [
+    "Data tests first - any test involving save/load/sync",
+    "Happy path, then edge cases - get normal flow working first",
+    "Mock external services - don't hit real Stripe/Firebase in tests",
+    "One file at a time - complete a test file before moving on",
+    "Run full suite after each file - catch regressions early"
+  ],
+  "commands": {
+    "run_all": "flutter test",
+    "run_single": "flutter test test/services/sync_service_test.dart",
+    "run_coverage": "flutter test --coverage",
+    "run_verbose": "flutter test --reporter=expanded",
+    "generate_mocks": "dart run build_runner build --delete-conflicting-outputs"
+  },
+  "existing_tests": {
+    "already_tested": [
+      "lib/services/auth_service.dart",
+      "lib/services/beep_service.dart",
+      "lib/services/breath_training_service.dart",
+      "lib/services/import_service.dart",
+      "lib/services/scan_frame_service.dart",
+      "lib/services/scan_motion_service.dart",
+      "lib/providers/active_sessions_provider.dart",
+      "lib/providers/bow_training_provider.dart",
+      "lib/providers/breath_training_provider.dart",
+      "lib/providers/equipment_provider.dart",
+      "lib/providers/session_provider.dart",
+      "lib/utils/handicap_calculator.dart",
+      "lib/utils/performance_profile.dart",
+      "lib/utils/smart_zoom.dart",
+      "lib/utils/statistics.dart",
+      "lib/utils/target_coordinate_system.dart",
+      "lib/utils/unique_id.dart",
+      "lib/utils/volume_calculator.dart",
+      "lib/db/database.dart"
+    ],
+    "skip_testing": [
+      "lib/services/sample_data_seeder.dart (dev-only)",
+      "lib/utils/sample_data_generator.dart (dev-only)",
+      "lib/utils/web_url_helper_stub.dart (platform stub)"
+    ]
+  },
+  "contact": {
+    "questions": "Ask Patrick or check docs/ARCHERY_DOMAIN_KNOWLEDGE.md for archery-specific logic",
+    "repo": "archery_super_app_v1",
+    "main_branch": "main"
+  }
+}

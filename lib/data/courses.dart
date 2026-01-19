@@ -77,7 +77,7 @@ const Course aiming3dCourse = Course(
   thumbnailAsset: 'assets/images/course_3d_aiming.png',
   accessType: CourseAccessType.purchase,
   price: 12.0,
-  stripePriceId: 'PLACEHOLDER_STRIPE_PRICE_ID', // Patrick will provide
+  stripePriceId: 'price_1Sr3GJRpdm3uvDfuhGWLxEx3',
   lessons: [
     Lesson(
       id: '3d_aiming_01',
