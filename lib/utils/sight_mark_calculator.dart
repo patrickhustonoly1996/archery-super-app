@@ -2,20 +2,114 @@ import 'dart:math' as math;
 
 import '../models/sight_mark.dart';
 
+/// Optional equipment specs for improved sight mark predictions.
+/// All fields optional - provide what you have for better accuracy.
+class EquipmentSpecs {
+  /// Total arrow weight in grains (typical: 280-450)
+  final double? arrowWeight;
+
+  /// Draw weight / poundage in lbs (typical: 25-50)
+  final double? poundage;
+
+  /// Draw length in inches (typical: 24-32)
+  final double? drawLength;
+
+  /// Point weight in grains (typical: 80-120)
+  final int? pointWeight;
+
+  /// Arrow spine (typical: 300-1000, lower = stiffer)
+  final int? spine;
+
+  const EquipmentSpecs({
+    this.arrowWeight,
+    this.poundage,
+    this.drawLength,
+    this.pointWeight,
+    this.spine,
+  });
+
+  /// Check if any specs are provided
+  bool get hasSpecs =>
+      arrowWeight != null ||
+      poundage != null ||
+      drawLength != null ||
+      pointWeight != null ||
+      spine != null;
+
+  /// Check if we have enough specs for meaningful adjustment
+  bool get hasMinimalSpecs =>
+      arrowWeight != null || (poundage != null && drawLength != null);
+}
+
 /// Calculator for sight mark interpolation and prediction
 /// Uses quadratic curve fitting when possible (3+ marks) for accuracy,
 /// falls back to power-law interpolation with 2 marks (models arrow drop).
 ///
-/// Future: This could be enhanced with crowdsourced data from thousands
-/// of archers to provide accurate predictions even for new users based
-/// on bow type, poundage, and arrow specs.
+/// When equipment specs are provided, the power exponent is adjusted based on
+/// arrow speed estimates - faster setups use lower exponents (less curve),
+/// slower setups use higher exponents (more curve).
 class SightMarkCalculator {
+  // Baseline values for "average" setup
+  static const double _baselineArrowWeight = 350; // grains
+  static const double _baselinePoundage = 35; // lbs
+  static const double _baselineDrawLength = 28; // inches
+
+  // Default power exponent (no equipment data)
+  static const double _defaultExponent = 1.4;
+
+  // Exponent range limits
+  static const double _minExponent = 1.2; // Very fast/light setup
+  static const double _maxExponent = 1.6; // Very slow/heavy setup
+
+  /// Calculate optimal power exponent based on equipment specs.
+  /// Returns default 1.4 if insufficient data provided.
+  ///
+  /// Physics basis: Arrow drop ∝ distance² / speed²
+  /// Faster arrows = less curvature = lower exponent
+  /// Slower arrows = more curvature = higher exponent
+  static double calculateExponent(EquipmentSpecs? specs) {
+    if (specs == null || !specs.hasMinimalSpecs) {
+      return _defaultExponent;
+    }
+
+    double adjustment = 0;
+
+    // Arrow weight adjustment: heavier = more drop = higher n
+    // Every 50 grains over baseline adds ~0.04
+    if (specs.arrowWeight != null) {
+      final weightDiff = specs.arrowWeight! - _baselineArrowWeight;
+      adjustment += (weightDiff / 50) * 0.04;
+    }
+
+    // Poundage adjustment: lower poundage = slower = higher n
+    // Every 5 lbs under baseline adds ~0.03
+    if (specs.poundage != null) {
+      final poundageDiff = _baselinePoundage - specs.poundage!;
+      adjustment += (poundageDiff / 5) * 0.03;
+    }
+
+    // Draw length adjustment: shorter draw = less energy = higher n
+    // Every inch under baseline adds ~0.02
+    if (specs.drawLength != null) {
+      final drawDiff = _baselineDrawLength - specs.drawLength!;
+      adjustment += (drawDiff / 1) * 0.02;
+    }
+
+    // Clamp to reasonable range
+    final exponent = (_defaultExponent + adjustment).clamp(_minExponent, _maxExponent);
+
+    return exponent;
+  }
+
   /// Predict sight mark for a given distance using available data
   /// Returns null if insufficient data
+  ///
+  /// [specs] - Optional equipment specs for improved 2-point predictions
   static PredictedSightMark? predict({
     required List<SightMark> marks,
     required double targetDistance,
     required DistanceUnit unit,
+    EquipmentSpecs? specs,
   }) {
     // Filter to same unit and sort by distance
     final filtered = marks
@@ -46,7 +140,7 @@ class SightMarkCalculator {
 
     // With 2 marks, use power-law interpolation (models arrow ballistics)
     if (filtered.length == 2) {
-      return _twoPointPredict(filtered, targetDistance, unit);
+      return _twoPointPredict(filtered, targetDistance, unit, specs);
     }
 
     // With 1 mark, can only return that if it's close
@@ -176,19 +270,23 @@ class SightMarkCalculator {
   }
 
   /// Power-law interpolation between two points
-  /// Uses sightMark = c + k * distance^n where n ≈ 1.4
+  /// Uses sightMark = c + k * distance^n where n is adjusted based on equipment.
   /// This models arrow drop physics better than linear interpolation,
   /// producing increasing gaps at longer distances.
+  ///
+  /// With equipment specs, the exponent is tuned for the archer's setup:
+  /// - Faster setups (light arrows, high poundage) → lower n ≈ 1.2
+  /// - Slower setups (heavy arrows, low poundage) → higher n ≈ 1.6
   static PredictedSightMark? _twoPointPredict(
     List<SightMark> marks,
     double targetDistance,
     DistanceUnit unit,
+    EquipmentSpecs? specs,
   ) {
     if (marks.length < 2) return null;
 
-    // Power exponent - between linear (1.0) and quadratic (2.0)
-    // 1.4 is typical for arrow ballistics
-    const double n = 1.4;
+    // Calculate power exponent based on equipment (or use default 1.4)
+    final double n = calculateExponent(specs);
 
     // Find bracketing points or nearest two
     SightMark? lower, upper;
@@ -245,14 +343,23 @@ class SightMarkCalculator {
     final isExtrapolating = targetDistance < marks.first.distance ||
         targetDistance > marks.last.distance;
 
+    // Build source description
+    final hasSpecs = specs?.hasMinimalSpecs ?? false;
+    String source;
+    if (isExtrapolating) {
+      source = hasSpecs ? 'equipment-tuned extrapolation' : 'power extrapolated';
+    } else {
+      source = hasSpecs ? 'equipment-tuned interpolation' : 'power interpolated';
+    }
+
     return PredictedSightMark(
       distance: targetDistance,
       unit: unit,
       predictedValue: predicted,
       confidence: isExtrapolating
           ? SightMarkConfidence.low
-          : SightMarkConfidence.medium,
-      source: isExtrapolating ? 'power extrapolated' : 'power interpolated',
+          : (hasSpecs ? SightMarkConfidence.high : SightMarkConfidence.medium),
+      source: source,
       interpolatedFrom: [lower, upper],
     );
   }

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/sight_marks_provider.dart';
+import '../providers/equipment_provider.dart';
 import '../models/sight_mark.dart';
 import '../widgets/sight_mark_entry_form.dart';
+import 'bow_detail_screen.dart';
 
 /// Screen displaying all sight marks for a bow
 class SightMarksScreen extends StatefulWidget {
@@ -70,15 +72,21 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.gold))
-          : Consumer<SightMarksProvider>(
-              builder: (context, provider, child) {
-                final marks = provider
+          : Consumer2<SightMarksProvider, EquipmentProvider>(
+              builder: (context, sightProvider, equipProvider, child) {
+                final marks = sightProvider
                     .getMarksForBow(widget.bowId)
                     .where((m) => m.unit == _selectedUnit)
                     .toList();
 
+                // Check if bow has equipment specs for better predictions
+                final bow = equipProvider.bows.where((b) => b.id == widget.bowId).firstOrNull;
+                final hasPoundage = bow?.poundage != null;
+                final hasDrawLength = bow?.drawLength != null;
+                final needsSpecs = !hasPoundage || !hasDrawLength;
+
                 if (marks.isEmpty) {
-                  return _buildEmptyState(context);
+                  return _buildEmptyState(context, needsSpecs: needsSpecs);
                 }
 
                 // Group by distance
@@ -89,19 +97,33 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
 
                 final distances = groupedMarks.keys.toList()..sort();
 
+                // +1 for written record reminder, +1 for equipment specs prompt if needed
+                final extraItems = needsSpecs ? 2 : 1;
+
                 return ListView.builder(
                   padding: const EdgeInsets.all(AppSpacing.md),
-                  itemCount: distances.length + 1, // +1 for the reminder at bottom
+                  itemCount: distances.length + extraItems,
                   itemBuilder: (context, index) {
-                    // Show reminder as last item
-                    if (index == distances.length) {
+                    // Show equipment specs prompt first if needed
+                    if (needsSpecs && index == 0) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                        child: _buildEquipmentSpecsPrompt(context),
+                      );
+                    }
+
+                    // Adjust index if we showed the equipment prompt
+                    final adjustedIndex = needsSpecs ? index - 1 : index;
+
+                    // Show written record reminder as last item
+                    if (adjustedIndex == distances.length) {
                       return Padding(
                         padding: const EdgeInsets.only(top: AppSpacing.md),
                         child: _buildWrittenRecordReminder(context),
                       );
                     }
 
-                    final distance = distances[index];
+                    final distance = distances[adjustedIndex];
                     final distanceMarks = groupedMarks[distance]!;
                     // Get the most recent mark for display
                     distanceMarks.sort((a, b) => b.recordedAt.compareTo(a.recordedAt));
@@ -121,7 +143,7 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, {bool needsSpecs = false}) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
@@ -148,8 +170,66 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
                   ),
             ),
             const SizedBox(height: AppSpacing.xl),
+            if (needsSpecs) ...[
+              _buildEquipmentSpecsPrompt(context),
+              const SizedBox(height: AppSpacing.md),
+            ],
             _buildWrittenRecordReminder(context),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEquipmentSpecsPrompt(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _navigateToBowDetails(context),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.accentCyan.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(AppSpacing.sm),
+          border: Border.all(color: AppColors.accentCyan.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.tune, color: AppColors.accentCyan, size: 24),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Improve predictions',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: AppColors.accentCyan,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Add poundage and draw length to your bow for more accurate sight mark calculations.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: AppColors.accentCyan),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _navigateToBowDetails(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BowDetailScreen(
+          bowId: widget.bowId,
+          bowName: widget.bowName,
         ),
       ),
     );
