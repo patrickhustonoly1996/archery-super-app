@@ -24,7 +24,7 @@ The codebase **doubled** since the last roadmap was written. Tests didn't keep u
 
 ## Current Coverage (Honest)
 
-### Services: 7/20 tested (35%)
+### Services: 9/20 tested (45%)
 
 | Status | Service | Risk Level | Notes |
 |--------|---------|------------|-------|
@@ -34,8 +34,8 @@ The codebase **doubled** since the last roadmap was written. Tests didn't keep u
 | ✅ | import_service | - | Tested |
 | ✅ | scan_frame_service | - | Tested |
 | ✅ | scan_motion_service | - | Tested |
-| ❌ | **sync_service** | **CRITICAL** | Data loss risk - syncs to cloud |
-| ❌ | **stripe_service** | **CRITICAL** | Payment failures |
+| ✅ | sync_service | - | Tested |
+| ✅ | stripe_service | - | Tested |
 | ❌ | **classification_service** | HIGH | Wrong classifications shown |
 | ❌ | **xp_calculation_service** | HIGH | XP/levels could break |
 | ✅ | training_session_service | - | Tested |
@@ -470,7 +470,7 @@ void main() {
 |-----------|-------------|--------|-------|------|
 | sync_service_test | Claude | ✅ COMPLETE | 47 | 2026-01-19 |
 | entitlement_provider_test | - | NOT STARTED | 0 | - |
-| stripe_service_test | - | NOT STARTED | 0 | - |
+| stripe_service_test | Claude | ✅ COMPLETE | 92 | 2026-01-19 |
 | user_profile_provider_test | Claude | ✅ COMPLETE | 129 | 2026-01-19 |
 | training_session_service_test | Claude | ✅ COMPLETE | 36 | 2026-01-19 |
 | classification_service_test | - | NOT STARTED | 0 | - |
