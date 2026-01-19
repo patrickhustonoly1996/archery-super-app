@@ -16,7 +16,7 @@ The codebase **doubled** since the last roadmap was written. Tests didn't keep u
 | Services | 5 | 20 | +15 untested |
 | Providers | 5 | 13 | +8 untested |
 | Utils | 8 | 18 | +10 untested |
-| Tests | ~1,350 | 1,445 | +7% (should be +118%) |
+| Tests | ~1,350 | 1,887 | +40% (should be +118%) |
 
 **Result:** Core foundation is solid, but the new features ship bugs.
 
@@ -49,16 +49,16 @@ The codebase **doubled** since the last roadmap was written. Tests didn't keep u
 | ❌ | vibration_service | LOW | Haptics |
 | ❌ | sample_data_seeder | LOW | Dev-only |
 
-### Providers: 5/13 tested (38%)
+### Providers: 6/13 tested (46%)
 
 | Status | Provider | Risk Level | Notes |
 |--------|----------|------------|-------|
 | ✅ | active_sessions_provider | - | Tested |
 | ✅ | bow_training_provider | - | Tested |
 | ✅ | breath_training_provider | - | Tested |
+| ✅ | entitlement_provider | - | Tested |
 | ✅ | equipment_provider | - | Tested |
 | ✅ | session_provider | - | Tested |
-| ❌ | **entitlement_provider** | **CRITICAL** | Paywall logic - wrong = free access or locked out |
 | ❌ | **user_profile_provider** | **CRITICAL** | User data management |
 | ❌ | **classification_provider** | HIGH | Classification display |
 | ❌ | **sight_marks_provider** | HIGH | Sight mark CRUD |
@@ -469,7 +469,7 @@ void main() {
 | Test File | Assigned To | Status | Tests | Date |
 |-----------|-------------|--------|-------|------|
 | sync_service_test | Claude | ✅ COMPLETE | 47 | 2026-01-19 |
-| entitlement_provider_test | - | NOT STARTED | 0 | - |
+| entitlement_provider_test | Claude | ✅ COMPLETE | 138 | 2026-01-19 |
 | stripe_service_test | Claude | ✅ COMPLETE | 92 | 2026-01-19 |
 | user_profile_provider_test | Claude | ✅ COMPLETE | 129 | 2026-01-19 |
 | training_session_service_test | Claude | ✅ COMPLETE | 36 | 2026-01-19 |
