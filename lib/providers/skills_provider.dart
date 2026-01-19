@@ -347,26 +347,26 @@ class SkillsProvider extends ChangeNotifier {
           reason: 'Competition score: $competitionScore',
         );
 
-        // Check for PB (beat practice by 2%+)
+        // Check for PB (any improvement over practice average is a PB!)
         if (avgPracticeScore != null && avgPracticeScore > 0) {
-          final percentOfPractice = competitionScore / avgPracticeScore;
-          if (percentOfPractice >= 1.02) {
+          if (competitionScore > avgPracticeScore) {
+            final improvement = competitionScore - avgPracticeScore;
             queueXpAwardCelebration(XpAwardEvent(
               skillName: 'Competition',
               xpAmount: compXp,
-              reason: 'Beat practice by ${((percentOfPractice - 1) * 100).toStringAsFixed(1)}%!',
+              reason: 'Personal Best! +$improvement points!',
               achievementType: AchievementType.personalBest,
             ));
           }
         }
 
-        // Also show competition badge for high scores
+        // Show competition badge for high scores (90%+)
         final scorePercent = competitionScore / (maxScore ?? 720);
         if (scorePercent >= 0.9) {
           queueXpAwardCelebration(XpAwardEvent(
             skillName: 'Competition',
             xpAmount: compXp,
-            reason: '90%+ of max score!',
+            reason: '${(scorePercent * 100).toStringAsFixed(0)}% of max score!',
             achievementType: AchievementType.competition,
           ));
         }
