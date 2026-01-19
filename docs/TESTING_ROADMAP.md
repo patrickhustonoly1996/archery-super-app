@@ -16,7 +16,7 @@ The codebase **doubled** since the last roadmap was written. Tests didn't keep u
 | Services | 5 | 20 | +15 untested |
 | Providers | 5 | 13 | +8 untested |
 | Utils | 8 | 18 | +10 untested |
-| Tests | ~1,350 | 2,026 | +50% (should be +118%) |
+| Tests | ~1,350 | 2,269 | +68% (should be +118%) |
 
 **Result:** Core foundation is solid, but the new features ship bugs.
 
@@ -49,7 +49,7 @@ The codebase **doubled** since the last roadmap was written. Tests didn't keep u
 | ❌ | vibration_service | LOW | Haptics |
 | ❌ | sample_data_seeder | LOW | Dev-only |
 
-### Providers: 6/13 tested (46%)
+### Providers: 8/13 tested (62%)
 
 | Status | Provider | Risk Level | Notes |
 |--------|----------|------------|-------|
@@ -59,8 +59,8 @@ The codebase **doubled** since the last roadmap was written. Tests didn't keep u
 | ✅ | entitlement_provider | - | Tested |
 | ✅ | equipment_provider | - | Tested |
 | ✅ | session_provider | - | Tested |
-| ❌ | **user_profile_provider** | **CRITICAL** | User data management |
-| ❌ | **classification_provider** | HIGH | Classification display |
+| ✅ | user_profile_provider | - | Tested |
+| ✅ | classification_provider | - | Tested |
 | ❌ | **sight_marks_provider** | HIGH | Sight mark CRUD |
 | ❌ | **auto_plot_provider** | MEDIUM | Auto-plot state |
 | ❌ | **skills_provider** | MEDIUM | Skills tracking |
@@ -474,7 +474,7 @@ void main() {
 | user_profile_provider_test | Claude | ✅ COMPLETE | 129 | 2026-01-19 |
 | training_session_service_test | Claude | ✅ COMPLETE | 36 | 2026-01-19 |
 | classification_service_test | Claude | ✅ COMPLETE | 139 | 2026-01-19 |
-| classification_provider_test | - | NOT STARTED | 0 | - |
+| classification_provider_test | Claude | ✅ COMPLETE | 242 | 2026-01-19 |
 | sight_marks_provider_test | - | NOT STARTED | 0 | - |
 | sight_mark_calculator_test | - | NOT STARTED | 0 | - |
 | xp_calculation_service_test | - | NOT STARTED | 0 | - |
