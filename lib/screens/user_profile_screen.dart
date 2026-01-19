@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/user_profile_provider.dart';
+import '../providers/accessibility_provider.dart';
 import '../db/database.dart';
 import '../models/user_profile.dart';
 import '../widgets/pixel_archer_icon.dart';
@@ -186,6 +187,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     const SizedBox(height: 12),
                     _buildAgeCategoryDisplay(),
                   ],
+
+                  const SizedBox(height: 32),
+
+                  // Accessibility section
+                  _buildSectionHeader('ACCESSIBILITY'),
+                  const SizedBox(height: 12),
+                  _buildTextSizeSlider(),
 
                   const SizedBox(height: 32),
 
@@ -775,6 +783,123 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTextSizeSlider() {
+    return Consumer<AccessibilityProvider>(
+      builder: (context, accessibility, _) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceLight,
+            border: Border.all(color: AppColors.surfaceBright),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.text_fields,
+                        size: 20,
+                        color: AppColors.gold,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Text Size',
+                        style: TextStyle(
+                          fontFamily: AppFonts.body,
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    accessibility.textScalePercentage,
+                    style: TextStyle(
+                      fontFamily: AppFonts.body,
+                      fontSize: 14,
+                      color: AppColors.gold,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Text(
+                    'A',
+                    style: TextStyle(
+                      fontFamily: AppFonts.body,
+                      fontSize: 12,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                  Expanded(
+                    child: SliderTheme(
+                      data: SliderThemeData(
+                        activeTrackColor: AppColors.gold,
+                        inactiveTrackColor: AppColors.surfaceBright,
+                        thumbColor: AppColors.gold,
+                        overlayColor: AppColors.gold.withValues(alpha: 0.2),
+                        trackHeight: 4,
+                      ),
+                      child: Slider(
+                        value: accessibility.textScaleFactor,
+                        min: accessibility.minTextScale,
+                        max: accessibility.maxTextScale,
+                        divisions: 14, // 0.05 increments
+                        onChanged: (value) {
+                          accessibility.setTextScaleFactor(value);
+                        },
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'A',
+                    style: TextStyle(
+                      fontFamily: AppFonts.body,
+                      fontSize: 18,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Adjusts text size throughout the app. Logos and icons also scale.',
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  fontSize: 11,
+                  color: AppColors.textMuted,
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (accessibility.textScaleFactor != 1.0)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => accessibility.resetTextScale(),
+                    child: Text(
+                      'RESET TO DEFAULT',
+                      style: TextStyle(
+                        fontFamily: AppFonts.pixel,
+                        fontSize: 12,
+                        color: AppColors.gold,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 
