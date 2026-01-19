@@ -776,62 +776,111 @@ class _ManualEntryDialog extends StatefulWidget {
 }
 
 class _ManualEntryDialogState extends State<_ManualEntryDialog> {
+  final _formKey = GlobalKey<FormState>();
   final _arrowCountController = TextEditingController();
   final _titleController = TextEditingController();
   final _notesController = TextEditingController();
   DateTime _date = DateTime.now();
 
   @override
+  void dispose() {
+    _arrowCountController.dispose();
+    _titleController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  String? _validateArrowCount(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Arrow count is required';
+    }
+    final count = int.tryParse(value);
+    if (count == null) {
+      return 'Must be a number';
+    }
+    if (count <= 0) {
+      return 'Must be greater than 0';
+    }
+    if (count > 10000) {
+      return 'That seems too high';
+    }
+    return null;
+  }
+
+  void _save() {
+    if (!_formKey.currentState!.validate()) return;
+
+    final arrowCount = int.parse(_arrowCountController.text);
+    widget.onSave(VolumeDraft(
+      date: _date,
+      arrowCount: arrowCount,
+      title: _titleController.text.trim().isEmpty ? null : _titleController.text.trim(),
+      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+    ));
+    Navigator.pop(context);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: AppColors.surfaceDark,
       title: const Text('Add Volume Entry'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _arrowCountController,
-              decoration: const InputDecoration(labelText: 'Arrow Count'),
-              keyboardType: TextInputType.number,
-              autofocus: true,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title (optional)',
-                hintText: 'e.g., World Cup, Practice',
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _arrowCountController,
+                decoration: const InputDecoration(
+                  labelText: 'Arrow Count',
+                  hintText: 'e.g., 120',
+                ),
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: _validateArrowCount,
               ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            TextField(
-              controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optional)',
-                hintText: 'Any additional details',
+              const SizedBox(height: AppSpacing.md),
+              TextFormField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Title (optional)',
+                  hintText: 'e.g., World Cup, Practice',
+                ),
+                textCapitalization: TextCapitalization.words,
               ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Date'),
-              subtitle: Text('${_date.day}/${_date.month}/${_date.year}'),
-              trailing: const Icon(Icons.calendar_today),
-              onTap: () async {
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: _date,
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime.now(),
-                );
-                if (picked != null) {
-                  setState(() => _date = picked);
-                }
-              },
-            ),
-          ],
+              const SizedBox(height: AppSpacing.md),
+              TextFormField(
+                controller: _notesController,
+                decoration: const InputDecoration(
+                  labelText: 'Notes (optional)',
+                  hintText: 'Any additional details',
+                ),
+                maxLines: 2,
+                textCapitalization: TextCapitalization.sentences,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Date'),
+                subtitle: Text('${_date.day}/${_date.month}/${_date.year}'),
+                trailing: const Icon(Icons.calendar_today),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: _date,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime.now(),
+                  );
+                  if (picked != null) {
+                    setState(() => _date = picked);
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       ),
       actions: [
@@ -840,23 +889,7 @@ class _ManualEntryDialogState extends State<_ManualEntryDialog> {
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: () {
-            final arrowCount = int.tryParse(_arrowCountController.text);
-            if (arrowCount == null || arrowCount <= 0) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Please enter a valid arrow count')),
-              );
-              return;
-            }
-
-            widget.onSave(VolumeDraft(
-              date: _date,
-              arrowCount: arrowCount,
-              title: _titleController.text.isEmpty ? null : _titleController.text,
-              notes: _notesController.text.isEmpty ? null : _notesController.text,
-            ));
-            Navigator.pop(context);
-          },
+          onPressed: _save,
           child: const Text('Save'),
         ),
       ],
