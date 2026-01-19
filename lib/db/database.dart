@@ -483,6 +483,20 @@ class BreathTrainingLogs extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Breath hold achievement awards
+/// Awards for sustained breath holds starting at 20s in 5s increments
+class BreathHoldAwards extends Table {
+  TextColumn get id => text()();
+  IntColumn get secondsThreshold => integer()(); // 20, 25, 30, etc.
+  TextColumn get title => text()(); // 'Novice Lung', 'Steady Breath', etc.
+  TextColumn get sessionLogId => text().nullable().references(BreathTrainingLogs, #id)();
+  DateTimeColumn get earnedAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // KIT SNAPSHOTS & TUNING SYSTEM
 // ============================================================================
@@ -800,6 +814,7 @@ class SyncMetadata extends Table {
   UserTrainingProgress,
   // Breath Training System
   BreathTrainingLogs,
+  BreathHoldAwards,
   // Milestones for handicap graph
   Milestones,
   // Volume imports for raw data preservation
@@ -835,7 +850,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 24;
+  int get schemaVersion => 25;
 
   @override
   MigrationStrategy get migration {
@@ -1060,6 +1075,10 @@ class AppDatabase extends _$AppDatabase {
             SET scoring_type = '5-zone'
             WHERE id = 'worcester'
           ''');
+        }
+        if (from <= 24) {
+          // Breath hold awards table
+          await m.createTable(breathHoldAwards);
         }
       },
     );
@@ -2047,6 +2066,42 @@ class AppDatabase extends _$AppDatabase {
       }
     }
     return best;
+  }
+
+  // ===========================================================================
+  // BREATH HOLD AWARDS
+  // ===========================================================================
+
+  /// Get all earned breath hold awards ordered by threshold
+  Future<List<BreathHoldAward>> getAllBreathHoldAwards() =>
+      (select(breathHoldAwards)..orderBy([(t) => OrderingTerm.asc(t.secondsThreshold)])).get();
+
+  /// Get a specific breath hold award by ID
+  Future<BreathHoldAward?> getBreathHoldAward(String id) =>
+      (select(breathHoldAwards)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  /// Check if an award for a specific threshold has been earned
+  Future<BreathHoldAward?> getBreathHoldAwardByThreshold(int seconds) =>
+      (select(breathHoldAwards)..where((t) => t.secondsThreshold.equals(seconds))).getSingleOrNull();
+
+  /// Get all awards earned for thresholds up to a given number of seconds
+  Future<List<BreathHoldAward>> getBreathHoldAwardsUpTo(int seconds) =>
+      (select(breathHoldAwards)
+        ..where((t) => t.secondsThreshold.isSmallerOrEqualValue(seconds))
+        ..orderBy([(t) => OrderingTerm.asc(t.secondsThreshold)]))
+          .get();
+
+  /// Insert a new breath hold award
+  Future<int> insertBreathHoldAward(BreathHoldAwardsCompanion award) =>
+      into(breathHoldAwards).insert(award);
+
+  /// Get the highest threshold award earned
+  Future<BreathHoldAward?> getHighestBreathHoldAward() async {
+    final awards = await (select(breathHoldAwards)
+          ..orderBy([(t) => OrderingTerm.desc(t.secondsThreshold)])
+          ..limit(1))
+        .get();
+    return awards.isEmpty ? null : awards.first;
   }
 
   // ===========================================================================
