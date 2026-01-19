@@ -550,7 +550,7 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
 
     // Create a virtual session template
     _activeSession = OlySessionTemplate(
-      id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
+      id: UniqueId.withPrefix('quick'),
       version: 'Quick',
       name: '$durationMinutes min Quick Session',
       focus: 'Custom training session',
@@ -567,7 +567,7 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
     // Create a single exercise with all the reps
     _exercises = [
       OlySessionExercise(
-        id: 'quick_ex_${DateTime.now().millisecondsSinceEpoch}',
+        id: UniqueId.withPrefix('quick_ex'),
         sessionTemplateId: _activeSession!.id,
         exerciseTypeId: 'static_reversals', // Default exercise type
         exerciseOrder: 1,
