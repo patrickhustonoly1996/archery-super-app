@@ -537,7 +537,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
                           vertical: AppSpacing.sm,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.gold.withOpacity(0.2),
+                          color: AppColors.gold.withValues(alpha:0.2),
                           borderRadius: BorderRadius.circular(AppSpacing.sm),
                           border: Border.all(color: AppColors.gold),
                         ),
@@ -862,7 +862,7 @@ class _ExhaleTimer extends StatelessWidget {
       height: 280,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppColors.gold.withOpacity(0.15),
+        color: AppColors.gold.withValues(alpha:0.15),
         border: Border.all(
           color: AppColors.gold,
           width: 4,
@@ -1047,7 +1047,7 @@ class _InSessionToggle extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
               color: value
-                  ? AppColors.gold.withOpacity(0.3)
+                  ? AppColors.gold.withValues(alpha:0.3)
                   : AppColors.surfaceLight,
             ),
             child: AnimatedAlign(
