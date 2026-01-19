@@ -12,12 +12,14 @@ class HandicapChart extends StatelessWidget {
   final List<Session> sessions;
   final List<ImportedScore> importedScores;
   final Map<String, RoundType> roundTypes;
+  final ColorblindMode colorblindMode;
 
   const HandicapChart({
     super.key,
     required this.sessions,
     required this.importedScores,
     required this.roundTypes,
+    this.colorblindMode = ColorblindMode.none,
   });
 
   @override
@@ -132,14 +134,17 @@ class HandicapChart extends StatelessWidget {
             SizedBox(
               height: 120,
               child: CustomPaint(
-                painter: _HandicapChartPainter(handicaps: recentHandicaps),
+                painter: _HandicapChartPainter(
+                  handicaps: recentHandicaps,
+                  colorblindMode: colorblindMode,
+                ),
                 child: Container(),
               ),
             ),
 
             const SizedBox(height: AppSpacing.sm),
 
-            // Legend
+            // Legend - use colorblind-friendly colors
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -149,7 +154,7 @@ class HandicapChart extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.md),
                 _LegendItem(
-                  color: AppColors.neonCyan,
+                  color: AccessibleColors.getPracticeColor(colorblindMode),
                   label: 'Practice',
                 ),
               ],
@@ -358,8 +363,12 @@ class _HandicapPoint {
 
 class _HandicapChartPainter extends CustomPainter {
   final List<_HandicapPoint> handicaps;
+  final ColorblindMode colorblindMode;
 
-  _HandicapChartPainter({required this.handicaps});
+  _HandicapChartPainter({
+    required this.handicaps,
+    this.colorblindMode = ColorblindMode.none,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -447,12 +456,13 @@ class _HandicapChartPainter extends CustomPainter {
       canvas.drawPath(areaPath, areaPaint);
     }
 
-    // Draw practice score points with neon cyan glow
+    // Draw practice score points with colorblind-friendly color
+    final practiceColor = AccessibleColors.getPracticeColor(colorblindMode);
     final practiceGlowPaint = Paint()
-      ..color = AppColors.neonCyan.withValues(alpha: 0.4)
+      ..color = practiceColor.withValues(alpha: 0.4)
       ..style = PaintingStyle.fill;
     final practicePaint = Paint()
-      ..color = AppColors.neonCyan
+      ..color = practiceColor
       ..style = PaintingStyle.fill;
 
     for (final point in practicePoints) {
@@ -506,6 +516,7 @@ class _HandicapChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_HandicapChartPainter oldDelegate) {
-    return oldDelegate.handicaps != handicaps;
+    return oldDelegate.handicaps != handicaps ||
+        oldDelegate.colorblindMode != colorblindMode;
   }
 }

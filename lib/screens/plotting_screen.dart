@@ -5,6 +5,7 @@ import '../providers/session_provider.dart';
 import '../providers/equipment_provider.dart';
 import '../providers/connectivity_provider.dart';
 import '../providers/auto_plot_provider.dart';
+import '../providers/accessibility_provider.dart';
 import '../widgets/target_face.dart';
 import '../widgets/triple_spot_target.dart';
 import '../widgets/plotting_settings_sheet.dart';
@@ -382,23 +383,29 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                 panEnabled: true,
                                 scaleEnabled: true,
                                 constrained: true,
-                                child: InteractiveTargetFace(
-                                  arrows: displayArrows,
-                                  size: size,
-                                  enabled: canPlot,
-                                  isIndoor: provider.roundType?.isIndoor ?? false,
-                                  triSpot: isTriSpot,
-                                  compoundScoring: _compoundScoring,
-                                  lineCutterDialogEnabled: true,
-                                  transformController: _zoomController,
-                                  onArrowPlotted: (x, y) async {
-                                    await _plotArrowWithFace(context, provider, x, y, 0);
-                                  },
-                                  onPendingArrowChanged: (x, y) {
-                                    // Use ValueNotifier for efficient updates without full rebuild
-                                    _pendingArrowNotifier.value = x != null && y != null
-                                        ? (x: x, y: y)
-                                        : null;
+                                child: Consumer<AccessibilityProvider>(
+                                  builder: (context, accessibility, _) {
+                                    return InteractiveTargetFace(
+                                      arrows: displayArrows,
+                                      size: size,
+                                      enabled: canPlot,
+                                      isIndoor: provider.roundType?.isIndoor ?? false,
+                                      triSpot: isTriSpot,
+                                      compoundScoring: _compoundScoring,
+                                      lineCutterDialogEnabled: true,
+                                      transformController: _zoomController,
+                                      colorblindMode: accessibility.colorblindMode,
+                                      showRingLabels: accessibility.showRingLabels,
+                                      onArrowPlotted: (x, y) async {
+                                        await _plotArrowWithFace(context, provider, x, y, 0);
+                                      },
+                                      onPendingArrowChanged: (x, y) {
+                                        // Use ValueNotifier for efficient updates without full rebuild
+                                        _pendingArrowNotifier.value = x != null && y != null
+                                            ? (x: x, y: y)
+                                            : null;
+                                      },
+                                    );
                                   },
                                 ),
                               );
@@ -409,26 +416,31 @@ class _PlottingScreenState extends State<PlottingScreen> {
 
                       // Fixed zoom window at 12 o'clock (top center)
                       // Uses ValueListenableBuilder for efficient updates during touch
-                      ValueListenableBuilder<({double x, double y})?>(
-                        valueListenable: _pendingArrowNotifier,
-                        builder: (context, pending, _) {
-                          if (pending == null) return const SizedBox.shrink();
-                          return Positioned(
-                            top: AppSpacing.md,
-                            left: 0,
-                            right: 0,
-                            child: Center(
-                              child: RepaintBoundary(
-                                child: FixedZoomWindow(
-                                  targetX: pending.x,
-                                  targetY: pending.y,
-                                  zoomLevel: 4.0,
-                                  size: 120,
-                                  triSpot: (provider.roundType?.faceCount ?? 1) == 3,
-                                  compoundScoring: _compoundScoring,
+                      Consumer<AccessibilityProvider>(
+                        builder: (context, accessibility, _) {
+                          return ValueListenableBuilder<({double x, double y})?>(
+                            valueListenable: _pendingArrowNotifier,
+                            builder: (context, pending, _) {
+                              if (pending == null) return const SizedBox.shrink();
+                              return Positioned(
+                                top: AppSpacing.md,
+                                left: 0,
+                                right: 0,
+                                child: Center(
+                                  child: RepaintBoundary(
+                                    child: FixedZoomWindow(
+                                      targetX: pending.x,
+                                      targetY: pending.y,
+                                      zoomLevel: 4.0,
+                                      size: 120,
+                                      triSpot: (provider.roundType?.faceCount ?? 1) == 3,
+                                      compoundScoring: _compoundScoring,
+                                      colorblindMode: accessibility.colorblindMode,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
+                              );
+                            },
                           );
                         },
                       ),

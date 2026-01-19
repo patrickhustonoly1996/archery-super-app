@@ -9,6 +9,7 @@ import '../widgets/filter_chip.dart';
 import '../utils/handicap_calculator.dart';
 import '../utils/round_matcher.dart';
 import '../providers/connectivity_provider.dart';
+import '../providers/accessibility_provider.dart';
 import 'session_detail_screen.dart';
 import 'import_screen.dart';
 
@@ -232,10 +233,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
       children: [
         // Handicap progression chart
         if (allScores.isNotEmpty) ...[
-          HandicapChart(
-            sessions: _sessions,
-            importedScores: _importedScores,
-            roundTypes: _roundTypes,
+          Consumer<AccessibilityProvider>(
+            builder: (context, accessibility, _) {
+              return HandicapChart(
+                sessions: _sessions,
+                importedScores: _importedScores,
+                roundTypes: _roundTypes,
+                colorblindMode: accessibility.colorblindMode,
+              );
+            },
           ),
           const SizedBox(height: AppSpacing.lg),
         ],
