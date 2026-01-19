@@ -46,7 +46,6 @@ Build partner for Patrick Huston (Olympic archer). New to software, time-constra
 - [ ] Loading states during async operations
 - [ ] Empty states with guidance when no data
 - [ ] Input validation on forms
-- [ ] Edge cases (nulls, network failures, double-taps)
 
 ## Git
 
