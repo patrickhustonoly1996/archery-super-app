@@ -3,287 +3,259 @@
   "@@last_modified": "2026-01-19",
 
   "appTitle": "Archery Super App",
-  "@appTitle": {
-    "description": "The application title"
-  },
-
   "archery": "ARCHERY",
-  "@archery": {
-    "description": "Main logo text"
-  },
-
   "superApp": "SUPER APP",
-  "@superApp": {
-    "description": "Logo subtitle"
-  },
-
   "selectMode": "SELECT MODE",
-  "@selectMode": {
-    "description": "Footer text on home screen"
-  },
-
   "loading": "LOADING",
-  "@loading": {
-    "description": "Loading indicator text"
-  },
+
+  "commonSave": "SAVE",
+  "commonCancel": "Cancel",
+  "commonAdd": "Add",
+  "commonClose": "Close",
+  "commonNone": "None",
+  "commonDefault": "DEFAULT",
+  "commonPrimary": "PRIMARY",
+  "commonStart": "Start",
+  "commonOk": "OK",
+  "commonDelete": "Delete",
+  "commonEdit": "Edit",
 
   "menuResume": "RESUME",
-  "@menuResume": {
-    "description": "Resume menu item"
-  },
-
   "menuResumeRound": "Continue round",
-  "@menuResumeRound": {
-    "description": "Resume scoring sublabel"
-  },
-
   "menuResumeDrill": "Resume drill",
-  "@menuResumeDrill": {
-    "description": "Resume bow training sublabel"
-  },
-
   "menuResumeBreath": "Resume breath",
-  "@menuResumeBreath": {
-    "description": "Resume breath training sublabel"
-  },
-
   "menuQuickStart": "QUICK START",
-  "@menuQuickStart": {
-    "description": "Quick start menu item"
-  },
-
   "menuQuickStartSub": "Fast session",
-  "@menuQuickStartSub": {
-    "description": "Quick start sublabel"
-  },
-
   "menuScore": "SCORE",
-  "@menuScore": {
-    "description": "Score menu item"
-  },
-
   "menuScoreSub": "New session",
-  "@menuScoreSub": {
-    "description": "Score sublabel"
-  },
-
   "menuScores": "SCORES",
-  "@menuScores": {
-    "description": "Scores/history menu item"
-  },
-
   "menuScoresSub": "Score record",
-  "@menuScoresSub": {
-    "description": "Scores sublabel"
-  },
-
   "menuStats": "STATS",
-  "@menuStats": {
-    "description": "Statistics menu item"
-  },
-
   "menuStatsSub": "Trends & data",
-  "@menuStatsSub": {
-    "description": "Stats sublabel"
-  },
-
   "menuBowDrills": "BOW DRILLS",
-  "@menuBowDrills": {
-    "description": "Bow drills menu item"
-  },
-
   "menuBowDrillsSub": "Timed training",
-  "@menuBowDrillsSub": {
-    "description": "Bow drills sublabel"
-  },
-
   "menuDelayCam": "DELAY CAM",
-  "@menuDelayCam": {
-    "description": "Delay camera menu item"
-  },
-
   "menuDelayCamSub": "Form review",
-  "@menuDelayCamSub": {
-    "description": "Delay camera sublabel"
-  },
-
   "menuBreathe": "BREATHE",
-  "@menuBreathe": {
-    "description": "Breathing exercises menu item"
-  },
-
   "menuBreatheSub": "Focus & calm",
-  "@menuBreatheSub": {
-    "description": "Breathing sublabel"
-  },
-
   "menuLearn": "LEARN",
-  "@menuLearn": {
-    "description": "Learn/courses menu item"
-  },
-
   "menuLearnSub": "Video courses",
-  "@menuLearnSub": {
-    "description": "Learn sublabel"
-  },
-
   "menuGear": "GEAR",
-  "@menuGear": {
-    "description": "Equipment menu item"
-  },
-
   "menuGearSub": "Bows & arrows",
-  "@menuGearSub": {
-    "description": "Gear sublabel"
-  },
-
   "menuProfile": "PROFILE",
-  "@menuProfile": {
-    "description": "Profile menu item"
-  },
-
   "menuProfileSub": "Performance radar",
-  "@menuProfileSub": {
-    "description": "Profile sublabel"
-  },
-
   "menuSettings": "SETTINGS",
-  "@menuSettings": {
-    "description": "Settings menu item"
-  },
-
-  "menuSettingsSub": "App options",
-  "@menuSettingsSub": {
-    "description": "Settings sublabel"
-  },
-
+  "menuSettingsSub": "Language & more",
   "menuSignOut": "SIGN OUT",
-  "@menuSignOut": {
-    "description": "Sign out menu item"
-  },
-
   "menuSignOutSub": "Log out",
-  "@menuSignOutSub": {
-    "description": "Sign out sublabel"
-  },
 
   "settingsTitle": "SETTINGS",
-  "@settingsTitle": {
-    "description": "Settings screen title"
-  },
-
   "settingsLanguage": "LANGUAGE",
-  "@settingsLanguage": {
-    "description": "Language setting label"
-  },
-
   "settingsLanguageDescription": "Choose your preferred language",
-  "@settingsLanguageDescription": {
-    "description": "Language setting description"
-  },
-
   "settingsImport": "IMPORT DATA",
-  "@settingsImport": {
-    "description": "Import data setting"
+  "settingsImportDescription": "Import scores from file",
+
+  "loginSignIn": "SIGN IN",
+  "loginCreateAccount": "CREATE ACCOUNT",
+  "loginEmail": "Email",
+  "loginPassword": "Password",
+  "loginSignInButton": "Sign In",
+  "loginCreateButton": "Create Account",
+  "loginForgotPassword": "Forgot password?",
+  "loginNewToApp": "New to Archery Super App?",
+  "loginCreateFreeAccount": "Create your free account",
+  "loginErrorGeneric": "An error occurred. Please try again.",
+  "loginErrorEmailInUse": "An account already exists with this email.",
+  "loginErrorInvalidEmail": "Please enter a valid email address.",
+  "loginErrorWeakPassword": "Password must be at least 6 characters.",
+  "loginErrorUserNotFound": "No account found with this email.",
+  "loginErrorWrongPassword": "Incorrect password.",
+  "loginErrorInvalidCredential": "Invalid email or password.",
+  "loginErrorAuthFailed": "Authentication failed. Please try again.",
+  "loginEnterEmailFirst": "Enter your email first, then tap forgot password.",
+  "loginPasswordResetSent": "Password reset email sent. Check your inbox.",
+
+  "sessionNewSession": "New Session",
+  "sessionStart": "Start",
+  "sessionSessionType": "Session Type",
+  "sessionPractice": "Practice",
+  "sessionCompetition": "Competition",
+  "sessionEquipmentOptional": "Equipment (Optional)",
+  "sessionNoEquipment": "No equipment configured. Go to Equipment to add bows and quivers.",
+  "sessionBow": "Bow",
+  "sessionSelectBow": "Select a bow",
+  "sessionQuiver": "Quiver",
+  "sessionSelectQuiver": "Select a quiver",
+  "sessionEnableShaftTagging": "Enable shaft tagging",
+  "sessionTrackArrowPerformance": "Track individual arrow performance",
+  "sessionSelectRound": "Select Round",
+  "sessionTriSpot": "Tri-spot",
+  "sessionArrowsPerEnd": "arrows/end",
+  "sessionEnds": "ends",
+
+  "roundCategoryWaIndoor": "WA Indoor",
+  "roundCategoryWaOutdoor": "WA Outdoor",
+  "roundCategoryAgbIndoor": "AGB Indoor",
+  "roundCategoryAgbImperial": "AGB Imperial",
+  "roundCategoryAgbMetric": "AGB Metric",
+  "roundCategoryNfaaIndoor": "NFAA Indoor",
+  "roundCategoryNfaaField": "NFAA Field",
+  "roundCategoryPractice": "Practice",
+
+  "historyTitle": "Scores Record",
+  "historyImportScores": "Import Scores",
+  "historyNoSessions": "No sessions yet",
+  "historyStartTraining": "Start training to see your history here",
+  "historyImportHistory": "Import Score History",
+  "historyScoresCount": "{count} scores",
+  "@historyScoresCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "historyIndoor": "Indoor",
+  "historyOutdoor": "Outdoor",
+  "historyComp": "Comp",
+  "historyHandicap": "HC {value}",
+  "@historyHandicap": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
   },
 
-  "settingsImportDescription": "Import scores from file",
-  "@settingsImportDescription": {
-    "description": "Import description"
+  "equipmentTitle": "Equipment",
+  "equipmentBows": "Bows",
+  "equipmentQuivers": "Quivers",
+  "equipmentTuning": "Tuning",
+  "equipmentNoBows": "No bows added",
+  "equipmentAddBowToStart": "Add a bow to get started",
+  "equipmentAddBow": "Add Bow",
+  "equipmentNoQuivers": "No quivers added",
+  "equipmentAddQuiverToTrack": "Add a quiver to track arrows",
+  "equipmentAddQuiver": "Add Quiver",
+  "equipmentArrowsCount": "{count} arrows",
+  "@equipmentArrowsCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
   },
+
+  "profileTitle": "PROFILE",
+  "profileShootingStyle": "SHOOTING STYLE",
+  "profileArcherInfo": "ARCHER INFO",
+  "profileClassification": "CLASSIFICATION",
+  "profileFederations": "FEDERATION MEMBERSHIPS",
+  "profileNotes": "NOTES",
+  "profilePrimaryBowType": "Primary Bow Type",
+  "profileHandedness": "Handedness",
+  "profileName": "Name",
+  "profileNameHint": "Your name",
+  "profileClub": "Club",
+  "profileClubHint": "Your archery club",
+  "profileYearStarted": "Year Started Shooting",
+  "profileSelectYear": "Select year",
+  "profileYearsExperience": "{years} years experience",
+  "@profileYearsExperience": {
+    "placeholders": {
+      "years": {"type": "int"}
+    }
+  },
+  "profileShootingFrequency": "Shooting Frequency",
+  "profileDaysPerWeek": "{days} days/week",
+  "@profileDaysPerWeek": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "profileCompetitionLevels": "Competition Levels",
+  "profileGender": "Gender (for classification)",
+  "profileGenderNote": "Used to calculate AGB classification thresholds",
+  "profileDateOfBirth": "Date of Birth",
+  "profileDateOfBirthNote": "Used to determine your age category for classifications",
+  "profileNotSet": "Not set",
+  "profileAgeCategory": "Age Category",
+  "profileNoFederations": "No federation memberships",
+  "profileAddFederation": "ADD FEDERATION",
+  "profileMemberNumber": "Member #: {number}",
+  "@profileMemberNumber": {
+    "placeholders": {
+      "number": {"type": "String"}
+    }
+  },
+  "profileExpires": "Expires: {date}",
+  "@profileExpires": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "profileNotesHint": "Club access codes, locker number, etc.",
+  "profileTargetFaceSuggestions": "Target Face Suggestions",
+  "profileBasedOn": "Based on {bowType}:",
+  "@profileBasedOn": {
+    "placeholders": {
+      "bowType": {"type": "String"}
+    }
+  },
+  "profileHandicapNote": "Handicap and classification calculations based on archeryutils",
+  "profileSaved": "Profile saved",
+
+  "statsTitle": "Training Volume",
+  "statsBulkUpload": "Bulk Upload",
+  "statsFilterDays": "Filter by days",
+  "stats30Days": "30 Days",
+  "stats90Days": "90 Days",
+  "stats180Days": "180 Days",
+  "stats1Year": "1 Year",
+  "statsNoData": "No volume data yet",
+  "statsTrackArrows": "Track your daily arrow count to monitor training load",
+  "statsAddEntry": "Add Volume Entry",
+  "statsNoDataForDays": "No data for the last {days} days",
+  "@statsNoDataForDays": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "statsLast7Days": "Last 7 Days",
+  "stats7DayAvg": "7-Day Avg",
+  "stats7DayEma": "7-Day EMA",
+  "stats28DayEma": "28-Day EMA",
+  "stats90DayEma": "90-Day EMA",
+  "statsArrows": "arrows",
+  "statsPerDay": "per day",
+  "statsTrainingVolume": "Training Volume",
+  "statsRecentEntries": "Recent Entries",
+  "statsArrowsCount": "{count} arrows",
+  "@statsArrowsCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "statsDate": "Date",
+  "statsArrowCount": "Arrow Count",
+  "statsArrowCountHint": "e.g., 120",
+  "statsNotesOptional": "Notes (optional)",
+  "statsNotesHint": "e.g., Competition day",
+  "statsValidArrowCount": "Please enter a valid arrow count",
+  "statsEntryAdded": "Volume entry added",
 
   "quickStartTitle": "QUICK START",
-  "@quickStartTitle": {
-    "description": "Quick start sheet title"
-  },
-
   "quickStartRoundType": "ROUND TYPE",
-  "@quickStartRoundType": {
-    "description": "Round type label"
-  },
-
   "quickStartArrowsPerEnd": "ARROWS PER END",
-  "@quickStartArrowsPerEnd": {
-    "description": "Arrows per end label"
-  },
-
   "quickStartNoRecent": "No recent sessions found.\nStart a regular session first.",
-  "@quickStartNoRecent": {
-    "description": "Message when no recent sessions exist"
-  },
-
   "quickStartButton": "START SHOOTING",
-  "@quickStartButton": {
-    "description": "Start shooting button text"
-  },
 
   "languageEnglish": "English",
-  "@languageEnglish": {
-    "description": "English language name"
-  },
-
   "languageFrench": "French",
-  "@languageFrench": {
-    "description": "French language name"
-  },
-
   "languageGerman": "German",
-  "@languageGerman": {
-    "description": "German language name"
-  },
-
   "languageSpanish": "Spanish",
-  "@languageSpanish": {
-    "description": "Spanish language name"
-  },
-
   "languageItalian": "Italian",
-  "@languageItalian": {
-    "description": "Italian language name"
-  },
-
   "languageKorean": "Korean",
-  "@languageKorean": {
-    "description": "Korean language name"
-  },
-
   "languageJapanese": "Japanese",
-  "@languageJapanese": {
-    "description": "Japanese language name"
-  },
-
   "languageNativeEnglish": "English",
-  "@languageNativeEnglish": {
-    "description": "English in native script"
-  },
-
   "languageNativeFrench": "Francais",
-  "@languageNativeFrench": {
-    "description": "French in native script"
-  },
-
   "languageNativeGerman": "Deutsch",
-  "@languageNativeGerman": {
-    "description": "German in native script"
-  },
-
   "languageNativeSpanish": "Espanol",
-  "@languageNativeSpanish": {
-    "description": "Spanish in native script"
-  },
-
   "languageNativeItalian": "Italiano",
-  "@languageNativeItalian": {
-    "description": "Italian in native script"
-  },
-
   "languageNativeKorean": "Korean",
-  "@languageNativeKorean": {
-    "description": "Korean in native script"
-  },
-
-  "languageNativeJapanese": "Japanese",
-  "@languageNativeJapanese": {
-    "description": "Japanese in native script"
-  }
+  "languageNativeJapanese": "Japanese"
 }
