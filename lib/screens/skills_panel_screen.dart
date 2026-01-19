@@ -4,6 +4,7 @@ import '../db/database.dart';
 import '../providers/skills_provider.dart';
 import '../services/xp_calculation_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/achievement_shield.dart';
 
 /// Bottom sheet displaying all skills with their levels and XP progress.
 /// Accessible from home screen or by tapping any level badge.
@@ -93,6 +94,9 @@ class SkillsPanelScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 16),
+
+              // Achievements section
+              _AchievementsSection(),
 
               // Skills list
               Expanded(
@@ -1603,4 +1607,142 @@ class _XpConceptIconPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _XpConceptIconPainter oldDelegate) =>
       icon != oldDelegate.icon;
+}
+
+/// Achievements section showing earned badges.
+class _AchievementsSection extends StatefulWidget {
+  @override
+  State<_AchievementsSection> createState() => _AchievementsSectionState();
+}
+
+class _AchievementsSectionState extends State<_AchievementsSection> {
+  List<Achievement> _achievements = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAchievements();
+  }
+
+  Future<void> _loadAchievements() async {
+    final provider = context.read<SkillsProvider>();
+    final achievements = await provider.getRecentAchievements(limit: 20);
+    if (mounted) {
+      setState(() {
+        _achievements = achievements;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const SizedBox.shrink();
+    }
+
+    if (_achievements.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'ACHIEVEMENTS',
+                style: TextStyle(
+                  fontFamily: AppFonts.pixel,
+                  fontSize: 12,
+                  color: AppColors.textMuted,
+                  letterSpacing: 1,
+                ),
+              ),
+              Text(
+                '${_achievements.length}',
+                style: TextStyle(
+                  fontFamily: AppFonts.pixel,
+                  fontSize: 12,
+                  color: AppColors.gold.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceDark,
+              border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+            ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _achievements.map((achievement) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: _buildAchievementShield(achievement),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAchievementShield(Achievement achievement) {
+    final type = achievement.achievementType;
+
+    // Streak achievements
+    if (type == 'streak7') {
+      return AchievementShield.streak(days: 7, size: 50);
+    } else if (type == 'streak14') {
+      return AchievementShield.streak(days: 14, size: 50);
+    } else if (type == 'streak30') {
+      return AchievementShield.streak(days: 30, size: 50);
+    }
+
+    // Personal bests
+    if (type == 'competitionPb' || achievement.isCompetitionPb) {
+      return AchievementShield.competitionPb(
+        roundName: achievement.title.replaceAll(' COMP PB', '').replaceAll(' PB', ''),
+        score: achievement.score ?? 0,
+        size: 50,
+      );
+    } else if (type == 'personalBest') {
+      return AchievementShield.personalBest(
+        roundName: achievement.title.replaceAll(' PB', ''),
+        score: achievement.score ?? 0,
+        size: 50,
+      );
+    }
+
+    // Excellent form
+    if (type == 'excellentForm') {
+      return AchievementShield.excellentForm(size: 50);
+    }
+
+    // Milestones (level achievements)
+    if (type.startsWith('milestone_')) {
+      // Extract level number from title
+      final levelMatch = RegExp(r'\d+$').firstMatch(achievement.title);
+      final level = levelMatch != null ? int.tryParse(levelMatch.group(0)!) ?? 0 : 0;
+      return AchievementShield.milestone(level: level, size: 50);
+    }
+
+    // Default shield for unknown types
+    return AchievementShield(
+      title: achievement.title.length > 3 ? achievement.title.substring(0, 3) : achievement.title,
+      accentColor: AppColors.gold,
+      size: 50,
+    );
+  }
 }
