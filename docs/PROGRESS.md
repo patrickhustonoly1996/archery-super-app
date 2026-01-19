@@ -1,6 +1,6 @@
 # Archery Super App - Progress
 
-> **Last Updated:** 2026-01-19 — Phase 1 critical fixes complete. Testing phase complete. MVP features done. Performance optimizations applied.
+> **Last Updated:** 2026-01-19 — Phase 1-5 substantially complete. Accessibility improvements added. Performance optimizations applied.
 
 **Initial Review:** 2026-01-15
 **Codebase Size:** ~53,000 lines of Dart across 70+ files
@@ -39,7 +39,7 @@
 - ~~**Input validation** - Limited form validation on user inputs~~ ✅ Fixed with FormValidationMixin
 - ~~**Test coverage** - Only 6 test files (~5% coverage estimate)~~ ✅ Now ~48% coverage
 - ~~**Code duplication** - Some patterns repeated across screens~~ ✅ RoundMatcher extracted
-- **Accessibility** - Limited a11y consideration (no semantic labels, contrast issues)
+- ~~**Accessibility** - Limited a11y consideration (no semantic labels, contrast issues)~~ ✅ Partially fixed - semantic labels and touch targets added
 
 ### Priority Fixes (Critical) — ✅ ALL COMPLETE
 1. ~~Add proper error handling and user feedback~~ ✅ ErrorHandler utility added
@@ -202,30 +202,30 @@ The touch-hold-drag plotting with zoom window is excellent:
 **Remaining Work:**
 - Adopt in all screens that need it
 
-#### 3. Accessibility (D)
-**Problems:**
-- No `Semantics` widgets for screen readers
-- Touch targets sometimes < 48px minimum
-- No keyboard navigation support
-- Some color contrast issues (textMuted on dark)
+#### 3. Accessibility (C+) — IMPROVED
+**Status:** ✅ **PARTIALLY FIXED** (2026-01-19)
 
-**Recommendations:**
+**Completed:**
+- ✅ `Semantics` widgets added to interactive elements
+- ✅ Touch targets fixed to 48px minimum on key screens
+- ✅ Icons have `semanticLabel` properties
+- ✅ `AccessibleTouchTarget` widget created for reuse
+- ✅ Haptic feedback added to touch interactions
+
+**Remaining:**
+- ⏳ Keyboard navigation support
+- ⏳ Some color contrast issues (textMuted on dark)
+- ⏳ Manual VoiceOver/TalkBack testing
+
+**New Reusable Widget:**
 ```dart
-// Add semantic labels
-Semantics(
-  label: 'Score: 278 out of 300',
-  child: Text('278'),
+// lib/widgets/accessible_touch_target.dart
+AccessibleTouchTarget(
+  semanticLabel: 'Close dialog',
+  onTap: () => Navigator.pop(context),
+  hapticFeedback: true,  // Auto haptic on tap
+  child: Icon(Icons.close, size: 24),
 )
-
-// Ensure touch targets >= 48px
-SizedBox(
-  width: 48,
-  height: 48,
-  child: IconButton(...),
-)
-
-// Use semanticLabel on icons
-Icon(Icons.settings, semanticLabel: 'Settings'),
 ```
 
 #### 4. Navigation Feedback (C)
@@ -606,21 +606,35 @@ class LoadingButton extends StatelessWidget {
 - Batch shaft updates now run in parallel
 - All ID generation uses UUID via `UniqueId` utility
 
-### Phase 5: Accessibility — Pending
+### Phase 5: Accessibility — ✅ PARTIALLY COMPLETE
 
-#### Step 5.1: Add Semantic Labels
-**Modify:** All interactive widgets
-- Add `semanticLabel` to icons
-- Wrap complex widgets in `Semantics`
+**Status:** Core accessibility implemented on 2026-01-19
 
-#### Step 5.2: Fix Touch Targets
-**Modify:** Home screen menu items, settings buttons
-- Ensure minimum 48x48px touch areas
+#### Step 5.1: Add Semantic Labels ✅
+**File:** `lib/widgets/accessible_touch_target.dart` (NEW)
+- Created reusable `AccessibleTouchTarget` widget for consistent accessibility
+- Created `AccessibleIconButton` for icon buttons with proper semantics
+- Added haptic feedback support
+
+**Modified widgets with Semantics:**
+- `home_screen.dart` - Menu items, profile buttons, quick start sheet
+- `loading_button.dart` - Loading state announced to screen readers
+- `empty_state.dart` - Empty state messages properly labeled
+- `filter_chip.dart` - Filter selection state announced
+
+#### Step 5.2: Fix Touch Targets ✅
+**Modified:** Home screen, widgets
+- `_ProfileIconButton` - 48x48 touch target wrapping 36x36 visual
+- `_CollapsedProfileButton` - 48x48 touch target
+- `_ArrowCountButton` - 48x48 touch targets with semantic labels
+- `_RetroSheetItem` - Minimum 48px height constraint
+- Quick start round type buttons - Minimum 44px height
+- `AppFilterChip` - Minimum 44px height constraint
 
 #### Step 5.3: Test with Screen Reader
-- Enable VoiceOver (iOS) / TalkBack (Android)
-- Navigate through all screens
-- Fix any unlabeled elements
+- ✅ Semantic labels added to interactive elements
+- ⏳ Manual testing with VoiceOver/TalkBack pending
+- ⏳ Fix any remaining unlabeled elements as discovered
 
 ---
 
@@ -632,7 +646,7 @@ class LoadingButton extends StatelessWidget {
 | Loading States | C+ | B+ | Critical | Partial |
 | Input Validation | **B+** | B | Critical | ✅ **COMPLETE** |
 | Test Coverage | **48%** | 40% | High | ✅ **EXCEEDED** |
-| Accessibility | D | B | Medium | |
+| Accessibility | **C+** | B | Medium | ✅ **PARTIAL** |
 | Code Duplication | **B** | B | Low | ✅ **COMPLETE** |
 | Documentation | B | B+ | Low | |
 
@@ -641,7 +655,7 @@ class LoadingButton extends StatelessWidget {
 - Phase 2 (Testing): ✅ **COMPLETE** (2026-01-16)
 - Phase 3 (UX): In Progress
 - Phase 4 (Quality): ✅ **PARTIALLY COMPLETE** (2026-01-19)
-- Phase 5 (A11y): Pending
+- Phase 5 (A11y): ✅ **PARTIALLY COMPLETE** (2026-01-19)
 
 ---
 
@@ -815,7 +829,7 @@ Batch updates also now run in parallel.
 | P2 | Magic numbers everywhere | Maintainability | Multiple widgets | Pending |
 | P2 | Limited date formats | UX | Import screens | Pending |
 | ~~P2~~ | ~~No equipment delete~~ | ~~Feature Gap~~ | ~~equipment_provider.dart~~ | ✅ FIXED |
-| P2 | No accessibility features | Accessibility | App-wide | Pending |
+| ~~P2~~ | ~~No accessibility features~~ | ~~Accessibility~~ | ~~App-wide~~ | ✅ PARTIAL |
 | P3 | BeepService silent failures | Debugging | beep_service.dart | Acceptable |
 | P3 | Hardcoded handicap tables | Maintainability | handicap_calculator.dart | Acceptable |
 | P3 | Print statements in prod | Code Quality | firestore_sync_service.dart | Pending |
@@ -903,11 +917,11 @@ This should be the **reference implementation** for other screens.
 | Loading States | C+ | EmptyState available, adoption needed |
 | Input Validation | **B+** | ✅ FormValidationMixin in place |
 | Test Coverage | **A-** | ✅ ~48% coverage, 1,348 tests |
-| Accessibility | D | Not implemented |
+| Accessibility | **C+** | ✅ Semantic labels + touch targets added, VoiceOver testing pending |
 | Code Duplication | **B** | ✅ RoundMatcher, EmptyState extracted |
 | Performance | **B+** | ✅ Parallel loading, UUID IDs |
 | Security | B | Firebase handles auth well |
-| **Overall** | **A-** | Strong foundation, accessibility pending |
+| **Overall** | **A-** | Strong foundation, VoiceOver testing pending |
 
 ---
 

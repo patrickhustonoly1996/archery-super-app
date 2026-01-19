@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 
 /// Reusable filter chip widget.
@@ -43,41 +44,51 @@ class AppFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: 0.15) : AppColors.surfaceLight,
-          borderRadius: BorderRadius.circular(AppSpacing.sm),
-          border: Border.all(
-            color: isSelected ? color.withValues(alpha: 0.5) : Colors.transparent,
-            width: 1,
+    return Semantics(
+      button: true,
+      label: '$label filter, $count items',
+      selected: isSelected,
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
+        child: Container(
+          // Ensure minimum touch target height
+          constraints: const BoxConstraints(minHeight: 44),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: isSelected ? color : AppColors.textMuted,
-                shape: BoxShape.circle,
+          decoration: BoxDecoration(
+            color: isSelected ? color.withValues(alpha: 0.15) : AppColors.surfaceLight,
+            borderRadius: BorderRadius.circular(AppSpacing.sm),
+            border: Border.all(
+              color: isSelected ? color.withValues(alpha: 0.5) : Colors.transparent,
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: isSelected ? color : AppColors.textMuted,
+                  shape: BoxShape.circle,
+                ),
               ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              '$label ($count)',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isSelected ? color : AppColors.textMuted,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  ),
-            ),
-          ],
+              const SizedBox(width: 6),
+              Text(
+                '$label ($count)',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: isSelected ? color : AppColors.textMuted,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    ),
+              ),
+            ],
+          ),
         ),
       ),
     );
