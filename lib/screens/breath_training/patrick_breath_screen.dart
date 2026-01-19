@@ -26,10 +26,11 @@ class PatrickBreathScreen extends StatefulWidget {
 
 enum PatrickState {
   idle,
-  warmup,   // 2 sets of paced breathing before first test
-  exhaling, // Timing the exhale
-  recovery, // Paced breathing after exhale
-  complete, // Session finished, showing results
+  warmup,      // 2 sets of paced breathing before first test
+  preparation, // Brief pause with instruction before exhale
+  exhaling,    // Timing the exhale
+  recovery,    // Paced breathing after exhale
+  complete,    // Session finished, showing results
 }
 
 class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
@@ -37,6 +38,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
   static const int _exhaleSeconds = 6;
   static const int _recoveryBreaths = 4;
   static const int _warmupBreaths = 2; // 2 sets of paced breathing before test
+  static const int _preparationSeconds = 3; // Countdown before exhale starts
 
   final _service = BreathTrainingService();
   final _beepService = BeepService();
@@ -53,6 +55,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
   int _recoveryBreathCount = 0;
   int _warmupBreathCount = 0;
   int _phaseSecondsRemaining = 0;
+  int _preparationCountdown = 0;
   double _phaseProgress = 0.0;
 
   // Session stats
@@ -144,11 +147,10 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
           _warmupBreathCount++;
 
           if (_warmupBreathCount >= _warmupBreaths) {
-            // Warmup complete - ready for exhale test
+            // Warmup complete - transition to preparation
             _timer?.cancel();
-            _state = PatrickState.idle;
-            _breathPhase = BreathPhase.idle;
-            _vibration.double();
+            _startPreparation();
+            return;
           } else {
             _breathPhase = BreathPhase.inhale;
             _phaseSecondsRemaining = _inhaleSeconds;
@@ -164,8 +166,30 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
     });
   }
 
+  void _startPreparation() {
+    _vibration.double();
+    setState(() {
+      _state = PatrickState.preparation;
+      _breathPhase = BreathPhase.idle;
+      _preparationCountdown = _preparationSeconds;
+      _phaseProgress = 0.0;
+    });
+
+    _timer = Timer.periodic(const Duration(seconds: 1), _tickPreparation);
+  }
+
+  void _tickPreparation(Timer timer) {
+    setState(() {
+      _preparationCountdown--;
+      if (_preparationCountdown <= 0) {
+        _timer?.cancel();
+        _startExhale();
+      }
+    });
+  }
+
   void _startExhale() {
-    _vibration.medium();
+    if (_vibrationsEnabled) _vibration.medium();
     _timer?.cancel();
 
     setState(() {
@@ -367,10 +391,12 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
         return _exhaleTimes.isEmpty ? 'Ready' : 'Ready for Another';
       case PatrickState.warmup:
         return _breathPhase == BreathPhase.inhale ? 'Breathe In' : 'Breathe Out';
+      case PatrickState.preparation:
+        return 'Get Ready';
       case PatrickState.exhaling:
         return 'Exhaling';
       case PatrickState.recovery:
-        return _breathPhase == BreathPhase.inhale ? 'Breathe In' : 'Breathe Out';
+        return _breathPhase == BreathPhase.inhale ? 'Breathe In Slowly' : 'Breathe Out Slowly';
       case PatrickState.complete:
         return 'Session Complete';
     }
@@ -381,13 +407,15 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
       case PatrickState.idle:
         return _exhaleTimes.isEmpty
             ? 'Tap Start to warm up'
-            : 'Hold button to test again, or tap Done';
+            : 'Tap button to test again, or tap Done';
       case PatrickState.warmup:
         return 'Warmup breath ${_warmupBreathCount + 1}/$_warmupBreaths';
+      case PatrickState.preparation:
+        return 'Exhale nasally and slowly\nControl the rate of air flow';
       case PatrickState.exhaling:
-        return 'Keep going... release when empty';
+        return 'Slow and steady through the nose...';
       case PatrickState.recovery:
-        return 'Recovery breath ${_recoveryBreathCount + 1}/$_recoveryBreaths';
+        return 'Breathe easily and slowly\nThis is where the benefit is made';
       case PatrickState.complete:
         return '';
     }
@@ -403,6 +431,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
     final isExhaling = _state == PatrickState.exhaling;
     final isRecovering = _state == PatrickState.recovery;
     final isWarmup = _state == PatrickState.warmup;
+    final isPreparation = _state == PatrickState.preparation;
     final isIdle = _state == PatrickState.idle;
     final needsWarmup = _exhaleTimes.isEmpty && isIdle;
     final isActive = _state != PatrickState.idle && _state != PatrickState.complete;
@@ -485,6 +514,11 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
                     // Main visualizer
                     if (isExhaling)
                       _ExhaleTimer(seconds: _currentExhaleTime)
+                    else if (isPreparation)
+                      _PreparationCountdown(
+                        seconds: _preparationCountdown,
+                        instruction: _instructionText,
+                      )
                     else
                       BreathingVisualizer(
                         progress: _phaseProgress,
@@ -605,49 +639,43 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
                           ),
                         ),
                       ),
-                    ] else if (isRecovering) ...[
-                      // Recovery in progress - no buttons
-                      const SizedBox(
-                        height: 80,
-                        child: Center(
-                          child: Text(
-                            'Recovering...',
-                            style: TextStyle(color: AppColors.textMuted),
+                    ] else if (isPreparation) ...[
+                      // Preparation countdown - no buttons needed
+                      const SizedBox(height: 80),
+                    ] else if (isExhaling) ...[
+                      // Exhale in progress - show Stop button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: _stopExhale,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.error,
+                          ),
+                          child: const Text(
+                            'Stop',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
+                    ] else if (isRecovering) ...[
+                      // Recovery in progress - show toggles
+                      _buildInSessionToggles(),
                     ] else ...[
-                      // Main exhale button
-                      GestureDetector(
-                        onLongPressStart: (_) {
-                          if (!isRecovering && !isWarmup) _startExhale();
-                        },
-                        onLongPressEnd: (_) {
-                          if (isExhaling) _stopExhale();
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: isExhaling
-                                ? AppColors.gold
-                                : AppColors.surfaceDark,
-                            borderRadius: BorderRadius.circular(AppSpacing.md),
-                            border: Border.all(
-                              color: AppColors.gold,
-                              width: 2,
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              isExhaling ? 'Release to Stop' : 'Hold to Exhale',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: isExhaling
-                                    ? AppColors.backgroundDark
-                                    : AppColors.gold,
-                              ),
+                      // Idle after at least one test - tap to start another
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: _startPreparation,
+                          child: const Text(
+                            'Test Again',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -656,7 +684,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
                       const SizedBox(height: AppSpacing.md),
 
                       // Done button (only show after at least one test)
-                      if (_exhaleTimes.isNotEmpty && !isExhaling)
+                      if (_exhaleTimes.isNotEmpty)
                         SizedBox(
                           width: double.infinity,
                           height: 48,
@@ -682,6 +710,47 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
                 ),
         ),
       ),
+      ),
+    );
+  }
+
+  Widget _buildInSessionToggles() {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark,
+        borderRadius: BorderRadius.circular(AppSpacing.sm),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _InSessionToggle(
+            icon: Icons.vibration,
+            label: 'Vibration',
+            value: _vibrationsEnabled,
+            onChanged: (value) async {
+              setState(() => _vibrationsEnabled = value);
+              await _vibration.setEnabled(value);
+            },
+          ),
+          Container(
+            width: 1,
+            height: 32,
+            color: AppColors.surfaceLight,
+          ),
+          _InSessionToggle(
+            icon: Icons.volume_up,
+            label: 'Sound',
+            value: _beepsEnabled,
+            onChanged: (value) async {
+              setState(() => _beepsEnabled = value);
+              await _service.setBeepsEnabled(value);
+              if (value) {
+                await _beepService.initialize();
+              }
+            },
+          ),
+        ],
       ),
     );
   }
@@ -885,6 +954,118 @@ class _ResultItem extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _PreparationCountdown extends StatelessWidget {
+  final int seconds;
+  final String instruction;
+
+  const _PreparationCountdown({
+    required this.seconds,
+    required this.instruction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 280,
+      height: 280,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.surfaceDark,
+        border: Border.all(
+          color: AppColors.gold,
+          width: 3,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            '$seconds',
+            style: TextStyle(
+              fontFamily: AppFonts.mono,
+              fontSize: 72,
+              color: AppColors.gold,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Text(
+              instruction,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InSessionToggle extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _InSessionToggle({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => onChanged(!value),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            color: value ? AppColors.gold : AppColors.textMuted,
+            size: 20,
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: value ? AppColors.gold : AppColors.textMuted,
+                ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Container(
+            width: 36,
+            height: 20,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: value
+                  ? AppColors.gold.withOpacity(0.3)
+                  : AppColors.surfaceLight,
+            ),
+            child: AnimatedAlign(
+              duration: const Duration(milliseconds: 150),
+              alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+              child: Container(
+                width: 16,
+                height: 16,
+                margin: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: value ? AppColors.gold : AppColors.textMuted,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
