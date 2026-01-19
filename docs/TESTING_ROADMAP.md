@@ -16,7 +16,7 @@ The codebase **doubled** since the last roadmap was written. Tests didn't keep u
 | Services | 5 | 20 | +15 untested |
 | Providers | 5 | 13 | +8 untested |
 | Utils | 8 | 18 | +10 untested |
-| Tests | ~1,350 | 1,887 | +40% (should be +118%) |
+| Tests | ~1,350 | 2,026 | +50% (should be +118%) |
 
 **Result:** Core foundation is solid, but the new features ship bugs.
 
@@ -24,7 +24,7 @@ The codebase **doubled** since the last roadmap was written. Tests didn't keep u
 
 ## Current Coverage (Honest)
 
-### Services: 9/20 tested (45%)
+### Services: 10/20 tested (50%)
 
 | Status | Service | Risk Level | Notes |
 |--------|---------|------------|-------|
@@ -36,7 +36,7 @@ The codebase **doubled** since the last roadmap was written. Tests didn't keep u
 | ✅ | scan_motion_service | - | Tested |
 | ✅ | sync_service | - | Tested |
 | ✅ | stripe_service | - | Tested |
-| ❌ | **classification_service** | HIGH | Wrong classifications shown |
+| ✅ | classification_service | - | Tested |
 | ❌ | **xp_calculation_service** | HIGH | XP/levels could break |
 | ✅ | training_session_service | - | Tested |
 | ❌ | **vision_api_service** | MEDIUM | Auto-plot failures |
@@ -473,7 +473,7 @@ void main() {
 | stripe_service_test | Claude | ✅ COMPLETE | 92 | 2026-01-19 |
 | user_profile_provider_test | Claude | ✅ COMPLETE | 129 | 2026-01-19 |
 | training_session_service_test | Claude | ✅ COMPLETE | 36 | 2026-01-19 |
-| classification_service_test | - | NOT STARTED | 0 | - |
+| classification_service_test | Claude | ✅ COMPLETE | 139 | 2026-01-19 |
 | classification_provider_test | - | NOT STARTED | 0 | - |
 | sight_marks_provider_test | - | NOT STARTED | 0 | - |
 | sight_mark_calculator_test | - | NOT STARTED | 0 | - |
