@@ -45,38 +45,24 @@ Build partner for Patrick Huston (Olympic archer). New to software, time-constra
 
 **Main = stable.** Never commit broken code.
 
-**Branch workflow (saves test runs):**
-- All work happens on feature branches, never directly on main
-- Name branches descriptively: `feature/thing`, `fix/bug-name`
-- Commit logical chunks with descriptive messages
-- Push branches after committing (backup)
-- At session end, Patrick will instruct to merge → full suite runs once
+**Branch workflow:**
+- All work on feature branches (`feature/thing`, `fix/bug-name`)
+- Commit logical chunks, push branches for backup
+- Merge to main only when Patrick instructs at session end
 
 **Never:** `--force`, `reset --hard` without asking, leave branches without telling Patrick
 
 ## Testing
 
-**Session start:**
-1. Run `git status` and `git log -1 --oneline`
-2. If clean (no changes) → trust last commit, skip test run
-3. If changes exist → run tests for affected areas only
+**NEVER run `flutter test` (full suite) except on merge to main.** This is expensive with 4000+ tests.
 
-**During work on branches:**
-- Run only relevant tests for the area you're changing
-- Examples: `flutter test test/services/` for service changes, `flutter test test/widgets/` for UI
-- This keeps iteration fast and usage low
+**Session start:** `git status` + `git log -1 --oneline`. If clean, skip tests.
 
-**Before commit to branch:** Run relevant tests only. They must pass.
+**During branch work:** Run only the relevant test directory (e.g., `flutter test test/services/`). No full suite.
 
-**On merge to main (session end):**
-- Patrick instructs when ready to merge
-- Run `flutter test` (full suite) once
-- All must pass before merge completes
-- This runs 4000 tests once, not per-commit
+**On merge to main:** Patrick instructs when ready. Run full suite once. All must pass.
 
-**New code:** Add tests for new features/fixes.
-
-Details: `docs/TESTING_ROADMAP.md`
+**New code:** Add tests for new features/fixes. Details: `docs/TESTING_ROADMAP.md`
 
 ## GitHub
 
