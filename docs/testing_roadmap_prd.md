@@ -22,7 +22,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test dataIntegrity synced data matches original
 - [ ] Test deletionSync deletes propagate correctly
 - [ ] Test networkFailure graceful degradation
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/services/sync_service_test.dart` and verify all pass
 
 ### US-002: User Profile Provider Tests
 **As a** developer
@@ -36,7 +36,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test createProfile new user flow works
 - [ ] Test validateProfile rejects invalid data
 - [ ] Test defaultValues sensible defaults for missing fields
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/providers/user_profile_provider_test.dart` and verify all pass
 
 ### US-003: Training Session Service Tests
 **As a** developer
@@ -51,7 +51,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test resumeSession resumes incomplete sessions
 - [ ] Test cancelSession cleanup without corruption
 - [ ] Test sessionStatistics calculates correctly
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/services/training_session_service_test.dart` and verify all pass
 
 ### US-004: Stripe Service Tests
 **As a** developer
@@ -67,7 +67,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test expirationHandling expired subs lock correctly
 - [ ] Test priceIdMapping correct prices for tiers
 - [ ] Test errorRecovery handles Stripe API failures
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/services/stripe_service_test.dart` and verify all pass
 
 ### US-005: Entitlement Provider Tests
 **As a** developer
@@ -83,7 +83,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test readOnlyMode correct behavior after grace
 - [ ] Test featureGating each feature checks correctly
 - [ ] Test offlineEntitlement works without network
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/providers/entitlement_provider_test.dart` and verify all pass
 
 ### US-006: Classification Service Tests
 **As a** developer
@@ -98,7 +98,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test genderClassification gender categories
 - [ ] Test roundTypeClassification indoor/outdoor/field
 - [ ] Test progressTracking tracks toward next classification
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/services/classification_service_test.dart` and verify all pass
 
 ### US-007: Classification Provider Tests
 **As a** developer
@@ -111,7 +111,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test currentClassification returns current correctly
 - [ ] Test classificationHistory returns history
 - [ ] Test nextClassificationTarget calculates next goal
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/providers/classification_provider_test.dart` and verify all pass
 
 ### US-008: Sight Marks Provider Tests
 **As a** developer
@@ -126,7 +126,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test getSightMarkForDistance returns correct mark
 - [ ] Test interpolateSightMark calculates between marks
 - [ ] Test bowSpecificMarks different marks per bow
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/providers/sight_marks_provider_test.dart` and verify all pass
 
 ### US-009: Sight Mark Calculator Tests
 **As a** developer
@@ -141,7 +141,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test clickConversion sight clicks to distance
 - [ ] Test unitConversion metric/imperial handling
 - [ ] Test edgeCases zero, negative, extreme values
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/utils/sight_mark_calculator_test.dart` and verify all pass
 
 ### US-010: XP Calculation Service Tests
 **As a** developer
@@ -155,7 +155,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test levelUpDetection detects level boundaries
 - [ ] Test xpMultipliers streak/bonus multipliers
 - [ ] Test xpHistory tracks XP gains
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/services/xp_calculation_service_test.dart` and verify all pass
 
 ### US-011: Round Matcher Tests
 **As a** developer
@@ -169,7 +169,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test partialRounds incomplete round detection
 - [ ] Test indoorVsOutdoor distinguishes correctly
 - [ ] Test fieldRounds field archery rounds
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/utils/round_matcher_test.dart` and verify all pass
 
 ### US-012: Auto-Plot Provider Tests
 **As a** developer
@@ -183,7 +183,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test confirmPlot confirms detected positions
 - [ ] Test cancelAutoPlot cleanup on cancel
 - [ ] Test quotaTracking tracks monthly usage
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/providers/auto_plot_provider_test.dart` and verify all pass
 
 ### US-013: Vision API Service Tests
 **As a** developer
@@ -196,7 +196,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test parseResponse parses API response
 - [ ] Test errorHandling handles API failures
 - [ ] Test coordinateMapping maps to target coords
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/services/vision_api_service_test.dart` and verify all pass
 
 ### US-014: Skills Provider Tests
 **As a** developer
@@ -208,7 +208,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test loadSkills loads skill data
 - [ ] Test updateSkill updates skill level
 - [ ] Test skillProgress calculates progress
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/providers/skills_provider_test.dart` and verify all pass
 
 ### US-015: Shaft Analysis Tests
 **As a** developer
@@ -221,7 +221,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test shotCount tracks shots per shaft
 - [ ] Test wearIndicators identifies wear patterns
 - [ ] Test replacementSuggestion suggests when to replace
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/utils/shaft_analysis_test.dart` and verify all pass
 
 ### US-016: Tuning Suggestions Tests
 **As a** developer
@@ -233,7 +233,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test analyzeTuning analyzes arrow patterns
 - [ ] Test suggestAdjustments recommends changes
 - [ ] Test prioritizeSuggestions orders by impact
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/utils/tuning_suggestions_test.dart` and verify all pass
 
 ### US-017: Undo Manager Tests
 **As a** developer
@@ -247,20 +247,20 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test redo reapplies undone action
 - [ ] Test clearHistory clears undo stack
 - [ ] Test maxStackSize respects stack limit
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/utils/undo_manager_test.dart` and verify all pass
 
-### US-018: Scorecard Export Service Tests
+### US-018: Scorecard Export Service Tests ✅
 **As a** developer
 **I want** comprehensive tests for scorecard_export_service.dart
 **So that** export functionality works correctly
 
 #### Acceptance Criteria
-- [ ] Create test/services/scorecard_export_service_test.dart
-- [ ] Test exportToPdf generates PDF correctly
-- [ ] Test exportToCsv generates CSV correctly
-- [ ] Test formatScores formats scores for export
-- [ ] Test errorHandling handles export failures
-- [ ] Run flutter test and verify all pass
+- [x] Create test/services/scorecard_export_service_test.dart
+- [x] Test exportToPdf generates PDF correctly
+- [x] Test exportToCsv generates CSV correctly
+- [x] Test formatScores formats scores for export
+- [x] Test errorHandling handles export failures
+- [x] Run `flutter test test/services/scorecard_export_service_test.dart` and verify all pass
 
 ### US-019: Weather Service Tests
 **As a** developer
@@ -273,7 +273,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test parseResponse parses API response
 - [ ] Test cacheWeather caches results
 - [ ] Test offlineHandling works with cache
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/services/weather_service_test.dart` and verify all pass
 
 ### US-020: Membership Card Service Tests
 **As a** developer
@@ -284,7 +284,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Create test/services/membership_card_service_test.dart
 - [ ] Test generateCard creates card image
 - [ ] Test validateMembership checks status
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/services/membership_card_service_test.dart` and verify all pass
 
 ### US-021: Signature Service Tests
 **As a** developer
@@ -296,7 +296,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test captureSignature captures data
 - [ ] Test saveSignature persists signature
 - [ ] Test loadSignature retrieves saved
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/services/signature_service_test.dart` and verify all pass
 
 ### US-022: Connectivity Provider Tests
 **As a** developer
@@ -307,7 +307,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Create test/providers/connectivity_provider_test.dart
 - [ ] Test checkConnectivity detects status
 - [ ] Test onConnectivityChange notifies on change
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/providers/connectivity_provider_test.dart` and verify all pass
 
 ### US-023: Spider Graph Provider Tests
 **As a** developer
@@ -319,7 +319,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test loadGraphData loads data for graph
 - [ ] Test calculateAxes calculates axis values
 - [ ] Test normalizeData normalizes for display
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/providers/spider_graph_provider_test.dart` and verify all pass
 
 ### US-024: Error Handler Tests
 **As a** developer
@@ -330,7 +330,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Create test/utils/error_handler_test.dart
 - [ ] Test handleError processes errors correctly
 - [ ] Test formatMessage user-friendly messages
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/utils/error_handler_test.dart` and verify all pass
 
 ### US-025: Chiptune Service Tests
 **As a** developer
@@ -342,7 +342,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test playSound plays audio
 - [ ] Test stopSound stops audio
 - [ ] Test volumeControl adjusts volume
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/services/chiptune_service_test.dart` and verify all pass
 
 ### US-026: Chiptune Generator Tests
 **As a** developer
@@ -353,7 +353,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Create test/services/chiptune_generator_test.dart
 - [ ] Test generateTone creates audio tone
 - [ ] Test waveformTypes different waveforms
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/services/chiptune_generator_test.dart` and verify all pass
 
 ### US-027: Vibration Service Tests
 **As a** developer
@@ -365,7 +365,7 @@ Ship a reliable app - no data loss, no payment bugs. 560 new tests across 27 fil
 - [ ] Test vibrate triggers vibration
 - [ ] Test vibratePattern vibration patterns
 - [ ] Test checkSupport checks device support
-- [ ] Run flutter test and verify all pass
+- [ ] Run `flutter test test/services/vibration_service_test.dart` and verify all pass
 
 ## Quality Gates
 
