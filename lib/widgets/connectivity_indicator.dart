@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/connectivity_provider.dart';
+import '../providers/accessibility_provider.dart';
 
 /// Subtle connectivity status indicator shown in app bar
 ///
@@ -37,12 +38,15 @@ class _ConnectivityIndicatorState extends State<ConnectivityIndicator>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ConnectivityProvider>(
-      builder: (context, connectivity, _) {
+    return Consumer2<ConnectivityProvider, AccessibilityProvider>(
+      builder: (context, connectivity, accessibility, _) {
         // Clean state - online and not syncing
         if (connectivity.isOnline && !connectivity.isSyncing) {
           return const SizedBox.shrink();
         }
+
+        // Use colorblind-friendly error color
+        final errorColor = AccessibleColors.getErrorColor(accessibility.colorblindMode);
 
         return Semantics(
           label: connectivity.isOffline
@@ -53,7 +57,7 @@ class _ConnectivityIndicatorState extends State<ConnectivityIndicator>
             decoration: BoxDecoration(
               border: Border.all(
                 color: connectivity.isOffline
-                    ? AppColors.error.withValues(alpha: 0.3)
+                    ? errorColor.withValues(alpha: 0.3)
                     : AppColors.gold.withValues(alpha: 0.3),
                 width: 1,
               ),
@@ -61,9 +65,11 @@ class _ConnectivityIndicatorState extends State<ConnectivityIndicator>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Icon
+                // Icon - respect reduce motion setting
                 if (connectivity.isOffline)
-                  const _OfflineIcon(size: 16)
+                  _OfflineIcon(size: 16, color: errorColor)
+                else if (accessibility.reduceMotion)
+                  const _SyncIcon(size: 16) // Static icon when motion reduced
                 else
                   RotationTransition(
                     turns: _spinController,
@@ -77,7 +83,7 @@ class _ConnectivityIndicatorState extends State<ConnectivityIndicator>
                     fontFamily: AppFonts.pixel,
                     fontSize: 8,
                     color: connectivity.isOffline
-                        ? AppColors.error
+                        ? errorColor
                         : AppColors.gold,
                     letterSpacing: 1,
                   ),
@@ -94,23 +100,28 @@ class _ConnectivityIndicatorState extends State<ConnectivityIndicator>
 /// Cloud with X icon (offline indicator)
 class _OfflineIcon extends StatelessWidget {
   final double size;
+  final Color color;
 
-  const _OfflineIcon({required this.size});
+  const _OfflineIcon({required this.size, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
       size: Size(size, size),
-      painter: _OfflineIconPainter(),
+      painter: _OfflineIconPainter(color: color),
     );
   }
 }
 
 class _OfflineIconPainter extends CustomPainter {
+  final Color color;
+
+  _OfflineIconPainter({required this.color});
+
   @override
   void paint(Canvas canvas, Size size) {
     final p = size.width / 12; // 12x12 pixel grid
-    final paint = Paint()..color = AppColors.error;
+    final paint = Paint()..color = color;
 
     // Cloud shape
     // Top of cloud
@@ -140,7 +151,7 @@ class _OfflineIconPainter extends CustomPainter {
     _px(canvas, 9, 7, p, paint);
 
     // X mark (diagonal lines)
-    final xPaint = Paint()..color = AppColors.error;
+    final xPaint = Paint()..color = color;
     // Top-left to bottom-right
     _px(canvas, 4, 4, p, xPaint);
     _px(canvas, 5, 5, p, xPaint);
@@ -156,7 +167,8 @@ class _OfflineIconPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _OfflineIconPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 /// Circular sync/refresh icon

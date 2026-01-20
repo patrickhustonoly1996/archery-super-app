@@ -57,6 +57,144 @@ class AppColors {
   static const ring3 = Color(0xFF212121);
   static const ring2 = Color(0xFFEEEEEE); // White
   static const ring1 = Color(0xFFEEEEEE);
+
+  // =========================================================================
+  // COLORBLIND-FRIENDLY PALETTES
+  // =========================================================================
+
+  // Deuteranopia/Protanopia-friendly ring colors
+  // Replaces red with orange, keeps blue distinct
+  static const cbRing8Deutan = Color(0xFFFF8C00); // Dark orange (replaces red)
+  static const cbRing7Deutan = Color(0xFFFF8C00);
+  static const cbRing6Deutan = Color(0xFF1E88E5); // Darker blue (more distinct)
+  static const cbRing5Deutan = Color(0xFF1E88E5);
+
+  // Tritanopia-friendly ring colors
+  // Replaces blue with pink/purple
+  static const cbRing8Tritan = Color(0xFFE53935); // Keep red
+  static const cbRing7Tritan = Color(0xFFE53935);
+  static const cbRing6Tritan = Color(0xFFAB47BC); // Purple (replaces blue)
+  static const cbRing5Tritan = Color(0xFFAB47BC);
+
+  // High contrast mode - uses very distinct colors
+  static const cbRing8HighContrast = Color(0xFFFF6B00); // Bright orange
+  static const cbRing7HighContrast = Color(0xFFFF6B00);
+  static const cbRing6HighContrast = Color(0xFF00B8D4); // Cyan (distinct from orange)
+  static const cbRing5HighContrast = Color(0xFF00B8D4);
+
+  // Colorblind-friendly status colors
+  static const cbErrorDeutan = Color(0xFFFF6B00); // Orange instead of red
+  static const cbErrorTritan = Color(0xFFCF6679); // Keep pink/red
+  static const cbErrorHighContrast = Color(0xFFFF6B00); // Bright orange
+
+  // Colorblind-friendly chart colors (practice vs competition)
+  static const cbPracticeDeutan = Color(0xFF00B8D4); // Teal (distinct from gold)
+  static const cbPracticeTritan = Color(0xFF00E5FF); // Cyan
+  static const cbPracticeHighContrast = Color(0xFF00BFA5); // Teal
+}
+
+/// Provides colorblind-friendly colors based on the current accessibility mode
+class AccessibleColors {
+  /// Get the ring color for a given score, adjusted for colorblind mode
+  static Color getRingColor(int score, ColorblindMode mode) {
+    // Gold, black, and white rings are fine for all colorblind types
+    if (score >= 9) return AppColors.ring10; // Gold
+    if (score <= 4 && score >= 3) return AppColors.ring4; // Black
+    if (score <= 2 && score >= 1) return AppColors.ring2; // White
+
+    // Red and blue rings need adjustment based on colorblind type
+    switch (mode) {
+      case ColorblindMode.none:
+        if (score >= 7) return AppColors.ring8; // Red
+        return AppColors.ring6; // Blue
+
+      // Red-green colorblindness (most common) - use orange instead of red
+      case ColorblindMode.deuteranopia:
+      case ColorblindMode.protanopia:
+      case ColorblindMode.deuteranomaly:
+      case ColorblindMode.protanomaly:
+        if (score >= 7) return AppColors.cbRing8Deutan; // Orange
+        return AppColors.cbRing6Deutan; // Darker blue
+
+      // Blue-yellow colorblindness - use purple instead of blue
+      case ColorblindMode.tritanopia:
+      case ColorblindMode.tritanomaly:
+        if (score >= 7) return AppColors.cbRing8Tritan; // Red
+        return AppColors.cbRing6Tritan; // Purple
+
+      // Monochrome vision - use distinct grayscale values
+      case ColorblindMode.achromatopsia:
+        if (score >= 7) return const Color(0xFF808080); // Mid gray
+        return const Color(0xFFB0B0B0); // Light gray
+
+      case ColorblindMode.highContrast:
+        if (score >= 7) return AppColors.cbRing8HighContrast; // Bright orange
+        return AppColors.cbRing6HighContrast; // Cyan
+    }
+  }
+
+  /// Get error/warning color adjusted for colorblind mode
+  static Color getErrorColor(ColorblindMode mode) {
+    switch (mode) {
+      case ColorblindMode.none:
+        return AppColors.error;
+      case ColorblindMode.deuteranopia:
+      case ColorblindMode.protanopia:
+      case ColorblindMode.deuteranomaly:
+      case ColorblindMode.protanomaly:
+        return AppColors.cbErrorDeutan; // Orange
+      case ColorblindMode.tritanopia:
+      case ColorblindMode.tritanomaly:
+        return AppColors.cbErrorTritan;
+      case ColorblindMode.achromatopsia:
+        return const Color(0xFF606060); // Dark gray
+      case ColorblindMode.highContrast:
+        return AppColors.cbErrorHighContrast;
+    }
+  }
+
+  /// Get practice/secondary chart color adjusted for colorblind mode
+  static Color getPracticeColor(ColorblindMode mode) {
+    switch (mode) {
+      case ColorblindMode.none:
+        return AppColors.neonCyan;
+      case ColorblindMode.deuteranopia:
+      case ColorblindMode.protanopia:
+      case ColorblindMode.deuteranomaly:
+      case ColorblindMode.protanomaly:
+        return AppColors.cbPracticeDeutan; // Teal
+      case ColorblindMode.tritanopia:
+      case ColorblindMode.tritanomaly:
+        return AppColors.cbPracticeTritan;
+      case ColorblindMode.achromatopsia:
+        return const Color(0xFFB0B0B0); // Light gray
+      case ColorblindMode.highContrast:
+        return AppColors.cbPracticeHighContrast;
+    }
+  }
+
+  /// Check if patterns should be used (for complete colorblindness or high contrast)
+  static bool shouldUsePatterns(ColorblindMode mode) {
+    return mode == ColorblindMode.achromatopsia || mode == ColorblindMode.highContrast;
+  }
+
+  /// Check if ring labels should be shown (helpful for complete colorblindness)
+  static bool shouldShowRingLabels(ColorblindMode mode) {
+    return mode == ColorblindMode.achromatopsia || mode == ColorblindMode.highContrast;
+  }
+}
+
+/// Colorblind mode enum - must match AccessibilityProvider.ColorblindMode
+enum ColorblindMode {
+  none,
+  deuteranopia,
+  protanopia,
+  deuteranomaly,
+  protanomaly,
+  tritanopia,
+  tritanomaly,
+  achromatopsia,
+  highContrast,
 }
 
 /// Traditional archery award colours
@@ -249,22 +387,22 @@ class AppTheme {
         // Body text - Share Tech Mono for readability
         bodyLarge: TextStyle(
           fontFamily: AppFonts.body,
-          fontSize: 15,
+          fontSize: 17,
           color: AppColors.textPrimary,
         ),
         bodyMedium: TextStyle(
           fontFamily: AppFonts.body,
-          fontSize: 14,
+          fontSize: 16,
           color: AppColors.textPrimary,
         ),
         bodySmall: TextStyle(
           fontFamily: AppFonts.body,
-          fontSize: 12,
+          fontSize: 14,
           color: AppColors.textSecondary,
         ),
         labelLarge: TextStyle(
           fontFamily: AppFonts.body,
-          fontSize: 14,
+          fontSize: 16,
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimary,
         ),

@@ -9,6 +9,7 @@ import '../db/database.dart';
 import '../models/user_profile.dart';
 import '../widgets/pixel_archer_icon.dart';
 import '../services/sample_data_seeder.dart';
+import '../providers/accessibility_provider.dart';
 import 'federation_form_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -213,6 +214,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     hint: 'Club access codes, locker number, etc.',
                     maxLines: 4,
                   ),
+
+                  const SizedBox(height: 32),
+
+                  // Accessibility section
+                  _buildSectionHeader('ACCESSIBILITY'),
+                  const SizedBox(height: 12),
+                  _buildAccessibilitySection(),
 
                   const SizedBox(height: 32),
 
@@ -1108,6 +1116,410 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   bool _isExpired(DateTime date) {
     return date.isBefore(DateTime.now());
+  }
+
+  Widget _buildAccessibilitySection() {
+    return Consumer<AccessibilityProvider>(
+      builder: (context, accessibility, _) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ===== TEXT & DISPLAY =====
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceLight,
+                border: Border.all(color: AppColors.surfaceBright),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.text_fields, color: AppColors.gold, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Text & Display',
+                        style: TextStyle(
+                          fontFamily: AppFonts.body,
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Text size selector
+                  Text(
+                    'Text Size',
+                    style: TextStyle(
+                      fontFamily: AppFonts.body,
+                      fontSize: 13,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: TextScaleOption.values.map((scale) {
+                      final isSelected = accessibility.textScale == scale;
+                      return Expanded(
+                        child: GestureDetector(
+                          onTap: () => accessibility.setTextScale(scale),
+                          child: Container(
+                            margin: EdgeInsets.only(
+                              right: scale != TextScaleOption.values.last ? 8 : 0,
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? AppColors.gold.withValues(alpha: 0.2)
+                                  : AppColors.surfaceDark,
+                              border: Border.all(
+                                color: isSelected ? AppColors.gold : AppColors.surfaceBright,
+                                width: isSelected ? 2 : 1,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                scale.displayName,
+                                style: TextStyle(
+                                  fontFamily: AppFonts.body,
+                                  fontSize: 11,
+                                  color: isSelected ? AppColors.gold : AppColors.textPrimary,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Bold text toggle
+                  _buildToggleRow(
+                    title: 'Bold Text',
+                    subtitle: 'Make text heavier for better readability',
+                    value: accessibility.boldText,
+                    onChanged: accessibility.setBoldText,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // ===== VISION =====
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceLight,
+                border: Border.all(color: AppColors.surfaceBright),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.visibility, color: AppColors.gold, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Vision',
+                        style: TextStyle(
+                          fontFamily: AppFonts.body,
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Adjust colors for colorblindness',
+                    style: TextStyle(
+                      fontFamily: AppFonts.body,
+                      fontSize: 12,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Colorblind mode selector
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: ColorblindMode.values.map((mode) {
+                      final isSelected = accessibility.colorblindMode == mode;
+                      return GestureDetector(
+                        onTap: () => accessibility.setColorblindMode(mode),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppColors.gold.withValues(alpha: 0.2)
+                                : AppColors.surfaceDark,
+                            border: Border.all(
+                              color: isSelected ? AppColors.gold : AppColors.surfaceBright,
+                              width: isSelected ? 2 : 1,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                mode.displayName,
+                                style: TextStyle(
+                                  fontFamily: AppFonts.body,
+                                  fontSize: 13,
+                                  color: isSelected ? AppColors.gold : AppColors.textPrimary,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                              Text(
+                                mode.description,
+                                style: TextStyle(
+                                  fontFamily: AppFonts.body,
+                                  fontSize: 10,
+                                  color: AppColors.textMuted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+
+                  // Color preview
+                  if (accessibility.colorblindMode != ColorblindMode.none) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      'Color Preview',
+                      style: TextStyle(
+                        fontFamily: AppFonts.body,
+                        fontSize: 12,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildColorPreview(accessibility.colorblindMode),
+                  ],
+
+                  const SizedBox(height: 16),
+                  const Divider(color: AppColors.surfaceBright),
+                  const SizedBox(height: 12),
+
+                  // Show ring numbers toggle
+                  _buildToggleRow(
+                    title: 'Show Ring Numbers',
+                    subtitle: 'Display score numbers on target rings',
+                    value: accessibility.showRingLabels,
+                    onChanged: accessibility.setShowRingLabels,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // ===== MOTION & INTERACTION =====
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceLight,
+                border: Border.all(color: AppColors.surfaceBright),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.animation, color: AppColors.gold, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Motion',
+                        style: TextStyle(
+                          fontFamily: AppFonts.body,
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildToggleRow(
+                    title: 'Reduce Motion',
+                    subtitle: 'Minimize animations throughout the app',
+                    value: accessibility.reduceMotion,
+                    onChanged: accessibility.setReduceMotion,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // ===== SCREEN READER =====
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceLight,
+                border: Border.all(color: AppColors.surfaceBright),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.hearing, color: AppColors.gold, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Screen Reader',
+                        style: TextStyle(
+                          fontFamily: AppFonts.body,
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildToggleRow(
+                    title: 'Enhanced Descriptions',
+                    subtitle: 'More detailed labels for VoiceOver/TalkBack',
+                    value: accessibility.screenReaderOptimized,
+                    onChanged: accessibility.setScreenReaderOptimized,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildToggleRow({
+    required String title,
+    required String subtitle,
+    required bool value,
+    required Function(bool) onChanged,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  fontSize: 14,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  fontSize: 11,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeColor: AppColors.gold,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildColorPreview(ColorblindMode mode) {
+    // Import AccessibleColors from theme
+    Color getRingColor(int score) {
+      // Gold rings
+      if (score >= 9) return AppColors.ring10;
+      // Black rings
+      if (score <= 4 && score >= 3) return AppColors.ring4;
+      // White rings
+      if (score <= 2 && score >= 1) return AppColors.ring2;
+
+      // Red and blue rings - adjusted for colorblind mode
+      switch (mode) {
+        case ColorblindMode.none:
+          if (score >= 7) return AppColors.ring8;
+          return AppColors.ring6;
+        case ColorblindMode.deuteranopia:
+        case ColorblindMode.protanopia:
+        case ColorblindMode.deuteranomaly:
+        case ColorblindMode.protanomaly:
+          if (score >= 7) return AppColors.cbRing8Deutan;
+          return AppColors.cbRing6Deutan;
+        case ColorblindMode.tritanopia:
+        case ColorblindMode.tritanomaly:
+          if (score >= 7) return AppColors.cbRing8Tritan;
+          return AppColors.cbRing6Tritan;
+        case ColorblindMode.achromatopsia:
+          if (score >= 7) return const Color(0xFF808080);
+          return const Color(0xFFB0B0B0);
+        case ColorblindMode.highContrast:
+          if (score >= 7) return AppColors.cbRing8HighContrast;
+          return AppColors.cbRing6HighContrast;
+      }
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _buildColorSwatch('Gold\n(9-10)', getRingColor(10)),
+        _buildColorSwatch('Red\n(7-8)', getRingColor(8)),
+        _buildColorSwatch('Blue\n(5-6)', getRingColor(6)),
+        _buildColorSwatch('Black\n(3-4)', getRingColor(4)),
+        _buildColorSwatch('White\n(1-2)', getRingColor(2)),
+      ],
+    );
+  }
+
+  Widget _buildColorSwatch(String label, Color color) {
+    return Column(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: color,
+            border: Border.all(color: AppColors.textMuted, width: 1),
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: AppFonts.body,
+            fontSize: 9,
+            color: AppColors.textMuted,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildBowTypeInfoCard() {

@@ -126,22 +126,29 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
             create: (context) => ClassificationProvider(context.read<AppDatabase>()),
           ),
           ChangeNotifierProvider(
-            create: (context) => AccessibilityProvider()..initialize(),
+            create: (context) => AccessibilityProvider()..loadSettings(),
           ),
         ],
         child: Consumer<AccessibilityProvider>(
           builder: (context, accessibility, child) {
-            return MediaQuery(
-              data: MediaQuery.of(context).copyWith(
-                textScaler: TextScaler.linear(accessibility.textScaleFactor),
-              ),
-              child: MaterialApp(
-                title: 'Archery Super App',
-                theme: AppTheme.darkTheme,
-                debugShowCheckedModeBanner: false,
-                scaffoldMessengerKey: scaffoldMessengerKey,
-                home: const AuthGate(),
-              ),
+            return MaterialApp(
+              title: 'Archery Super App',
+              theme: AppTheme.darkTheme,
+              debugShowCheckedModeBanner: false,
+              scaffoldMessengerKey: scaffoldMessengerKey,
+              builder: (context, child) {
+                // Apply text scaling from accessibility settings
+                final mediaQuery = MediaQuery.of(context);
+                return MediaQuery(
+                  data: mediaQuery.copyWith(
+                    textScaler: TextScaler.linear(accessibility.textScaleFactor),
+                    boldText: accessibility.boldText,
+                    disableAnimations: accessibility.reduceMotion,
+                  ),
+                  child: child!,
+                );
+              },
+              home: const AuthGate(),
             );
           },
         ),

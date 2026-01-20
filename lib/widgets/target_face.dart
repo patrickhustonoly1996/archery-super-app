@@ -13,6 +13,7 @@ class TargetFace extends StatelessWidget {
   final bool showRingLabels;
   final bool triSpot; // WA 18 tri-spot shows only 6-10 rings
   final bool compoundScoring; // Compound inner 10 - smaller X ring
+  final ColorblindMode colorblindMode; // Colorblind accessibility mode
 
   const TargetFace({
     super.key,
@@ -21,6 +22,7 @@ class TargetFace extends StatelessWidget {
     this.showRingLabels = false,
     this.triSpot = false,
     this.compoundScoring = false,
+    this.colorblindMode = ColorblindMode.none,
   });
 
   @override
@@ -38,9 +40,10 @@ class TargetFace extends StatelessWidget {
       height: size,
       child: CustomPaint(
         painter: _TargetFacePainter(
-          showRingLabels: showRingLabels,
+          showRingLabels: showRingLabels || AccessibleColors.shouldShowRingLabels(colorblindMode),
           triSpot: triSpot,
           compoundScoring: compoundScoring,
+          colorblindMode: colorblindMode,
         ),
         child: Stack(
           children: arrows.map((arrow) {
@@ -74,17 +77,24 @@ class _TargetFacePainter extends CustomPainter {
   final bool showRingLabels;
   final bool triSpot;
   final bool compoundScoring;
+  final ColorblindMode colorblindMode;
 
   _TargetFacePainter({
     this.showRingLabels = false,
     this.triSpot = false,
     this.compoundScoring = false,
+    this.colorblindMode = ColorblindMode.none,
   });
 
   // WA compound indoor: X ring is 20mm diameter on 40cm face (2.5% of radius)
   // vs recurve X ring at 40mm diameter (5% of radius)
   static const double compoundXRing = 0.025; // Half the size of recurve X
   static const double compound10Ring = 0.05; // Compound 10 = recurve X size
+
+  /// Get ring color based on score and colorblind mode
+  Color _getRingColor(int score) {
+    return AccessibleColors.getRingColor(score, colorblindMode);
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -95,29 +105,29 @@ class _TargetFacePainter extends CustomPainter {
     final xSize = compoundScoring ? compoundXRing : TargetRings.x;
     final ring10Size = compoundScoring ? compound10Ring : TargetRings.ring10;
 
-    // Ring colors from outside to inside
+    // Ring colors from outside to inside - use colorblind-friendly colors
     // Tri-spot only shows rings 6-10 (no 1-5 rings)
     final rings = triSpot
         ? [
-            (TargetRings.ring6, AppColors.ring6), // 6 - blue (outermost for tri-spot)
-            (TargetRings.ring7, AppColors.ring7), // 7 - red
-            (TargetRings.ring8, AppColors.ring8), // 8 - red
-            (TargetRings.ring9, AppColors.ring9), // 9 - gold
-            (ring10Size, AppColors.ring10), // 10 - gold (smaller for compound)
-            (xSize, AppColors.ringX), // X - gold center (smaller for compound)
+            (TargetRings.ring6, _getRingColor(6)), // 6 - blue (outermost for tri-spot)
+            (TargetRings.ring7, _getRingColor(7)), // 7 - red
+            (TargetRings.ring8, _getRingColor(8)), // 8 - red
+            (TargetRings.ring9, _getRingColor(9)), // 9 - gold
+            (ring10Size, _getRingColor(10)), // 10 - gold (smaller for compound)
+            (xSize, _getRingColor(10)), // X - gold center (smaller for compound)
           ]
         : [
-            (TargetRings.ring1, AppColors.ring1), // 1 - white
-            (TargetRings.ring2, AppColors.ring2), // 2 - white
-            (TargetRings.ring3, AppColors.ring3), // 3 - black
-            (TargetRings.ring4, AppColors.ring4), // 4 - black
-            (TargetRings.ring5, AppColors.ring5), // 5 - blue
-            (TargetRings.ring6, AppColors.ring6), // 6 - blue
-            (TargetRings.ring7, AppColors.ring7), // 7 - red
-            (TargetRings.ring8, AppColors.ring8), // 8 - red
-            (TargetRings.ring9, AppColors.ring9), // 9 - gold
-            (ring10Size, AppColors.ring10), // 10 - gold (smaller for compound)
-            (xSize, AppColors.ringX), // X - gold center (smaller for compound)
+            (TargetRings.ring1, _getRingColor(1)), // 1 - white
+            (TargetRings.ring2, _getRingColor(2)), // 2 - white
+            (TargetRings.ring3, _getRingColor(3)), // 3 - black
+            (TargetRings.ring4, _getRingColor(4)), // 4 - black
+            (TargetRings.ring5, _getRingColor(5)), // 5 - blue
+            (TargetRings.ring6, _getRingColor(6)), // 6 - blue
+            (TargetRings.ring7, _getRingColor(7)), // 7 - red
+            (TargetRings.ring8, _getRingColor(8)), // 8 - red
+            (TargetRings.ring9, _getRingColor(9)), // 9 - gold
+            (ring10Size, _getRingColor(10)), // 10 - gold (smaller for compound)
+            (xSize, _getRingColor(10)), // X - gold center (smaller for compound)
           ];
 
     // For tri-spot, scale rings to fill the face (6 ring becomes the outer edge)
@@ -145,7 +155,7 @@ class _TargetFacePainter extends CustomPainter {
 
     // Draw X ring (innermost)
     final xPaint = Paint()
-      ..color = AppColors.ringX
+      ..color = _getRingColor(10)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, xSize * radius * ringScale, xPaint);
 
@@ -167,12 +177,102 @@ class _TargetFacePainter extends CustomPainter {
       Offset(center.dx + crossSize, center.dy),
       crossPaint,
     );
+
+    // Draw ring labels if enabled (for colorblind accessibility)
+    if (showRingLabels) {
+      _drawRingLabels(canvas, center, radius, ringScale);
+    }
+  }
+
+  /// Draw score labels on rings for accessibility
+  void _drawRingLabels(Canvas canvas, Offset center, double radius, double ringScale) {
+    final ringScores = triSpot
+        ? [6, 7, 8, 9, 10]
+        : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+    // Position labels at the midpoint of each ring
+    for (int i = 0; i < ringScores.length; i++) {
+      final score = ringScores[i];
+
+      // Calculate position at the right edge of the ring (3 o'clock position)
+      double ringRadius;
+      if (triSpot) {
+        // Tri-spot ring positions
+        final boundaries = [
+          TargetRings.ring6,
+          TargetRings.ring7,
+          TargetRings.ring8,
+          TargetRings.ring9,
+          TargetRings.ring10,
+        ];
+        final nextBoundary = i + 1 < boundaries.length
+            ? boundaries[i + 1]
+            : (compoundScoring ? compound10Ring : TargetRings.x);
+        ringRadius = ((boundaries[i] + nextBoundary) / 2) * radius * ringScale;
+      } else {
+        // Full target ring positions
+        final boundaries = [
+          TargetRings.ring1,
+          TargetRings.ring2,
+          TargetRings.ring3,
+          TargetRings.ring4,
+          TargetRings.ring5,
+          TargetRings.ring6,
+          TargetRings.ring7,
+          TargetRings.ring8,
+          TargetRings.ring9,
+          TargetRings.ring10,
+        ];
+        final nextBoundary = i + 1 < boundaries.length
+            ? boundaries[i + 1]
+            : (compoundScoring ? compound10Ring : TargetRings.x);
+        ringRadius = ((boundaries[i] + nextBoundary) / 2) * radius * ringScale;
+      }
+
+      // Position label at 3 o'clock (right side of ring)
+      final labelX = center.dx + ringRadius;
+      final labelY = center.dy;
+
+      // Choose text color based on ring color for contrast
+      Color textColor;
+      if (score >= 9) {
+        textColor = Colors.black; // Black on gold
+      } else if (score >= 7) {
+        textColor = Colors.white; // White on red
+      } else if (score >= 5) {
+        textColor = Colors.white; // White on blue
+      } else if (score >= 3) {
+        textColor = Colors.white; // White on black
+      } else {
+        textColor = Colors.black; // Black on white
+      }
+
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: '$score',
+          style: TextStyle(
+            color: textColor,
+            fontSize: radius * 0.06, // Scale font with target size
+            fontWeight: FontWeight.bold,
+            fontFamily: 'ShareTechMono',
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(labelX - textPainter.width / 2, labelY - textPainter.height / 2),
+      );
+    }
   }
 
   @override
   bool shouldRepaint(covariant _TargetFacePainter oldDelegate) =>
       triSpot != oldDelegate.triSpot ||
-      compoundScoring != oldDelegate.compoundScoring;
+      compoundScoring != oldDelegate.compoundScoring ||
+      colorblindMode != oldDelegate.colorblindMode ||
+      showRingLabels != oldDelegate.showRingLabels;
 }
 
 class _ArrowMarker extends StatelessWidget {
@@ -242,6 +342,8 @@ class InteractiveTargetFace extends StatefulWidget {
   final bool triSpot;
   final bool isLeftHanded;
   final bool compoundScoring; // Smaller inner 10/X for compound
+  final ColorblindMode colorblindMode; // Colorblind accessibility mode
+  final bool showRingLabels; // Show ring number labels
 
   /// Enable line cutter detection and in/out dialog
   final bool lineCutterDialogEnabled;
@@ -263,6 +365,8 @@ class InteractiveTargetFace extends StatefulWidget {
     this.isLeftHanded = false,
     this.lineCutterDialogEnabled = false,
     this.compoundScoring = false,
+    this.colorblindMode = ColorblindMode.none,
+    this.showRingLabels = false,
     this.onPendingArrowChanged,
     this.transformController,
   });
@@ -517,6 +621,8 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
               size: widget.size,
               triSpot: widget.triSpot,
               compoundScoring: widget.compoundScoring,
+              colorblindMode: widget.colorblindMode,
+              showRingLabels: widget.showRingLabels,
             ),
 
             // Offset line from touch to arrow position
@@ -598,6 +704,9 @@ class FixedZoomWindow extends StatelessWidget {
   /// Whether to use compound scoring (smaller X ring)
   final bool compoundScoring;
 
+  /// Colorblind accessibility mode
+  final ColorblindMode colorblindMode;
+
   const FixedZoomWindow({
     super.key,
     required this.targetX,
@@ -607,6 +716,7 @@ class FixedZoomWindow extends StatelessWidget {
     this.showCrosshair = true,
     this.triSpot = false,
     this.compoundScoring = false,
+    this.colorblindMode = ColorblindMode.none,
   });
 
   @override
@@ -636,6 +746,7 @@ class FixedZoomWindow extends StatelessWidget {
             showCrosshair: showCrosshair,
             triSpot: triSpot,
             compoundScoring: compoundScoring,
+            colorblindMode: colorblindMode,
           ),
         ),
       ),
@@ -651,6 +762,7 @@ class _FixedZoomWindowPainter extends CustomPainter {
   final bool showCrosshair;
   final bool triSpot;
   final bool compoundScoring;
+  final ColorblindMode colorblindMode;
 
   _FixedZoomWindowPainter({
     required this.targetX,
@@ -659,7 +771,13 @@ class _FixedZoomWindowPainter extends CustomPainter {
     required this.showCrosshair,
     this.triSpot = false,
     this.compoundScoring = false,
+    this.colorblindMode = ColorblindMode.none,
   });
+
+  /// Get ring color based on score and colorblind mode
+  Color _getRingColor(int score) {
+    return AccessibleColors.getRingColor(score, colorblindMode);
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -696,27 +814,28 @@ class _FixedZoomWindowPainter extends CustomPainter {
     final xSize = compoundScoring ? _TargetFacePainter.compoundXRing : TargetRings.x;
     final ring10Size = compoundScoring ? _TargetFacePainter.compound10Ring : TargetRings.ring10;
 
+    // Use colorblind-friendly colors
     final rings = triSpot
         ? [
-            (TargetRings.ring6, AppColors.ring6),
-            (TargetRings.ring7, AppColors.ring7),
-            (TargetRings.ring8, AppColors.ring8),
-            (TargetRings.ring9, AppColors.ring9),
-            (ring10Size, AppColors.ring10),
-            (xSize, AppColors.ringX),
+            (TargetRings.ring6, _getRingColor(6)),
+            (TargetRings.ring7, _getRingColor(7)),
+            (TargetRings.ring8, _getRingColor(8)),
+            (TargetRings.ring9, _getRingColor(9)),
+            (ring10Size, _getRingColor(10)),
+            (xSize, _getRingColor(10)),
           ]
         : [
-            (TargetRings.ring1, AppColors.ring1),
-            (TargetRings.ring2, AppColors.ring2),
-            (TargetRings.ring3, AppColors.ring3),
-            (TargetRings.ring4, AppColors.ring4),
-            (TargetRings.ring5, AppColors.ring5),
-            (TargetRings.ring6, AppColors.ring6),
-            (TargetRings.ring7, AppColors.ring7),
-            (TargetRings.ring8, AppColors.ring8),
-            (TargetRings.ring9, AppColors.ring9),
-            (ring10Size, AppColors.ring10),
-            (xSize, AppColors.ringX),
+            (TargetRings.ring1, _getRingColor(1)),
+            (TargetRings.ring2, _getRingColor(2)),
+            (TargetRings.ring3, _getRingColor(3)),
+            (TargetRings.ring4, _getRingColor(4)),
+            (TargetRings.ring5, _getRingColor(5)),
+            (TargetRings.ring6, _getRingColor(6)),
+            (TargetRings.ring7, _getRingColor(7)),
+            (TargetRings.ring8, _getRingColor(8)),
+            (TargetRings.ring9, _getRingColor(9)),
+            (ring10Size, _getRingColor(10)),
+            (xSize, _getRingColor(10)),
           ];
 
     final ringScale = triSpot ? (1.0 / TargetRings.ring6) : 1.0;
@@ -731,7 +850,7 @@ class _FixedZoomWindowPainter extends CustomPainter {
 
     // Draw X ring
     final xPaint = Paint()
-      ..color = AppColors.ringX
+      ..color = _getRingColor(10)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, xSize * radius * ringScale, xPaint);
   }
@@ -790,6 +909,7 @@ class _FixedZoomWindowPainter extends CustomPainter {
         oldDelegate.targetY != targetY ||
         oldDelegate.zoomLevel != zoomLevel ||
         oldDelegate.triSpot != triSpot ||
-        oldDelegate.compoundScoring != compoundScoring;
+        oldDelegate.compoundScoring != compoundScoring ||
+        oldDelegate.colorblindMode != colorblindMode;
   }
 }
