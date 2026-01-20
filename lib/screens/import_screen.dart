@@ -826,54 +826,115 @@ class _ManualEntryDialog extends StatefulWidget {
 }
 
 class _ManualEntryDialogState extends State<_ManualEntryDialog> {
+  final _formKey = GlobalKey<FormState>();
   final _scoreController = TextEditingController();
   final _roundController = TextEditingController();
   final _locationController = TextEditingController();
   DateTime _date = DateTime.now();
 
   @override
+  void dispose() {
+    _scoreController.dispose();
+    _roundController.dispose();
+    _locationController.dispose();
+    super.dispose();
+  }
+
+  String? _validateScore(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Score is required';
+    }
+    final score = int.tryParse(value);
+    if (score == null) {
+      return 'Score must be a number';
+    }
+    if (score < 0) {
+      return 'Score cannot be negative';
+    }
+    return null;
+  }
+
+  String? _validateRoundName(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Round name is required';
+    }
+    return null;
+  }
+
+  void _save() {
+    if (!_formKey.currentState!.validate()) return;
+
+    final score = int.parse(_scoreController.text);
+    widget.onSave(ScoreDraft(
+      date: _date,
+      score: score,
+      roundName: _roundController.text.trim(),
+      location: _locationController.text.trim().isEmpty
+          ? null
+          : _locationController.text.trim(),
+    ));
+    Navigator.pop(context);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: AppColors.surfaceDark,
       title: const Text('Add Score'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _scoreController,
-              decoration: const InputDecoration(labelText: 'Score'),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            TextField(
-              controller: _roundController,
-              decoration: const InputDecoration(labelText: 'Round Name'),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            TextField(
-              controller: _locationController,
-              decoration: const InputDecoration(labelText: 'Location (optional)'),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Date'),
-              subtitle: Text('${_date.day}/${_date.month}/${_date.year}'),
-              trailing: const Icon(Icons.calendar_today),
-              onTap: () async {
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: _date,
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime.now(),
-                );
-                if (picked != null) {
-                  setState(() => _date = picked);
-                }
-              },
-            ),
-          ],
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _scoreController,
+                decoration: const InputDecoration(labelText: 'Score'),
+                keyboardType: TextInputType.number,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: _validateScore,
+                autofocus: true,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextFormField(
+                controller: _roundController,
+                decoration: const InputDecoration(
+                  labelText: 'Round Name',
+                  hintText: 'e.g., WA 720',
+                ),
+                textCapitalization: TextCapitalization.words,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: _validateRoundName,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextFormField(
+                controller: _locationController,
+                decoration: const InputDecoration(
+                  labelText: 'Location (optional)',
+                  hintText: 'e.g., Lilleshall',
+                ),
+                textCapitalization: TextCapitalization.words,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Date'),
+                subtitle: Text('${_date.day}/${_date.month}/${_date.year}'),
+                trailing: const Icon(Icons.calendar_today),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: _date,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime.now(),
+                  );
+                  if (picked != null) {
+                    setState(() => _date = picked);
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       ),
       actions: [
@@ -882,20 +943,7 @@ class _ManualEntryDialogState extends State<_ManualEntryDialog> {
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: () {
-            final score = int.tryParse(_scoreController.text);
-            if (score == null || _roundController.text.isEmpty) return;
-
-            widget.onSave(ScoreDraft(
-              date: _date,
-              score: score,
-              roundName: _roundController.text,
-              location: _locationController.text.isEmpty
-                  ? null
-                  : _locationController.text,
-            ));
-            Navigator.pop(context);
-          },
+          onPressed: _save,
           child: const Text('Save'),
         ),
       ],
