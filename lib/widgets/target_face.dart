@@ -408,8 +408,29 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   // Each ring is 10% of radius, so 4% covers roughly the inner/outer 40% of each ring
   static const double _boundaryProximityThreshold = 0.04;
 
+  /// Convert a gesture position to widget-local coordinates, accounting for any
+  /// InteractiveViewer transformation (zoom/pan).
+  Offset _gestureToWidgetLocal(Offset gesturePosition) {
+    final controller = widget.transformController;
+    if (controller == null) {
+      return gesturePosition;
+    }
+
+    // The gesture position is in the transformed (zoomed) viewport space.
+    // We need to convert it back to the widget's original coordinate space.
+    // InteractiveViewer uses a Matrix4 transformation, so we invert it.
+    final matrix = controller.value;
+    final inverseMatrix = Matrix4.tryInvert(matrix);
+    if (inverseMatrix == null) {
+      return gesturePosition;
+    }
+
+    // Transform the point from viewport space to widget space
+    final transformed = MatrixUtils.transformPoint(inverseMatrix, gesturePosition);
+    return transformed;
+  }
+
   /// Convert widget-space pixel position to normalized coordinates (-1 to +1)
-  /// This is the DIRECT path - no transform reversal needed
   /// For tri-spot, coordinates are scaled so edge taps map to ring 6 boundary (0.5)
   (double, double) _widgetToNormalized(Offset widgetPosition) {
     final center = widget.size / 2;
@@ -480,10 +501,12 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   void _onPanStart(DragStartDetails details) {
     if (!widget.enabled) return;
 
-    final arrowPos = _calculateArrowPosition(details.localPosition);
+    // Transform gesture position to widget-local coordinates (accounting for zoom)
+    final localPos = _gestureToWidgetLocal(details.localPosition);
+    final arrowPos = _calculateArrowPosition(localPos);
 
     setState(() {
-      _touchPosition = details.localPosition;
+      _touchPosition = localPos;
       _arrowPosition = arrowPos;
       _isHolding = true;
     });
@@ -496,10 +519,12 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   void _onPanUpdate(DragUpdateDetails details) {
     if (!widget.enabled || !_isHolding) return;
 
-    final arrowPos = _calculateArrowPosition(details.localPosition);
+    // Transform gesture position to widget-local coordinates (accounting for zoom)
+    final localPos = _gestureToWidgetLocal(details.localPosition);
+    final arrowPos = _calculateArrowPosition(localPos);
 
     setState(() {
-      _touchPosition = details.localPosition;
+      _touchPosition = localPos;
       _arrowPosition = arrowPos;
     });
 
