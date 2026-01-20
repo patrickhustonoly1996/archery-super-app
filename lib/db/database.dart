@@ -586,11 +586,12 @@ class SightMarks extends Table {
   TextColumn get sightValue => text()(); // Stored as string to preserve notation (e.g., "5.14" or "51.4")
   TextColumn get weatherData => text().nullable()(); // JSON: temp, humidity, pressure, wind
   RealColumn get elevationDelta => real().nullable()(); // meters above/below reference
-  RealColumn get slopeAngle => real().nullable()(); // degrees (-15 to +15)
+  RealColumn get slopeAngle => real().nullable()(); // degrees (-45 to +45)
   TextColumn get sessionId => text().nullable()(); // Which session it was recorded from
   IntColumn get endNumber => integer().nullable()(); // Which end it was recorded from
   IntColumn get shotCount => integer().nullable()(); // Number of arrows shot with this mark
   RealColumn get confidenceScore => real().nullable()(); // 0.0 to 1.0
+  TextColumn get venueId => text().nullable()(); // FK to venues table for location memory
   DateTimeColumn get recordedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().nullable()();
   DateTimeColumn get deletedAt => dateTime().nullable()(); // soft delete
@@ -609,6 +610,21 @@ class SightMarkPreferencesTable extends Table {
 
   @override
   Set<Column> get primaryKey => {bowId};
+}
+
+/// Shooting venues/locations for sightmark memory
+class Venues extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()(); // e.g., "Lilleshall", "Home Field"
+  RealColumn get latitude => real().nullable()();
+  RealColumn get longitude => real().nullable()();
+  TextColumn get temperatureRegion => text().withDefault(const Constant('temperate'))(); // temperate, mediterranean, continental, tropical
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }
 
 // ============================================================================
@@ -847,6 +863,7 @@ class SyncMetadata extends Table {
   // Sight Marks System
   SightMarks,
   SightMarkPreferencesTable,
+  Venues,
   // Auto-Plot System
   RegisteredTargets,
   AutoPlotUsage,
@@ -870,7 +887,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 25;
+  int get schemaVersion => 26;
 
   @override
   MigrationStrategy get migration {
@@ -1104,6 +1121,11 @@ class AppDatabase extends _$AppDatabase {
           await m.createTable(breathHoldAwards);
           // Achievements system for skills profile
           await m.createTable(achievements);
+        }
+        if (from <= 25) {
+          // Venue/location memory system for sightmarks
+          await m.createTable(venues);
+          await m.addColumn(sightMarks, sightMarks.venueId);
         }
       },
     );
@@ -2480,6 +2502,72 @@ class AppDatabase extends _$AppDatabase {
   /// Delete sight mark preferences for a bow
   Future<int> deleteSightMarkPreferences(String bowId) =>
       (delete(sightMarkPreferencesTable)..where((t) => t.bowId.equals(bowId))).go();
+
+  // ===========================================================================
+  // VENUES
+  // ===========================================================================
+
+  /// Get all venues ordered by most recently used
+  Future<List<Venue>> getAllVenues() =>
+      (select(venues)..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])).get();
+
+  /// Get venue by ID
+  Future<Venue?> getVenue(String id) =>
+      (select(venues)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  /// Get venue by name (case-insensitive)
+  Future<Venue?> getVenueByName(String name) =>
+      (select(venues)..where((t) => t.name.lower().equals(name.toLowerCase())))
+          .getSingleOrNull();
+
+  /// Find venue near coordinates (within ~500m)
+  Future<Venue?> findVenueNearCoordinates(double lat, double lng) async {
+    // Simple distance approximation for small distances
+    // 0.005 degrees is approximately 500m at UK latitudes
+    const tolerance = 0.005;
+    final results = await (select(venues)
+          ..where((t) =>
+              t.latitude.isBetweenValues(lat - tolerance, lat + tolerance) &
+              t.longitude.isBetweenValues(lng - tolerance, lng + tolerance)))
+        .get();
+    return results.firstOrNull;
+  }
+
+  /// Insert a new venue
+  Future<int> insertVenue(VenuesCompanion venue) =>
+      into(venues).insert(venue);
+
+  /// Update an existing venue
+  Future<bool> updateVenue(VenuesCompanion venue) =>
+      update(venues).replace(venue);
+
+  /// Delete a venue
+  Future<int> deleteVenue(String id) =>
+      (delete(venues)..where((t) => t.id.equals(id))).go();
+
+  /// Get sight marks for a specific venue
+  Future<List<SightMark>> getSightMarksForVenue(String venueId) =>
+      (select(sightMarks)
+            ..where((t) => t.venueId.equals(venueId) & t.deletedAt.isNull())
+            ..orderBy([(t) => OrderingTerm.desc(t.recordedAt)]))
+          .get();
+
+  /// Get sight marks for a venue at a specific distance
+  Future<List<SightMark>> getSightMarksForVenueAtDistance(
+    String venueId,
+    String bowId,
+    double distance,
+    String unit,
+  ) =>
+      (select(sightMarks)
+            ..where((t) =>
+                t.venueId.equals(venueId) &
+                t.bowId.equals(bowId) &
+                t.distance.equals(distance) &
+                t.unit.equals(unit) &
+                t.deletedAt.isNull())
+            ..orderBy([(t) => OrderingTerm.desc(t.recordedAt)]))
+          .get();
 
   // ===========================================================================
   // AUTO-PLOT

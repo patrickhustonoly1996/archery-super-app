@@ -95,11 +95,14 @@ class WeatherService {
     final main = data['main'] as Map<String, dynamic>?;
     final wind = data['wind'] as Map<String, dynamic>?;
     final weather = (data['weather'] as List?)?.firstOrNull as Map<String, dynamic>?;
+    final clouds = data['clouds'] as Map<String, dynamic>?;
 
-    // Convert API wind speed (m/s) to qualitative description
+    // Convert API wind speed (m/s) to Beaufort scale and qualitative description
     final windSpeed = wind?['speed']?.toDouble();
     String? windDesc;
+    int? windBeaufort;
     if (windSpeed != null) {
+      windBeaufort = _windSpeedToBeaufort(windSpeed);
       if (windSpeed < 1.5) {
         windDesc = 'none';
       } else if (windSpeed < 5.5) {
@@ -111,28 +114,55 @@ class WeatherService {
       }
     }
 
-    // Convert API weather description to sky condition
+    // Convert API weather description to sky condition and light quality
     final apiDescription = weather?['main'] as String?;
+    final cloudCover = clouds?['all'] as int? ?? 0;
     String? sky;
+    String? lightQuality;
+
     if (apiDescription != null) {
       final desc = apiDescription.toLowerCase();
       if (desc.contains('rain') || desc.contains('drizzle') || desc.contains('thunder')) {
         sky = 'rainy';
+        lightQuality = 'overcast';
       } else if (desc.contains('clear') || desc.contains('sun')) {
         sky = 'sunny';
+        lightQuality = 'direct_sun';
       } else if (desc.contains('overcast') || desc.contains('mist') || desc.contains('fog')) {
         sky = 'overcast';
+        lightQuality = 'overcast';
       } else if (desc.contains('cloud')) {
         sky = 'cloudy';
+        // Use cloud cover to determine light quality
+        if (cloudCover < 50) {
+          lightQuality = 'partial_sun';
+        } else if (cloudCover < 85) {
+          lightQuality = 'bright_cloudy';
+        } else {
+          lightQuality = 'overcast';
+        }
       }
     }
 
     return WeatherConditions(
       temperature: main?['temp']?.toDouble(),
       sky: sky,
+      lightQuality: lightQuality,
       wind: windDesc,
+      windBeaufort: windBeaufort,
       // sunPosition can't be determined from API - user sets manually
     );
+  }
+
+  /// Convert wind speed (m/s) to Beaufort scale (capped at 6 for archery)
+  static int _windSpeedToBeaufort(double speedMs) {
+    if (speedMs < 0.3) return 0;
+    if (speedMs < 1.6) return 1;
+    if (speedMs < 3.4) return 2;
+    if (speedMs < 5.5) return 3;
+    if (speedMs < 8.0) return 4;
+    if (speedMs < 10.8) return 5;
+    return 6; // Cap at 6 for archery purposes
   }
 
   /// Check if cache is still valid
@@ -180,17 +210,5 @@ class WeatherService {
   }
 }
 
-/// Simple location utility
-class LocationService {
-  /// Check if we have location permissions
-  /// For now, returns false - implement with geolocator package if needed
-  static Future<bool> hasLocationPermission() async {
-    return false;
-  }
-
-  /// Get current location
-  /// Returns null - implement with geolocator package if needed
-  static Future<({double latitude, double longitude})?> getCurrentLocation() async {
-    return null;
-  }
-}
+// Note: LocationService is now in location_service.dart with full geolocator support
+// Import it separately: import 'location_service.dart';
