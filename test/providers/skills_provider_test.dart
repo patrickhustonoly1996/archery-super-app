@@ -774,21 +774,21 @@ void main() {
         final archeryXp = XpCalculationService.calculateArcheryXp(handicap: handicap);
 
         expect(archeryXp, greaterThan(0));
-        expect(archeryXp, equals((150 - 60) * 10)); // 900 XP
+        expect(archeryXp, equals((150 - 60) * 2)); // 180 XP
       });
 
       test('calculates volume XP from arrow count', () {
         final arrowCount = 72;
         final volumeXp = XpCalculationService.calculateVolumeXp(arrowCount: arrowCount);
 
-        expect(volumeXp, equals(72)); // 1 XP per arrow
+        expect(volumeXp, equals(14)); // 1 XP per 5 arrows (72/5 = 14)
       });
 
       test('calculates analysis XP for plotted arrows', () {
         final plottedArrows = 36;
         final analysisXp = XpCalculationService.calculateAnalysisXp(plottedArrows: plottedArrows);
 
-        expect(analysisXp, equals(25)); // 15 base + 10 for >= 30 arrows
+        expect(analysisXp, equals(5)); // 3 base + 2 for >= 30 arrows
       });
 
       test('calculates competition XP with practice comparison', () {
@@ -798,8 +798,8 @@ void main() {
           maxScore: 720,
         );
 
-        // 100 base + 50 (matched practice) + 50 (beat by 2%+) + 50 (80%+ of max)
-        expect(competitionXp, greaterThan(100));
+        // 20 base + 10 (matched practice) + 10 (beat by 2%+) + 20 (90%+ of max)
+        expect(competitionXp, greaterThan(20));
       });
     });
 
@@ -812,8 +812,8 @@ void main() {
           feedbackRest: 5,
         );
 
-        // 120 seconds * 1.25 (good form bonus) = 150
-        expect(xp, equals(150));
+        // (120 / 5) * 1.25 (good form bonus) = 30
+        expect(xp, equals(30));
       });
 
       test('excellent form gives 50% bonus', () {
@@ -824,8 +824,8 @@ void main() {
           feedbackRest: 2,
         );
 
-        // 100 * 1.5 = 150
-        expect(xp, equals(150));
+        // (100 / 5) * 1.5 = 30
+        expect(xp, equals(30));
       });
 
       test('poor form gives no bonus', () {
@@ -836,8 +836,8 @@ void main() {
           feedbackRest: 8,
         );
 
-        // 100 * 1.0 = 100 (no bonus)
-        expect(xp, equals(100));
+        // (100 / 5) * 1.0 = 20 (no bonus)
+        expect(xp, equals(20));
       });
     });
 
@@ -847,8 +847,8 @@ void main() {
           bestHoldSeconds: 60,
         );
 
-        // 60 / 2 = 30
-        expect(xp, equals(30));
+        // 60 / 10 = 6
+        expect(xp, equals(6));
       });
 
       test('calculates breath XP from exhale time', () {
@@ -856,8 +856,8 @@ void main() {
           bestExhaleSeconds: 40,
         );
 
-        // 40 / 2 = 20
-        expect(xp, equals(20));
+        // 40 / 10 = 4
+        expect(xp, equals(4));
       });
 
       test('calculates combined breath XP', () {
@@ -866,8 +866,8 @@ void main() {
           bestExhaleSeconds: 40,
         );
 
-        // 60/2 + 40/2 = 30 + 20 = 50
-        expect(xp, equals(50));
+        // 60/10 + 40/10 = 6 + 4 = 10
+        expect(xp, equals(10));
       });
 
       test('returns 0 for null values', () {
@@ -882,8 +882,8 @@ void main() {
           daysThisWeek: 5,
         );
 
-        // 5 * 50 = 250
-        expect(xp, equals(250));
+        // 5 * 10 = 50
+        expect(xp, equals(50));
       });
 
       test('applies streak multiplier', () {
@@ -892,8 +892,8 @@ void main() {
           streakDays: 7,
         );
 
-        // 5 * 50 * 1.7 = 425
-        expect(xp, equals(425));
+        // 5 * 10 * 1.7 = 85
+        expect(xp, equals(85));
       });
 
       test('caps streak bonus at 7 days', () {
@@ -912,9 +912,9 @@ void main() {
     });
 
     group('awardEquipmentXp', () {
-      test('awards fixed 25 XP', () {
-        const equipmentXp = 25;
-        expect(equipmentXp, equals(25));
+      test('awards fixed 5 XP', () {
+        const equipmentXp = 5;
+        expect(equipmentXp, equals(5));
       });
     });
   });
@@ -949,7 +949,7 @@ void main() {
           bestExhaleSeconds: 45,
         );
 
-        expect(totalXp, greaterThan(1500));
+        expect(totalXp, greaterThan(300));
       });
 
       test('competition day XP accumulation', () {
@@ -968,7 +968,7 @@ void main() {
         // Plotted all arrows
         totalXp += XpCalculationService.calculateAnalysisXp(plottedArrows: 144);
 
-        expect(totalXp, greaterThan(400));
+        expect(totalXp, greaterThan(80));
       });
     });
 
@@ -1014,8 +1014,8 @@ void main() {
           streakDays: 14,
         );
 
-        // 6 days * 50 * 1.7 = 510
-        expect(xp, greaterThan(500));
+        // 6 days * 10 * 1.7 = 102
+        expect(xp, greaterThan(100));
       });
 
       test('single day training still awards XP', () {
@@ -1023,7 +1023,7 @@ void main() {
           daysThisWeek: 1,
         );
 
-        expect(xp, equals(50));
+        expect(xp, equals(10));
       });
     });
   });
@@ -1112,7 +1112,7 @@ void main() {
     group('handicap edge values', () {
       test('elite handicap 0 gives max archery XP', () {
         final xp = XpCalculationService.calculateArcheryXp(handicap: 0);
-        expect(xp, equals(1500));
+        expect(xp, equals(300));
       });
 
       test('handicap 150 gives 0 XP', () {
@@ -1127,7 +1127,7 @@ void main() {
 
       test('negative handicap gives high XP', () {
         final xp = XpCalculationService.calculateArcheryXp(handicap: -10);
-        expect(xp, greaterThan(1500));
+        expect(xp, greaterThan(300));
       });
     });
 
@@ -1144,7 +1144,7 @@ void main() {
 
       test('very high arrow count is handled', () {
         final xp = XpCalculationService.calculateVolumeXp(arrowCount: 1000);
-        expect(xp, equals(1000));
+        expect(xp, equals(200));
       });
     });
 
@@ -1161,17 +1161,17 @@ void main() {
 
       test('1 plotted arrow gives base XP', () {
         final xp = XpCalculationService.calculateAnalysisXp(plottedArrows: 1);
-        expect(xp, equals(15));
+        expect(xp, equals(3));
       });
 
       test('30 plotted arrows gives bonus', () {
         final xp = XpCalculationService.calculateAnalysisXp(plottedArrows: 30);
-        expect(xp, equals(25));
+        expect(xp, equals(5));
       });
 
       test('60 plotted arrows gives full bonus', () {
         final xp = XpCalculationService.calculateAnalysisXp(plottedArrows: 60);
-        expect(xp, equals(35));
+        expect(xp, equals(7));
       });
     });
 
@@ -1355,16 +1355,16 @@ void main() {
   // COMPETITION XP DETAILED TESTS
   // ===========================================================================
   group('Competition XP detailed tests', () {
-    test('base entry gives 100 XP', () {
+    test('base entry gives 20 XP', () {
       final xp = XpCalculationService.calculateCompetitionXp(
         competitionScore: 500,
         maxScore: 720,
       );
 
-      expect(xp, greaterThanOrEqualTo(100));
+      expect(xp, greaterThanOrEqualTo(20));
     });
 
-    test('matching practice score adds 50 XP', () {
+    test('matching practice score adds 10 XP', () {
       final xpWithoutPractice = XpCalculationService.calculateCompetitionXp(
         competitionScore: 600,
         maxScore: 720,
@@ -1379,7 +1379,7 @@ void main() {
       expect(xpWithMatch, greaterThan(xpWithoutPractice));
     });
 
-    test('beating practice by 2%+ adds additional 50 XP', () {
+    test('beating practice by 2%+ adds additional 10 XP', () {
       final xpMatch = XpCalculationService.calculateCompetitionXp(
         competitionScore: 600,
         avgPracticeScore: 600,
@@ -1395,25 +1395,25 @@ void main() {
       expect(xpBeat, greaterThan(xpMatch));
     });
 
-    test('90%+ of max score adds 100 XP', () {
+    test('90%+ of max score adds 20 XP', () {
       final xp = XpCalculationService.calculateCompetitionXp(
         competitionScore: 648, // 90% of 720
         maxScore: 720,
       );
 
       // Should include 90%+ bonus
-      expect(xp, greaterThanOrEqualTo(200)); // 100 base + 100 bonus
+      expect(xp, greaterThanOrEqualTo(40)); // 20 base + 20 bonus
     });
 
-    test('80%+ of max score adds 50 XP', () {
+    test('80%+ of max score adds 10 XP', () {
       final xp = XpCalculationService.calculateCompetitionXp(
         competitionScore: 576, // 80% of 720
         maxScore: 720,
       );
 
       // Should include 80%+ bonus but not 90%+
-      expect(xp, greaterThanOrEqualTo(150)); // 100 base + 50 bonus
-      expect(xp, lessThan(200));
+      expect(xp, greaterThanOrEqualTo(30)); // 20 base + 10 bonus
+      expect(xp, lessThan(40));
     });
   });
 }

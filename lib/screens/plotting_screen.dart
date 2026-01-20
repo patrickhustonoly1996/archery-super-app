@@ -160,7 +160,6 @@ class _PlottingScreenState extends State<PlottingScreen> {
         _autoAdvanceEnabled = autoAdvance;
         _autoAdvanceOrder = advanceOrder ?? 'column';
         _hideScores = hideScores;
-        _prefsLoaded = true;
       });
     }
   }
