@@ -67,7 +67,7 @@ The codebase **doubled** since the last roadmap was written. Tests didn't keep u
 | ❌ | connectivity_provider | LOW | Online/offline display |
 | ❌ | spider_graph_provider | LOW | Graph display |
 
-### Utils: 7/18 tested (39%)
+### Utils: 8/18 tested (44%)
 
 | Status | Util | Risk Level | Notes |
 |--------|------|------------|-------|
@@ -81,7 +81,7 @@ The codebase **doubled** since the last roadmap was written. Tests didn't keep u
 | ❌ | **sight_mark_calculator** | HIGH | Sight mark math |
 | ❌ | **round_matcher** | HIGH | Round type detection |
 | ❌ | **shaft_analysis** | MEDIUM | Shaft wear analysis |
-| ❌ | **tuning_suggestions** | MEDIUM | Tuning advice logic |
+| ✅ | tuning_suggestions | - | Tested |
 | ❌ | **undo_manager** | MEDIUM | Undo/redo state |
 | ❌ | undo_action | MEDIUM | Undo actions |
 | ❌ | error_handler | LOW | Error formatting |
@@ -483,7 +483,7 @@ void main() {
 | vision_api_service_test | - | NOT STARTED | 0 | - |
 | skills_provider_test | - | NOT STARTED | 0 | - |
 | shaft_analysis_test | - | NOT STARTED | 0 | - |
-| tuning_suggestions_test | - | NOT STARTED | 0 | - |
+| tuning_suggestions_test | Claude | ✅ COMPLETE | 65 | 2026-01-20 |
 | undo_manager_test | - | NOT STARTED | 0 | - |
 | scorecard_export_service_test | - | NOT STARTED | 0 | - |
 | weather_service_test | - | NOT STARTED | 0 | - |
