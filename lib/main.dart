@@ -20,6 +20,7 @@ import 'providers/auto_plot_provider.dart';
 import 'providers/user_profile_provider.dart';
 import 'providers/entitlement_provider.dart';
 import 'providers/classification_provider.dart';
+import 'providers/accessibility_provider.dart';
 import 'services/vision_api_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
@@ -124,13 +125,25 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
           ChangeNotifierProvider(
             create: (context) => ClassificationProvider(context.read<AppDatabase>()),
           ),
+          ChangeNotifierProvider(
+            create: (context) => AccessibilityProvider()..initialize(),
+          ),
         ],
-        child: MaterialApp(
-          title: 'Archery Super App',
-          theme: AppTheme.darkTheme,
-          debugShowCheckedModeBanner: false,
-          scaffoldMessengerKey: scaffoldMessengerKey,
-          home: const AuthGate(),
+        child: Consumer<AccessibilityProvider>(
+          builder: (context, accessibility, child) {
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: TextScaler.linear(accessibility.textScaleFactor),
+              ),
+              child: MaterialApp(
+                title: 'Archery Super App',
+                theme: AppTheme.darkTheme,
+                debugShowCheckedModeBanner: false,
+                scaffoldMessengerKey: scaffoldMessengerKey,
+                home: const AuthGate(),
+              ),
+            );
+          },
         ),
       ),
     );

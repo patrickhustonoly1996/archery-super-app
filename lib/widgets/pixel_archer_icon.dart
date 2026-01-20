@@ -2,20 +2,26 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
 /// 16x16 pixel art archer with bow
+/// Scales with text scale factor when scaleWithText is true
 class PixelArcherIcon extends StatelessWidget {
   final double size;
   final Color? color;
+  final bool scaleWithText;
 
   const PixelArcherIcon({
     super.key,
     required this.size,
     this.color,
+    this.scaleWithText = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    final scaledSize = scaleWithText
+        ? size * MediaQuery.textScalerOf(context).scale(1.0)
+        : size;
     return CustomPaint(
-      size: Size(size, size),
+      size: Size(scaledSize, scaledSize),
       painter: _PixelArcherPainter(color: color ?? AppColors.gold),
     );
   }

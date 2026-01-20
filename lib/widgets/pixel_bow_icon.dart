@@ -2,15 +2,24 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
 /// App logo - pixel arrow with target
+/// Scales with text scale factor when scaleWithText is true
 class PixelBowIcon extends StatelessWidget {
   final double size;
+  final bool scaleWithText;
 
-  const PixelBowIcon({super.key, required this.size});
+  const PixelBowIcon({
+    super.key,
+    required this.size,
+    this.scaleWithText = true,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final scaledSize = scaleWithText
+        ? size * MediaQuery.textScalerOf(context).scale(1.0)
+        : size;
     return CustomPaint(
-      size: Size(size, size),
+      size: Size(scaledSize, scaledSize),
       painter: _PixelArrowPainter(),
     );
   }
