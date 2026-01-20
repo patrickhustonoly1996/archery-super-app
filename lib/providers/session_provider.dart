@@ -328,6 +328,10 @@ class SessionProvider extends ChangeNotifier {
     // Reload ends list
     _ends = await _db.getEndsForSession(_currentSession!.id);
 
+    // Trigger incremental sync after each end
+    // This ensures arrows are backed up even if session isn't completed
+    _triggerCloudBackup();
+
     // Check if session is complete
     if (_ends.length >= totalEnds) {
       await _completeSession();

@@ -205,11 +205,47 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  /// Sync when app comes to foreground (e.g., user switches back to app)
+  /// Sync on app lifecycle changes for robust data persistence
+  ///
+  /// - resumed: User switches back to app - sync to get latest from cloud
+  /// - paused: App going to background - sync to save pending data
+  /// - inactive: Phone call, control center, etc - trigger quick sync
+  /// - hidden: App hidden but running - sync to preserve data
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && _wasLoggedIn) {
-      _triggerBackgroundSync();
+    if (!_wasLoggedIn) return;
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        // Coming back to foreground - sync to get latest data
+        debugPrint('Lifecycle: resumed - triggering sync');
+        _triggerBackgroundSync();
+        break;
+
+      case AppLifecycleState.paused:
+        // Going to background - CRITICAL: sync to save any pending data
+        // This protects against OS killing the app while backgrounded
+        debugPrint('Lifecycle: paused - triggering sync to save pending data');
+        _triggerBackgroundSync(urgent: true);
+        break;
+
+      case AppLifecycleState.inactive:
+        // Phone call, control center, etc - trigger sync
+        // App might be killed after this, so save data now
+        debugPrint('Lifecycle: inactive - triggering sync');
+        _triggerBackgroundSync(urgent: true);
+        break;
+
+      case AppLifecycleState.hidden:
+        // App hidden but still running (desktop/web)
+        debugPrint('Lifecycle: hidden - triggering sync');
+        _triggerBackgroundSync();
+        break;
+
+      case AppLifecycleState.detached:
+        // Engine detaching - too late to sync
+        debugPrint('Lifecycle: detached - cannot sync');
+        break;
     }
   }
 
@@ -294,9 +330,13 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
   /// Trigger bidirectional sync with cloud
   /// Merges local and cloud data so both have the same complete dataset
   /// Non-blocking, debounced, and skipped when offline
-  void _triggerBackgroundSync() {
-    // Debounce: don't sync too frequently
-    if (_lastSyncAttempt != null &&
+  ///
+  /// [urgent] - If true, skips debounce and syncs immediately.
+  ///            Use for critical moments like app going to background.
+  void _triggerBackgroundSync({bool urgent = false}) {
+    // Debounce: don't sync too frequently (unless urgent)
+    if (!urgent &&
+        _lastSyncAttempt != null &&
         DateTime.now().difference(_lastSyncAttempt!) < _syncDebounce) {
       debugPrint('Skipping sync: debounce active');
       return;
@@ -305,7 +345,8 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
     final syncService = SyncService();
 
     // SyncService handles its own mutex lock, but we still debounce here
-    if (syncService.isSyncing) {
+    // For urgent syncs, we queue it even if already syncing (will be picked up after)
+    if (!urgent && syncService.isSyncing) {
       debugPrint('Skipping sync: already syncing');
       return;
     }
