@@ -71,6 +71,10 @@ class SessionProvider extends ChangeNotifier {
   int get arrowsInCurrentEnd => _currentEndArrows.length;
   bool get isEndComplete => arrowsInCurrentEnd >= arrowsPerEnd;
 
+  /// Total arrows in session (completed ends + current end)
+  int get totalArrowsInSession =>
+      _completedEndArrows.length + _currentEndArrows.length;
+
   /// Calculate total score for the session
   int get totalScore {
     int total = 0;
@@ -309,11 +313,48 @@ class SessionProvider extends ChangeNotifier {
   }
 
   /// Remove the last plotted arrow (undo)
+  /// Cycles through all arrows in the session, uncommitting ends as needed
   Future<void> undoLastArrow() async {
-    if (_activeEnd == null || _currentEndArrows.isEmpty) return;
+    if (_activeEnd == null) return;
 
-    await _db.deleteLastArrowInEnd(_activeEnd!.id);
-    _currentEndArrows = await _db.getArrowsForEnd(_activeEnd!.id);
+    // If current end has arrows, delete the last one
+    if (_currentEndArrows.isNotEmpty) {
+      await _db.deleteLastArrowInEnd(_activeEnd!.id);
+      _currentEndArrows = await _db.getArrowsForEnd(_activeEnd!.id);
+      notifyListeners();
+      return;
+    }
+
+    // Current end is empty - check if we have committed ends to undo into
+    final committedEnds =
+        _ends.where((e) => e.status == 'committed').toList();
+    if (committedEnds.isEmpty) return;
+
+    // Get the last committed end
+    final lastCommittedEnd = committedEnds.last;
+
+    // Delete the current empty active end
+    await _db.deleteEnd(_activeEnd!.id);
+
+    // Uncommit the last committed end and make it active
+    await _db.uncommitEnd(lastCommittedEnd.id);
+
+    // Load that end's arrows
+    final endArrows = await _db.getArrowsForEnd(lastCommittedEnd.id);
+
+    // Remove the last arrow from that end
+    if (endArrows.isNotEmpty) {
+      await _db.deleteLastArrowInEnd(lastCommittedEnd.id);
+    }
+
+    // Reload state
+    _ends = await _db.getEndsForSession(_currentSession!.id);
+    _activeEnd = await _db.getEnd(lastCommittedEnd.id);
+    _currentEndArrows = await _db.getArrowsForEnd(lastCommittedEnd.id);
+
+    // Refresh completed arrows cache
+    await _refreshCompletedEndArrowsCache();
+
     notifyListeners();
   }
 
@@ -419,11 +460,15 @@ class SessionProvider extends ChangeNotifier {
   }
 
   /// Refresh the completed end arrows cache from database
+  /// Only includes committed ends, not the active end
   Future<void> _refreshCompletedEndArrowsCache() async {
     final allArrows = <Arrow>[];
     for (final end in _ends) {
-      final endArrows = await _db.getArrowsForEnd(end.id);
-      allArrows.addAll(endArrows);
+      // Only include committed ends in the cache
+      if (end.status == 'committed') {
+        final endArrows = await _db.getArrowsForEnd(end.id);
+        allArrows.addAll(endArrows);
+      }
     }
     _completedEndArrows = allArrows;
   }

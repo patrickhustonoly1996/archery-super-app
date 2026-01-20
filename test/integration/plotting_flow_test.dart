@@ -499,6 +499,89 @@ void main() {
         expect(sessionProvider.arrowsInCurrentEnd, equals(0));
         expect(sessionProvider.currentEndScore, equals(0));
       });
+
+      testWidgets('undo cycles through committed ends', (tester) async {
+        final sessionProvider = SessionProvider(db);
+        final roundTypes = await db.getAllRoundTypes();
+        final wa18m = roundTypes.firstWhere(
+          (rt) => rt.name == 'WA 18m',
+          orElse: () => roundTypes.first,
+        );
+
+        await sessionProvider.startSession(roundTypeId: wa18m.id);
+
+        // Complete first end with 3 arrows
+        await sessionProvider.plotArrow(x: 0.0, y: 0.0); // X
+        await sessionProvider.plotArrow(x: 0.0, y: 0.0); // X
+        await sessionProvider.plotArrow(x: 0.0, y: 0.0); // X
+        await sessionProvider.commitEnd();
+
+        expect(sessionProvider.currentEndNumber, equals(2));
+        expect(sessionProvider.totalArrowsInSession, equals(3));
+
+        // Verify current end is empty
+        expect(sessionProvider.arrowsInCurrentEnd, equals(0));
+
+        // Undo should go back into the committed end
+        await sessionProvider.undoLastArrow();
+
+        // Should now be back in end 1 with 2 arrows
+        expect(sessionProvider.currentEndNumber, equals(1));
+        expect(sessionProvider.arrowsInCurrentEnd, equals(2));
+        expect(sessionProvider.totalArrowsInSession, equals(2));
+
+        // Undo again
+        await sessionProvider.undoLastArrow();
+        expect(sessionProvider.arrowsInCurrentEnd, equals(1));
+        expect(sessionProvider.totalArrowsInSession, equals(1));
+
+        // Undo to empty
+        await sessionProvider.undoLastArrow();
+        expect(sessionProvider.arrowsInCurrentEnd, equals(0));
+        expect(sessionProvider.totalArrowsInSession, equals(0));
+
+        // Undo with no arrows left should do nothing
+        await sessionProvider.undoLastArrow();
+        expect(sessionProvider.arrowsInCurrentEnd, equals(0));
+      });
+
+      testWidgets('undo button enabled after committing end', (tester) async {
+        final sessionProvider = SessionProvider(db);
+        final roundTypes = await db.getAllRoundTypes();
+        final wa18m = roundTypes.firstWhere(
+          (rt) => rt.name == 'WA 18m',
+          orElse: () => roundTypes.first,
+        );
+
+        await sessionProvider.startSession(roundTypeId: wa18m.id);
+
+        await tester.pumpWidget(buildPlottingTestApp(
+          db: db,
+          sessionProvider: sessionProvider,
+        ));
+        await tester.pumpAndSettle();
+
+        // Verify undo disabled initially (no arrows)
+        var undoButton = find.widgetWithText(OutlinedButton, 'Undo');
+        var button = tester.widget<OutlinedButton>(undoButton);
+        expect(button.onPressed, isNull);
+
+        // Plot and commit an end
+        await sessionProvider.plotArrow(x: 0.0, y: 0.0);
+        await sessionProvider.plotArrow(x: 0.0, y: 0.0);
+        await sessionProvider.plotArrow(x: 0.0, y: 0.0);
+        await sessionProvider.commitEnd();
+        await tester.pumpAndSettle();
+
+        // Verify we're now in end 2 with 0 current arrows
+        expect(sessionProvider.currentEndNumber, equals(2));
+        expect(sessionProvider.arrowsInCurrentEnd, equals(0));
+
+        // Undo button should STILL be enabled because totalArrowsInSession > 0
+        undoButton = find.widgetWithText(OutlinedButton, 'Undo');
+        button = tester.widget<OutlinedButton>(undoButton);
+        expect(button.onPressed, isNotNull);
+      });
     });
 
     group('Session Cancellation', () {

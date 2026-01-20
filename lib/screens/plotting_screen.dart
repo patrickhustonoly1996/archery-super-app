@@ -787,7 +787,7 @@ class _ActionButtons extends StatelessWidget {
           Expanded(
             child: OutlinedButton.icon(
               onPressed:
-                  provider.arrowsInCurrentEnd > 0 ? provider.undoLastArrow : null,
+                  provider.totalArrowsInSession > 0 ? provider.undoLastArrow : null,
               icon: const Icon(Icons.undo, semanticLabel: 'Undo'),
               label: const Text('Undo'),
               style: OutlinedButton.styleFrom(

@@ -1287,6 +1287,21 @@ class AppDatabase extends _$AppDatabase {
         ),
       );
 
+  /// Uncommit an end (revert to active status for undo)
+  Future<int> uncommitEnd(String endId) =>
+      (update(ends)..where((t) => t.id.equals(endId))).write(
+        const EndsCompanion(
+          status: Value('active'),
+          committedAt: Value(null),
+        ),
+      );
+
+  /// Delete an end and its arrows
+  Future<int> deleteEnd(String endId) async {
+    await (delete(arrows)..where((t) => t.endId.equals(endId))).go();
+    return (delete(ends)..where((t) => t.id.equals(endId))).go();
+  }
+
   // ===========================================================================
   // ARROWS
   // ===========================================================================
