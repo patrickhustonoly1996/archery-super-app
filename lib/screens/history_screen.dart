@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:drift/drift.dart' show Value;
 import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../widgets/handicap_chart.dart';
@@ -8,6 +9,7 @@ import '../widgets/offline_indicator.dart';
 import '../widgets/filter_chip.dart';
 import '../utils/handicap_calculator.dart';
 import '../utils/round_matcher.dart';
+import '../utils/undo_manager.dart';
 import '../providers/connectivity_provider.dart';
 import '../providers/accessibility_provider.dart';
 import 'session_detail_screen.dart';
@@ -27,6 +29,7 @@ class UnifiedScore {
   final String? location;
   final Session? session;
   final RoundType? roundType;
+  final ImportedScore? importedScore;
 
   UnifiedScore({
     required this.date,
@@ -41,6 +44,7 @@ class UnifiedScore {
     this.location,
     this.session,
     this.roundType,
+    this.importedScore,
   });
 }
 
@@ -143,6 +147,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         isCompetition: isCompetition,
         isPlotted: false,
         location: imported.location,
+        importedScore: imported,
       ));
     }
 
@@ -279,8 +284,341 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       );
                     }
                   : null,
+              onLongPress: !s.isPlotted && s.importedScore != null
+                  ? () => _showScoreOptionsDialog(s.importedScore!)
+                  : null,
             )),
       ],
+    );
+  }
+
+  Future<void> _showScoreOptionsDialog(ImportedScore score) async {
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.surfaceDark,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: AppSpacing.md),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.textMuted,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: Column(
+                children: [
+                  Text(
+                    score.roundName,
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${score.date.day}/${score.date.month}/${score.date.year} • ${score.score} pts',
+                    style: TextStyle(
+                      color: AppColors.gold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  if (score.location != null && score.location!.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      score.location!,
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            ListTile(
+              leading: Icon(Icons.edit, color: AppColors.gold),
+              title: Text('Edit Score', style: TextStyle(color: AppColors.textPrimary)),
+              onTap: () => Navigator.pop(context, 'edit'),
+            ),
+            ListTile(
+              leading: Icon(Icons.delete, color: Colors.red),
+              title: Text('Delete Score', style: TextStyle(color: Colors.red)),
+              onTap: () => Navigator.pop(context, 'delete'),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
+        ),
+      ),
+    );
+
+    if (result == 'edit') {
+      await _showEditScoreDialog(score);
+    } else if (result == 'delete') {
+      await _confirmDeleteScore(score);
+    }
+  }
+
+  Future<void> _showEditScoreDialog(ImportedScore score) async {
+    final roundNameController = TextEditingController(text: score.roundName);
+    final scoreController = TextEditingController(text: score.score.toString());
+    final xCountController = TextEditingController(text: score.xCount?.toString() ?? '');
+    final locationController = TextEditingController(text: score.location ?? '');
+    final notesController = TextEditingController(text: score.notes ?? '');
+    DateTime selectedDate = score.date;
+    String sessionType = score.sessionType;
+
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Edit Score'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: roundNameController,
+                  decoration: const InputDecoration(labelText: 'Round Name'),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: scoreController,
+                        decoration: const InputDecoration(labelText: 'Score'),
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: TextField(
+                        controller: xCountController,
+                        decoration: const InputDecoration(labelText: 'X Count'),
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                InkWell(
+                  onTap: () async {
+                    final date = await showDatePicker(
+                      context: context,
+                      initialDate: selectedDate,
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime.now(),
+                    );
+                    if (date != null) {
+                      setDialogState(() => selectedDate = date);
+                    }
+                  },
+                  child: InputDecorator(
+                    decoration: const InputDecoration(labelText: 'Date'),
+                    child: Text(
+                      '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                      style: TextStyle(color: AppColors.textPrimary),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                TextField(
+                  controller: locationController,
+                  decoration: const InputDecoration(labelText: 'Location (optional)'),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                DropdownButtonFormField<String>(
+                  // ignore: deprecated_member_use
+                  value: sessionType,
+                  decoration: const InputDecoration(labelText: 'Type'),
+                  items: const [
+                    DropdownMenuItem(value: 'competition', child: Text('Competition')),
+                    DropdownMenuItem(value: 'practice', child: Text('Practice')),
+                  ],
+                  onChanged: (v) => setDialogState(() => sessionType = v ?? 'competition'),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                TextField(
+                  controller: notesController,
+                  decoration: const InputDecoration(labelText: 'Notes (optional)'),
+                  maxLines: 2,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final newScore = int.tryParse(scoreController.text);
+                if (newScore == null || newScore <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter a valid score')),
+                  );
+                  return;
+                }
+                if (roundNameController.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter a round name')),
+                  );
+                  return;
+                }
+
+                final db = context.read<AppDatabase>();
+                await db.updateImportedScore(
+                  ImportedScoresCompanion(
+                    id: Value(score.id),
+                    date: Value(selectedDate),
+                    roundName: Value(roundNameController.text.trim()),
+                    score: Value(newScore),
+                    xCount: Value(xCountController.text.isEmpty
+                        ? null
+                        : int.tryParse(xCountController.text)),
+                    location: Value(locationController.text.isEmpty
+                        ? null
+                        : locationController.text),
+                    notes: Value(notesController.text.isEmpty
+                        ? null
+                        : notesController.text),
+                    sessionType: Value(sessionType),
+                    updatedAt: Value(DateTime.now()),
+                  ),
+                );
+
+                Navigator.pop(context, true);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (saved == true) {
+      _loadHistory();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Score updated')),
+        );
+        _promptEditAnother();
+      }
+    }
+  }
+
+  Future<void> _confirmDeleteScore(ImportedScore score) async {
+    // First confirmation
+    final firstConfirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Score?'),
+        content: Text(
+          'Delete ${score.roundName} (${score.score} pts) from ${score.date.day}/${score.date.month}/${score.date.year}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (firstConfirm != true || !mounted) return;
+
+    // Second confirmation (double-check)
+    final secondConfirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Are you sure?'),
+        content: const Text(
+          'This will remove the score from your history. You can undo this action for a few seconds.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep it'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Yes, delete it'),
+          ),
+        ],
+      ),
+    );
+
+    if (secondConfirm != true || !mounted) return;
+
+    // Perform soft delete with undo option
+    final db = context.read<AppDatabase>();
+    await db.softDeleteImportedScore(score.id);
+    _loadHistory();
+
+    if (!mounted) return;
+
+    UndoManager.showUndoSnackbar(
+      context: context,
+      message: 'Score deleted',
+      onUndo: () async {
+        await db.restoreImportedScore(score.id);
+        if (mounted) _loadHistory();
+      },
+      onExpired: () async {
+        await db.deleteImportedScore(score.id);
+      },
+    );
+
+    // After undo window, prompt for more edits
+    Future.delayed(const Duration(seconds: 6), () {
+      if (mounted) _promptEditAnother();
+    });
+  }
+
+  void _promptEditAnother() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit More?'),
+        content: const Text('Would you like to edit or delete another score?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('No, I\'m done'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Long-press any imported score to edit or delete'),
+                  duration: Duration(seconds: 3),
+                ),
+              );
+            },
+            child: const Text('Yes, show scores'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -345,8 +683,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
 class _UnifiedScoreTile extends StatelessWidget {
   final UnifiedScore score;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
 
-  const _UnifiedScoreTile({required this.score, this.onTap});
+  const _UnifiedScoreTile({required this.score, this.onTap, this.onLongPress});
 
   @override
   Widget build(BuildContext context) {
@@ -356,7 +695,8 @@ class _UnifiedScoreTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: InkWell(
-        onTap: onTap,
+        onTap: onTap ?? onLongPress,
+        onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(AppSpacing.sm),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
+import 'package:drift/drift.dart' show Value;
 import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/offline_indicator.dart';
 import '../utils/volume_calculator.dart';
+import '../utils/undo_manager.dart';
 import '../providers/connectivity_provider.dart';
 import 'volume_upload_screen.dart';
 
@@ -502,13 +504,25 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Recent Entries',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Text(
+                  'Recent Entries',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  'Tap to edit',
+                  style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.md),
             ...recentEntries.map((entry) => _buildEntryRow(entry)),
@@ -519,34 +533,302 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   Widget _buildEntryRow(VolumeEntry entry) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Row(
-        children: [
-          Text(
-            '${entry.date.day}/${entry.date.month}/${entry.date.year}',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 14,
+    return InkWell(
+      onTap: () => _showEntryOptionsDialog(entry),
+      borderRadius: BorderRadius.circular(AppSpacing.xs),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.sm,
+          horizontal: AppSpacing.xs,
+        ),
+        child: Row(
+          children: [
+            Text(
+              '${entry.date.day}/${entry.date.month}/${entry.date.year}',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 14,
+              ),
             ),
-          ),
-          const Spacer(),
-          Text(
-            '${entry.arrowCount} arrows',
-            style: TextStyle(
-              color: AppColors.gold,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+            const Spacer(),
+            Text(
+              '${entry.arrowCount} arrows',
+              style: TextStyle(
+                color: AppColors.gold,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          if (entry.notes != null && entry.notes!.isNotEmpty) ...[
+            if (entry.notes != null && entry.notes!.isNotEmpty) ...[
+              const SizedBox(width: AppSpacing.sm),
+              Icon(
+                Icons.note,
+                size: 16,
+                color: AppColors.textMuted,
+              ),
+            ],
             const SizedBox(width: AppSpacing.sm),
             Icon(
-              Icons.note,
+              Icons.chevron_right,
               size: 16,
               color: AppColors.textMuted,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showEntryOptionsDialog(VolumeEntry entry) async {
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.surfaceDark,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: AppSpacing.md),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.textMuted,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: Column(
+                children: [
+                  Text(
+                    '${entry.date.day}/${entry.date.month}/${entry.date.year}',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${entry.arrowCount} arrows',
+                    style: TextStyle(
+                      color: AppColors.gold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  if (entry.notes != null && entry.notes!.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      entry.notes!,
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            ListTile(
+              leading: Icon(Icons.edit, color: AppColors.gold),
+              title: Text('Edit Entry', style: TextStyle(color: AppColors.textPrimary)),
+              onTap: () => Navigator.pop(context, 'edit'),
+            ),
+            ListTile(
+              leading: Icon(Icons.delete, color: Colors.red),
+              title: Text('Delete Entry', style: TextStyle(color: Colors.red)),
+              onTap: () => Navigator.pop(context, 'delete'),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
+        ),
+      ),
+    );
+
+    if (result == 'edit') {
+      await _showEditVolumeDialog(entry);
+    } else if (result == 'delete') {
+      await _confirmDeleteVolume(entry);
+    }
+  }
+
+  Future<void> _showEditVolumeDialog(VolumeEntry entry) async {
+    final arrowCountController = TextEditingController(text: entry.arrowCount.toString());
+    final notesController = TextEditingController(text: entry.notes ?? '');
+
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit Volume Entry - ${entry.date.day}/${entry.date.month}/${entry.date.year}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: arrowCountController,
+              decoration: const InputDecoration(
+                labelText: 'Arrow Count',
+              ),
+              keyboardType: TextInputType.number,
+              autofocus: true,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              controller: notesController,
+              decoration: const InputDecoration(
+                labelText: 'Notes (optional)',
+              ),
+              maxLines: 2,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final arrowCount = int.tryParse(arrowCountController.text);
+              if (arrowCount == null || arrowCount <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a valid arrow count')),
+                );
+                return;
+              }
+
+              final db = Provider.of<AppDatabase>(context, listen: false);
+              await db.updateVolumeEntry(
+                VolumeEntriesCompanion(
+                  id: Value(entry.id),
+                  date: Value(entry.date),
+                  arrowCount: Value(arrowCount),
+                  notes: Value(notesController.text.isEmpty ? null : notesController.text),
+                  updatedAt: Value(DateTime.now()),
+                ),
+              );
+
+              Navigator.pop(context, true);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (saved == true) {
+      _loadVolumeData();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Volume entry updated')),
+        );
+        _promptEditAnother();
+      }
+    }
+  }
+
+  Future<void> _confirmDeleteVolume(VolumeEntry entry) async {
+    // First confirmation
+    final firstConfirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Volume Entry?'),
+        content: Text(
+          'Delete the entry for ${entry.date.day}/${entry.date.month}/${entry.date.year} (${entry.arrowCount} arrows)?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (firstConfirm != true || !mounted) return;
+
+    // Second confirmation (double-check)
+    final secondConfirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Are you sure?'),
+        content: const Text(
+          'This will remove the entry from your training history. You can undo this action for a few seconds.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep it'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Yes, delete it'),
+          ),
+        ],
+      ),
+    );
+
+    if (secondConfirm != true || !mounted) return;
+
+    // Perform soft delete with undo option
+    final db = Provider.of<AppDatabase>(context, listen: false);
+    await db.softDeleteVolumeEntry(entry.id);
+    _loadVolumeData();
+
+    if (!mounted) return;
+
+    UndoManager.showUndoSnackbar(
+      context: context,
+      message: 'Volume entry deleted',
+      onUndo: () async {
+        await db.restoreVolumeEntry(entry.id);
+        if (mounted) _loadVolumeData();
+      },
+      onExpired: () async {
+        await db.deleteVolumeEntry(entry.id);
+      },
+    );
+
+    // After undo window, prompt for more edits
+    Future.delayed(const Duration(seconds: 6), () {
+      if (mounted) _promptEditAnother();
+    });
+  }
+
+  void _promptEditAnother() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit More?'),
+        content: const Text('Would you like to edit or delete another entry?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('No, I\'m done'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // Scroll to recent entries or highlight them
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Tap any entry in the Recent Entries section to edit or delete'),
+                  duration: Duration(seconds: 3),
+                ),
+              );
+            },
+            child: const Text('Yes, show entries'),
+          ),
         ],
       ),
     );

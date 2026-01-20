@@ -1312,6 +1312,7 @@ class AppDatabase extends _$AppDatabase {
   // ===========================================================================
 
   Future<List<ImportedScore>> getAllImportedScores() => (select(importedScores)
+        ..where((t) => t.deletedAt.isNull())
         ..orderBy([(t) => OrderingTerm.desc(t.date)]))
       .get();
 
@@ -1320,6 +1321,28 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> deleteImportedScore(String id) =>
       (delete(importedScores)..where((t) => t.id.equals(id))).go();
+
+  /// Soft delete an imported score (can be restored)
+  Future<void> softDeleteImportedScore(String id) async {
+    await (update(importedScores)..where((t) => t.id.equals(id))).write(
+      ImportedScoresCompanion(deletedAt: Value(DateTime.now())),
+    );
+  }
+
+  /// Restore a soft-deleted imported score
+  Future<void> restoreImportedScore(String id) async {
+    await (update(importedScores)..where((t) => t.id.equals(id))).write(
+      const ImportedScoresCompanion(deletedAt: Value(null)),
+    );
+  }
+
+  /// Get an imported score by ID
+  Future<ImportedScore?> getImportedScore(String id) =>
+      (select(importedScores)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  /// Update an imported score
+  Future<bool> updateImportedScore(ImportedScoresCompanion score) =>
+      update(importedScores).replace(score);
 
   /// Check for duplicate by date and score
   Future<bool> isDuplicateScore(DateTime date, int score) async {
@@ -1593,6 +1616,7 @@ class AppDatabase extends _$AppDatabase {
   // ===========================================================================
 
   Future<List<VolumeEntry>> getAllVolumeEntries() => (select(volumeEntries)
+        ..where((t) => t.deletedAt.isNull())
         ..orderBy([(t) => OrderingTerm.desc(t.date)]))
       .get();
 
@@ -1600,6 +1624,7 @@ class AppDatabase extends _$AppDatabase {
       DateTime start, DateTime end) =>
       (select(volumeEntries)
             ..where((t) =>
+                t.deletedAt.isNull() &
                 t.date.isBiggerOrEqualValue(start) &
                 t.date.isSmallerOrEqualValue(end))
             ..orderBy([(t) => OrderingTerm.asc(t.date)]))
@@ -1612,6 +1637,7 @@ class AppDatabase extends _$AppDatabase {
 
     return (select(volumeEntries)
           ..where((t) =>
+              t.deletedAt.isNull() &
               t.date.isBiggerOrEqualValue(dayStart) &
               t.date.isSmallerThanValue(dayEnd))
           ..limit(1))
@@ -1626,6 +1652,24 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> deleteVolumeEntry(String id) =>
       (delete(volumeEntries)..where((t) => t.id.equals(id))).go();
+
+  /// Soft delete a volume entry (can be restored)
+  Future<void> softDeleteVolumeEntry(String id) async {
+    await (update(volumeEntries)..where((t) => t.id.equals(id))).write(
+      VolumeEntriesCompanion(deletedAt: Value(DateTime.now())),
+    );
+  }
+
+  /// Restore a soft-deleted volume entry
+  Future<void> restoreVolumeEntry(String id) async {
+    await (update(volumeEntries)..where((t) => t.id.equals(id))).write(
+      const VolumeEntriesCompanion(deletedAt: Value(null)),
+    );
+  }
+
+  /// Get a volume entry by ID
+  Future<VolumeEntry?> getVolumeEntry(String id) =>
+      (select(volumeEntries)..where((t) => t.id.equals(id))).getSingleOrNull();
 
   /// Upsert volume entry for a specific date
   Future<void> setVolumeForDate(DateTime date, int arrowCount, {String? title, String? notes}) async {
