@@ -22,6 +22,45 @@ enum TextScaleOption {
   }
 }
 
+/// Temperature unit options
+enum TemperatureUnit {
+  celsius('Celsius', '°C'),
+  fahrenheit('Fahrenheit', '°F');
+
+  final String displayName;
+  final String symbol;
+
+  const TemperatureUnit(this.displayName, this.symbol);
+
+  static TemperatureUnit fromString(String? value) {
+    if (value == 'fahrenheit') return TemperatureUnit.fahrenheit;
+    return TemperatureUnit.celsius;
+  }
+
+  /// Convert temperature to this unit from Celsius
+  double fromCelsius(double celsius) {
+    if (this == fahrenheit) {
+      return (celsius * 9 / 5) + 32;
+    }
+    return celsius;
+  }
+
+  /// Convert temperature from this unit to Celsius
+  double toCelsius(double value) {
+    if (this == fahrenheit) {
+      return (value - 32) * 5 / 9;
+    }
+    return value;
+  }
+
+  /// Format temperature for display
+  String format(double? celsius) {
+    if (celsius == null) return '--$symbol';
+    final value = fromCelsius(celsius);
+    return '${value.round()}$symbol';
+  }
+}
+
 /// Types of colorblind accessibility modes
 enum ColorblindMode {
   /// Standard colors - no adjustments
@@ -82,13 +121,15 @@ class AccessibilityProvider extends ChangeNotifier {
   static const String _reduceMotionKey = 'reduce_motion';
   static const String _boldTextKey = 'bold_text';
   static const String _screenReaderOptimizedKey = 'screen_reader_optimized';
+  static const String _temperatureUnitKey = 'temperature_unit';
 
   ColorblindMode _colorblindMode = ColorblindMode.none;
   bool _showRingLabels = false;
-  TextScaleOption _textScale = TextScaleOption.normal;
+  TextScaleOption _textScale = TextScaleOption.large; // Default to Large for better readability
   bool _reduceMotion = false;
   bool _boldText = false;
   bool _screenReaderOptimized = false;
+  TemperatureUnit _temperatureUnit = TemperatureUnit.celsius;
   bool _isLoaded = false;
 
   // Getters
@@ -102,6 +143,7 @@ class AccessibilityProvider extends ChangeNotifier {
   bool get reduceMotion => _reduceMotion;
   bool get boldText => _boldText;
   bool get screenReaderOptimized => _screenReaderOptimized;
+  TemperatureUnit get temperatureUnit => _temperatureUnit;
   bool get isLoaded => _isLoaded;
 
   /// Whether any colorblind mode is active
@@ -120,6 +162,7 @@ class AccessibilityProvider extends ChangeNotifier {
       _reduceMotion = prefs.getBool(_reduceMotionKey) ?? false;
       _boldText = prefs.getBool(_boldTextKey) ?? false;
       _screenReaderOptimized = prefs.getBool(_screenReaderOptimizedKey) ?? false;
+      _temperatureUnit = TemperatureUnit.fromString(prefs.getString(_temperatureUnitKey));
       _isLoaded = true;
       notifyListeners();
     } catch (e) {
@@ -237,5 +280,26 @@ class AccessibilityProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error saving screen reader optimization: $e');
     }
+  }
+
+  /// Set temperature unit preference
+  Future<void> setTemperatureUnit(TemperatureUnit unit) async {
+    if (_temperatureUnit == unit) return;
+
+    _temperatureUnit = unit;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_temperatureUnitKey, unit.name);
+    } catch (e) {
+      debugPrint('Error saving temperature unit: $e');
+    }
+  }
+
+  /// Format temperature in the user's preferred unit
+  /// [celsius] - Temperature in Celsius
+  String formatTemperature(double? celsius) {
+    return _temperatureUnit.format(celsius);
   }
 }

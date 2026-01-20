@@ -13,6 +13,7 @@ import '../widgets/stat_box.dart';
 import '../widgets/sight_mark_entry_form.dart';
 import '../widgets/classification_badge.dart';
 import 'home_screen.dart';
+import 'scorecard_view_screen.dart';
 
 class SessionCompleteScreen extends StatefulWidget {
   const SessionCompleteScreen({super.key});
@@ -394,6 +395,9 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
 
     if (session == null || roundType == null) return;
 
+    // Get skills provider before async gap
+    final skillsProvider = context.read<SkillsProvider>();
+
     await equipmentProvider.saveKitSnapshot(
       sessionId: session.id,
       bowId: session.bowId,
@@ -403,6 +407,9 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
       roundName: roundType.name,
       reason: 'top_20',
     );
+
+    // Award Equipment XP for saving a kit snapshot
+    await skillsProvider.awardEquipmentXp(reason: 'Saved kit snapshot: ${roundType.name}');
 
     if (mounted) {
       setState(() => _snapshotSaved = true);
@@ -628,6 +635,35 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
                   ),
 
                   const SizedBox(height: AppSpacing.xl),
+
+                  // View Scorecard button (for signing and export)
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ScorecardViewScreen(
+                              sessionId: session.id,
+                              isLive: false,
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.description_outlined),
+                      label: const Padding(
+                        padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                        child: Text('View Scorecard & Export'),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.gold,
+                        side: BorderSide(color: AppColors.gold.withValues(alpha: 0.5)),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: AppSpacing.md),
 
                   // Done button
                   SizedBox(

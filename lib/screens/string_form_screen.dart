@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
+import '../providers/skills_provider.dart';
 import '../db/database.dart';
 
 class StringFormScreen extends StatefulWidget {
@@ -110,6 +111,9 @@ class _StringFormScreenState extends State<StringFormScreen> {
       final color = _nullIfEmpty(_colorController.text);
       final notes = _nullIfEmpty(_notesController.text);
 
+      final skillsProvider = context.read<SkillsProvider>();
+      final stringName = name ?? 'Bowstring';
+
       if (widget.bowString == null) {
         await provider.createBowString(
           bowId: widget.bowId,
@@ -122,6 +126,8 @@ class _StringFormScreenState extends State<StringFormScreen> {
           purchaseDate: _purchaseDate,
           notes: notes,
         );
+        // Award Equipment XP for adding a new string
+        await skillsProvider.awardEquipmentXp(reason: 'Added string: $stringName');
       } else {
         await provider.updateBowString(
           id: widget.bowString!.id,
@@ -134,6 +140,8 @@ class _StringFormScreenState extends State<StringFormScreen> {
           purchaseDate: _purchaseDate,
           notes: notes,
         );
+        // Award Equipment XP for updating string settings
+        await skillsProvider.awardEquipmentXp(reason: 'Updated string: $stringName');
       }
 
       if (mounted) {

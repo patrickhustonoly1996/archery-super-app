@@ -14,6 +14,41 @@ enum DistanceUnit {
   }
 
   String toDbString() => this == DistanceUnit.yards ? 'yards' : 'meters';
+
+  /// Get the opposite unit
+  DistanceUnit get other => this == meters ? yards : meters;
+
+  /// Convert a distance to the other unit
+  double convert(double distance) {
+    if (this == meters) {
+      // meters to yards
+      return distance / 0.9144;
+    } else {
+      // yards to meters
+      return distance * 0.9144;
+    }
+  }
+
+  /// Convert to meters (for consistent calculations)
+  double toMeters(double distance) {
+    if (this == yards) return distance * 0.9144;
+    return distance;
+  }
+
+  /// Convert from meters to this unit
+  double fromMeters(double meters) {
+    if (this == yards) return meters / 0.9144;
+    return meters;
+  }
+
+  /// Common distances for this unit
+  List<double> get commonDistances {
+    if (this == meters) {
+      return [18, 25, 30, 40, 50, 60, 70, 90];
+    } else {
+      return [20, 30, 40, 50, 60, 70, 80, 100];
+    }
+  }
 }
 
 /// Notation style for sight mark values

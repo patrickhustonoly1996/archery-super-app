@@ -344,13 +344,16 @@ class _PlottingScreenState extends State<PlottingScreen> {
                   }
                 },
                 itemBuilder: (context) => [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'abandon',
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.delete_outline, color: AppColors.error, semanticLabel: 'Delete'),
-                        SizedBox(width: AppSpacing.sm),
-                        Text('Abandon session'),
+                        const SizedBox(width: AppSpacing.sm),
+                        const Flexible(
+                          child: Text('Abandon session', overflow: TextOverflow.ellipsis),
+                        ),
                       ],
                     ),
                   ),
@@ -566,6 +569,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
                         _viewPastEnd(index, provider);
                       }
                     },
+                    onArrowTapped: (arrowIndex) => _showArrowOptions(context, provider, arrowIndex),
                   ),
 
                 // Action buttons
@@ -612,7 +616,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
         ),
       );
 
-      // Handle result: selection, skip, or dismiss
+      // Handle result: selection, skip, dontAskAgain, or dismiss
       if (result != null && result.shaftNumber != null) {
         // User selected a shaft
         await provider.plotArrow(
@@ -623,6 +627,11 @@ class _PlottingScreenState extends State<PlottingScreen> {
           nockRotation: result.nockRotation,
           rating: result.rating,
         );
+      } else if (result != null && result.dontAskAgain) {
+        // User chose "Don't ask again" - disable shaft tagging for session
+        await provider.setShaftTagging(false);
+        // Plot without shaft tracking
+        await provider.plotArrow(x: x, y: y, faceIndex: faceIndex);
       } else {
         // User skipped or dismissed - plot without shaft tracking
         await provider.plotArrow(x: x, y: y, faceIndex: faceIndex);
@@ -640,6 +649,119 @@ class _PlottingScreenState extends State<PlottingScreen> {
         builder: (_) => ScorecardViewScreen(
           sessionId: provider.currentSession!.id,
           isLive: true,
+        ),
+      ),
+    );
+  }
+
+  /// Show options for a tapped arrow (delete or re-plot)
+  void _showArrowOptions(BuildContext context, SessionProvider provider, int arrowIndex) {
+    final arrows = provider.currentEndArrows;
+    if (arrowIndex >= arrows.length) return;
+
+    final arrow = arrows[arrowIndex];
+    final scoreDisplay = arrow.isX ? 'X' : arrow.score.toString();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceDark,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.gold.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    scoreDisplay,
+                    style: TextStyle(
+                      fontFamily: AppFonts.pixel,
+                      fontSize: 20,
+                      color: AppColors.gold,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(
+                    'Arrow ${arrowIndex + 1}',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
+            // Delete option
+            ListTile(
+              leading: Icon(Icons.delete_outline, color: AppColors.error),
+              title: const Text('Delete Arrow'),
+              subtitle: Text(
+                'Remove this arrow and re-plot',
+                style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+              ),
+              onTap: () async {
+                Navigator.pop(ctx);
+                await provider.deleteArrowAtIndex(arrowIndex);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Arrow $scoreDisplay deleted'),
+                      backgroundColor: AppColors.surfaceLight,
+                      action: SnackBarAction(
+                        label: 'Undo',
+                        textColor: AppColors.gold,
+                        onPressed: () {
+                          // Undo is handled by the standard undo mechanism
+                          provider.undoLastArrow();
+                        },
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+
+            // Move to end option (if not last arrow)
+            if (arrowIndex < arrows.length - 1)
+              ListTile(
+                leading: Icon(Icons.swap_horiz, color: AppColors.textSecondary),
+                title: const Text('Move to End'),
+                subtitle: Text(
+                  'Move this arrow to the last position',
+                  style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                ),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  await provider.moveArrowToEnd(arrowIndex);
+                },
+              ),
+
+            const SizedBox(height: AppSpacing.sm),
+
+            // Cancel
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
         ),
       ),
     );
@@ -853,7 +975,7 @@ class _ActionButtons extends StatelessWidget {
           Expanded(
             flex: 2,
             child: ElevatedButton(
-              onPressed: provider.arrowsInCurrentEnd > 0
+              onPressed: provider.arrowsInCurrentEnd > 0 && !provider.isCommittingEnd
                   ? () async {
                       await provider.commitEnd();
                       onEndCommit?.call();
@@ -861,11 +983,17 @@ class _ActionButtons extends StatelessWidget {
                   : null,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                child: Text(
-                  provider.currentEndNumber >= provider.totalEnds
-                      ? 'Complete Session'
-                      : 'Next End',
-                ),
+                child: provider.isCommittingEnd
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        provider.currentEndNumber >= provider.totalEnds
+                            ? 'Complete Session'
+                            : 'Next End',
+                      ),
               ),
             ),
           ),
@@ -1058,6 +1186,7 @@ class _CollapsibleScorecard extends StatelessWidget {
   final VoidCallback onTapFullView;
   final int? viewingEndIndex;
   final ValueChanged<int> onEndTapped;
+  final void Function(int arrowIndex)? onArrowTapped;
 
   const _CollapsibleScorecard({
     required this.provider,
@@ -1066,6 +1195,7 @@ class _CollapsibleScorecard extends StatelessWidget {
     required this.onTapFullView,
     required this.viewingEndIndex,
     required this.onEndTapped,
+    this.onArrowTapped,
   });
 
   @override
@@ -1081,7 +1211,6 @@ class _CollapsibleScorecard extends StatelessWidget {
           }
         }
       },
-      onDoubleTap: onTapFullView,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
         decoration: BoxDecoration(
@@ -1092,37 +1221,65 @@ class _CollapsibleScorecard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Drag handle indicator
+            // Drag handle indicator with full scorecard button
             GestureDetector(
               onTap: onToggleExpanded,
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: AppSpacing.sm),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      width: 32,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceLight,
-                        borderRadius: BorderRadius.circular(2),
+                    // Expand/collapse section
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceLight,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
+                            size: 16,
+                            color: AppColors.textMuted,
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
-                      size: 16,
-                      color: AppColors.textMuted,
+                    // Full scorecard button (icon only for compact display)
+                    GestureDetector(
+                      onTap: onTapFullView,
+                      child: Tooltip(
+                        message: 'View Full Scorecard',
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AppColors.gold.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: AppColors.gold.withValues(alpha: 0.4)),
+                          ),
+                          child: Icon(
+                            Icons.fullscreen,
+                            size: 16,
+                            color: AppColors.gold,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
 
-            // Current end row (always visible)
+            // Current end row with tappable arrows (always visible)
             _CurrentEndRow(
               provider: provider,
               viewingEndIndex: viewingEndIndex,
+              onArrowTapped: onArrowTapped,
             ),
 
             // Expanded content: end history and full scorecard
@@ -1138,9 +1295,9 @@ class _CollapsibleScorecard extends StatelessWidget {
                   onEndTapped: onEndTapped,
                 ),
 
-              // Full scorecard (limited height)
+              // Full scorecard (increased height for better visibility)
               Container(
-                constraints: const BoxConstraints(maxHeight: 100),
+                constraints: const BoxConstraints(maxHeight: 180),
                 child: FullScorecardWidget(
                   completedEnds: provider.ends,
                   completedEndArrows: provider.completedEndArrowsByEnd,
@@ -1165,10 +1322,12 @@ class _CollapsibleScorecard extends StatelessWidget {
 class _CurrentEndRow extends StatelessWidget {
   final SessionProvider provider;
   final int? viewingEndIndex;
+  final void Function(int arrowIndex)? onArrowTapped;
 
   const _CurrentEndRow({
     required this.provider,
     required this.viewingEndIndex,
+    this.onArrowTapped,
   });
 
   Color _getScoreColor(int score, bool isX) {
@@ -1218,38 +1377,52 @@ class _CurrentEndRow extends StatelessWidget {
 
           const SizedBox(width: AppSpacing.md),
 
-          // Arrow scores
+          // Arrow scores (tappable for current end)
           Expanded(
             child: Row(
               children: List.generate(provider.arrowsPerEnd, (i) {
                 final hasArrow = i < arrows.length;
                 final arrow = hasArrow ? arrows[i] : null;
+                final canTap = hasArrow && onArrowTapped != null && !isViewingHistory;
 
-                return Container(
-                  width: 28,
-                  margin: const EdgeInsets.only(right: 4),
-                  child: Center(
-                    child: hasArrow
-                        ? Text(
-                            arrow!.isX ? 'X' : arrow.score.toString(),
-                            style: TextStyle(
-                              fontFamily: AppFonts.body,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: _getScoreColor(arrow.score, arrow.isX),
+                return GestureDetector(
+                  onTap: canTap ? () => onArrowTapped!(i) : null,
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    margin: const EdgeInsets.only(right: 4),
+                    decoration: canTap
+                        ? BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: AppColors.surfaceLight.withValues(alpha: 0.5),
+                              width: 1,
                             ),
                           )
-                        : Container(
-                            width: 20,
-                            height: 20,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: AppColors.surfaceLight,
-                                width: 1,
+                        : null,
+                    child: Center(
+                      child: hasArrow
+                          ? Text(
+                              arrow!.isX ? 'X' : arrow.score.toString(),
+                              style: TextStyle(
+                                fontFamily: AppFonts.body,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: _getScoreColor(arrow.score, arrow.isX),
                               ),
-                              borderRadius: BorderRadius.circular(4),
+                            )
+                          : Container(
+                              width: 20,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: AppColors.surfaceLight,
+                                  width: 1,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
                             ),
-                          ),
+                    ),
                   ),
                 );
               }),

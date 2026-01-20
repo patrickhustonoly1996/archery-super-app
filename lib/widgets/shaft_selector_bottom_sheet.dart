@@ -9,16 +9,25 @@ class ShaftSelectionResult {
   final String? nockRotation;
   final int rating;
   final bool skipped;
+  /// If true, don't show the shaft selector again for this session
+  final bool dontAskAgain;
 
   const ShaftSelectionResult({
     this.shaftNumber,
     this.nockRotation,
     this.rating = 5,
     this.skipped = false,
+    this.dontAskAgain = false,
   });
 
   /// User explicitly skipped shaft selection
   factory ShaftSelectionResult.skip() => const ShaftSelectionResult(skipped: true);
+
+  /// User skipped and doesn't want to be asked again this session
+  factory ShaftSelectionResult.skipAndDontAsk() => const ShaftSelectionResult(
+    skipped: true,
+    dontAskAgain: true,
+  );
 }
 
 class ShaftSelectorBottomSheet extends StatefulWidget {
@@ -132,22 +141,45 @@ class _ShaftSelectorBottomSheetState extends State<ShaftSelectorBottomSheet> {
 
           const SizedBox(height: AppSpacing.md),
 
-          // Skip button
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () {
-                // Return skip result for new API, also call legacy callback
-                Navigator.pop(context, ShaftSelectionResult.skip());
-                widget.onSkip?.call();
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.textSecondary,
-                side: const BorderSide(color: AppColors.surfaceLight),
-                padding: const EdgeInsets.all(AppSpacing.md),
+          // Skip buttons row
+          Row(
+            children: [
+              // Skip this arrow only
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    // Return skip result for new API, also call legacy callback
+                    Navigator.pop(context, ShaftSelectionResult.skip());
+                    widget.onSkip?.call();
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textSecondary,
+                    side: const BorderSide(color: AppColors.surfaceLight),
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.sm),
+                  ),
+                  child: const Text('Skip'),
+                ),
               ),
-              child: const Text('Skip (no tracking)'),
-            ),
+              const SizedBox(width: AppSpacing.sm),
+              // Don't ask again this session
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.pop(context, ShaftSelectionResult.skipAndDontAsk());
+                    widget.onSkip?.call();
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textMuted,
+                    side: BorderSide(color: AppColors.surfaceLight.withValues(alpha: 0.5)),
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.sm),
+                  ),
+                  child: Text(
+                    "Don't ask again",
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

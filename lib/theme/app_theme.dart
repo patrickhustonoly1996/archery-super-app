@@ -496,10 +496,15 @@ class TargetRingsMm {
     1.00,  // Ring 1 (outer edge)
   ];
 
+  /// X ring as percentage of face radius for compound (half of recurve)
+  static const double compoundXRingPercentage = 0.025;
+
   /// Get the X ring boundary in mm for a given face size
-  static double getXRingMm(int faceSizeCm) {
+  /// For compound scoring, the X ring is half the size (2.5% vs 5% of radius)
+  static double getXRingMm(int faceSizeCm, {bool compoundScoring = false}) {
     final radiusMm = faceSizeCm * 5.0;
-    return radiusMm * 0.05; // X ring is 5% of radius
+    final percentage = compoundScoring ? compoundXRingPercentage : 0.05;
+    return radiusMm * percentage;
   }
 
   /// Get the outer boundary of a ring in mm
@@ -527,17 +532,19 @@ class TargetRingsMm {
   /// For 10-zone scoring, returns the ring number (10-1).
   /// For 5-zone scoring, returns the color score (9-7-5-3-1).
   /// For worcester scoring, returns 5-4-3-2-1.
+  /// [compoundScoring] uses smaller X ring for compound bows.
   static int scoreFromDistanceMm(
     double distanceMm,
     int faceSizeCm, {
     String scoringType = '10-zone',
+    bool compoundScoring = false,
   }) {
     // First get the 10-zone ring number
     int ring;
 
     // Check each ring from inside out
     // X ring counts as 10
-    if (distanceMm <= getXRingMm(faceSizeCm) + epsilon) {
+    if (distanceMm <= getXRingMm(faceSizeCm, compoundScoring: compoundScoring) + epsilon) {
       ring = 10;
     } else {
       ring = 0; // Default to miss
@@ -600,26 +607,30 @@ class TargetRingsMm {
   }
 
   /// Check if distance is in the X ring (for X count tracking)
-  static bool isXRing(double distanceMm, int faceSizeCm) {
-    return distanceMm <= getXRingMm(faceSizeCm) + epsilon;
+  /// [compoundScoring] uses smaller X ring for compound bows.
+  static bool isXRing(double distanceMm, int faceSizeCm, {bool compoundScoring = false}) {
+    return distanceMm <= getXRingMm(faceSizeCm, compoundScoring: compoundScoring) + epsilon;
   }
 
   /// Get score and X status in one call
+  /// [compoundScoring] uses smaller X ring for compound bows.
   static ({int score, bool isX}) scoreAndX(
     double distanceMm,
     int faceSizeCm, {
     String scoringType = '10-zone',
+    bool compoundScoring = false,
   }) {
     return (
-      score: scoreFromDistanceMm(distanceMm, faceSizeCm, scoringType: scoringType),
-      isX: isXRing(distanceMm, faceSizeCm),
+      score: scoreFromDistanceMm(distanceMm, faceSizeCm, scoringType: scoringType, compoundScoring: compoundScoring),
+      isX: isXRing(distanceMm, faceSizeCm, compoundScoring: compoundScoring),
     );
   }
 
   /// Get the ring number for a given distance (not the score).
   /// Returns 11 for X ring, 10-1 for standard rings, 0 for miss.
-  static int getRingNumber(double distanceMm, int faceSizeCm) {
-    if (distanceMm <= getXRingMm(faceSizeCm) + epsilon) {
+  /// [compoundScoring] uses smaller X ring for compound bows.
+  static int getRingNumber(double distanceMm, int faceSizeCm, {bool compoundScoring = false}) {
+    if (distanceMm <= getXRingMm(faceSizeCm, compoundScoring: compoundScoring) + epsilon) {
       return 11; // X ring
     }
     for (int ring = 10; ring >= 1; ring--) {

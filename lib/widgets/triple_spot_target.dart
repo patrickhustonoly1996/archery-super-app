@@ -60,7 +60,8 @@ class TripleSpotTarget extends StatelessWidget {
   }
 
   Widget _buildFace(int faceIndex, double faceSize) {
-    final faceArrows = arrows.where((a) => a.faceIndex == faceIndex).toList();
+    // Show ALL arrows on every face for visual grouping
+    // (arrows retain their faceIndex internally for scoring)
     final isSelected = selectedFace == faceIndex;
 
     return GestureDetector(
@@ -74,7 +75,7 @@ class TripleSpotTarget extends StatelessWidget {
           borderRadius: BorderRadius.circular(4),
         ),
         child: TargetFace(
-          arrows: faceArrows,
+          arrows: arrows,
           size: faceSize,
           triSpot: true, // Always tri-spot mode (rings 6-10 only)
           compoundScoring: compoundScoring,
@@ -86,7 +87,8 @@ class TripleSpotTarget extends StatelessWidget {
 }
 
 /// Interactive triple spot target for plotting arrows.
-/// Shows 3 faces and allows tapping to select which face to plot on.
+/// Shows all 3 faces side-by-side at equal sizes so arrows remain visible
+/// across all faces. Tap a face to select it for plotting.
 ///
 /// Can be used as controlled (provide selectedFace + onFaceChanged) or
 /// uncontrolled (internal state manages selection).
@@ -163,132 +165,103 @@ class _InteractiveTripleSpotTargetState
 
   @override
   Widget build(BuildContext context) {
-    // Focused layout: selected face is large, others are small selectors
-    // Main face gets ~70% of available size, selectors split the rest
-    final mainFaceSize = widget.size * 0.75;
-    final selectorSize = (widget.size - mainFaceSize - 24) / 3; // 24 = gaps
+    // All 3 faces shown at equal size, stacked vertically
+    // Budget: 3 faces + 2 gaps (8px each) = widget.size
+    // faceSize includes the border, which is painted inside the container
+    final faceSize = (widget.size - 16) / 3;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // Face selectors on the left (small thumbnails)
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildFaceSelector(0, selectorSize),
-            const SizedBox(height: 8),
-            _buildFaceSelector(1, selectorSize),
-            const SizedBox(height: 8),
-            _buildFaceSelector(2, selectorSize),
-          ],
-        ),
-        const SizedBox(width: 8),
-        // Main interactive face (large, selected)
-        _buildMainFace(_selectedFace, mainFaceSize),
-      ],
-    );
-  }
-
-  /// Build the main interactive face (large, for plotting)
-  Widget _buildMainFace(int faceIndex, double faceSize) {
-    final faceArrows =
-        widget.arrows.where((a) => a.faceIndex == faceIndex).toList();
-
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: AppColors.gold,
-          width: 2,
-        ),
-        borderRadius: BorderRadius.circular(4),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.gold.withValues(alpha: 0.3),
-            blurRadius: 8,
-            spreadRadius: 1,
-          ),
+    return SizedBox(
+      width: faceSize,
+      height: widget.size,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildInteractiveFace(0, faceSize),
+          const SizedBox(height: 8),
+          _buildInteractiveFace(1, faceSize),
+          const SizedBox(height: 8),
+          _buildInteractiveFace(2, faceSize),
         ],
       ),
-      child: InteractiveTargetFace(
-        arrows: faceArrows,
-        size: faceSize,
-        enabled: widget.enabled,
-        isIndoor: true,
-        triSpot: true,
-        isLeftHanded: widget.isLeftHanded,
-        compoundScoring: widget.compoundScoring,
-        onArrowPlotted: (x, y) {
-          _onArrowPlotted(x, y, faceIndex);
-        },
-      ),
     );
   }
 
-  /// Build a small face selector (thumbnail with score)
-  Widget _buildFaceSelector(int faceIndex, double selectorSize) {
-    final faceArrows =
-        widget.arrows.where((a) => a.faceIndex == faceIndex).toList();
+  /// Build an interactive face that shows all arrows and allows plotting
+  Widget _buildInteractiveFace(int faceIndex, double faceSize) {
+    // Show ALL arrows on every face for visual grouping
+    // (arrows retain their faceIndex internally for scoring)
     final isSelected = _selectedFace == faceIndex;
-    final hasArrow = faceArrows.isNotEmpty;
-    final score = hasArrow
-        ? faceArrows.map((a) => a.score).reduce((a, b) => a + b)
-        : 0;
+
+    // Calculate the inner target size (face - border on each side)
+    final borderWidth = isSelected ? 2.0 : 1.0;
+    final innerSize = faceSize - borderWidth * 2;
 
     return GestureDetector(
-      onTap: () => _setSelectedFace(faceIndex),
+      // Tap anywhere on the face to select it (if not already selected)
+      onTap: !isSelected ? () => _setSelectedFace(faceIndex) : null,
       child: Container(
-        width: selectorSize + 24, // Extra width for label
-        height: selectorSize + 4,
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+        width: faceSize,
+        height: faceSize,
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.gold.withValues(alpha: 0.2) : Colors.transparent,
           border: Border.all(
-            color: isSelected
-                ? AppColors.gold
-                : (hasArrow ? AppColors.gold.withValues(alpha: 0.3) : AppColors.surfaceLight),
-            width: isSelected ? 2 : 1,
+            color: isSelected ? AppColors.gold : AppColors.surfaceLight,
+            width: borderWidth,
           ),
           borderRadius: BorderRadius.circular(4),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.gold.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ]
+              : null,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
+        child: Stack(
           children: [
-            // Small target preview
-            TargetFace(
-              arrows: faceArrows,
-              size: selectorSize,
+            // The target face - interactive only when selected
+            InteractiveTargetFace(
+              arrows: widget.arrows,
+              size: innerSize,
+              enabled: widget.enabled && isSelected,
+              isIndoor: true,
               triSpot: true,
+              isLeftHanded: widget.isLeftHanded,
               compoundScoring: widget.compoundScoring,
+              onArrowPlotted: (x, y) {
+                _onArrowPlotted(x, y, faceIndex);
+              },
             ),
-            const SizedBox(width: 2),
-            // Face number and score
-            Flexible(
-              child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+            // Face number indicator in corner
+            Positioned(
+              left: 4,
+              top: 4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.gold
+                      : AppColors.surfaceDark.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
                   '${faceIndex + 1}',
                   style: TextStyle(
                     fontFamily: AppFonts.pixel,
-                    fontSize: 14,
-                    color: isSelected ? AppColors.gold : AppColors.textMuted,
+                    fontSize: 12,
+                    color: isSelected ? AppColors.surfaceDark : AppColors.textMuted,
                   ),
                 ),
-                if (hasArrow)
-                  Text(
-                    '$score',
-                    style: TextStyle(
-                      fontFamily: AppFonts.body,
-                      fontSize: 12,
-                      color: AppColors.gold,
-                    ),
-                  ),
-              ],
+              ),
             ),
-            ),
+            // Overlay to capture taps when not selected
+            if (!isSelected)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.transparent,
+                ),
+              ),
           ],
         ),
       ),

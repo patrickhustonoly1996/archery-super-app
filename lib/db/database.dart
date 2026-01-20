@@ -1350,6 +1350,10 @@ class AppDatabase extends _$AppDatabase {
       (update(arrows)..where((t) => t.id.equals(arrowId)))
           .write(updates);
 
+  /// Update the sequence number of an arrow (for reordering)
+  Future<int> updateArrowSequence(String arrowId, int newSequence) =>
+      updateArrow(arrowId, ArrowsCompanion(sequence: Value(newSequence)));
+
   Future<int> deleteArrowsForSession(String sessionId) async {
     final sessionEnds = await getEndsForSession(sessionId);
     final endIds = sessionEnds.map((e) => e.id).toList();

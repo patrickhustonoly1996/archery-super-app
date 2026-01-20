@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
+import '../providers/skills_provider.dart';
 import '../db/database.dart';
 
 class StabilizerFormScreen extends StatefulWidget {
@@ -191,6 +192,9 @@ class _StabilizerFormScreenState extends State<StabilizerFormScreen> {
       final damperPositions = _nullIfEmpty(_damperPositionsController.text);
       final notes = _nullIfEmpty(_notesController.text);
 
+      final skillsProvider = context.read<SkillsProvider>();
+      final stabName = name ?? 'Stabilizer setup';
+
       if (widget.stabilizer == null) {
         await provider.createStabilizer(
           bowId: widget.bowId,
@@ -217,6 +221,8 @@ class _StabilizerFormScreenState extends State<StabilizerFormScreen> {
           damperPositions: damperPositions,
           notes: notes,
         );
+        // Award Equipment XP for adding a new stabilizer setup
+        await skillsProvider.awardEquipmentXp(reason: 'Added stabilizer: $stabName');
       } else {
         await provider.updateStabilizer(
           id: widget.stabilizer!.id,
@@ -243,6 +249,8 @@ class _StabilizerFormScreenState extends State<StabilizerFormScreen> {
           damperPositions: damperPositions,
           notes: notes,
         );
+        // Award Equipment XP for updating stabilizer settings
+        await skillsProvider.awardEquipmentXp(reason: 'Updated stabilizer: $stabName');
       }
 
       if (mounted) {

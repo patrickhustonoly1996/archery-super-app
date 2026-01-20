@@ -103,6 +103,11 @@ class _BowTrainingHomeScreenState extends State<BowTrainingHomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Custom Timer - prominent at top
+                  _CustomTimerCard(onTap: _openCustomTimer),
+
+                  const SizedBox(height: AppSpacing.lg),
+
                   // Preset Training Blocks section
                   _SectionHeader(title: 'Preset Training Blocks'),
                   const SizedBox(height: AppSpacing.sm),
@@ -110,28 +115,13 @@ class _BowTrainingHomeScreenState extends State<BowTrainingHomeScreen> {
 
                   const SizedBox(height: AppSpacing.lg),
 
-                  // Actions row
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _ActionCard(
-                          icon: Icons.timer_outlined,
-                          label: 'Custom Timer',
-                          sublabel: 'Build your own',
-                          onTap: _openCustomTimer,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: _ActionCard(
-                          icon: Icons.library_books_outlined,
-                          label: 'Session Library',
-                          sublabel: 'Browse all (1.0-2.5)',
-                          onTap: _openLibrary,
-                          isHighlight: true,
-                        ),
-                      ),
-                    ],
+                  // Session Library
+                  _ActionCard(
+                    icon: Icons.library_books_outlined,
+                    label: 'Session Library',
+                    sublabel: 'Browse all structured sessions (1.0-2.5)',
+                    onTap: _openLibrary,
+                    isHighlight: true,
                   ),
 
                   const SizedBox(height: AppSpacing.lg),
@@ -531,6 +521,74 @@ class _ActionCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.textMuted,
                     ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Prominent custom timer card for the top of the screen
+class _CustomTimerCard extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _CustomTimerCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: AppColors.surfaceDark,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSpacing.md),
+        side: BorderSide(color: AppColors.gold.withValues(alpha: 0.3)),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.md),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                ),
+                child: const Icon(
+                  Icons.timer_outlined,
+                  color: AppColors.gold,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Custom Timer',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Build your own session with custom hold:rest ratios',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                color: AppColors.gold,
               ),
             ],
           ),

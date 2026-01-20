@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,9 +13,20 @@ class VibrationService {
 
   SharedPreferences? _prefs;
   bool _enabled = true; // Default ON
+  Completer<void>? _initCompleter;
 
   Future<void> _ensureInitialized() async {
+    // Already initialized
     if (_prefs != null) return;
+
+    // Initialization in progress - wait for it
+    if (_initCompleter != null) {
+      await _initCompleter!.future;
+      return;
+    }
+
+    // Start initialization
+    _initCompleter = Completer<void>();
     try {
       _prefs = await SharedPreferences.getInstance();
       _enabled = _prefs!.getBool(_vibrationsEnabledKey) ?? true; // Default ON
@@ -22,6 +34,7 @@ class VibrationService {
       // SharedPreferences not available (e.g., in tests)
       _enabled = true;
     }
+    _initCompleter!.complete();
   }
 
   /// Check if vibrations are enabled

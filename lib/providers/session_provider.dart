@@ -27,11 +27,15 @@ class SessionProvider extends ChangeNotifier {
 
   // Equipment state
   String? _selectedBowId;
+  Bow? _selectedBow;
   String? _selectedQuiverId;
   bool _shaftTaggingEnabled = false;
 
   // Optional override for arrows per end (for quick start)
   int? _arrowsPerEndOverride;
+
+  // Prevent concurrent end commits (race condition guard)
+  bool _isCommittingEnd = false;
 
   // Getters
   Session? get currentSession => _currentSession;
@@ -43,8 +47,15 @@ class SessionProvider extends ChangeNotifier {
   bool get isSessionComplete => _currentSession?.completedAt != null;
 
   String? get selectedBowId => _selectedBowId;
+  Bow? get selectedBow => _selectedBow;
   String? get selectedQuiverId => _selectedQuiverId;
   bool get shaftTaggingEnabled => _shaftTaggingEnabled;
+
+  /// Whether the selected bow is a compound bow (affects X ring scoring)
+  bool get isCompoundBow => _selectedBow?.bowType == 'compound';
+
+  /// Whether an end commit is in progress (for UI to disable button)
+  bool get isCommittingEnd => _isCommittingEnd;
 
   /// Toggle shaft tagging on/off during session
   Future<void> setShaftTagging(bool enabled) async {
@@ -208,6 +219,7 @@ class SessionProvider extends ChangeNotifier {
 
     // Load equipment state
     _selectedBowId = session.bowId;
+    _selectedBow = session.bowId != null ? await _db.getBow(session.bowId!) : null;
     _selectedQuiverId = session.quiverId;
     _shaftTaggingEnabled = session.shaftTaggingEnabled;
 
@@ -267,6 +279,7 @@ class SessionProvider extends ChangeNotifier {
 
       // Store equipment state
       _selectedBowId = bowId;
+      _selectedBow = bowId != null ? await _db.getBow(bowId) : null;
       _selectedQuiverId = quiverId;
       _shaftTaggingEnabled = shaftTaggingEnabled;
 
@@ -310,10 +323,12 @@ class SessionProvider extends ChangeNotifier {
 
     // Use mm-based scoring with epsilon tolerance
     // Pass scoringType to use correct scoring system (10-zone or 5-zone)
+    // Pass compoundScoring for correct X ring size (compound X is smaller)
     final result = TargetRingsMm.scoreAndX(
       coord.distanceMm,
       faceSizeCm,
       scoringType: scoringType,
+      compoundScoring: isCompoundBow,
     );
 
     final arrowId =
@@ -430,10 +445,50 @@ class SessionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Delete a specific arrow by index in the current end
+  Future<void> deleteArrowAtIndex(int index) async {
+    if (_activeEnd == null) return;
+    if (index < 0 || index >= _currentEndArrows.length) return;
+
+    final arrowToDelete = _currentEndArrows[index];
+    await _db.deleteArrow(arrowToDelete.id);
+    _currentEndArrows = await _db.getArrowsForEnd(_activeEnd!.id);
+    notifyListeners();
+  }
+
+  /// Move an arrow to the end of the current end's arrow list
+  Future<void> moveArrowToEnd(int fromIndex) async {
+    if (_activeEnd == null) return;
+    if (fromIndex < 0 || fromIndex >= _currentEndArrows.length - 1) return;
+
+    // Reorder by updating sequence numbers
+    final arrow = _currentEndArrows[fromIndex];
+    final lastSequence = _currentEndArrows.last.sequence;
+
+    // Move this arrow to the end by giving it the highest sequence
+    await _db.updateArrowSequence(arrow.id, lastSequence + 1);
+
+    // Reload arrows (they come back sorted by sequence)
+    _currentEndArrows = await _db.getArrowsForEnd(_activeEnd!.id);
+    notifyListeners();
+  }
+
   /// Commit the current end and move to the next
   Future<void> commitEnd() async {
+    // Guard against concurrent commits (can happen if user taps button during auto-commit)
+    if (_isCommittingEnd) return;
     if (_activeEnd == null || _currentEndArrows.isEmpty) return;
 
+    _isCommittingEnd = true;
+    try {
+      await _doCommitEnd();
+    } finally {
+      _isCommittingEnd = false;
+    }
+  }
+
+  /// Internal: Actually commit the end (called by commitEnd with guard)
+  Future<void> _doCommitEnd() async {
     // Calculate end score
     final endScore = currentEndScore;
     final endXs = currentEndXs;

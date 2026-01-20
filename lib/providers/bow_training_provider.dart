@@ -711,6 +711,15 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
     _advancePhase();
   }
 
+  /// Force session to completion phase early (allows saving partial progress)
+  void forceComplete() {
+    if (_timerState == TimerState.stopped) return;
+    _timer?.cancel();
+    _phase = TimerPhase.complete;
+    _timerState = TimerState.stopped;
+    notifyListeners();
+  }
+
   /// Stop and discard the current session
   void cancelSession() {
     _timer?.cancel();

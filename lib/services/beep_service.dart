@@ -15,20 +15,34 @@ class BeepService {
   BytesSource? _longBeepSource;      // One long beep for exhale
   BytesSource? _holdStartBeepSource; // 3 short + 1 long + 1 short for hold transition
   bool _initialized = false;
+  Completer<void>? _initCompleter;
 
   /// Initialize the beep service and pre-generate the beep sounds.
   Future<void> initialize() async {
+    // Already initialized
     if (_initialized) return;
 
-    _player = AudioPlayer();
-    await _player!.setVolume(0.3); // Gentle volume
+    // Initialization in progress - wait for it
+    if (_initCompleter != null) {
+      await _initCompleter!.future;
+      return;
+    }
 
-    // Generate the beep audio data
-    _shortBeepSource = BytesSource(_generateBeepWav(beepCount: 1, durationMs: 100));  // Short inhale beep
-    _longBeepSource = BytesSource(_generateBeepWav(beepCount: 1, durationMs: 300));   // Long exhale beep
-    _holdStartBeepSource = BytesSource(_generateHoldStartBeepWav());                   // Hold transition pattern
+    // Start initialization
+    _initCompleter = Completer<void>();
+    try {
+      _player = AudioPlayer();
+      await _player!.setVolume(0.3); // Gentle volume
 
-    _initialized = true;
+      // Generate the beep audio data
+      _shortBeepSource = BytesSource(_generateBeepWav(beepCount: 1, durationMs: 100));  // Short inhale beep
+      _longBeepSource = BytesSource(_generateBeepWav(beepCount: 1, durationMs: 300));   // Long exhale beep
+      _holdStartBeepSource = BytesSource(_generateHoldStartBeepWav());                   // Hold transition pattern
+
+      _initialized = true;
+    } finally {
+      _initCompleter!.complete();
+    }
   }
 
   /// Play one short beep (for inhale).

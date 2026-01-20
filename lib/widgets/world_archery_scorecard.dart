@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../db/database.dart';
+import '../models/distance_leg.dart';
 
 /// World Archery official format scorecard.
 /// Matches the format used at international competitions like World Championships.
@@ -748,9 +749,17 @@ class WorldArcheryScorecardWidget extends StatelessWidget {
   }
 
   bool _isDistanceBoundary(int endNumber) {
-    // For multi-distance rounds, mark distance boundaries
-    // Standard WA rounds: 6 ends per distance
-    // TODO: Get actual distance boundaries from round type metadata
+    // Use actual distance legs from round type if available
+    if (roundType != null) {
+      final legs = roundType!.distanceLegs.parseDistanceLegs();
+      if (legs != null && legs.length > 1) {
+        final tracker = DistanceLegTracker(legs: legs, arrowsPerEnd: arrowsPerEnd);
+        // Check if this end is a leg boundary (but not the last end of the round)
+        return tracker.isLegBoundary(endNumber) && endNumber != totalEnds;
+      }
+    }
+
+    // Fallback: Standard WA rounds (6 ends per distance)
     if (totalEnds == 12) {
       return endNumber == 6; // Half way mark
     }

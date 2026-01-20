@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
+import '../providers/skills_provider.dart';
 import '../db/database.dart';
 import '../mixins/form_validation_mixin.dart';
 import '../widgets/loading_button.dart';
@@ -121,10 +122,13 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
       final buttonTension = _buttonTensionController.text.trim().isEmpty
           ? null : _buttonTensionController.text.trim();
 
+      final skillsProvider = context.read<SkillsProvider>();
+      final bowName = _nameController.text.trim();
+
       if (widget.bow == null) {
         // Create new bow
         await provider.createBow(
-          name: _nameController.text.trim(),
+          name: bowName,
           bowType: _bowType,
           setAsDefault: _setAsDefault,
           riserModel: riserModel,
@@ -138,11 +142,13 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
           buttonTension: buttonTension,
           clickerPosition: clickerPosition,
         );
+        // Award Equipment XP for adding a new bow
+        await skillsProvider.awardEquipmentXp(reason: 'Added bow: $bowName');
       } else {
         // Update existing bow
         await provider.updateBow(
           id: widget.bow!.id,
-          name: _nameController.text.trim(),
+          name: bowName,
           bowType: _bowType,
           riserModel: riserModel,
           limbModel: limbModel,
@@ -158,6 +164,8 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
         if (_setAsDefault) {
           await provider.setDefaultBow(widget.bow!.id);
         }
+        // Award Equipment XP for updating bow settings
+        await skillsProvider.awardEquipmentXp(reason: 'Updated bow: $bowName');
       }
 
       if (mounted) {

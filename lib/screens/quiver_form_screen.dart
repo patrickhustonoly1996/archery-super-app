@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
+import '../providers/skills_provider.dart';
 import '../db/database.dart';
 import '../mixins/form_validation_mixin.dart';
 import '../widgets/loading_button.dart';
@@ -45,25 +46,31 @@ class _QuiverFormScreenState extends State<QuiverFormScreen> with FormValidation
 
     try {
       final provider = context.read<EquipmentProvider>();
+      final skillsProvider = context.read<SkillsProvider>();
+      final quiverName = _nameController.text.trim();
 
       if (widget.quiver == null) {
         // Create new quiver
         await provider.createQuiver(
-          name: _nameController.text.trim(),
+          name: quiverName,
           bowId: _selectedBowId,
           shaftCount: _shaftCount,
           setAsDefault: _setAsDefault,
         );
+        // Award Equipment XP for adding a new quiver
+        await skillsProvider.awardEquipmentXp(reason: 'Added quiver: $quiverName');
       } else {
         // Update existing quiver
         await provider.updateQuiver(
           id: widget.quiver!.id,
-          name: _nameController.text.trim(),
+          name: quiverName,
           bowId: _selectedBowId,
         );
         if (_setAsDefault) {
           await provider.setDefaultQuiver(widget.quiver!.id);
         }
+        // Award Equipment XP for updating quiver settings
+        await skillsProvider.awardEquipmentXp(reason: 'Updated quiver: $quiverName');
       }
 
       if (mounted) {

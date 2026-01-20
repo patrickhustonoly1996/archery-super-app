@@ -326,28 +326,135 @@ class _ActiveTimerView extends StatelessWidget {
   }
 
   void _showCancelDialog(BuildContext context, BowTrainingProvider provider) {
-    showDialog(
+    final isCustom = provider.isCustomSession;
+    final sessionName = isCustom
+        ? provider.customConfig?.displayName ?? 'Custom Session'
+        : (provider.activeSession?.name ?? 'Session');
+    final progress = (provider.sessionProgress * 100).round();
+    final holdTime = provider.totalHoldSecondsActual;
+
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceDark,
-        title: const Text('Cancel Session?'),
-        content: const Text('Your progress will not be saved.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Continue'),
-          ),
-          TextButton(
-            onPressed: () {
-              provider.cancelSession();
-              Navigator.pop(context);
-            },
-            child: Text(
-              'Cancel Session',
-              style: TextStyle(color: AppColors.error),
+      backgroundColor: AppColors.surfaceDark,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Icon(Icons.pause_circle_outline, color: AppColors.gold, size: 28),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        sessionName,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: AppColors.textPrimary,
+                            ),
+                      ),
+                      Text(
+                        '$progress% complete',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+
+            const SizedBox(height: AppSpacing.lg),
+
+            // Progress info
+            if (holdTime > 0) ...[
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                  border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.timer_outlined, color: AppColors.gold, size: 20),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      'Hold time: ${BowTrainingProvider.formatDuration(holdTime)}',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColors.gold,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
+
+            // Actions
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.play_arrow),
+                label: const Text('Continue Session'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.gold,
+                  foregroundColor: AppColors.backgroundDark,
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: AppSpacing.sm),
+
+            // Save partial session if meaningful progress made
+            if (progress >= 20 && holdTime >= 30) ...[
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    // Skip to complete phase to allow saving
+                    provider.forceComplete();
+                  },
+                  icon: const Icon(Icons.save_outlined),
+                  label: const Text('Save & End Early'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: const BorderSide(color: AppColors.surfaceBright),
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
+
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: () {
+                  provider.cancelSession();
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  'Discard Session',
+                  style: TextStyle(color: AppColors.error),
+                ),
+              ),
+            ),
+
+            SizedBox(height: MediaQuery.of(context).viewPadding.bottom),
+          ],
+        ),
       ),
     );
   }
@@ -406,15 +513,28 @@ class _TimerControls extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Subtle message when paused by backgrounding
-        if (isPaused && wasPausedByBackground)
+        // Clear "PAUSED" state indication
+        if (isPaused)
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.md),
-            child: Text(
-              'Paused (app backgrounded)',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textMuted,
-                  ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.sm,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.gold.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(AppSpacing.sm),
+                border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+              ),
+              child: Text(
+                wasPausedByBackground ? 'PAUSED (app backgrounded)' : 'PAUSED',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppColors.gold,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                    ),
+              ),
             ),
           ),
         Row(
@@ -447,13 +567,24 @@ class _TimerControls extends StatelessWidget {
             const SizedBox(width: 48),
           ],
         ),
+        // Show hint to cancel from paused state
+        if (isPaused)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.md),
+            child: Text(
+              'Tap Cancel above to end session',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+            ),
+          ),
       ],
     );
   }
 }
 
 /// Completion view with feedback sliders
-class _CompletionView extends StatelessWidget {
+class _CompletionView extends StatefulWidget {
   final BowTrainingProvider provider;
   final TextEditingController notesController;
   final int feedbackShaking;
@@ -477,7 +608,84 @@ class _CompletionView extends StatelessWidget {
   });
 
   @override
+  State<_CompletionView> createState() => _CompletionViewState();
+}
+
+class _CompletionViewState extends State<_CompletionView> {
+  bool _isSaving = false;
+
+  Future<void> _saveSession(BuildContext context, BowTrainingProvider provider, bool isCustom) async {
+    if (_isSaving) return; // Prevent double-tap
+
+    setState(() => _isSaving = true);
+
+    // Capture hold time before provider resets state
+    final totalHoldSeconds = provider.totalHoldSecondsActual;
+
+    try {
+      final result = await ErrorHandler.run(
+        context,
+        () => isCustom
+            ? provider.completeCustomSession(
+                feedbackShaking: widget.feedbackShaking,
+                feedbackStructure: widget.feedbackStructure,
+                feedbackRest: widget.feedbackRest,
+                notes: widget.notesController.text.isEmpty
+                    ? null
+                    : widget.notesController.text,
+              )
+            : provider.completeSession(
+                feedbackShaking: widget.feedbackShaking,
+                feedbackStructure: widget.feedbackStructure,
+                feedbackRest: widget.feedbackRest,
+                notes: widget.notesController.text.isEmpty
+                    ? null
+                    : widget.notesController.text,
+              ),
+        successMessage: 'Session logged',
+        errorMessage: 'Failed to save session',
+      );
+
+      if (result.success) {
+        // Award XP for bow fitness (non-blocking, don't fail if this errors)
+        try {
+          if (context.mounted) {
+            final skillsProvider = context.read<SkillsProvider>();
+            await skillsProvider.awardBowTrainingXp(
+              logId: 'bow_training_${DateTime.now().millisecondsSinceEpoch}',
+              totalHoldSeconds: totalHoldSeconds,
+              feedbackShaking: widget.feedbackShaking,
+              feedbackStructure: widget.feedbackStructure,
+              feedbackRest: widget.feedbackRest,
+            );
+          }
+        } catch (e) {
+          // XP award failure shouldn't prevent session completion
+          debugPrint('XP award failed: $e');
+        }
+
+        widget.onComplete();
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+      } else {
+        // Save failed - reset state so user can try again
+        if (mounted) {
+          setState(() => _isSaving = false);
+        }
+      }
+    } catch (e) {
+      // Unexpected error - reset state
+      debugPrint('Unexpected error saving session: $e');
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final provider = widget.provider;
     final isCustom = provider.isCustomSession;
     final session = provider.activeSession;
     final customConfig = provider.customConfig;
@@ -571,24 +779,24 @@ class _CompletionView extends StatelessWidget {
 
               _FeedbackSlider(
                 label: 'Shaking',
-                value: feedbackShaking,
-                onChanged: onShakingChanged,
+                value: widget.feedbackShaking,
+                onChanged: widget.onShakingChanged,
                 lowLabel: 'None',
                 highLabel: 'Severe',
               ),
 
               _FeedbackSlider(
                 label: 'Structure',
-                value: feedbackStructure,
-                onChanged: onStructureChanged,
+                value: widget.feedbackStructure,
+                onChanged: widget.onStructureChanged,
                 lowLabel: 'Perfect',
                 highLabel: 'Collapsing',
               ),
 
               _FeedbackSlider(
                 label: 'Rest',
-                value: feedbackRest,
-                onChanged: onRestChanged,
+                value: widget.feedbackRest,
+                onChanged: widget.onRestChanged,
                 lowLabel: 'Too much',
                 highLabel: 'Not enough',
               ),
@@ -597,77 +805,48 @@ class _CompletionView extends StatelessWidget {
 
               // Notes field
               TextField(
-                controller: notesController,
+                controller: widget.notesController,
                 decoration: const InputDecoration(
                   hintText: 'Add notes (optional)',
                   hintStyle: TextStyle(color: AppColors.textMuted),
                 ),
                 maxLines: 3,
+                enabled: !_isSaving,
               ),
 
               const SizedBox(height: AppSpacing.xl),
 
               // Log/Save session button
               ElevatedButton(
-                onPressed: () async {
-                  // Capture hold time before provider resets state
-                  final totalHoldSeconds = provider.totalHoldSecondsActual;
-
-                  final result = await ErrorHandler.run(
-                    context,
-                    () => isCustom
-                        ? provider.completeCustomSession(
-                            feedbackShaking: feedbackShaking,
-                            feedbackStructure: feedbackStructure,
-                            feedbackRest: feedbackRest,
-                            notes: notesController.text.isEmpty
-                                ? null
-                                : notesController.text,
-                          )
-                        : provider.completeSession(
-                            feedbackShaking: feedbackShaking,
-                            feedbackStructure: feedbackStructure,
-                            feedbackRest: feedbackRest,
-                            notes: notesController.text.isEmpty
-                                ? null
-                                : notesController.text,
-                          ),
-                    successMessage: 'Session logged',
-                    errorMessage: 'Failed to save session',
-                  );
-                  if (result.success) {
-                    // Award XP for bow fitness
-                    if (context.mounted) {
-                      final skillsProvider = context.read<SkillsProvider>();
-                      await skillsProvider.awardBowTrainingXp(
-                        logId: 'bow_training_${DateTime.now().millisecondsSinceEpoch}',
-                        totalHoldSeconds: totalHoldSeconds,
-                        feedbackShaking: feedbackShaking,
-                        feedbackStructure: feedbackStructure,
-                        feedbackRest: feedbackRest,
-                      );
-                    }
-                    onComplete();
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                    }
-                  }
-                },
-                child: const Text('Log Session'),
+                onPressed: _isSaving ? null : () => _saveSession(context, provider, isCustom),
+                child: _isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.backgroundDark,
+                        ),
+                      )
+                    : const Text('Log Session'),
               ),
 
               const SizedBox(height: AppSpacing.sm),
 
               // Discard button
               TextButton(
-                onPressed: () {
-                  provider.cancelSession();
-                  onComplete();
-                  Navigator.pop(context);
-                },
+                onPressed: _isSaving
+                    ? null
+                    : () {
+                        provider.cancelSession();
+                        widget.onComplete();
+                        Navigator.pop(context);
+                      },
                 child: Text(
                   'Discard',
-                  style: TextStyle(color: AppColors.textMuted),
+                  style: TextStyle(
+                    color: _isSaving ? AppColors.textMuted.withValues(alpha: 0.5) : AppColors.textMuted,
+                  ),
                 ),
               ),
             ],

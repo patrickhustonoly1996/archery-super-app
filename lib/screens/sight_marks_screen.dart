@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../providers/sight_marks_provider.dart';
 import '../providers/equipment_provider.dart';
 import '../models/sight_mark.dart';
+import '../utils/sight_mark_calculator.dart';
 import '../widgets/sight_mark_entry_form.dart';
 import 'bow_detail_screen.dart';
 
@@ -97,40 +98,96 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
 
                 final distances = groupedMarks.keys.toList()..sort();
 
-                // +1 for written record reminder, +1 for equipment specs prompt if needed
-                final extraItems = needsSpecs ? 2 : 1;
+                // Generate predictions for common distances not yet recorded
+                final allMarks = sightProvider.getMarksForBow(widget.bowId);
+                final predictions = <PredictedSightMark>[];
 
-                return ListView.builder(
+                // Only show predictions if we have 2+ marks
+                if (allMarks.length >= 2) {
+                  for (final commonDist in _selectedUnit.commonDistances) {
+                    if (!distances.contains(commonDist)) {
+                      final prediction = SightMarkCalculator.predict(
+                        marks: allMarks,
+                        targetDistance: commonDist,
+                        unit: _selectedUnit,
+                        specs: bow != null
+                            ? EquipmentSpecs(
+                                poundage: bow.poundage,
+                                drawLength: bow.drawLength,
+                              )
+                            : null,
+                      );
+                      if (prediction != null) {
+                        predictions.add(prediction);
+                      }
+                    }
+                  }
+                }
+
+                return ListView(
                   padding: const EdgeInsets.all(AppSpacing.md),
-                  itemCount: distances.length + extraItems,
-                  itemBuilder: (context, index) {
-                    // Show equipment specs prompt first if needed
-                    if (needsSpecs && index == 0) {
-                      return Padding(
+                  children: [
+                    // Equipment specs prompt if needed
+                    if (needsSpecs)
+                      Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.md),
                         child: _buildEquipmentSpecsPrompt(context),
-                      );
-                    }
+                      ),
 
-                    // Adjust index if we showed the equipment prompt
-                    final adjustedIndex = needsSpecs ? index - 1 : index;
+                    // Recorded marks header
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: Text(
+                        'Recorded Marks',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                      ),
+                    ),
 
-                    // Show written record reminder as last item
-                    if (adjustedIndex == distances.length) {
-                      return Padding(
-                        padding: const EdgeInsets.only(top: AppSpacing.md),
-                        child: _buildWrittenRecordReminder(context),
-                      );
-                    }
+                    // All recorded marks
+                    ...distances.map((distance) {
+                      final distanceMarks = groupedMarks[distance]!;
+                      distanceMarks.sort((a, b) => b.recordedAt.compareTo(a.recordedAt));
+                      final primaryMark = distanceMarks.first;
+                      return _buildMarkTile(context, primaryMark, distanceMarks.length);
+                    }),
 
-                    final distance = distances[adjustedIndex];
-                    final distanceMarks = groupedMarks[distance]!;
-                    // Get the most recent mark for display
-                    distanceMarks.sort((a, b) => b.recordedAt.compareTo(a.recordedAt));
-                    final primaryMark = distanceMarks.first;
+                    // Predictions section (if we have any)
+                    if (predictions.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.lg),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                        child: Row(
+                          children: [
+                            Icon(Icons.auto_fix_high, size: 16, color: AppColors.textMuted),
+                            const SizedBox(width: AppSpacing.xs),
+                            Text(
+                              'Estimated Marks',
+                              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: AppColors.textMuted,
+                                  ),
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Text(
+                              '(tap to record actual)',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.textMuted,
+                                    fontSize: 10,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ...predictions.map((prediction) => _buildPredictionTile(context, prediction)),
+                    ],
 
-                    return _buildMarkTile(context, primaryMark, distanceMarks.length);
-                  },
+                    // Written record reminder
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.md),
+                      child: _buildWrittenRecordReminder(context),
+                    ),
+                  ],
                 );
               },
             ),
@@ -276,6 +333,10 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
   }
 
   Widget _buildMarkTile(BuildContext context, SightMark mark, int historyCount) {
+    // Calculate equivalent in other unit
+    final otherUnit = mark.unit.other;
+    final convertedDistance = mark.unit.convert(mark.distance);
+
     return Card(
       color: AppColors.surfaceDark,
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -286,25 +347,39 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Row(
             children: [
-              // Distance
-              Container(
-                width: 56,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.xs,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppSpacing.xs),
-                ),
-                child: Text(
-                  mark.distanceDisplay,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.gold,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
+              // Distance with conversion
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 56,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: AppSpacing.xs,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.gold.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppSpacing.xs),
+                    ),
+                    child: Text(
+                      mark.distanceDisplay,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: AppColors.gold,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  // Show converted equivalent
+                  Text(
+                    '≈ ${convertedDistance.toStringAsFixed(0)}${otherUnit.abbreviation}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textMuted,
+                          fontSize: 10,
+                        ),
+                  ),
+                ],
               ),
               const SizedBox(width: AppSpacing.md),
               // Sight value
@@ -339,6 +414,97 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
     );
   }
 
+  Widget _buildPredictionTile(BuildContext context, PredictedSightMark prediction) {
+    // Calculate equivalent in other unit
+    final otherUnit = prediction.unit.other;
+    final convertedDistance = prediction.unit.convert(prediction.distance);
+
+    return Card(
+      color: AppColors.surfaceDark.withValues(alpha: 0.5),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: InkWell(
+        onTap: () => _showAddMarkDialog(
+          context,
+          defaultDistance: prediction.distance,
+          defaultUnit: prediction.unit,
+        ),
+        borderRadius: BorderRadius.circular(AppSpacing.sm),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              // Distance with conversion
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 56,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: AppSpacing.xs,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.textMuted.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppSpacing.xs),
+                      border: Border.all(
+                        color: AppColors.textMuted.withValues(alpha: 0.3),
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    child: Text(
+                      prediction.distanceDisplay,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: AppColors.textMuted,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  // Show converted equivalent
+                  Text(
+                    '≈ ${convertedDistance.toStringAsFixed(0)}${otherUnit.abbreviation}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textMuted,
+                          fontSize: 10,
+                        ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: AppSpacing.md),
+              // Predicted sight value
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '~${prediction.displayValue}',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            color: AppColors.textMuted,
+                            fontStyle: FontStyle.italic,
+                          ),
+                    ),
+                    Text(
+                      prediction.source,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textMuted,
+                            fontSize: 10,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              // Confidence indicator
+              _buildConfidenceIndicator(context, prediction.confidence),
+              const SizedBox(width: AppSpacing.sm),
+              const Icon(Icons.add_circle_outline, color: AppColors.textMuted, size: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildConfidenceIndicator(BuildContext context, SightMarkConfidence confidence) {
     Color color;
     IconData icon;
@@ -362,7 +528,11 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
     return Icon(icon, size: 20, color: color);
   }
 
-  void _showAddMarkDialog(BuildContext context) {
+  void _showAddMarkDialog(
+    BuildContext context, {
+    double? defaultDistance,
+    DistanceUnit? defaultUnit,
+  }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -372,7 +542,8 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
       ),
       builder: (context) => SightMarkEntryForm(
         bowId: widget.bowId,
-        defaultUnit: _selectedUnit,
+        defaultUnit: defaultUnit ?? _selectedUnit,
+        defaultDistance: defaultDistance,
         onSaved: () {
           Navigator.pop(context);
           _loadMarks();

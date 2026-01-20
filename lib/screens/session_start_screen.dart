@@ -8,6 +8,7 @@ import '../providers/connectivity_provider.dart';
 import '../widgets/offline_indicator.dart';
 import '../widgets/expected_sight_mark.dart';
 import 'plotting_screen.dart';
+import 'settings_screen.dart' show kArrowTrackingDefaultPref;
 
 class SessionStartScreen extends StatefulWidget {
   const SessionStartScreen({super.key});
@@ -26,18 +27,21 @@ class _SessionStartScreenState extends State<SessionStartScreen> {
   String? _selectedBowId;
   String? _selectedQuiverId;
   bool _shaftTaggingEnabled = false;
+  bool _arrowTrackingDefault = false; // Loaded from persistent setting
 
   @override
   void initState() {
     super.initState();
-    _loadRoundTypes();
+    _loadData();
   }
 
-  Future<void> _loadRoundTypes() async {
+  Future<void> _loadData() async {
     final db = context.read<AppDatabase>();
     final types = await db.getAllRoundTypes();
+    final arrowTrackingDefault = await db.getBoolPreference(kArrowTrackingDefaultPref, defaultValue: false);
     setState(() {
       _roundTypes = types;
+      _arrowTrackingDefault = arrowTrackingDefault;
       _isLoading = false;
     });
   }
@@ -208,6 +212,9 @@ class _SessionStartScreenState extends State<SessionStartScreen> {
                                   _selectedQuiverId = value;
                                   if (value == null) {
                                     _shaftTaggingEnabled = false;
+                                  } else {
+                                    // Apply the persistent default setting when selecting a quiver
+                                    _shaftTaggingEnabled = _arrowTrackingDefault;
                                   }
                                 });
                               },

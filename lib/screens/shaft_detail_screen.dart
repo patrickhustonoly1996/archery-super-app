@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
+import '../providers/skills_provider.dart';
 import '../db/database.dart';
 
 class ShaftDetailScreen extends StatefulWidget {
@@ -159,6 +160,9 @@ class _ShaftDetailScreenState extends State<ShaftDetailScreen> {
         return;
       }
 
+      // Get skills provider before async gap
+      final skillsProvider = context.read<SkillsProvider>();
+
       await equipmentProvider.batchUpdateShaftSpecs(
         shaftIds: selectedShaftIds,
         spine: spine,
@@ -176,6 +180,11 @@ class _ShaftDetailScreenState extends State<ShaftDetailScreen> {
         wrapColor: wrapColor,
       );
 
+      // Award Equipment XP for updating shaft specifications
+      await skillsProvider.awardEquipmentXp(
+        reason: 'Updated ${selectedShaftIds.length} shafts in ${widget.quiver.name}',
+      );
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Updated ${selectedShaftIds.length} shafts')),
@@ -184,6 +193,8 @@ class _ShaftDetailScreenState extends State<ShaftDetailScreen> {
       }
     } else {
       final notes = _nullIfEmpty(_notesController.text);
+      // Get skills provider before async gap
+      final skillsProvider = context.read<SkillsProvider>();
 
       await equipmentProvider.updateShaftSpecs(
         shaftId: widget.shaft!.id,
@@ -202,6 +213,11 @@ class _ShaftDetailScreenState extends State<ShaftDetailScreen> {
         wrapColor: wrapColor,
         notes: notes,
         purchaseDate: _purchaseDate,
+      );
+
+      // Award Equipment XP for updating shaft specifications
+      await skillsProvider.awardEquipmentXp(
+        reason: 'Updated shaft #${widget.shaft!.number} in ${widget.quiver.name}',
       );
 
       if (mounted) {

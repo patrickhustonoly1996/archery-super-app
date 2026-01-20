@@ -176,7 +176,7 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
                   child: child!,
                 );
               },
-              home: const AuthGate(),
+              home: const CelebrationListener(child: AuthGate()),
             );
           },
         ),
@@ -203,6 +203,7 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
   User? _cachedUser;
   bool _firebaseReady = false;
   bool _wasLoggedIn = false; // Local flag for offline resilience
+  bool _homeScreenShown = false; // Once true, never show splash again this session
   DateTime? _lastSyncAttempt;
 
   @override
@@ -320,7 +321,12 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
   void _verifyAuthInBackground(SharedPreferences prefs) {
     Future.microtask(() async {
       try {
-        await firebaseInitFuture;
+        await firebaseInitFuture.timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            throw TimeoutException('Firebase init timed out during verification');
+          },
+        );
         final user = FirebaseAuth.instance.currentUser;
 
         if (user != null) {
@@ -330,14 +336,33 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
           _triggerBackgroundSync();
         } else {
           // Firebase says not logged in - user probably logged out elsewhere
-          // Update flag but don't kick them out mid-session
-          await prefs.setBool(_wasLoggedInKey, false);
-          debugPrint('Auth state mismatch: local=true, firebase=false');
+          // Only clear flag if Firebase initialized successfully (not network error)
+          // This prevents incorrectly signing out offline users
+          if (await _isOnline()) {
+            await prefs.setBool(_wasLoggedInKey, false);
+            debugPrint('Auth state mismatch: local=true, firebase=false - clearing flag');
+          } else {
+            debugPrint('Auth state mismatch but offline - keeping local flag');
+          }
         }
+      } on TimeoutException {
+        // Firebase timed out - don't clear flag, user might just be offline
+        debugPrint('Background auth verification timed out - keeping local flag');
       } catch (e) {
-        debugPrint('Background auth verification failed: $e');
+        // Don't clear flag on errors - user might be offline
+        debugPrint('Background auth verification failed: $e - keeping local flag');
       }
     });
+  }
+
+  /// Simple online check - tries to reach Firebase
+  Future<bool> _isOnline() async {
+    try {
+      // If Firebase is ready and we got here, we're likely online
+      return _firebaseReady;
+    } catch (e) {
+      return false;
+    }
   }
 
   /// Trigger bidirectional sync with cloud
@@ -421,15 +446,28 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    // Once home screen has been shown, never show splash again this session
+    // This prevents splash from appearing on navigation
+    if (_homeScreenShown) {
+      // Check if user logged out
+      if (_cachedUser == null && !_wasLoggedIn) {
+        _homeScreenShown = false; // Reset so splash can show again on next login
+        return const LoginScreen();
+      }
+      return const HomeScreen();
+    }
+
     // If we have a cached user from Firebase, go straight to home
     if (_cachedUser != null) {
-      return const CelebrationListener(child: HomeScreen());
+      _homeScreenShown = true;
+      return const HomeScreen();
     }
 
     // Offline mode: Firebase isn't ready but user was previously logged in
     // Trust local flag and show home screen
     if (!_firebaseReady && _wasLoggedIn) {
-      return const CelebrationListener(child: HomeScreen());
+      _homeScreenShown = true;
+      return const HomeScreen();
     }
 
     // If Firebase isn't ready or timed out, show login
@@ -455,7 +493,8 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
         if (snapshot.hasData) {
           // Trigger restore/backup when user logs in
           _triggerBackgroundSync();
-          return const CelebrationListener(child: HomeScreen());
+          _homeScreenShown = true;
+          return const HomeScreen();
         }
 
         // User is not logged in (or timed out with no cached user)
