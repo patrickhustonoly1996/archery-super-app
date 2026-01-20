@@ -27,6 +27,7 @@ import 'delayed_camera_screen.dart';
 import 'performance_profile_screen.dart';
 import 'user_profile_screen.dart';
 import 'education/courses_home_screen.dart';
+import 'settings_screen.dart';
 import 'chiptune_test_screen.dart'; // TODO: Remove after testing sounds
 import 'sight_marks_hub_screen.dart';
 
@@ -199,6 +200,15 @@ class _HomeScreenState extends State<HomeScreen>
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const ChiptuneTestScreen()),
+      ),
+    ),
+    _MenuItem(
+      label: 'SETTINGS',
+      sublabel: 'Language & more',
+      pixelIcon: PixelIconType.gear,
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SettingsScreen()),
       ),
     ),
     _MenuItem(

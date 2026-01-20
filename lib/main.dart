@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'firebase_options.dart';
 import 'db/database.dart';
 import 'theme/app_theme.dart';
@@ -21,6 +23,7 @@ import 'providers/user_profile_provider.dart';
 import 'providers/entitlement_provider.dart';
 import 'providers/classification_provider.dart';
 import 'providers/accessibility_provider.dart';
+import 'providers/locale_provider.dart';
 import 'services/vision_api_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
@@ -128,14 +131,26 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
           ChangeNotifierProvider(
             create: (context) => AccessibilityProvider()..loadSettings(),
           ),
+          ChangeNotifierProvider(
+            create: (context) => LocaleProvider()..initialize(),
+          ),
         ],
-        child: Consumer<AccessibilityProvider>(
-          builder: (context, accessibility, child) {
+        child: Consumer2<AccessibilityProvider, LocaleProvider>(
+          builder: (context, accessibility, localeProvider, child) {
             return MaterialApp(
               title: 'Archery Super App',
               theme: AppTheme.darkTheme,
               debugShowCheckedModeBanner: false,
               scaffoldMessengerKey: scaffoldMessengerKey,
+              // Localization configuration
+              locale: localeProvider.locale,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: SupportedLocales.all,
               builder: (context, child) {
                 // Apply text scaling from accessibility settings
                 final mediaQuery = MediaQuery.of(context);
