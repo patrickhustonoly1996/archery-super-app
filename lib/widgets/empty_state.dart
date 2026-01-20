@@ -47,53 +47,57 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Icon
-            if (iconWidget != null)
-              iconWidget!
-            else
-              Icon(
-                icon,
-                size: 64,
-                color: AppColors.textMuted.withValues(alpha: 0.5),
+    return Semantics(
+      // Describe the empty state for screen readers
+      label: subtitle != null ? '$title. $subtitle' : title,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Icon (decorative, excluded from semantics since title conveys meaning)
+              ExcludeSemantics(
+                child: iconWidget ??
+                    Icon(
+                      icon,
+                      size: 64,
+                      color: AppColors.textMuted.withValues(alpha: 0.5),
+                    ),
               ),
-            const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.lg),
 
-            // Title
-            Text(
-              title,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-
-            // Subtitle (optional)
-            if (subtitle != null) ...[
-              const SizedBox(height: AppSpacing.sm),
+              // Title
               Text(
-                subtitle!,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textMuted,
+                title,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: AppColors.textSecondary,
                     ),
                 textAlign: TextAlign.center,
               ),
-            ],
 
-            // Action button (optional)
-            if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: AppSpacing.xl),
-              ElevatedButton(
-                onPressed: onAction,
-                child: Text(actionLabel!),
-              ),
+              // Subtitle (optional)
+              if (subtitle != null) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  subtitle!,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+
+              // Action button (optional)
+              if (actionLabel != null && onAction != null) ...[
+                const SizedBox(height: AppSpacing.xl),
+                ElevatedButton(
+                  onPressed: onAction,
+                  child: Text(actionLabel!),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

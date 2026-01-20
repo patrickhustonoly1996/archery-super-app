@@ -54,30 +54,35 @@ class LoadingButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 18),
+                Icon(icon, size: 18, semanticLabel: null), // Label handled by button
                 const SizedBox(width: AppSpacing.sm),
               ],
               Text(label),
             ],
           );
 
-    switch (style) {
-      case LoadingButtonStyle.elevated:
-        return ElevatedButton(
+    // Wrap with Semantics to announce loading state
+    final button = switch (style) {
+      LoadingButtonStyle.elevated => ElevatedButton(
           onPressed: isLoading ? null : onPressed,
           child: child,
-        );
-      case LoadingButtonStyle.outlined:
-        return OutlinedButton(
+        ),
+      LoadingButtonStyle.outlined => OutlinedButton(
           onPressed: isLoading ? null : onPressed,
           child: child,
-        );
-      case LoadingButtonStyle.text:
-        return TextButton(
+        ),
+      LoadingButtonStyle.text => TextButton(
           onPressed: isLoading ? null : onPressed,
           child: child,
-        );
-    }
+        ),
+    };
+
+    return Semantics(
+      button: true,
+      label: isLoading ? '$label, loading' : label,
+      enabled: !isLoading && onPressed != null,
+      child: ExcludeSemantics(child: button),
+    );
   }
 }
 

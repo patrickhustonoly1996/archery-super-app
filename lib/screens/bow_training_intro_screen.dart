@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../providers/bow_training_provider.dart';
 import '../services/vibration_service.dart';
 import '../db/database.dart';
+import '../utils/unique_id.dart';
 
 /// Introduction screen for bow training with quick-start options
 /// Most users just want to pick duration + work/rest ratio and go
@@ -1910,7 +1911,7 @@ class _CustomSessionBuilderScreenState
     final provider = context.read<BowTrainingProvider>();
     final session = CustomBowSession(
       id: widget.existingSession?.id ??
-          'custom_${DateTime.now().millisecondsSinceEpoch}',
+          UniqueId.withPrefix('custom'),
       name: _nameController.text,
       exercises: _exercises,
       createdAt: widget.existingSession?.createdAt ?? DateTime.now(),

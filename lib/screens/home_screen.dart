@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../db/database.dart';
 import '../theme/app_theme.dart';
@@ -11,6 +12,7 @@ import '../services/auth_service.dart';
 import '../widgets/pixel_bow_icon.dart';
 import '../widgets/pixel_profile_icon.dart';
 import '../widgets/level_badge.dart';
+import '../widgets/accessible_touch_target.dart';
 import 'session_start_screen.dart';
 import 'plotting_screen.dart';
 import 'history_screen.dart';
@@ -638,28 +640,36 @@ class _QuickStartSheetState extends State<_QuickStartSheet> {
                   runSpacing: 8,
                   children: _recentRoundTypes.map((roundType) {
                     final isSelected = _selectedRoundType?.id == roundType.id;
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedRoundType = roundType;
-                          _arrowsPerEnd = roundType.arrowsPerEnd;
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: isSelected ? AppColors.gold.withValues(alpha: 0.2) : Colors.transparent,
-                          border: Border.all(
-                            color: isSelected ? AppColors.gold : AppColors.surfaceLight,
-                            width: isSelected ? 2 : 1,
+                    return Semantics(
+                      button: true,
+                      label: '${roundType.name} round type',
+                      selected: isSelected,
+                      child: GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          setState(() {
+                            _selectedRoundType = roundType;
+                            _arrowsPerEnd = roundType.arrowsPerEnd;
+                          });
+                        },
+                        child: Container(
+                          // Ensure minimum touch target height
+                          constraints: const BoxConstraints(minHeight: 44),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? AppColors.gold.withValues(alpha: 0.2) : Colors.transparent,
+                            border: Border.all(
+                              color: isSelected ? AppColors.gold : AppColors.surfaceLight,
+                              width: isSelected ? 2 : 1,
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          roundType.name,
-                          style: TextStyle(
-                            fontFamily: AppFonts.body,
-                            fontSize: 12,
-                            color: isSelected ? AppColors.gold : AppColors.textPrimary,
+                          child: Text(
+                            roundType.name,
+                            style: TextStyle(
+                              fontFamily: AppFonts.body,
+                              fontSize: 12,
+                              color: isSelected ? AppColors.gold : AppColors.textPrimary,
+                            ),
                           ),
                         ),
                       ),
@@ -684,28 +694,33 @@ class _QuickStartSheetState extends State<_QuickStartSheet> {
                   children: [
                     _ArrowCountButton(
                       icon: Icons.remove,
+                      semanticLabel: 'Decrease arrows per end',
                       onTap: _arrowsPerEnd > 1
                           ? () => setState(() => _arrowsPerEnd--)
                           : null,
                     ),
-                    Container(
-                      width: 60,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.gold),
-                      ),
-                      child: Text(
-                        '$_arrowsPerEnd',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontFamily: AppFonts.pixel,
-                          fontSize: 24,
-                          color: AppColors.gold,
+                    Semantics(
+                      label: '$_arrowsPerEnd arrows per end',
+                      child: Container(
+                        width: 60,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppColors.gold),
+                        ),
+                        child: Text(
+                          '$_arrowsPerEnd',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontFamily: AppFonts.pixel,
+                            fontSize: 24,
+                            color: AppColors.gold,
+                          ),
                         ),
                       ),
                     ),
                     _ArrowCountButton(
                       icon: Icons.add,
+                      semanticLabel: 'Increase arrows per end',
                       onTap: _arrowsPerEnd < 12
                           ? () => setState(() => _arrowsPerEnd++)
                           : null,
@@ -715,23 +730,32 @@ class _QuickStartSheetState extends State<_QuickStartSheet> {
                 const SizedBox(height: 24),
 
                 // Start button
-                GestureDetector(
-                  onTap: _startSession,
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    decoration: BoxDecoration(
-                      color: AppColors.gold,
-                      border: Border.all(color: AppColors.gold, width: 2),
-                    ),
-                    child: Text(
-                      'START SHOOTING',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: AppFonts.pixel,
-                        fontSize: 16,
-                        color: AppColors.backgroundDark,
-                        letterSpacing: 2,
+                Semantics(
+                  button: true,
+                  label: 'Start shooting session',
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.mediumImpact();
+                      _startSession();
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      // Ensure minimum touch target height
+                      constraints: const BoxConstraints(minHeight: 48),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.gold,
+                        border: Border.all(color: AppColors.gold, width: 2),
+                      ),
+                      child: Text(
+                        'START SHOOTING',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: AppFonts.pixel,
+                          fontSize: 16,
+                          color: AppColors.backgroundDark,
+                          letterSpacing: 2,
+                        ),
                       ),
                     ),
                   ),
@@ -748,27 +772,43 @@ class _QuickStartSheetState extends State<_QuickStartSheet> {
 class _ArrowCountButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
+  final String semanticLabel;
 
-  const _ArrowCountButton({required this.icon, this.onTap});
+  const _ArrowCountButton({
+    required this.icon,
+    this.onTap,
+    required this.semanticLabel,
+  });
 
   @override
   Widget build(BuildContext context) {
     final isEnabled = onTap != null;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 48,
-        height: 48,
-        margin: const EdgeInsets.symmetric(horizontal: 8),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isEnabled ? AppColors.gold : AppColors.surfaceLight,
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      enabled: isEnabled,
+      child: GestureDetector(
+        onTap: onTap != null
+            ? () {
+                HapticFeedback.lightImpact();
+                onTap!();
+              }
+            : null,
+        child: Container(
+          width: 48,
+          height: 48,
+          margin: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: isEnabled ? AppColors.gold : AppColors.surfaceLight,
+            ),
           ),
-        ),
-        child: Icon(
-          icon,
-          color: isEnabled ? AppColors.gold : AppColors.surfaceLight,
-          size: 24,
+          child: Icon(
+            icon,
+            color: isEnabled ? AppColors.gold : AppColors.surfaceLight,
+            size: 24,
+            semanticLabel: semanticLabel,
+          ),
         ),
       ),
     );
@@ -888,22 +928,34 @@ class _ProfileIconButton extends StatelessWidget {
     return Semantics(
       button: true,
       label: 'User Profile',
+      hint: 'Opens your profile settings',
       child: GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const UserProfileScreen()),
-        ),
-        child: Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: AppColors.gold.withValues(alpha: 0.3),
-              width: 1,
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const UserProfileScreen()),
+          );
+        },
+        // 48x48 touch target wrapping 36x36 visual element
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: Center(
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: AppColors.gold.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: const Center(
+                child: PixelProfileIcon(size: 24),
+              ),
             ),
-          ),
-          child: const Center(
-            child: PixelProfileIcon(size: 24),
           ),
         ),
       ),
@@ -918,12 +970,24 @@ class _CollapsedProfileButton extends StatelessWidget {
     return Semantics(
       button: true,
       label: 'User Profile',
+      hint: 'Opens your profile settings',
       child: GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const UserProfileScreen()),
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const UserProfileScreen()),
+          );
+        },
+        // 48x48 touch target for accessibility
+        child: const SizedBox(
+          width: 48,
+          height: 48,
+          child: Center(
+            child: PixelProfileIcon(size: 20),
+          ),
         ),
-        child: const PixelProfileIcon(size: 20),
       ),
     );
   }
@@ -2058,27 +2122,36 @@ class _RetroSheetItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = isDestructive ? AppColors.error : AppColors.textPrimary;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
-        margin: const EdgeInsets.only(bottom: 6),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.surfaceLight),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 18),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: AppFonts.main,
-                fontSize: 12,
-                color: color,
+    return Semantics(
+      button: true,
+      label: label,
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
+        child: Container(
+          // Ensure minimum touch target height
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+          margin: const EdgeInsets.only(bottom: 6),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.surfaceLight),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: color, size: 18, semanticLabel: label),
+              const SizedBox(width: 12),
+              Text(
+                label,
+                style: TextStyle(
+                  fontFamily: AppFonts.main,
+                  fontSize: 12,
+                  color: color,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

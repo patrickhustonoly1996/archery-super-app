@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../providers/user_profile_provider.dart';
 import '../db/database.dart';
 import '../services/membership_card_service.dart';
+import '../utils/unique_id.dart';
 
 class FederationFormScreen extends StatefulWidget {
   final Federation? federation;
@@ -119,7 +120,7 @@ class _FederationFormScreenState extends State<FederationFormScreen> {
       );
 
       if (image != null) {
-        final federationId = widget.federation?.id ?? 'new_${DateTime.now().millisecondsSinceEpoch}';
+        final federationId = widget.federation?.id ?? UniqueId.withPrefix('temp_federation');
         final savedPath = await _cardService.saveCardFromFile(
           federationId: federationId,
           sourceFile: File(image.path),
@@ -143,7 +144,7 @@ class _FederationFormScreenState extends State<FederationFormScreen> {
       );
 
       if (result != null && result.files.single.path != null) {
-        final federationId = widget.federation?.id ?? 'new_${DateTime.now().millisecondsSinceEpoch}';
+        final federationId = widget.federation?.id ?? UniqueId.withPrefix('temp_federation');
         final savedPath = await _cardService.saveCardFromFile(
           federationId: federationId,
           sourceFile: File(result.files.single.path!),

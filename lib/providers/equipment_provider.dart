@@ -39,7 +39,7 @@ class EquipmentProvider extends ChangeNotifier {
     _defaultBow = await _db.getDefaultBow();
     _defaultQuiver = await _db.getDefaultQuiver();
 
-    // Load shafts for each quiver (parallel for performance)
+    // Load shafts for all quivers in parallel
     _shaftsByQuiver.clear();
     await Future.wait(
       _quivers.map((quiver) async {
@@ -305,27 +305,30 @@ class EquipmentProvider extends ChangeNotifier {
     bool? hasWrap,
     String? wrapColor,
   }) async {
-    for (final shaftId in shaftIds) {
-      final shaft = await _db.getShaft(shaftId);
-      if (shaft == null) continue;
+    // Update all shafts in parallel for better performance
+    await Future.wait(
+      shaftIds.map((shaftId) async {
+        final shaft = await _db.getShaft(shaftId);
+        if (shaft == null) return;
 
-      await _db.updateShaft(ShaftsCompanion(
-        id: Value(shaftId),
-        spine: Value(spine),
-        lengthInches: Value(lengthInches),
-        pointWeight: Value(pointWeight),
-        fletchingType: Value(fletchingType),
-        fletchingColor: Value(fletchingColor),
-        nockColor: Value(nockColor),
-        totalWeight: Value(totalWeight),
-        pointType: Value(pointType),
-        nockBrand: Value(nockBrand),
-        fletchingSize: Value(fletchingSize),
-        fletchingAngle: Value(fletchingAngle),
-        hasWrap: Value(hasWrap),
-        wrapColor: Value(wrapColor),
-      ));
-    }
+        await _db.updateShaft(ShaftsCompanion(
+          id: Value(shaftId),
+          spine: Value(spine),
+          lengthInches: Value(lengthInches),
+          pointWeight: Value(pointWeight),
+          fletchingType: Value(fletchingType),
+          fletchingColor: Value(fletchingColor),
+          nockColor: Value(nockColor),
+          totalWeight: Value(totalWeight),
+          pointType: Value(pointType),
+          nockBrand: Value(nockBrand),
+          fletchingSize: Value(fletchingSize),
+          fletchingAngle: Value(fletchingAngle),
+          hasWrap: Value(hasWrap),
+          wrapColor: Value(wrapColor),
+        ));
+      }),
+    );
 
     await loadEquipment();
   }
