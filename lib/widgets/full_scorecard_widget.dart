@@ -112,20 +112,20 @@ class FullScorecardWidget extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // End # column
-          _headerCell('End', width: 28),
+          // End # column (World Archery style - no label, just row numbers)
+          _headerCell('', width: 28),
 
-          // Arrow score columns
+          // Arrow score columns (numbered 1, 2, 3...)
           ...List.generate(
             arrowsPerEnd,
             (i) => _headerCell('${i + 1}', width: 24, muted: true),
           ),
 
-          // E/T column
-          _headerCell('E/T', width: 32),
+          // Sum column (World Archery terminology)
+          _headerCell('Sum', width: 32),
 
-          // R/T column (gold)
-          _headerCell('R/T', width: 40, isGold: true),
+          // Tot. column (running total, gold - World Archery terminology)
+          _headerCell('Tot.', width: 40, isGold: true),
 
           // 10+X column
           _headerCell('10+X', width: 32, muted: true),
