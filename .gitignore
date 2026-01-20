@@ -62,3 +62,7 @@ node_modules/
 .env
 .env.local
 .env.*.local
+
+# Ralph TUI tool state
+.ralph-tui/
+prd.json
