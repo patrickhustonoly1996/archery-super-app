@@ -28,6 +28,7 @@ import 'performance_profile_screen.dart';
 import 'user_profile_screen.dart';
 import 'education/courses_home_screen.dart';
 import 'chiptune_test_screen.dart'; // TODO: Remove after testing sounds
+import 'sight_marks_hub_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -121,6 +122,15 @@ class _HomeScreenState extends State<HomeScreen>
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const StatisticsScreen()),
+      ),
+    ),
+    _MenuItem(
+      label: 'SIGHT MARKS',
+      sublabel: 'Distance settings',
+      pixelIcon: PixelIconType.crosshair,
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SightMarksHubScreen()),
       ),
     ),
     _MenuItem(
@@ -819,7 +829,7 @@ class _ArrowCountButton extends StatelessWidget {
 // DATA MODEL
 // =============================================================================
 
-enum PixelIconType { resume, target, scroll, chart, bow, lungs, video, radar, gear, exit, lightning }
+enum PixelIconType { resume, target, scroll, chart, bow, lungs, video, radar, gear, exit, lightning, crosshair }
 
 class _MenuItem {
   final String label;
@@ -1380,6 +1390,8 @@ class _PixelMenuIconPainter extends CustomPainter {
         _drawExit(canvas, p, paint, dimPaint);
       case PixelIconType.lightning:
         _drawLightning(canvas, p, paint, dimPaint);
+      case PixelIconType.crosshair:
+        _drawCrosshair(canvas, p, paint, dimPaint);
     }
   }
 
@@ -1783,6 +1795,58 @@ class _PixelMenuIconPainter extends CustomPainter {
     _px(canvas, 4, 9, p, paint);
     _px(canvas, 5, 9, p, paint);
     _px(canvas, 4, 10, p, paint);
+  }
+
+  // Crosshair/sight for sight marks
+  void _drawCrosshair(Canvas canvas, double p, Paint paint, Paint dimPaint) {
+    // Outer circle
+    _px(canvas, 4, 1, p, dimPaint);
+    _px(canvas, 5, 1, p, dimPaint);
+    _px(canvas, 6, 1, p, dimPaint);
+    _px(canvas, 7, 1, p, dimPaint);
+    _px(canvas, 2, 3, p, dimPaint);
+    _px(canvas, 3, 2, p, dimPaint);
+    _px(canvas, 8, 2, p, dimPaint);
+    _px(canvas, 9, 3, p, dimPaint);
+    _px(canvas, 1, 4, p, dimPaint);
+    _px(canvas, 1, 5, p, dimPaint);
+    _px(canvas, 1, 6, p, dimPaint);
+    _px(canvas, 1, 7, p, dimPaint);
+    _px(canvas, 10, 4, p, dimPaint);
+    _px(canvas, 10, 5, p, dimPaint);
+    _px(canvas, 10, 6, p, dimPaint);
+    _px(canvas, 10, 7, p, dimPaint);
+    _px(canvas, 2, 8, p, dimPaint);
+    _px(canvas, 3, 9, p, dimPaint);
+    _px(canvas, 8, 9, p, dimPaint);
+    _px(canvas, 9, 8, p, dimPaint);
+    _px(canvas, 4, 10, p, dimPaint);
+    _px(canvas, 5, 10, p, dimPaint);
+    _px(canvas, 6, 10, p, dimPaint);
+    _px(canvas, 7, 10, p, dimPaint);
+    // Horizontal crosshair line
+    _px(canvas, 3, 5, p, paint);
+    _px(canvas, 4, 5, p, paint);
+    _px(canvas, 7, 5, p, paint);
+    _px(canvas, 8, 5, p, paint);
+    _px(canvas, 3, 6, p, paint);
+    _px(canvas, 4, 6, p, paint);
+    _px(canvas, 7, 6, p, paint);
+    _px(canvas, 8, 6, p, paint);
+    // Vertical crosshair line
+    _px(canvas, 5, 3, p, paint);
+    _px(canvas, 6, 3, p, paint);
+    _px(canvas, 5, 4, p, paint);
+    _px(canvas, 6, 4, p, paint);
+    _px(canvas, 5, 7, p, paint);
+    _px(canvas, 6, 7, p, paint);
+    _px(canvas, 5, 8, p, paint);
+    _px(canvas, 6, 8, p, paint);
+    // Center dot
+    _px(canvas, 5, 5, p, paint);
+    _px(canvas, 6, 5, p, paint);
+    _px(canvas, 5, 6, p, paint);
+    _px(canvas, 6, 6, p, paint);
   }
 
   void _px(Canvas canvas, int x, int y, double p, Paint paint) {

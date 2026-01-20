@@ -141,6 +141,7 @@ class Bows extends Table {
   TextColumn get limbModel => text().nullable()();
   DateTimeColumn get limbPurchaseDate => dateTime().nullable()();
   RealColumn get poundage => real().nullable()(); // Draw weight in lbs
+  RealColumn get drawLength => real().nullable()(); // Draw length in inches
 
   // Tuning settings
   RealColumn get tillerTop => real().nullable()(); // mm
@@ -682,6 +683,7 @@ class UserProfiles extends Table {
   // Core shooting info (top)
   TextColumn get primaryBowType => text().withDefault(const Constant('recurve'))(); // recurve, compound, barebow, longbow, traditional
   TextColumn get handedness => text().withDefault(const Constant('right'))(); // 'left' or 'right'
+  RealColumn get drawLength => real().nullable()(); // Draw length in inches (archer default)
   // Personal info
   TextColumn get name => text().nullable()();
   TextColumn get clubName => text().nullable()();
@@ -835,7 +837,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 24;
+  int get schemaVersion => 25;
 
   @override
   MigrationStrategy get migration {
@@ -1060,6 +1062,11 @@ class AppDatabase extends _$AppDatabase {
             SET scoring_type = '5-zone'
             WHERE id = 'worcester'
           ''');
+        }
+        if (from <= 24) {
+          // Draw length for improved sight mark calculations
+          await m.addColumn(userProfiles, userProfiles.drawLength);
+          await m.addColumn(bows, bows.drawLength);
         }
       },
     );
