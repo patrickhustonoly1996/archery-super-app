@@ -718,11 +718,23 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
-  /// Complete a custom session and log it
-  Future<void> completeCustomSession() async {
+  /// Complete a custom session and log it with feedback
+  Future<void> completeCustomSession({
+    int? feedbackShaking,
+    int? feedbackStructure,
+    int? feedbackRest,
+    String? notes,
+  }) async {
     if (_customConfig == null || _sessionStartedAt == null) return;
 
     final config = _customConfig!;
+
+    // Build notes - include ratio info plus any user notes
+    final ratioInfo = '${config.ratio.label} ratio, ${config.movementStimulus.name} movement';
+    final combinedNotes = notes != null && notes.isNotEmpty
+        ? '$ratioInfo\n$notes'
+        : ratioInfo;
+
     final log = OlyTrainingLogsCompanion.insert(
       id: UniqueId.withPrefix('log'),
       sessionTemplateId: const Value.absent(), // No template for custom
@@ -734,12 +746,12 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
       completedExercises: _completedExercises,
       totalHoldSeconds: _totalHoldSecondsActual,
       totalRestSeconds: _totalRestSecondsActual,
-      feedbackShaking: const Value.absent(),
-      feedbackStructure: const Value.absent(),
-      feedbackRest: const Value.absent(),
+      feedbackShaking: Value(feedbackShaking),
+      feedbackStructure: Value(feedbackStructure),
+      feedbackRest: Value(feedbackRest),
       progressionSuggestion: const Value.absent(),
       suggestedNextVersion: const Value.absent(),
-      notes: Value('${config.ratio.label} ratio, ${config.movementStimulus.name} movement'),
+      notes: Value(combinedNotes),
       startedAt: _sessionStartedAt!,
       completedAt: DateTime.now(),
     );
