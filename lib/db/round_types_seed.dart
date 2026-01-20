@@ -831,7 +831,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 300,
       isIndoor: true,
       faceCount: const Value(1),
-      scoringType: const Value('5-zone'), // Worcester uses 5-4-3-2-1 scoring
+      scoringType: const Value('worcester'), // Worcester uses 5-4-3-2-1 scoring
     ),
     RoundTypesCompanion.insert(
       id: 'vegas_300',

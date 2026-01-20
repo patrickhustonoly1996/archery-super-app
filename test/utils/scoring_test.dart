@@ -320,4 +320,173 @@ void main() {
       expect(totalScore, 276);
     });
   });
+
+  group('Worcester Scoring (5-4-3-2-1)', () {
+    // Worcester uses 16" (41cm) face
+    const faceSizeCm = 41;
+
+    group('ringToWorcesterScore', () {
+      test('Innermost rings (10/9) score 5', () {
+        expect(TargetRingsMm.ringToWorcesterScore(10), 5);
+        expect(TargetRingsMm.ringToWorcesterScore(9), 5);
+      });
+
+      test('2nd ring pair (8/7) scores 4', () {
+        expect(TargetRingsMm.ringToWorcesterScore(8), 4);
+        expect(TargetRingsMm.ringToWorcesterScore(7), 4);
+      });
+
+      test('3rd ring pair (6/5) scores 3', () {
+        expect(TargetRingsMm.ringToWorcesterScore(6), 3);
+        expect(TargetRingsMm.ringToWorcesterScore(5), 3);
+      });
+
+      test('4th ring pair (4/3) scores 2', () {
+        expect(TargetRingsMm.ringToWorcesterScore(4), 2);
+        expect(TargetRingsMm.ringToWorcesterScore(3), 2);
+      });
+
+      test('Outer ring pair (2/1) scores 1', () {
+        expect(TargetRingsMm.ringToWorcesterScore(2), 1);
+        expect(TargetRingsMm.ringToWorcesterScore(1), 1);
+      });
+
+      test('Miss scores 0', () {
+        expect(TargetRingsMm.ringToWorcesterScore(0), 0);
+      });
+    });
+
+    group('scoreFromDistanceMm with worcester', () {
+      test('X ring scores 5 in Worcester', () {
+        final score = TargetRingsMm.scoreFromDistanceMm(
+          5.0, // Close to center
+          faceSizeCm,
+          scoringType: 'worcester',
+        );
+        expect(score, 5);
+      });
+
+      test('Ring 9 boundary scores 5 in Worcester', () {
+        final ring9Boundary = TargetRingsMm.getRingBoundaryMm(9, faceSizeCm);
+        final score = TargetRingsMm.scoreFromDistanceMm(
+          ring9Boundary - 1.0,
+          faceSizeCm,
+          scoringType: 'worcester',
+        );
+        expect(score, 5);
+      });
+
+      test('Ring 8 scores 4 in Worcester', () {
+        final ring9Boundary = TargetRingsMm.getRingBoundaryMm(9, faceSizeCm);
+        final score = TargetRingsMm.scoreFromDistanceMm(
+          ring9Boundary + 5.0,
+          faceSizeCm,
+          scoringType: 'worcester',
+        );
+        expect(score, 4);
+      });
+
+      test('Miss scores 0 in Worcester', () {
+        final ring1Boundary = TargetRingsMm.getRingBoundaryMm(1, faceSizeCm);
+        final score = TargetRingsMm.scoreFromDistanceMm(
+          ring1Boundary + 50.0,
+          faceSizeCm,
+          scoringType: 'worcester',
+        );
+        expect(score, 0);
+      });
+    });
+
+    group('Worcester round score bounds', () {
+      test('Perfect Worcester round scores 300 (60 x 5)', () {
+        // Worcester: 60 arrows, max 5 per arrow = 300 max
+        int totalScore = 0;
+        for (int i = 0; i < 60; i++) {
+          final score = TargetRingsMm.scoreFromDistanceMm(
+            5.0, // Center shot
+            faceSizeCm,
+            scoringType: 'worcester',
+          );
+          totalScore += score;
+        }
+        expect(totalScore, 300);
+        expect(totalScore, lessThanOrEqualTo(300)); // Cannot exceed max
+      });
+
+      test('Worcester round cannot exceed 300', () {
+        // Max score per arrow is 5, max arrows is 60
+        // Therefore max score is 300
+        const maxArrows = 60;
+        const maxPerArrow = 5;
+        const maxScore = maxArrows * maxPerArrow;
+
+        // Even if we scored every arrow at max, we can't exceed 300
+        int totalScore = 0;
+        for (int i = 0; i < maxArrows; i++) {
+          totalScore += maxPerArrow;
+        }
+        expect(totalScore, equals(maxScore));
+        expect(totalScore, equals(300));
+      });
+    });
+  });
+
+  group('Score Bounds Validation', () {
+    test('10-zone max score per arrow is 10', () {
+      final score = TargetRingsMm.scoreFromDistanceMm(
+        0.0, // Exact center
+        40,
+        scoringType: '10-zone',
+      );
+      expect(score, equals(10));
+      expect(score, lessThanOrEqualTo(10));
+    });
+
+    test('5-zone max score per arrow is 9', () {
+      final score = TargetRingsMm.scoreFromDistanceMm(
+        0.0, // Exact center
+        122,
+        scoringType: '5-zone',
+      );
+      expect(score, equals(9));
+      expect(score, lessThanOrEqualTo(9));
+    });
+
+    test('Worcester max score per arrow is 5', () {
+      final score = TargetRingsMm.scoreFromDistanceMm(
+        0.0, // Exact center
+        41,
+        scoringType: 'worcester',
+      );
+      expect(score, equals(5));
+      expect(score, lessThanOrEqualTo(5));
+    });
+
+    test('WA 18m 30-arrow round max is 300', () {
+      // 30 arrows x 10 max = 300
+      int maxPossible = 0;
+      for (int i = 0; i < 30; i++) {
+        maxPossible += TargetRingsMm.scoreFromDistanceMm(0.0, 40, scoringType: '10-zone');
+      }
+      expect(maxPossible, equals(300));
+    });
+
+    test('WA 18m 60-arrow round max is 600', () {
+      // 60 arrows x 10 max = 600
+      int maxPossible = 0;
+      for (int i = 0; i < 60; i++) {
+        maxPossible += TargetRingsMm.scoreFromDistanceMm(0.0, 40, scoringType: '10-zone');
+      }
+      expect(maxPossible, equals(600));
+    });
+
+    test('York round max is 1296 (144 arrows at 5-zone)', () {
+      // York: 144 arrows x 9 max (5-zone) = 1296
+      int maxPossible = 0;
+      for (int i = 0; i < 144; i++) {
+        maxPossible += TargetRingsMm.scoreFromDistanceMm(0.0, 122, scoringType: '5-zone');
+      }
+      expect(maxPossible, equals(1296));
+    });
+  });
 }

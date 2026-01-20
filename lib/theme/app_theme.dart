@@ -526,6 +526,7 @@ class TargetRingsMm {
   /// This is the definitive scoring function - visual display must match this.
   /// For 10-zone scoring, returns the ring number (10-1).
   /// For 5-zone scoring, returns the color score (9-7-5-3-1).
+  /// For worcester scoring, returns 5-4-3-2-1.
   static int scoreFromDistanceMm(
     double distanceMm,
     int faceSizeCm, {
@@ -555,6 +556,11 @@ class TargetRingsMm {
       return ringTo5ZoneScore(ring);
     }
 
+    // Convert to Worcester scoring if needed
+    if (scoringType == 'worcester') {
+      return ringToWorcesterScore(ring);
+    }
+
     return ring;
   }
 
@@ -570,6 +576,24 @@ class TargetRingsMm {
     // Black (4/3) → 3
     if (ring >= 3) return 3;
     // White (2/1) → 1
+    if (ring >= 1) return 1;
+    // Miss
+    return 0;
+  }
+
+  /// Convert a 10-zone ring number to Worcester score.
+  /// Worcester scoring: 5-4-3-2-1 for five rings (innermost to outermost).
+  /// Ring pairs (10/9), (8/7), (6/5), (4/3), (2/1) map to 5, 4, 3, 2, 1.
+  static int ringToWorcesterScore(int ring) {
+    // Innermost (10/9) → 5
+    if (ring >= 9) return 5;
+    // 2nd ring (8/7) → 4
+    if (ring >= 7) return 4;
+    // 3rd ring (6/5) → 3
+    if (ring >= 5) return 3;
+    // 4th ring (4/3) → 2
+    if (ring >= 3) return 2;
+    // Outer ring (2/1) → 1
     if (ring >= 1) return 1;
     // Miss
     return 0;

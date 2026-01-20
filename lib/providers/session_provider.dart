@@ -65,8 +65,19 @@ class SessionProvider extends ChangeNotifier {
   /// Whether this is an indoor round
   bool get isIndoor => _currentRoundType?.isIndoor ?? true;
 
-  /// Scoring type for the round (10-zone or 5-zone)
+  /// Scoring type for the round (10-zone, 5-zone, or worcester)
   String get scoringType => _currentRoundType?.scoringType ?? '10-zone';
+
+  /// Maximum possible score for this round
+  int? get maxScore => _currentRoundType?.maxScore;
+
+  /// Whether the current total score exceeds the round maximum
+  /// This indicates a scoring bug that needs investigation
+  bool get scoreExceedsMax {
+    final max = maxScore;
+    if (max == null) return false;
+    return totalScore > max;
+  }
 
   int get arrowsInCurrentEnd => _currentEndArrows.length;
   bool get isEndComplete => arrowsInCurrentEnd >= arrowsPerEnd;

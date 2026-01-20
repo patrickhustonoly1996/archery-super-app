@@ -887,7 +887,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 26;
+  int get schemaVersion => 27;
 
   @override
   MigrationStrategy get migration {
@@ -1126,6 +1126,14 @@ class AppDatabase extends _$AppDatabase {
           // Venue/location memory system for sightmarks
           await m.createTable(venues);
           await m.addColumn(sightMarks, sightMarks.venueId);
+        }
+        if (from <= 26) {
+          // Fix Worcester round scoring type: uses 5-4-3-2-1 scoring, not 9-7-5-3-1
+          await customStatement('''
+            UPDATE round_types
+            SET scoring_type = 'worcester'
+            WHERE id = 'worcester'
+          ''');
         }
       },
     );

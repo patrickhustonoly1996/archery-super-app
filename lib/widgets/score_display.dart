@@ -30,6 +30,9 @@ class ScoreDisplay extends StatelessWidget {
   /// Whether to show the score in gold (highlight)
   final bool highlighted;
 
+  /// Whether the score exceeds the maximum (indicates a scoring bug)
+  bool get _scoreExceedsMax => maxScore != null && score > maxScore!;
+
   const ScoreDisplay({
     super.key,
     required this.score,
@@ -55,6 +58,11 @@ class ScoreDisplay extends StatelessWidget {
       ScoreDisplaySize.large => textTheme.titleMedium,
     };
 
+    // Determine score color - warn (red) if exceeds max, otherwise normal
+    final scoreColor = _scoreExceedsMax
+        ? Colors.red
+        : (highlighted ? AppColors.gold : AppColors.textPrimary);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
@@ -68,7 +76,7 @@ class ScoreDisplay extends StatelessWidget {
             Text(
               '$score',
               style: scoreStyle?.copyWith(
-                color: highlighted ? AppColors.gold : AppColors.textPrimary,
+                color: scoreColor,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -76,12 +84,23 @@ class ScoreDisplay extends StatelessWidget {
               Text(
                 '/$maxScore',
                 style: secondaryStyle?.copyWith(
-                  color: AppColors.textMuted,
+                  color: _scoreExceedsMax ? Colors.red.shade300 : AppColors.textMuted,
                 ),
               ),
             ],
           ],
         ),
+
+        // Warning if score exceeds maximum
+        if (_scoreExceedsMax)
+          Text(
+            'Score exceeds maximum',
+            style: TextStyle(
+              color: Colors.red,
+              fontSize: (secondaryStyle?.fontSize ?? 12) * 0.9,
+              fontFamily: secondaryStyle?.fontFamily,
+            ),
+          ),
 
         // X count
         if (xCount != null && xCount! > 0)
@@ -112,6 +131,9 @@ class InlineScoreDisplay extends StatelessWidget {
   final int? maxScore;
   final int? xCount;
 
+  /// Whether the score exceeds the maximum (indicates a scoring bug)
+  bool get _scoreExceedsMax => maxScore != null && score > maxScore!;
+
   const InlineScoreDisplay({
     super.key,
     required this.score,
@@ -127,7 +149,7 @@ class InlineScoreDisplay extends StatelessWidget {
           TextSpan(
             text: '$score',
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: _scoreExceedsMax ? Colors.red : AppColors.textPrimary,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -135,7 +157,15 @@ class InlineScoreDisplay extends StatelessWidget {
             TextSpan(
               text: '/$maxScore',
               style: TextStyle(
-                color: AppColors.textMuted,
+                color: _scoreExceedsMax ? Colors.red.shade300 : AppColors.textMuted,
+              ),
+            ),
+          if (_scoreExceedsMax)
+            TextSpan(
+              text: ' (!)',
+              style: TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
               ),
             ),
           if (xCount != null && xCount! > 0)
