@@ -366,6 +366,10 @@ class InteractiveTargetFace extends StatefulWidget {
   /// Enable line cutter detection and in/out dialog
   final bool lineCutterDialogEnabled;
 
+  /// Scoring type: '10-zone' (default), '5-zone' (imperial), 'worcester'
+  /// This affects which ring boundaries trigger the linecutter dialog.
+  final String scoringType;
+
   /// Callback for pending arrow position (for external zoom window)
   final Function(double? x, double? y)? onPendingArrowChanged;
 
@@ -382,6 +386,7 @@ class InteractiveTargetFace extends StatefulWidget {
     this.triSpot = false,
     this.isLeftHanded = false,
     this.lineCutterDialogEnabled = false,
+    this.scoringType = '10-zone',
     this.compoundScoring = false,
     this.colorblindMode = ColorblindMode.none,
     this.showRingLabels = false,
@@ -460,26 +465,18 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   /// Returns the ring number where IN = that score, OUT = score - 1
   /// Special cases: ring 11 = X ring boundary (IN=X, OUT=10)
   ///                ring 1 = outer edge (IN=1, OUT=Miss)
+  ///
+  /// For 5-zone scoring (imperial rounds), only checks color boundaries:
+  /// - Gold/Red at ring 9 (0.20) - score 9→7
+  /// - Red/Blue at ring 7 (0.40) - score 7→5
+  /// - Blue/Black at ring 5 (0.60) - score 5→3
+  /// - Black/White at ring 3 (0.80) - score 3→1
+  /// - White/Miss at ring 1 (1.0) - score 1→0
   ({bool isNear, int? ring}) _checkBoundaryProximity(double normX, double normY) {
     final distanceFromCenter = math.sqrt(normX * normX + normY * normY);
 
-    // Ring boundaries with their "IN" score
-    // X ring boundary: IN = X (counts as 10), OUT = regular 10
-    // Ring 10 boundary: IN = 10, OUT = 9
-    // Ring 1 boundary: IN = 1, OUT = Miss (0)
-    final ringBoundaries = [
-      (TargetRings.x, 11),      // X ring - use 11 to distinguish from 10
-      (TargetRings.ring10, 10),
-      (TargetRings.ring9, 9),
-      (TargetRings.ring8, 8),
-      (TargetRings.ring7, 7),
-      (TargetRings.ring6, 6),
-      (TargetRings.ring5, 5),
-      (TargetRings.ring4, 4),
-      (TargetRings.ring3, 3),
-      (TargetRings.ring2, 2),
-      (TargetRings.ring1, 1),
-    ];
+    // Get boundaries based on scoring type
+    final ringBoundaries = _getBoundariesForScoringType();
 
     double minDistance = double.infinity;
     int? nearestRing;
@@ -496,6 +493,38 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
       isNear: minDistance <= _boundaryProximityThreshold,
       ring: minDistance <= _boundaryProximityThreshold ? nearestRing : null,
     );
+  }
+
+  /// Get ring boundaries to check based on scoring type.
+  /// For 5-zone, only check color boundaries where score changes.
+  /// For 10-zone, check all ring boundaries.
+  List<(double, int)> _getBoundariesForScoringType() {
+    if (widget.scoringType == '5-zone') {
+      // 5-zone scoring only has score changes at color boundaries
+      // Each color spans 2 rings, so only check odd-numbered rings
+      return [
+        (TargetRings.ring9, 9),   // Gold/Red boundary (9→7)
+        (TargetRings.ring7, 7),   // Red/Blue boundary (7→5)
+        (TargetRings.ring5, 5),   // Blue/Black boundary (5→3)
+        (TargetRings.ring3, 3),   // Black/White boundary (3→1)
+        (TargetRings.ring1, 1),   // White/Miss boundary (1→0)
+      ];
+    }
+
+    // 10-zone scoring (default) - check all boundaries
+    return [
+      (TargetRings.x, 11),      // X ring - use 11 to distinguish from 10
+      (TargetRings.ring10, 10),
+      (TargetRings.ring9, 9),
+      (TargetRings.ring8, 8),
+      (TargetRings.ring7, 7),
+      (TargetRings.ring6, 6),
+      (TargetRings.ring5, 5),
+      (TargetRings.ring4, 4),
+      (TargetRings.ring3, 3),
+      (TargetRings.ring2, 2),
+      (TargetRings.ring1, 1),
+    ];
   }
 
   void _onPanStart(DragStartDetails details) {
@@ -595,8 +624,10 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   }
 
   Future<bool?> _showLineCutterDialog(int nearRing) async {
-    // Use extracted helper for testability
-    final labels = LineCutterLabels.forRing(nearRing);
+    // Use extracted helper for testability - choose label factory based on scoring type
+    final labels = widget.scoringType == '5-zone'
+        ? LineCutterLabels.forRing5Zone(nearRing)
+        : LineCutterLabels.forRing(nearRing);
 
     return showDialog<bool>(
       context: context,

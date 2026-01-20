@@ -530,6 +530,48 @@ void main() {
     });
   });
 
+  group('LineCutterLabels 5-zone', () {
+    test('ring 9 boundary (Gold/Red) shows correct 5-zone labels', () {
+      final labels = LineCutterLabels.forRing5Zone(9);
+
+      expect(labels.ringLabel, equals('Gold'));
+      expect(labels.inLabel, equals('IN (9 - Gold)'));
+      expect(labels.outLabel, equals('OUT (7 - Red)'));
+    });
+
+    test('ring 7 boundary (Red/Blue) shows correct 5-zone labels', () {
+      final labels = LineCutterLabels.forRing5Zone(7);
+
+      expect(labels.ringLabel, equals('Red'));
+      expect(labels.inLabel, equals('IN (7 - Red)'));
+      expect(labels.outLabel, equals('OUT (5 - Blue)'));
+    });
+
+    test('ring 5 boundary (Blue/Black) shows correct 5-zone labels', () {
+      final labels = LineCutterLabels.forRing5Zone(5);
+
+      expect(labels.ringLabel, equals('Blue'));
+      expect(labels.inLabel, equals('IN (5 - Blue)'));
+      expect(labels.outLabel, equals('OUT (3 - Black)'));
+    });
+
+    test('ring 3 boundary (Black/White) shows correct 5-zone labels', () {
+      final labels = LineCutterLabels.forRing5Zone(3);
+
+      expect(labels.ringLabel, equals('Black'));
+      expect(labels.inLabel, equals('IN (3 - Black)'));
+      expect(labels.outLabel, equals('OUT (1 - White)'));
+    });
+
+    test('ring 1 boundary (White/Miss) shows Miss for out', () {
+      final labels = LineCutterLabels.forRing5Zone(1);
+
+      expect(labels.ringLabel, equals('White'));
+      expect(labels.inLabel, equals('IN (1 - White)'));
+      expect(labels.outLabel, equals('OUT (Miss)'));
+    });
+  });
+
   group('TripleSpotFaceDistributor', () {
     test('empty arrows returns face 0', () {
       final result = TripleSpotFaceDistributor.nextFaceIndex(

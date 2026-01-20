@@ -301,7 +301,7 @@ class LineCutterLabels {
     required this.outLabel,
   });
 
-  /// Generate labels for a given ring boundary.
+  /// Generate labels for a given ring boundary (10-zone scoring).
   ///
   /// Ring numbers:
   /// - 11 = X ring boundary (IN=X, OUT=10)
@@ -330,6 +330,50 @@ class LineCutterLabels {
         outLabel: 'OUT (${nearRing - 1})',
       );
     }
+  }
+
+  /// Generate labels for 5-zone scoring (imperial rounds like York).
+  ///
+  /// 5-zone uses color-based scoring:
+  /// - Gold (9), Red (7), Blue (5), Black (3), White (1)
+  ///
+  /// Ring numbers correspond to 10-zone boundaries:
+  /// - 9 = Gold/Red boundary (IN=9, OUT=7)
+  /// - 7 = Red/Blue boundary (IN=7, OUT=5)
+  /// - 5 = Blue/Black boundary (IN=5, OUT=3)
+  /// - 3 = Black/White boundary (IN=3, OUT=1)
+  /// - 1 = White/Miss boundary (IN=1, OUT=Miss)
+  factory LineCutterLabels.forRing5Zone(int nearRing) {
+    // Map ring to 5-zone score
+    final score = TargetRingsMm.ringTo5ZoneScore(nearRing);
+    final outerScore = TargetRingsMm.ringTo5ZoneScore(nearRing - 2);
+
+    // Color names for 5-zone
+    String colorName(int s) {
+      switch (s) {
+        case 9: return 'Gold';
+        case 7: return 'Red';
+        case 5: return 'Blue';
+        case 3: return 'Black';
+        case 1: return 'White';
+        default: return 'Miss';
+      }
+    }
+
+    if (nearRing == 1) {
+      // Outer edge - out is a miss
+      return LineCutterLabels(
+        ringLabel: colorName(score),
+        inLabel: 'IN ($score - ${colorName(score)})',
+        outLabel: 'OUT (Miss)',
+      );
+    }
+
+    return LineCutterLabels(
+      ringLabel: colorName(score),
+      inLabel: 'IN ($score - ${colorName(score)})',
+      outLabel: 'OUT ($outerScore - ${colorName(outerScore)})',
+    );
   }
 }
 

@@ -435,6 +435,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                       triSpot: isTriSpot,
                                       compoundScoring: _compoundScoring,
                                       lineCutterDialogEnabled: true,
+                                      scoringType: provider.roundType?.scoringType ?? '10-zone',
                                       transformController: _zoomController,
                                       colorblindMode: accessibility.colorblindMode,
                                       showRingLabels: accessibility.showRingLabels,
