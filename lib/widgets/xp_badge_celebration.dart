@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../services/chiptune_service.dart';
 import '../theme/app_theme.dart';
 
 /// Achievement type for shield badge design.
@@ -142,12 +143,50 @@ class _XpBadgeCelebrationState extends State<XpBadgeCelebration>
     _entranceController.forward();
     _fireworksController.forward();
 
+    // Play celebration sound
+    _playCelebrationSound();
+
     // Start exit after delay
     Future.delayed(const Duration(milliseconds: 1800), () {
       if (mounted) {
         _startExitAnimation();
       }
     });
+  }
+
+  void _playCelebrationSound() async {
+    try {
+      final chiptune = ChiptuneService();
+
+      // Play sound based on achievement type
+      switch (widget.event.achievementType) {
+        case AchievementType.streak7:
+          await chiptune.playStreak7();
+          break;
+        case AchievementType.streak14:
+          await chiptune.playStreak14();
+          break;
+        case AchievementType.streak30:
+          await chiptune.playStreak30();
+          break;
+        case AchievementType.personalBest:
+          await chiptune.playPersonalBest();
+          break;
+        case AchievementType.milestone:
+          await chiptune.playMilestone();
+          break;
+        case AchievementType.competition:
+        case AchievementType.excellentForm:
+        case AchievementType.fullPlot:
+        case AchievementType.standard:
+        default:
+          await chiptune.playAchievement();
+          break;
+      }
+    } catch (e) {
+      // Sound is optional, don't crash if it fails
+      debugPrint('Could not play achievement sound: $e');
+    }
   }
 
   void _startExitAnimation() {

@@ -1,8 +1,10 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:provider/provider.dart';
 import '../providers/skills_provider.dart';
+import '../services/chiptune_service.dart';
 import '../theme/app_theme.dart';
+import 'xp_badge_celebration.dart';
 
 /// Full-screen overlay for level-up celebrations.
 /// Shows fireworks animation and plays C64-style chiptune sound.
@@ -41,7 +43,6 @@ class _LevelUpCelebrationState extends State<LevelUpCelebration>
   late Animation<double> _fadeAnimation;
   final List<_Particle> _particles = [];
   final Random _random = Random();
-  AudioPlayer? _audioPlayer;
 
   @override
   void initState() {
@@ -86,12 +87,16 @@ class _LevelUpCelebrationState extends State<LevelUpCelebration>
 
   void _playCelebrationSound() async {
     try {
-      _audioPlayer = AudioPlayer();
-      // Use a simple beep sound - in production, use a proper C64-style jingle
-      await _audioPlayer?.play(
-        AssetSource('sounds/level_up.mp3'),
-        volume: 0.5,
-      );
+      final chiptune = ChiptuneService();
+      final newLevel = widget.event.newLevel;
+
+      // Play milestone jingle for milestone levels (10, 25, 50, 75, 92, 99)
+      final milestones = [10, 25, 50, 75, 92, 99];
+      if (milestones.contains(newLevel)) {
+        await chiptune.playMilestone();
+      } else {
+        await chiptune.playLevelUp();
+      }
     } catch (e) {
       // Sound is optional, don't crash if it fails
       debugPrint('Could not play level up sound: $e');
@@ -158,7 +163,6 @@ class _LevelUpCelebrationState extends State<LevelUpCelebration>
   void dispose() {
     _scaleController.dispose();
     _fireworksController.dispose();
-    _audioPlayer?.dispose();
     super.dispose();
   }
 
@@ -584,21 +588,100 @@ class _FireworksPainter extends CustomPainter {
       progress != oldDelegate.progress;
 }
 
-/// Widget that listens for level-up events and shows celebrations.
-class LevelUpListener extends StatefulWidget {
+/// Widget that listens for level-up and XP award events and shows celebrations.
+/// Wrap your app or main content with this widget to enable celebration displays.
+class CelebrationListener extends StatefulWidget {
   final Widget child;
 
-  const LevelUpListener({super.key, required this.child});
+  const CelebrationListener({super.key, required this.child});
 
   @override
-  State<LevelUpListener> createState() => _LevelUpListenerState();
+  State<CelebrationListener> createState() => _CelebrationListenerState();
 }
 
-class _LevelUpListenerState extends State<LevelUpListener> {
+class _CelebrationListenerState extends State<CelebrationListener> {
+  bool _isShowingCelebration = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Check for pending celebrations after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForPendingCelebrations();
+    });
+  }
+
+  void _checkForPendingCelebrations() {
+    if (!mounted || _isShowingCelebration) return;
+
+    final skillsProvider = context.read<SkillsProvider>();
+
+    // Check for level-ups first (higher priority)
+    if (skillsProvider.hasPendingLevelUp) {
+      _showNextLevelUp(skillsProvider);
+      return;
+    }
+
+    // Then check for XP awards
+    if (skillsProvider.hasPendingXpAward) {
+      _showNextXpAward(skillsProvider);
+      return;
+    }
+  }
+
+  Future<void> _showNextLevelUp(SkillsProvider skillsProvider) async {
+    final event = skillsProvider.consumeNextLevelUp();
+    if (event == null || !mounted) return;
+
+    _isShowingCelebration = true;
+
+    try {
+      await LevelUpCelebration.show(context, event);
+    } finally {
+      _isShowingCelebration = false;
+      // Check for more pending celebrations
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _checkForPendingCelebrations();
+        });
+      }
+    }
+  }
+
+  Future<void> _showNextXpAward(SkillsProvider skillsProvider) async {
+    final event = skillsProvider.consumeNextXpAward();
+    if (event == null || !mounted) return;
+
+    _isShowingCelebration = true;
+
+    try {
+      await XpBadgeCelebration.show(context, event);
+    } finally {
+      _isShowingCelebration = false;
+      // Check for more pending celebrations
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _checkForPendingCelebrations();
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // This widget wraps the app and checks for pending level-ups
-    // The actual checking is done in the parent widget that has access to SkillsProvider
-    return widget.child;
+    // Listen to SkillsProvider changes and check for pending celebrations
+    return Consumer<SkillsProvider>(
+      builder: (context, skillsProvider, child) {
+        // Trigger check when provider notifies (e.g., after awarding XP)
+        if (!_isShowingCelebration &&
+            (skillsProvider.hasPendingLevelUp || skillsProvider.hasPendingXpAward)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _checkForPendingCelebrations();
+          });
+        }
+        return child!;
+      },
+      child: widget.child,
+    );
   }
 }

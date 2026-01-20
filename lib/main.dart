@@ -29,6 +29,7 @@ import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/sync_service.dart';
 import 'widgets/splash_branding.dart';
+import 'widgets/level_up_celebration.dart';
 
 /// Global scaffold messenger key for showing snackbars from anywhere in the app
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
@@ -410,13 +411,13 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     // If we have a cached user from Firebase, go straight to home
     if (_cachedUser != null) {
-      return const HomeScreen();
+      return const CelebrationListener(child: HomeScreen());
     }
 
     // Offline mode: Firebase isn't ready but user was previously logged in
     // Trust local flag and show home screen
     if (!_firebaseReady && _wasLoggedIn) {
-      return const HomeScreen();
+      return const CelebrationListener(child: HomeScreen());
     }
 
     // If Firebase isn't ready or timed out, show login
@@ -442,7 +443,7 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
         if (snapshot.hasData) {
           // Trigger restore/backup when user logs in
           _triggerBackgroundSync();
-          return const HomeScreen();
+          return const CelebrationListener(child: HomeScreen());
         }
 
         // User is not logged in (or timed out with no cached user)
