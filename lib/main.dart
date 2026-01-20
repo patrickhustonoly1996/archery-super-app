@@ -28,6 +28,7 @@ import 'services/vision_api_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/sync_service.dart';
+import 'services/weather_service.dart';
 import 'widgets/splash_branding.dart';
 
 /// Global scaffold messenger key for showing snackbars from anywhere in the app
@@ -66,6 +67,8 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
     super.initState();
     // Initialize SyncService singleton with database reference
     SyncService().initialize(_database);
+    // Initialize weather API for sightmark conditions
+    WeatherService.setApiKey('c7baa373bebb99801fa7b67dce88c171');
   }
 
   @override
@@ -94,7 +97,8 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
             create: (context) => BreathTrainingProvider(),
           ),
           ChangeNotifierProvider(
-            create: (context) => ActiveSessionsProvider()..loadSessions(),
+            // Defer loading - not needed for home screen
+            create: (context) => ActiveSessionsProvider(),
           ),
           ChangeNotifierProvider(
             create: (context) => SpiderGraphProvider(context.read<AppDatabase>()),

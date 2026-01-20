@@ -14,6 +14,7 @@
 /// The service gracefully degrades to cache/null when API unavailable.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:archery_super_app/services/weather_service.dart';
+import 'package:archery_super_app/services/location_service.dart';
 import 'package:archery_super_app/models/weather_conditions.dart';
 
 void main() {
