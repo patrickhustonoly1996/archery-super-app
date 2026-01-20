@@ -42,9 +42,10 @@ class ScanFrameService {
 
   /// Add a captured frame
   /// Returns true if frame was accepted, false if dropped for quality
-  bool addFrame(Uint8List imageData, double rotationAngle) {
-    // Calculate quality score (runs in isolate for performance)
-    final qualityScore = _quickQualityEstimate(imageData);
+  /// Now async to run quality scoring in isolate for smooth UI
+  Future<bool> addFrameAsync(Uint8List imageData, double rotationAngle) async {
+    // Calculate quality score in isolate for performance
+    final qualityScore = await compute(_quickQualityEstimateIsolate, imageData);
 
     if (qualityScore < kMinQualityScore) {
       // Skip low quality frames but notify caller
@@ -63,6 +64,32 @@ class ScanFrameService {
     _frames.add(frame);
 
     // If we have too many frames, remove the lowest quality from crowded regions
+    if (_frames.length > kMaxFrames) {
+      _pruneFrames();
+    }
+
+    return true;
+  }
+
+  /// Synchronous version for backwards compatibility (still blocks main thread)
+  bool addFrame(Uint8List imageData, double rotationAngle) {
+    final qualityScore = _quickQualityEstimate(imageData);
+
+    if (qualityScore < kMinQualityScore) {
+      _droppedFrameCount++;
+      onFrameDropped?.call('Frame too blurry (quality: ${(qualityScore * 100).toInt()}%)');
+      return false;
+    }
+
+    final frame = ScanFrame(
+      imageData: imageData,
+      rotationAngle: rotationAngle,
+      timestamp: DateTime.now(),
+      qualityScore: qualityScore,
+    );
+
+    _frames.add(frame);
+
     if (_frames.length > kMaxFrames) {
       _pruneFrames();
     }
@@ -346,5 +373,64 @@ void _blendBoundary(img.Image image, int boundaryX, int blendWidth) {
 
       image.setPixelRgba(x, y, blendedR, blendedG, blendedB, 255);
     }
+  }
+}
+
+/// Isolate function for quality estimation (runs off main thread)
+double _quickQualityEstimateIsolate(Uint8List imageData) {
+  try {
+    // Decode a small version for speed
+    final image = img.decodeJpg(imageData);
+    if (image == null) return 0.0;
+
+    // Resize for faster processing (smaller = faster in isolate)
+    final small = img.copyResize(image, width: 64);
+
+    // Convert to grayscale and calculate variance (higher = sharper)
+    final grayscale = img.grayscale(small);
+
+    double sum = 0;
+    double sumSq = 0;
+    int count = 0;
+
+    for (int y = 0; y < grayscale.height; y++) {
+      for (int x = 0; x < grayscale.width; x++) {
+        final pixel = grayscale.getPixel(x, y);
+        final luminance = img.getLuminance(pixel);
+        sum += luminance;
+        sumSq += luminance * luminance;
+        count++;
+      }
+    }
+
+    final mean = sum / count;
+    final variance = (sumSq / count) - (mean * mean);
+
+    // Normalize variance to 0-1 range (typical variance range is 0-2500)
+    final normalizedVariance = math.min(1.0, variance / 2500);
+
+    // Also check for overexposure (too many bright pixels)
+    int brightPixels = 0;
+    int darkPixels = 0;
+    for (int y = 0; y < grayscale.height; y++) {
+      for (int x = 0; x < grayscale.width; x++) {
+        final pixel = grayscale.getPixel(x, y);
+        final luminance = img.getLuminance(pixel);
+        if (luminance > 240) brightPixels++;
+        if (luminance < 15) darkPixels++;
+      }
+    }
+
+    final brightRatio = brightPixels / count;
+    final darkRatio = darkPixels / count;
+
+    // Penalize overexposed or underexposed images
+    double exposurePenalty = 1.0;
+    if (brightRatio > 0.3) exposurePenalty *= (1.0 - brightRatio);
+    if (darkRatio > 0.3) exposurePenalty *= (1.0 - darkRatio);
+
+    return normalizedVariance * exposurePenalty;
+  } catch (e) {
+    return 0.5; // Default to acceptable quality on error
   }
 }

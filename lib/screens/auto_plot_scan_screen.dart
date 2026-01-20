@@ -250,8 +250,8 @@ class _AutoPlotScanScreenState extends State<AutoPlotScanScreen>
       final xFile = await _cameraController!.takePicture();
       final bytes = await xFile.readAsBytes();
 
-      // Add frame with current rotation angle
-      _frameService.addFrame(bytes, _scanProgress * 2 * math.pi);
+      // Add frame with current rotation angle (async for smooth UI)
+      await _frameService.addFrameAsync(bytes, _scanProgress * 2 * math.pi);
 
       if (mounted) {
         setState(() {}); // Trigger rebuild to show frame count
