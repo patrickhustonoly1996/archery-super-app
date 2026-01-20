@@ -87,48 +87,52 @@ class VibrationService {
   // BREATHING PATTERNS
   // ===========================================================================
 
-  /// Inhale cue - two quick buzzes
+  /// Inhale cue - one short buzz
   Future<void> inhale() async {
     await _ensureInitialized();
     if (_enabled) {
       HapticFeedback.mediumImpact();
-      await Future.delayed(const Duration(milliseconds: 120));
-      HapticFeedback.mediumImpact();
     }
   }
 
-  /// Exhale cue - one longer buzz
+  /// Exhale cue - one long buzz (sustained feel via repeated impacts)
   Future<void> exhale() async {
     await _ensureInitialized();
     if (_enabled) {
       HapticFeedback.heavyImpact();
-      await Future.delayed(const Duration(milliseconds: 80));
+      await Future.delayed(const Duration(milliseconds: 50));
       HapticFeedback.heavyImpact();
-      await Future.delayed(const Duration(milliseconds: 80));
+      await Future.delayed(const Duration(milliseconds: 50));
+      HapticFeedback.heavyImpact();
+      await Future.delayed(const Duration(milliseconds: 50));
       HapticFeedback.heavyImpact();
     }
   }
 
-  /// Hold warning - three quick buzzes then extended buzz
+  /// Hold transition - three short (approaching) + long + short (entering hold)
   Future<void> holdStart() async {
     await _ensureInitialized();
     if (_enabled) {
-      // Three quick warning buzzes
+      // Three short approach signals
       HapticFeedback.lightImpact();
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 120));
       HapticFeedback.lightImpact();
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 120));
       HapticFeedback.lightImpact();
+      // Brief pause before transition
+      await Future.delayed(const Duration(milliseconds: 200));
+      // Long signal (entering hold)
+      HapticFeedback.heavyImpact();
+      await Future.delayed(const Duration(milliseconds: 50));
+      HapticFeedback.heavyImpact();
+      await Future.delayed(const Duration(milliseconds: 50));
+      HapticFeedback.heavyImpact();
+      await Future.delayed(const Duration(milliseconds: 50));
+      HapticFeedback.heavyImpact();
       // Brief pause
       await Future.delayed(const Duration(milliseconds: 150));
-      // Extended buzz (multiple heavy impacts to simulate longer vibration)
-      HapticFeedback.heavyImpact();
-      await Future.delayed(const Duration(milliseconds: 60));
-      HapticFeedback.heavyImpact();
-      await Future.delayed(const Duration(milliseconds: 60));
-      HapticFeedback.heavyImpact();
-      await Future.delayed(const Duration(milliseconds: 60));
-      HapticFeedback.heavyImpact();
+      // Short signal (now in hold)
+      HapticFeedback.mediumImpact();
     }
   }
 }

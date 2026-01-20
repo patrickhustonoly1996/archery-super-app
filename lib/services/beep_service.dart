@@ -4,15 +4,16 @@ import 'dart:math' as math;
 import 'package:audioplayers/audioplayers.dart';
 
 /// Service for playing gentle beep sounds during breathing exercises.
-/// One beep for inhale, two beeps for exhale.
+/// Patterns: one short for inhale, one long for exhale, 3 short + long + short for hold.
 class BeepService {
   static final BeepService _instance = BeepService._internal();
   factory BeepService() => _instance;
   BeepService._internal();
 
   AudioPlayer? _player;
-  BytesSource? _longBeepSource;   // Single longer beep for exhale
-  BytesSource? _doubleBeepSource; // Two quick beeps for inhale
+  BytesSource? _shortBeepSource;     // One short beep for inhale
+  BytesSource? _longBeepSource;      // One long beep for exhale
+  BytesSource? _holdStartBeepSource; // 3 short + 1 long + 1 short for hold transition
   bool _initialized = false;
 
   /// Initialize the beep service and pre-generate the beep sounds.
@@ -23,29 +24,41 @@ class BeepService {
     await _player!.setVolume(0.3); // Gentle volume
 
     // Generate the beep audio data
-    _longBeepSource = BytesSource(_generateBeepWav(beepCount: 1, durationMs: 250));   // Longer exhale beep
-    _doubleBeepSource = BytesSource(_generateBeepWav(beepCount: 2, durationMs: 120)); // Two quick inhale beeps
+    _shortBeepSource = BytesSource(_generateBeepWav(beepCount: 1, durationMs: 100));  // Short inhale beep
+    _longBeepSource = BytesSource(_generateBeepWav(beepCount: 1, durationMs: 300));   // Long exhale beep
+    _holdStartBeepSource = BytesSource(_generateHoldStartBeepWav());                   // Hold transition pattern
 
     _initialized = true;
   }
 
-  /// Play two gentle beeps (for inhale - matches vibration pattern).
+  /// Play one short beep (for inhale).
   Future<void> playInhaleBeep() async {
     if (!_initialized) await initialize();
     try {
       await _player!.stop();
-      await _player!.play(_doubleBeepSource!);
+      await _player!.play(_shortBeepSource!);
     } catch (e) {
       // Silently fail - beeps are non-critical
     }
   }
 
-  /// Play a single longer beep (for exhale - matches vibration pattern).
+  /// Play one long beep (for exhale).
   Future<void> playExhaleBeep() async {
     if (!_initialized) await initialize();
     try {
       await _player!.stop();
       await _player!.play(_longBeepSource!);
+    } catch (e) {
+      // Silently fail - beeps are non-critical
+    }
+  }
+
+  /// Play hold transition pattern: 3 short (approaching) + 1 long + 1 short (entering hold).
+  Future<void> playHoldStartBeep() async {
+    if (!_initialized) await initialize();
+    try {
+      await _player!.stop();
+      await _player!.play(_holdStartBeepSource!);
     } catch (e) {
       // Silently fail - beeps are non-critical
     }
@@ -105,6 +118,75 @@ class BeepService {
     }
 
     // Create WAV file
+    return _createWavFile(samples, sampleRate);
+  }
+
+  /// Generate a WAV file for the hold transition pattern.
+  /// Pattern: 3 short (approaching) + pause + 1 long + pause + 1 short (entering hold).
+  Uint8List _generateHoldStartBeepWav() {
+    const int sampleRate = 44100;
+    const double frequency = 440.0; // A4 note - slightly higher for distinction
+    const int shortBeepMs = 80;     // Short beeps
+    const int shortGapMs = 120;     // Gap between short beeps
+    const int pauseMs = 200;        // Pause before long tone
+    const int longToneMs = 250;     // Extended tone
+    const int finalPauseMs = 150;   // Pause before final short
+    const int finalShortMs = 100;   // Final short beep (entering hold)
+    const double fadeMs = 15.0;     // Quick fade for snappiness
+
+    final int samplesPerShortBeep = (sampleRate * shortBeepMs / 1000).round();
+    final int samplesPerShortGap = (sampleRate * shortGapMs / 1000).round();
+    final int samplesPerPause = (sampleRate * pauseMs / 1000).round();
+    final int samplesPerLongTone = (sampleRate * longToneMs / 1000).round();
+    final int samplesPerFinalPause = (sampleRate * finalPauseMs / 1000).round();
+    final int samplesPerFinalShort = (sampleRate * finalShortMs / 1000).round();
+    final int fadeSamples = (sampleRate * fadeMs / 1000).round();
+
+    // Total: 3 short + 2 gaps + pause + long + pause + short
+    final int totalSamples = (samplesPerShortBeep * 3) +
+        (samplesPerShortGap * 2) +
+        samplesPerPause +
+        samplesPerLongTone +
+        samplesPerFinalPause +
+        samplesPerFinalShort;
+
+    final samples = Int16List(totalSamples);
+    int sampleIndex = 0;
+
+    // Helper to generate a beep at the current index
+    void generateBeep(int durationSamples) {
+      for (int i = 0; i < durationSamples; i++) {
+        double envelope = 1.0;
+        if (i < fadeSamples) {
+          envelope = math.sin((i / fadeSamples) * (math.pi / 2));
+        } else if (i > durationSamples - fadeSamples) {
+          final fadeIndex = durationSamples - i;
+          envelope = math.sin((fadeIndex / fadeSamples) * (math.pi / 2));
+        }
+        final t = i / sampleRate;
+        final sampleValue = math.sin(2 * math.pi * frequency * t) * envelope;
+        samples[sampleIndex++] = (sampleValue * 32767 * 0.4).round().clamp(-32768, 32767);
+      }
+    }
+
+    // Helper to add silence
+    void addSilence(int durationSamples) {
+      for (int i = 0; i < durationSamples; i++) {
+        samples[sampleIndex++] = 0;
+      }
+    }
+
+    // Generate the pattern: short-gap-short-gap-short-pause-long-pause-short
+    generateBeep(samplesPerShortBeep);  // 1st approach
+    addSilence(samplesPerShortGap);
+    generateBeep(samplesPerShortBeep);  // 2nd approach
+    addSilence(samplesPerShortGap);
+    generateBeep(samplesPerShortBeep);  // 3rd approach
+    addSilence(samplesPerPause);
+    generateBeep(samplesPerLongTone);   // Long (transition)
+    addSilence(samplesPerFinalPause);
+    generateBeep(samplesPerFinalShort); // Short (now in hold)
+
     return _createWavFile(samples, sampleRate);
   }
 

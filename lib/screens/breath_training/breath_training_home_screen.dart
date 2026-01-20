@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../services/breath_training_service.dart';
+import '../../db/database.dart';
 import 'paced_breathing_screen.dart';
 import 'breath_hold_screen.dart';
 import 'patrick_breath_screen.dart';
@@ -19,6 +21,8 @@ class _BreathTrainingHomeScreenState extends State<BreathTrainingHomeScreen> {
   final _service = BreathTrainingService();
   int _bestExhale = 0;
   int _holdDuration = 15;
+  int _totalSessions = 0;
+  int _thisWeekSessions = 0;
 
   @override
   void initState() {
@@ -29,10 +33,27 @@ class _BreathTrainingHomeScreenState extends State<BreathTrainingHomeScreen> {
   Future<void> _loadSettings() async {
     final bestExhale = await _service.getPatrickBestExhale();
     final holdDuration = await _service.getHoldDuration();
+
+    // Load session stats
+    int totalSessions = 0;
+    int thisWeekSessions = 0;
+    try {
+      final db = Provider.of<AppDatabase>(context, listen: false);
+      final allLogs = await db.getAllBreathTrainingLogs();
+      totalSessions = allLogs.length;
+
+      final oneWeekAgo = DateTime.now().subtract(const Duration(days: 7));
+      thisWeekSessions = allLogs.where((log) => log.completedAt.isAfter(oneWeekAgo)).length;
+    } catch (e) {
+      // Database not available
+    }
+
     if (mounted) {
       setState(() {
         _bestExhale = bestExhale;
         _holdDuration = holdDuration;
+        _totalSessions = totalSessions;
+        _thisWeekSessions = thisWeekSessions;
       });
     }
   }
@@ -57,82 +78,167 @@ class _BreathTrainingHomeScreenState extends State<BreathTrainingHomeScreen> {
             child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
-              Text(
-                'Calmness and Focus',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: AppColors.gold,
+              // Header with stats row
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Calmness and Focus',
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: AppColors.gold,
+                              ),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          'Nasal breathing only. Always.',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
                     ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                'Nasal breathing only. Always.',
-                style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  // Quick stats
+                  if (_totalSessions > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceDark,
+                        borderRadius: BorderRadius.circular(AppSpacing.sm),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '$_thisWeekSessions',
+                            style: TextStyle(
+                              fontFamily: AppFonts.mono,
+                              fontSize: 20,
+                              color: AppColors.gold,
+                            ),
+                          ),
+                          Text(
+                            'this week',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.textMuted,
+                                  fontSize: 10,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
               ),
 
-              const SizedBox(height: AppSpacing.xxl),
+              const SizedBox(height: AppSpacing.xl),
 
-              // Session type cards
-              Column(
+              // Session type cards - expanded with more details
+              _SessionCard(
+                icon: Icons.air,
+                title: 'Paced Breathing',
+                description: 'Breathe in for 4, out for 6. Calming rhythm that activates the parasympathetic nervous system.',
+                benefit: 'Best for: Pre-competition calm, daily practice',
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PacedBreathingScreen(),
+                    ),
+                  );
+                  _loadSettings();
+                },
+              ),
+
+              const SizedBox(height: AppSpacing.md),
+
+              _SessionCard(
+                icon: Icons.pause_circle_outline,
+                title: 'Breath Holds',
+                description: 'Progressive exhale holds starting at ${_holdDuration}s. Builds CO2 tolerance for better oxygen delivery.',
+                benefit: 'Best for: Improving breath control under pressure',
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const BreathHoldScreen(),
+                    ),
+                  );
+                  _loadSettings();
+                },
+              ),
+
+              const SizedBox(height: AppSpacing.md),
+
+              _SessionCard(
+                icon: Icons.timer_outlined,
+                title: 'Long Exhale Test',
+                subtitle: 'The Patrick Breath',
+                description: _bestExhale > 0
+                    ? 'Test your controlled exhale duration. Personal best: ${_bestExhale}s'
+                    : 'Test how long you can slowly exhale through your nose. Track your progress.',
+                benefit: 'Best for: Measuring progress, building awareness',
+                highlight: true,
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PatrickBreathScreen(),
+                    ),
+                  );
+                  _loadSettings();
+                },
+              ),
+
+              const SizedBox(height: AppSpacing.xl),
+
+              // Tip of the day
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                  border: Border.all(
+                    color: AppColors.gold.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Paced Breathing
-                    _SessionCard(
-                      icon: Icons.air,
-                      title: 'Paced Breathing',
-                      description: 'Breathe in for 4, out for 6. Calming rhythm.',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const PacedBreathingScreen(),
-                          ),
-                        );
-                      },
+                    const Icon(
+                      Icons.lightbulb_outline,
+                      color: AppColors.gold,
+                      size: 20,
                     ),
-
-                    const SizedBox(height: AppSpacing.md),
-
-                    // Breath Holds
-                    _SessionCard(
-                      icon: Icons.pause_circle_outline,
-                      title: 'Breath Holds',
-                      description:
-                          'Progressive exhale holds (${_holdDuration}s). Builds CO2 tolerance.',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const BreathHoldScreen(),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Tip',
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                  color: AppColors.gold,
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: AppSpacing.md),
-
-                    // Patrick Breath Test
-                    _SessionCard(
-                      icon: Icons.timer_outlined,
-                      title: 'Long Exhale Test',
-                      subtitle: 'The Patrick Breath',
-                      description: _bestExhale > 0
-                          ? 'How long can you exhale? Best: ${_bestExhale}s'
-                          : 'How long can you exhale? Test yourself.',
-                      highlight: true,
-                      onTap: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const PatrickBreathScreen(),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Slow exhale training builds mental and physiological control for tournament calm, and creates dynamic intra-abdominal pressure for core stability during the shot.',
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
-                        );
-                        _loadSettings(); // Refresh best time after returning
-                      },
+                        ],
+                      ),
                     ),
                   ],
                 ),
+              ),
 
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.md),
 
               // Info footer
               Container(
@@ -188,6 +294,7 @@ class _SessionCard extends StatelessWidget {
   final String title;
   final String? subtitle;
   final String description;
+  final String? benefit;
   final VoidCallback onTap;
   final bool highlight;
 
@@ -196,6 +303,7 @@ class _SessionCard extends StatelessWidget {
     required this.title,
     this.subtitle,
     required this.description,
+    this.benefit,
     required this.onTap,
     this.highlight = false,
   });
@@ -223,18 +331,19 @@ class _SessionCard extends StatelessWidget {
                 )
               : null,
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 56,
-                height: 56,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.1),
+                  color: AppColors.gold.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(AppSpacing.sm),
                 ),
                 child: Icon(
                   icon,
                   color: AppColors.gold,
-                  size: 28,
+                  size: 24,
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -244,7 +353,9 @@ class _SessionCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: Theme.of(context).textTheme.labelLarge,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),
@@ -256,14 +367,25 @@ class _SessionCard extends StatelessWidget {
                             ),
                       ),
                     ],
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       description,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
+                    if (benefit != null) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        benefit!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textMuted,
+                              fontSize: 11,
+                            ),
+                      ),
+                    ],
                   ],
                 ),
               ),
+              const SizedBox(width: AppSpacing.sm),
               const Icon(
                 Icons.chevron_right,
                 color: AppColors.textMuted,

@@ -107,7 +107,8 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
       _tickCount = 0;
     });
 
-    // Play inhale beep at start
+    // Cue first inhale with vibration + beep
+    _vibration.inhale();
     if (_beepsEnabled) {
       _beepService.playInhaleBeep();
     }
@@ -134,7 +135,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
     setState(() {
       _phaseSecondsRemaining--;
 
-      if (_phaseSecondsRemaining <= 0) {
+      if (_phaseSecondsRemaining < 0) {
         if (_breathPhase == BreathPhase.inhale) {
           _breathPhase = BreathPhase.exhale;
           _phaseSecondsRemaining = _exhaleSeconds;
@@ -181,7 +182,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
   void _tickPreparation(Timer timer) {
     setState(() {
       _preparationCountdown--;
-      if (_preparationCountdown <= 0) {
+      if (_preparationCountdown < 0) {
         _timer?.cancel();
         _startExhale();
       }
@@ -232,7 +233,8 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
       _tickCount = 0;
     });
 
-    // One beep for inhale (recovery starts)
+    // Cue first recovery inhale with vibration + beep
+    _vibration.inhale();
     if (_beepsEnabled) {
       _beepService.playInhaleBeep();
     }
@@ -259,7 +261,7 @@ class _PatrickBreathScreenState extends State<PatrickBreathScreen> {
     setState(() {
       _phaseSecondsRemaining--;
 
-      if (_phaseSecondsRemaining <= 0) {
+      if (_phaseSecondsRemaining < 0) {
         if (_breathPhase == BreathPhase.inhale) {
           _breathPhase = BreathPhase.exhale;
           _phaseSecondsRemaining = _exhaleSeconds;
