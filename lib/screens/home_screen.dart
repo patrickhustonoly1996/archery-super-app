@@ -273,6 +273,18 @@ class _HomeScreenState extends State<HomeScreen>
 
     // Check for incomplete sessions in background (non-blocking)
     _checkForIncompleteSession();
+
+    // Trigger deferred provider loads after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadDeferredProviders();
+    });
+  }
+
+  /// Load deferred providers in background after UI renders
+  void _loadDeferredProviders() {
+    if (!mounted) return;
+    // Load skills for level badges (non-blocking)
+    context.read<SkillsProvider>().loadSkills();
   }
 
   @override

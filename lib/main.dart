@@ -107,18 +107,17 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
             create: (context) => ConnectivityProvider(),
           ),
           ChangeNotifierProvider(
-            create: (context) =>
-                SkillsProvider(context.read<AppDatabase>())..loadSkills(),
+            // Defer loading - badges show default values until loaded
+            create: (context) => SkillsProvider(context.read<AppDatabase>()),
           ),
           ChangeNotifierProvider(
             create: (context) => SightMarksProvider(context.read<AppDatabase>()),
           ),
           ChangeNotifierProvider(
+            // Defer initialization - only needed when using auto-plot
             create: (context) {
-              // VisionApiService uses Firebase Functions backend - no API key needed
               final visionService = VisionApiService();
-              return AutoPlotProvider(context.read<AppDatabase>(), visionService)
-                ..initialize();
+              return AutoPlotProvider(context.read<AppDatabase>(), visionService);
             },
           ),
           ChangeNotifierProvider(
