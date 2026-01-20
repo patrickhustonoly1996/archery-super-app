@@ -7,10 +7,13 @@ import '../../db/database.dart';
 import '../../utils/unique_id.dart';
 import '../../services/beep_service.dart';
 import '../../services/breath_training_service.dart';
+import '../../services/breath_hold_award_service.dart';
 import '../../services/vibration_service.dart';
 import '../../services/training_session_service.dart';
 import '../../widgets/breathing_visualizer.dart';
 import '../../widgets/breathing_reminder.dart';
+import '../../widgets/breath_hold_award_badge.dart';
+import '../../models/breath_hold_award.dart';
 import '../../providers/breath_training_provider.dart';
 import '../../providers/skills_provider.dart';
 
@@ -77,6 +80,9 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
   int _totalHoldTime = 0;
   int _bestHoldThisSession = 0; // Track best individual hold
   int _totalSessionSeconds = 0; // Total elapsed session time
+
+  // Newly earned awards for completion display
+  List<BreathHoldAwardLevel> _newAwards = [];
 
   // Tick counter for smooth animation
   int _tickCount = 0;
@@ -234,6 +240,7 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
       _bestHoldThisSession = 0;
       _totalSessionSeconds = 0;
       _tickCount = 0;
+      _newAwards = [];
     });
     _timer = Timer.periodic(const Duration(milliseconds: 100), _tick);
   }
@@ -508,6 +515,18 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
           logId: logId,
           bestHoldSeconds: _bestHoldThisSession,
         );
+
+        // Check for new breath hold awards
+        final awardService = BreathHoldAwardService(db);
+        final newAwards = await awardService.checkAndAwardAchievements(
+          bestHoldSeconds: _bestHoldThisSession,
+          sessionLogId: logId,
+        );
+        if (newAwards.isNotEmpty && mounted) {
+          setState(() {
+            _newAwards = newAwards;
+          });
+        }
       }
     } catch (e) {
       debugPrint('Error saving breath hold session: $e');
@@ -715,6 +734,12 @@ class _BreathHoldScreenState extends State<BreathHoldScreen>
                     side: const BorderSide(color: AppColors.gold),
                   ),
                 ),
+
+              // New awards display (on completion)
+              if (_state == SessionState.complete && _newAwards.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.lg),
+                _NewAwardsDisplay(awards: _newAwards),
+              ],
 
               const SizedBox(height: AppSpacing.md),
 
@@ -1134,5 +1159,243 @@ class _FeedbackToggle extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+/// Flowing celebration display for newly earned breath hold awards
+class _NewAwardsDisplay extends StatefulWidget {
+  final List<BreathHoldAwardLevel> awards;
+
+  const _NewAwardsDisplay({required this.awards});
+
+  @override
+  State<_NewAwardsDisplay> createState() => _NewAwardsDisplayState();
+}
+
+class _NewAwardsDisplayState extends State<_NewAwardsDisplay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _flowAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
+      ),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.6, curve: Curves.elasticOut),
+      ),
+    );
+
+    _flowAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.3, 1.0, curve: Curves.easeInOut),
+      ),
+    );
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Sort awards by seconds to show highest first
+    final sortedAwards = List<BreathHoldAwardLevel>.from(widget.awards)
+      ..sort((a, b) => b.seconds.compareTo(a.seconds));
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _fadeAnimation.value,
+          child: Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceDark,
+                borderRadius: BorderRadius.circular(AppSpacing.sm),
+                border: Border.all(
+                  color: AppColors.gold.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                children: [
+                  // Header with flowing vapor effect
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _FlowingVaporParticles(progress: _flowAnimation.value),
+                      const SizedBox(width: 8),
+                      Text(
+                        'NEW ${sortedAwards.length > 1 ? 'AWARDS' : 'AWARD'}',
+                        style: TextStyle(
+                          fontFamily: AppFonts.pixel,
+                          fontSize: 14,
+                          color: AppColors.gold,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      _FlowingVaporParticles(
+                        progress: _flowAnimation.value,
+                        mirror: true,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  // Award badges
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
+                    children: sortedAwards.map((award) {
+                      return BreathHoldAwardBadge(
+                        level: award,
+                        isCompact: sortedAwards.length > 2,
+                        showDetails: sortedAwards.length <= 2,
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Subtle flowing vapor particles animation
+class _FlowingVaporParticles extends StatelessWidget {
+  final double progress;
+  final bool mirror;
+
+  const _FlowingVaporParticles({
+    required this.progress,
+    this.mirror = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: const Size(24, 24),
+      painter: _FlowingVaporPainter(
+        progress: progress,
+        mirror: mirror,
+        color: AppColors.gold,
+      ),
+    );
+  }
+}
+
+class _FlowingVaporPainter extends CustomPainter {
+  final double progress;
+  final bool mirror;
+  final Color color;
+
+  _FlowingVaporPainter({
+    required this.progress,
+    required this.mirror,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // Mirror transformation
+    if (mirror) {
+      canvas.translate(w, 0);
+      canvas.scale(-1, 1);
+    }
+
+    final paint = Paint()
+      ..color = color.withValues(alpha: 0.4 + 0.3 * progress)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round;
+
+    // Three flowing vapor wisps that animate
+    final offset1 = progress * 0.2;
+    final offset2 = progress * 0.15;
+    final offset3 = progress * 0.25;
+
+    // First wisp
+    final path1 = Path()
+      ..moveTo(w * 0.3, h * (0.8 - offset1))
+      ..quadraticBezierTo(
+        w * 0.15,
+        h * (0.5 - offset1),
+        w * (0.35 + offset1 * 0.5),
+        h * (0.25 - offset1),
+      );
+    canvas.drawPath(path1, paint..color = color.withValues(alpha: 0.3 + 0.2 * progress));
+
+    // Second wisp (center, most prominent)
+    final path2 = Path()
+      ..moveTo(w * 0.5, h * (0.85 - offset2))
+      ..quadraticBezierTo(
+        w * 0.6,
+        h * (0.55 - offset2),
+        w * (0.45 - offset2 * 0.3),
+        h * (0.2 - offset2),
+      );
+    canvas.drawPath(path2, paint..color = color.withValues(alpha: 0.5 + 0.3 * progress));
+
+    // Third wisp
+    final path3 = Path()
+      ..moveTo(w * 0.7, h * (0.75 - offset3))
+      ..quadraticBezierTo(
+        w * 0.8,
+        h * (0.45 - offset3),
+        w * (0.6 + offset3 * 0.4),
+        h * (0.15 - offset3),
+      );
+    canvas.drawPath(path3, paint..color = color.withValues(alpha: 0.25 + 0.15 * progress));
+
+    // Small floating dots
+    final dotPaint = Paint()
+      ..color = color.withValues(alpha: 0.4 * progress)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawCircle(
+      Offset(w * (0.4 + offset1 * 0.5), h * (0.35 - offset1 * 0.5)),
+      1.5,
+      dotPaint,
+    );
+    canvas.drawCircle(
+      Offset(w * (0.55 - offset2 * 0.3), h * (0.4 - offset2 * 0.4)),
+      1.0,
+      dotPaint..color = color.withValues(alpha: 0.3 * progress),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _FlowingVaporPainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }
