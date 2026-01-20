@@ -4,15 +4,19 @@ import 'dart:convert';
 /// Focused on what archers actually know and observe
 class WeatherConditions {
   final double? temperature; // Celsius (optional)
-  final String? sky; // 'sunny', 'cloudy', 'overcast', 'rainy'
+  final String? sky; // 'sunny', 'cloudy', 'overcast', 'rainy' (legacy)
+  final String? lightQuality; // 'direct_sun', 'partial_sun', 'bright_cloudy', 'overcast'
   final String? sunPosition; // 'in_face', 'behind', 'left', 'right', 'overhead', 'none'
-  final String? wind; // 'none', 'light', 'moderate', 'strong'
+  final String? wind; // 'none', 'light', 'moderate', 'strong' (legacy)
+  final int? windBeaufort; // 0-6 Beaufort scale
 
   const WeatherConditions({
     this.temperature,
     this.sky,
+    this.lightQuality,
     this.sunPosition,
     this.wind,
+    this.windBeaufort,
   });
 
   factory WeatherConditions.fromJson(String? jsonString) {
@@ -31,8 +35,10 @@ class WeatherConditions {
     return WeatherConditions(
       temperature: _parseDouble(map['temperature']),
       sky: map['sky'] as String? ?? map['description'] as String?, // backwards compat
+      lightQuality: map['lightQuality'] as String?,
       sunPosition: map['sunPosition'] as String?,
       wind: map['wind'] as String?,
+      windBeaufort: map['windBeaufort'] as int?,
     );
   }
 
@@ -48,8 +54,10 @@ class WeatherConditions {
     return {
       if (temperature != null) 'temperature': temperature,
       if (sky != null) 'sky': sky,
+      if (lightQuality != null) 'lightQuality': lightQuality,
       if (sunPosition != null) 'sunPosition': sunPosition,
       if (wind != null) 'wind': wind,
+      if (windBeaufort != null) 'windBeaufort': windBeaufort,
     };
   }
 
@@ -62,22 +70,28 @@ class WeatherConditions {
   WeatherConditions copyWith({
     double? temperature,
     String? sky,
+    String? lightQuality,
     String? sunPosition,
     String? wind,
+    int? windBeaufort,
   }) {
     return WeatherConditions(
       temperature: temperature ?? this.temperature,
       sky: sky ?? this.sky,
+      lightQuality: lightQuality ?? this.lightQuality,
       sunPosition: sunPosition ?? this.sunPosition,
       wind: wind ?? this.wind,
+      windBeaufort: windBeaufort ?? this.windBeaufort,
     );
   }
 
   bool get hasAnyData =>
       temperature != null ||
       sky != null ||
+      lightQuality != null ||
       sunPosition != null ||
-      wind != null;
+      wind != null ||
+      windBeaufort != null;
 
   /// Get a summary string for display
   String get summaryText {
@@ -86,17 +100,46 @@ class WeatherConditions {
     if (temperature != null) {
       parts.add('${temperature!.toStringAsFixed(0)}°C');
     }
-    if (sky != null) {
+    // Use lightQuality if available, fallback to sky
+    if (lightQuality != null) {
+      parts.add(_lightQualityDisplayName(lightQuality!));
+    } else if (sky != null) {
       parts.add(_skyDisplayName(sky!));
     }
     if (sunPosition != null && sunPosition != 'none') {
       parts.add('Sun ${_sunPositionDisplayName(sunPosition!)}');
     }
-    if (wind != null && wind != 'none') {
+    // Use windBeaufort if available, fallback to wind string
+    if (windBeaufort != null && windBeaufort! > 0) {
+      parts.add('${_beaufortDisplayName(windBeaufort!)} wind');
+    } else if (wind != null && wind != 'none') {
       parts.add('${_windDisplayName(wind!)} wind');
     }
 
     return parts.isEmpty ? 'No conditions recorded' : parts.join(' · ');
+  }
+
+  static String _lightQualityDisplayName(String quality) {
+    switch (quality) {
+      case 'direct_sun': return 'Direct Sun';
+      case 'partial_sun': return 'Partial Sun';
+      case 'bright_cloudy': return 'Bright Cloudy';
+      case 'overcast': return 'Overcast';
+      default: return quality;
+    }
+  }
+
+  static String _beaufortDisplayName(int beaufort) {
+    switch (beaufort) {
+      case 0: return 'Calm';
+      case 1: return 'Light air';
+      case 2: return 'Light';
+      case 3: return 'Gentle';
+      case 4: return 'Moderate';
+      case 5: return 'Fresh';
+      case 6: return 'Strong';
+      default: return 'Strong';
+    }
   }
 
   static String _skyDisplayName(String sky) {
@@ -140,12 +183,14 @@ class WeatherConditions {
     return other is WeatherConditions &&
         other.temperature == temperature &&
         other.sky == sky &&
+        other.lightQuality == lightQuality &&
         other.sunPosition == sunPosition &&
-        other.wind == wind;
+        other.wind == wind &&
+        other.windBeaufort == windBeaufort;
   }
 
   @override
-  int get hashCode => Object.hash(temperature, sky, sunPosition, wind);
+  int get hashCode => Object.hash(temperature, sky, lightQuality, sunPosition, wind, windBeaufort);
 }
 
 /// Sky condition options

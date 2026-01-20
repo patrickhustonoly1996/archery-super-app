@@ -3,8 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/sight_marks_provider.dart';
+import '../providers/connectivity_provider.dart';
 import '../models/sight_mark.dart';
 import '../models/weather_conditions.dart';
+import '../services/weather_service.dart';
+import '../services/location_service.dart';
+import 'slope_slider.dart';
+import 'temperature_slider.dart';
+import 'wind_slider.dart';
+import 'sun_light_selector.dart';
 
 /// Form for adding or editing a sight mark
 class SightMarkEntryForm extends StatefulWidget {
@@ -31,16 +38,23 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
   final _formKey = GlobalKey<FormState>();
   final _distanceController = TextEditingController();
   final _sightValueController = TextEditingController();
-  final _tempController = TextEditingController();
-  final _slopeController = TextEditingController();
 
   late DistanceUnit _unit;
   bool _isSaving = false;
+  bool _isFetchingWeather = false;
 
-  // Conditions (all optional)
-  String? _selectedSky;
-  String? _selectedSunPosition;
-  String? _selectedWind;
+  // Slope angle (-45 to +45)
+  double _slopeAngle = 0;
+
+  // Temperature (null = not set)
+  double? _temperature;
+
+  // Wind (Beaufort scale, null = not set)
+  int? _windBeaufort;
+
+  // Light conditions
+  LightQuality? _lightQuality;
+  SunPosition? _sunPosition;
 
   // Common outdoor distances for quick selection
   final List<double> _commonMeters = [18, 25, 30, 40, 50, 60, 70, 90];
@@ -54,22 +68,126 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
       _unit = widget.existingMark!.unit;
       _distanceController.text = widget.existingMark!.distance.toStringAsFixed(0);
       _sightValueController.text = widget.existingMark!.sightValue;
-      if (widget.existingMark!.slopeAngle != null) {
-        _slopeController.text = widget.existingMark!.slopeAngle!.toStringAsFixed(0);
-      }
+      _slopeAngle = widget.existingMark!.slopeAngle ?? 0;
+
       if (widget.existingMark!.weather != null) {
         final w = widget.existingMark!.weather!;
-        if (w.temperature != null) {
-          _tempController.text = w.temperature!.toStringAsFixed(0);
-        }
-        _selectedSky = w.sky;
-        _selectedSunPosition = w.sunPosition;
-        _selectedWind = w.wind;
+        _temperature = w.temperature;
+        _windBeaufort = w.windBeaufort ?? windStringToBeaufort(w.wind);
+        _lightQuality = LightQuality.fromString(w.lightQuality ?? w.sky);
+        _sunPosition = SunPosition.fromString(w.sunPosition);
       }
     } else {
       _unit = widget.defaultUnit ?? DistanceUnit.meters;
       if (widget.defaultDistance != null) {
         _distanceController.text = widget.defaultDistance!.toStringAsFixed(0);
+      }
+      // Try to auto-fetch weather when adding new mark
+      _tryAutoFetchWeather();
+    }
+  }
+
+  Future<void> _tryAutoFetchWeather() async {
+    // Check if we have connectivity
+    final connectivity = context.read<ConnectivityProvider>();
+    if (!connectivity.isOnline) return;
+
+    // Check if weather service is configured
+    if (!WeatherService.isConfigured) return;
+
+    setState(() => _isFetchingWeather = true);
+
+    try {
+      // Try to get location first
+      final location = await LocationService.getCurrentLocation(
+        requestIfDenied: false, // Don't prompt on form open
+      );
+
+      if (location != null) {
+        final weather = await WeatherService.getCurrentWeather(
+          latitude: location.latitude,
+          longitude: location.longitude,
+        );
+
+        if (weather != null && mounted) {
+          setState(() {
+            _temperature = weather.temperature;
+            _windBeaufort = weather.windBeaufort ?? windStringToBeaufort(weather.wind);
+            _lightQuality = LightQuality.fromString(weather.lightQuality ?? weather.sky);
+            // Sun position can't be determined from API, leave for user
+          });
+        }
+      }
+    } catch (e) {
+      // Silently fail - manual entry is always available
+    } finally {
+      if (mounted) {
+        setState(() => _isFetchingWeather = false);
+      }
+    }
+  }
+
+  Future<void> _fetchWeather() async {
+    setState(() => _isFetchingWeather = true);
+
+    try {
+      // Get location (will request permission if needed)
+      final location = await LocationService.getCurrentLocation();
+
+      if (location == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not get location. Check permissions.'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+        return;
+      }
+
+      final weather = await WeatherService.getCurrentWeather(
+        latitude: location.latitude,
+        longitude: location.longitude,
+      );
+
+      if (weather != null && mounted) {
+        setState(() {
+          _temperature = weather.temperature;
+          _windBeaufort = weather.windBeaufort ?? windStringToBeaufort(weather.wind);
+          _lightQuality = LightQuality.fromString(weather.lightQuality ?? weather.sky);
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.cloud_done, color: AppColors.gold, size: 18),
+                const SizedBox(width: 8),
+                Text('Weather updated: ${weather.temperature?.round()}°C'),
+              ],
+            ),
+            backgroundColor: AppColors.surfaceDark,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not fetch weather. Enter manually.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Weather error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isFetchingWeather = false);
       }
     }
   }
@@ -78,8 +196,6 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
   void dispose() {
     _distanceController.dispose();
     _sightValueController.dispose();
-    _tempController.dispose();
-    _slopeController.dispose();
     super.dispose();
   }
 
@@ -254,97 +370,83 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
 
               const SizedBox(height: AppSpacing.xl),
 
-              // CONDITIONS SECTION - All optional
-              Text(
-                'Conditions (optional)',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+              // SLOPE SECTION - Visual slider with archer/target
+              SlopeSlider(
+                value: _slopeAngle,
+                onChanged: (value) => setState(() => _slopeAngle = value),
               ),
-              const SizedBox(height: AppSpacing.md),
 
-              // Slope angle - prominent because it directly affects sight
+              const SizedBox(height: AppSpacing.xl),
+
+              // CONDITIONS SECTION
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: TextFormField(
-                      controller: _slopeController,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true, signed: true),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[-\d.]')),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Conditions',
+                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                        ),
+                        Text(
+                          'optional... but highly recommended',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.textMuted,
+                                fontSize: 11,
+                              ),
+                        ),
                       ],
-                      decoration: InputDecoration(
-                        labelText: 'Slope',
-                        hintText: '0',
-                        suffixText: '°',
-                        helperText: '- uphill, + downhill',
-                        filled: true,
-                        fillColor: AppColors.surfaceBright.withValues(alpha: 0.5),
-                      ),
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          final slope = double.tryParse(value);
-                          if (slope == null || slope < -45 || slope > 45) {
-                            return '-45 to +45';
-                          }
-                        }
-                        return null;
-                      },
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _tempController,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true, signed: true),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[-\d]')),
-                      ],
-                      decoration: InputDecoration(
-                        labelText: 'Temperature',
-                        hintText: '20',
-                        suffixText: '°C',
-                        filled: true,
-                        fillColor: AppColors.surfaceBright.withValues(alpha: 0.5),
+                  // Auto-fetch weather button
+                  if (WeatherService.isConfigured)
+                    TextButton.icon(
+                      onPressed: _isFetchingWeather ? null : _fetchWeather,
+                      icon: _isFetchingWeather
+                          ? const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.cloud_download, size: 16),
+                      label: Text(_isFetchingWeather ? 'Loading...' : 'Auto'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.gold,
+                        visualDensity: VisualDensity.compact,
                       ),
                     ),
-                  ),
                 ],
               ),
-
               const SizedBox(height: AppSpacing.md),
 
-              // Sky conditions
-              _buildChipSelector(
-                label: 'Sky',
-                options: SkyOptions.all,
-                selectedValue: _selectedSky,
-                displayName: SkyOptions.displayName,
-                onSelected: (value) => setState(() => _selectedSky = value),
+              // Temperature slider
+              TemperatureSlider(
+                value: _temperature,
+                onChanged: (value) => setState(() => _temperature = value),
               ),
 
-              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.lg),
 
-              // Sun position
-              _buildChipSelector(
-                label: 'Sun',
-                options: SunPositionOptions.all,
-                selectedValue: _selectedSunPosition,
-                displayName: SunPositionOptions.displayName,
-                onSelected: (value) => setState(() => _selectedSunPosition = value),
+              // Wind Beaufort slider
+              WindSlider(
+                beaufortScale: _windBeaufort,
+                onChanged: (value) => setState(() => _windBeaufort = value),
               ),
 
-              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.lg),
 
-              // Wind
-              _buildChipSelector(
-                label: 'Wind',
-                options: WindOptions.all,
-                selectedValue: _selectedWind,
-                displayName: WindOptions.displayName,
-                onSelected: (value) => setState(() => _selectedWind = value),
+              // Sun/Light selector
+              SunLightSelector(
+                lightQuality: _lightQuality,
+                sunPosition: _sunPosition,
+                onLightQualityChanged: (value) =>
+                    setState(() => _lightQuality = value),
+                onSunPositionChanged: (value) =>
+                    setState(() => _sunPosition = value),
               ),
 
               const SizedBox(height: AppSpacing.xl),
@@ -378,62 +480,6 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
     );
   }
 
-  Widget _buildChipSelector({
-    required String label,
-    required List<String> options,
-    required String? selectedValue,
-    required String Function(String) displayName,
-    required void Function(String?) onSelected,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.textMuted,
-              ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: options.map((option) {
-            final isSelected = selectedValue == option;
-            return GestureDetector(
-              onTap: () {
-                // Toggle off if already selected
-                onSelected(isSelected ? null : option);
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.xs,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppColors.gold.withValues(alpha: 0.2)
-                      : AppColors.surfaceBright,
-                  borderRadius: BorderRadius.circular(AppSpacing.xs),
-                  border: isSelected
-                      ? Border.all(color: AppColors.gold)
-                      : null,
-                ),
-                child: Text(
-                  displayName(option),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: isSelected ? AppColors.gold : AppColors.textPrimary,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -443,26 +489,24 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
       final provider = context.read<SightMarksProvider>();
       final distance = double.parse(_distanceController.text);
       final sightValue = _sightValueController.text;
-      final slope = _slopeController.text.isNotEmpty
-          ? double.tryParse(_slopeController.text)
-          : null;
+
+      // Only include slope if not zero
+      final slope = _slopeAngle != 0 ? _slopeAngle : null;
 
       // Build weather conditions from selections
-      final temp = _tempController.text.isNotEmpty
-          ? double.tryParse(_tempController.text)
-          : null;
-
-      final hasConditions = temp != null ||
-          _selectedSky != null ||
-          _selectedSunPosition != null ||
-          _selectedWind != null;
+      final hasConditions = _temperature != null ||
+          _windBeaufort != null ||
+          _lightQuality != null ||
+          _sunPosition != null;
 
       final weather = hasConditions
           ? WeatherConditions(
-              temperature: temp,
-              sky: _selectedSky,
-              sunPosition: _selectedSunPosition,
-              wind: _selectedWind,
+              temperature: _temperature,
+              lightQuality: _lightQuality?.value,
+              sky: _lightQuality?.toSkyString(), // Backwards compatibility
+              sunPosition: _sunPosition?.value,
+              windBeaufort: _windBeaufort,
+              wind: beaufortToWindString(_windBeaufort), // Backwards compatibility
             )
           : null;
 
@@ -497,7 +541,7 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Saved! Now write ${distance.toStringAsFixed(0)}${_unit.abbreviation} → $sightValue in your notebook.',
+                      'Saved! Now write ${distance.toStringAsFixed(0)}${_unit.abbreviation} -> $sightValue in your notebook.',
                       style: const TextStyle(color: AppColors.textPrimary),
                     ),
                   ),

@@ -56,6 +56,9 @@ dependencies:
   # Network connectivity detection
   connectivity_plus: ^6.1.2
 
+  # Location services for venue detection
+  geolocator: ^13.0.2
+
   # Wake lock to keep screen on during training
   wakelock_plus: ^1.2.8
 
