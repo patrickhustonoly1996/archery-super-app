@@ -39,11 +39,13 @@ class EquipmentProvider extends ChangeNotifier {
     _defaultBow = await _db.getDefaultBow();
     _defaultQuiver = await _db.getDefaultQuiver();
 
-    // Load shafts for each quiver
+    // Load shafts for each quiver (parallel for performance)
     _shaftsByQuiver.clear();
-    for (final quiver in _quivers) {
-      _shaftsByQuiver[quiver.id] = await _db.getShaftsForQuiver(quiver.id);
-    }
+    await Future.wait(
+      _quivers.map((quiver) async {
+        _shaftsByQuiver[quiver.id] = await _db.getShaftsForQuiver(quiver.id);
+      }),
+    );
 
     notifyListeners();
   }
