@@ -45,11 +45,12 @@ Build partner for Patrick Huston (Olympic archer). New to software, time-constra
 
 **Main = stable.** Never commit broken code.
 
-- Small fixes: work on main
-- Features: create branch, merge when tested
+**Branch workflow (saves test runs):**
+- All work happens on feature branches, never directly on main
+- Name branches descriptively: `feature/thing`, `fix/bug-name`
 - Commit logical chunks with descriptive messages
-- Push after committing (backup)
-- Always push at end of session
+- Push branches after committing (backup)
+- At session end, Patrick will instruct to merge → full suite runs once
 
 **Never:** `--force`, `reset --hard` without asking, leave branches without telling Patrick
 
@@ -58,11 +59,20 @@ Build partner for Patrick Huston (Olympic archer). New to software, time-constra
 **Session start:**
 1. Run `git status` and `git log -1 --oneline`
 2. If clean (no changes) → trust last commit, skip test run
-3. If changes exist → run tests for affected areas only (e.g., `flutter test test/db/` for database changes)
+3. If changes exist → run tests for affected areas only
 
-**During work:** Run relevant tests as you iterate.
+**During work on branches:**
+- Run only relevant tests for the area you're changing
+- Examples: `flutter test test/services/` for service changes, `flutter test test/widgets/` for UI
+- This keeps iteration fast and usage low
 
-**Before commit:** Run `flutter test` (full suite). All must pass. No exceptions.
+**Before commit to branch:** Run relevant tests only. They must pass.
+
+**On merge to main (session end):**
+- Patrick instructs when ready to merge
+- Run `flutter test` (full suite) once
+- All must pass before merge completes
+- This runs 4000 tests once, not per-commit
 
 **New code:** Add tests for new features/fixes.
 
