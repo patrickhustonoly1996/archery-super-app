@@ -461,55 +461,53 @@ class _PlottingScreenState extends State<PlottingScreen> {
                         },
                       ),
 
-                      // Rolling 12-arrow group centre (top-left) - hidden when hiding scores
-                      if (!_hideScores)
-                        Positioned(
-                          top: AppSpacing.md,
-                          left: AppSpacing.md,
-                          child: GestureDetector(
-                            onTap: _toggleConfidenceMultiplier,
-                            onLongPress: _toggleRingNotation,
-                            child: Builder(
-                              builder: (context) {
-                                // Use synchronous cached data - no FutureBuilder needed
-                                final arrows = provider.lastNArrows(12);
-                                return GroupCentreWidget(
-                                  arrows: arrows,
-                                  label: 'Last 12',
-                                  size: 80,
-                                  confidenceMultiplier: _confidenceMultiplier,
-                                  showRingNotation: _showRingNotation,
-                                );
-                              },
-                            ),
+                      // Rolling 12-arrow group centre (top-left)
+                      Positioned(
+                        top: AppSpacing.md,
+                        left: AppSpacing.md,
+                        child: GestureDetector(
+                          onTap: _toggleConfidenceMultiplier,
+                          onLongPress: _toggleRingNotation,
+                          child: Builder(
+                            builder: (context) {
+                              // Use synchronous cached data - no FutureBuilder needed
+                              final arrows = provider.lastNArrows(12);
+                              return GroupCentreWidget(
+                                arrows: arrows,
+                                label: 'Last 12',
+                                size: 80,
+                                confidenceMultiplier: _confidenceMultiplier,
+                                showRingNotation: _showRingNotation,
+                              );
+                            },
                           ),
                         ),
+                      ),
 
-                      // This round group centre (top-right) - hidden when hiding scores
-                      if (!_hideScores)
-                        Positioned(
-                          top: AppSpacing.md,
-                          right: AppSpacing.md,
-                          child: GestureDetector(
-                            onTap: _toggleConfidenceMultiplier,
-                            onLongPress: _toggleRingNotation,
-                            child: Builder(
-                              // Key forces rebuild when arrows or confidence change
-                              key: ValueKey('round_${provider.ends.length}_${provider.arrowsInCurrentEnd}_${_confidenceMultiplier}_$_showRingNotation'),
-                              builder: (context) {
-                                // Use synchronous allSessionArrows for all arrows in this round
-                                final allArrows = provider.allSessionArrows;
-                                return GroupCentreWidget(
-                                  arrows: allArrows,
-                                  label: 'This Round',
-                                  size: 80,
-                                  confidenceMultiplier: _confidenceMultiplier,
-                                  showRingNotation: _showRingNotation,
-                                );
-                              },
-                            ),
+                      // This round group centre (top-right)
+                      Positioned(
+                        top: AppSpacing.md,
+                        right: AppSpacing.md,
+                        child: GestureDetector(
+                          onTap: _toggleConfidenceMultiplier,
+                          onLongPress: _toggleRingNotation,
+                          child: Builder(
+                            // Key forces rebuild when arrows or confidence change
+                            key: ValueKey('round_${provider.ends.length}_${provider.arrowsInCurrentEnd}_${_confidenceMultiplier}_$_showRingNotation'),
+                            builder: (context) {
+                              // Use synchronous allSessionArrows for all arrows in this round
+                              final allArrows = provider.allSessionArrows;
+                              return GroupCentreWidget(
+                                arrows: allArrows,
+                                label: 'This Round',
+                                size: 80,
+                                confidenceMultiplier: _confidenceMultiplier,
+                                showRingNotation: _showRingNotation,
+                              );
+                            },
                           ),
                         ),
+                      ),
 
                       // Quick toggle for triple spot view mode (stacked vs combined)
                       // Positioned at bottom left to avoid overlapping with triple spot target
