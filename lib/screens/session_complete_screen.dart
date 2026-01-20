@@ -196,6 +196,7 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
       bowId: session.bowId!,
       distance: roundType.distance.toDouble(),
       unit: DistanceUnit.meters, // WA rounds are in meters
+      isOutdoor: !roundType.isIndoor,
     );
   }
 
@@ -203,7 +204,13 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
     required String bowId,
     required double distance,
     required DistanceUnit unit,
+    bool isOutdoor = false,
   }) {
+    final title = isOutdoor ? 'Record Sight & Conditions?' : 'Record Sight Mark?';
+    final message = isOutdoor
+        ? 'Record your sight mark and weather conditions for ${distance.toStringAsFixed(0)}${unit.abbreviation}. Conditions will auto-fill from your location.'
+        : 'Record your sight mark for ${distance.toStringAsFixed(0)}${unit.abbreviation} to help with future sessions.';
+
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surfaceDark,
@@ -224,8 +231,8 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
                     color: AppColors.gold.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(
-                    Icons.visibility,
+                  child: Icon(
+                    isOutdoor ? Icons.wb_sunny : Icons.visibility,
                     color: AppColors.gold,
                     size: 24,
                   ),
@@ -233,7 +240,7 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Text(
-                    'Record Sight Mark?',
+                    title,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
@@ -241,7 +248,7 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              'Record your sight mark for ${distance.toStringAsFixed(0)}${unit.abbreviation} to help with future sessions.',
+              message,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),

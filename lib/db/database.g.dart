@@ -19530,6 +19530,17 @@ class $SightMarksTable extends SightMarks
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _venueIdMeta = const VerificationMeta(
+    'venueId',
+  );
+  @override
+  late final GeneratedColumn<String> venueId = GeneratedColumn<String>(
+    'venue_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _recordedAtMeta = const VerificationMeta(
     'recordedAt',
   );
@@ -19578,6 +19589,7 @@ class $SightMarksTable extends SightMarks
     endNumber,
     shotCount,
     confidenceScore,
+    venueId,
     recordedAt,
     updatedAt,
     deletedAt,
@@ -19680,6 +19692,12 @@ class $SightMarksTable extends SightMarks
         ),
       );
     }
+    if (data.containsKey('venue_id')) {
+      context.handle(
+        _venueIdMeta,
+        venueId.isAcceptableOrUnknown(data['venue_id']!, _venueIdMeta),
+      );
+    }
     if (data.containsKey('recorded_at')) {
       context.handle(
         _recordedAtMeta,
@@ -19755,6 +19773,10 @@ class $SightMarksTable extends SightMarks
         DriftSqlType.double,
         data['${effectivePrefix}confidence_score'],
       ),
+      venueId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}venue_id'],
+      ),
       recordedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}recorded_at'],
@@ -19789,6 +19811,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
   final int? endNumber;
   final int? shotCount;
   final double? confidenceScore;
+  final String? venueId;
   final DateTime recordedAt;
   final DateTime? updatedAt;
   final DateTime? deletedAt;
@@ -19805,6 +19828,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
     this.endNumber,
     this.shotCount,
     this.confidenceScore,
+    this.venueId,
     required this.recordedAt,
     this.updatedAt,
     this.deletedAt,
@@ -19837,6 +19861,9 @@ class SightMark extends DataClass implements Insertable<SightMark> {
     }
     if (!nullToAbsent || confidenceScore != null) {
       map['confidence_score'] = Variable<double>(confidenceScore);
+    }
+    if (!nullToAbsent || venueId != null) {
+      map['venue_id'] = Variable<String>(venueId);
     }
     map['recorded_at'] = Variable<DateTime>(recordedAt);
     if (!nullToAbsent || updatedAt != null) {
@@ -19876,6 +19903,9 @@ class SightMark extends DataClass implements Insertable<SightMark> {
       confidenceScore: confidenceScore == null && nullToAbsent
           ? const Value.absent()
           : Value(confidenceScore),
+      venueId: venueId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(venueId),
       recordedAt: Value(recordedAt),
       updatedAt: updatedAt == null && nullToAbsent
           ? const Value.absent()
@@ -19904,6 +19934,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
       endNumber: serializer.fromJson<int?>(json['endNumber']),
       shotCount: serializer.fromJson<int?>(json['shotCount']),
       confidenceScore: serializer.fromJson<double?>(json['confidenceScore']),
+      venueId: serializer.fromJson<String?>(json['venueId']),
       recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
       updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
@@ -19925,6 +19956,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
       'endNumber': serializer.toJson<int?>(endNumber),
       'shotCount': serializer.toJson<int?>(shotCount),
       'confidenceScore': serializer.toJson<double?>(confidenceScore),
+      'venueId': serializer.toJson<String?>(venueId),
       'recordedAt': serializer.toJson<DateTime>(recordedAt),
       'updatedAt': serializer.toJson<DateTime?>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
@@ -19944,6 +19976,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
     Value<int?> endNumber = const Value.absent(),
     Value<int?> shotCount = const Value.absent(),
     Value<double?> confidenceScore = const Value.absent(),
+    Value<String?> venueId = const Value.absent(),
     DateTime? recordedAt,
     Value<DateTime?> updatedAt = const Value.absent(),
     Value<DateTime?> deletedAt = const Value.absent(),
@@ -19964,6 +19997,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
     confidenceScore: confidenceScore.present
         ? confidenceScore.value
         : this.confidenceScore,
+    venueId: venueId.present ? venueId.value : this.venueId,
     recordedAt: recordedAt ?? this.recordedAt,
     updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
@@ -19992,6 +20026,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
       confidenceScore: data.confidenceScore.present
           ? data.confidenceScore.value
           : this.confidenceScore,
+      venueId: data.venueId.present ? data.venueId.value : this.venueId,
       recordedAt: data.recordedAt.present
           ? data.recordedAt.value
           : this.recordedAt,
@@ -20015,6 +20050,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
           ..write('endNumber: $endNumber, ')
           ..write('shotCount: $shotCount, ')
           ..write('confidenceScore: $confidenceScore, ')
+          ..write('venueId: $venueId, ')
           ..write('recordedAt: $recordedAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt')
@@ -20036,6 +20072,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
     endNumber,
     shotCount,
     confidenceScore,
+    venueId,
     recordedAt,
     updatedAt,
     deletedAt,
@@ -20056,6 +20093,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
           other.endNumber == this.endNumber &&
           other.shotCount == this.shotCount &&
           other.confidenceScore == this.confidenceScore &&
+          other.venueId == this.venueId &&
           other.recordedAt == this.recordedAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt);
@@ -20074,6 +20112,7 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
   final Value<int?> endNumber;
   final Value<int?> shotCount;
   final Value<double?> confidenceScore;
+  final Value<String?> venueId;
   final Value<DateTime> recordedAt;
   final Value<DateTime?> updatedAt;
   final Value<DateTime?> deletedAt;
@@ -20091,6 +20130,7 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
     this.endNumber = const Value.absent(),
     this.shotCount = const Value.absent(),
     this.confidenceScore = const Value.absent(),
+    this.venueId = const Value.absent(),
     this.recordedAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -20109,6 +20149,7 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
     this.endNumber = const Value.absent(),
     this.shotCount = const Value.absent(),
     this.confidenceScore = const Value.absent(),
+    this.venueId = const Value.absent(),
     this.recordedAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -20130,6 +20171,7 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
     Expression<int>? endNumber,
     Expression<int>? shotCount,
     Expression<double>? confidenceScore,
+    Expression<String>? venueId,
     Expression<DateTime>? recordedAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
@@ -20148,6 +20190,7 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
       if (endNumber != null) 'end_number': endNumber,
       if (shotCount != null) 'shot_count': shotCount,
       if (confidenceScore != null) 'confidence_score': confidenceScore,
+      if (venueId != null) 'venue_id': venueId,
       if (recordedAt != null) 'recorded_at': recordedAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
@@ -20168,6 +20211,7 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
     Value<int?>? endNumber,
     Value<int?>? shotCount,
     Value<double?>? confidenceScore,
+    Value<String?>? venueId,
     Value<DateTime>? recordedAt,
     Value<DateTime?>? updatedAt,
     Value<DateTime?>? deletedAt,
@@ -20186,6 +20230,7 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
       endNumber: endNumber ?? this.endNumber,
       shotCount: shotCount ?? this.shotCount,
       confidenceScore: confidenceScore ?? this.confidenceScore,
+      venueId: venueId ?? this.venueId,
       recordedAt: recordedAt ?? this.recordedAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -20232,6 +20277,9 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
     if (confidenceScore.present) {
       map['confidence_score'] = Variable<double>(confidenceScore.value);
     }
+    if (venueId.present) {
+      map['venue_id'] = Variable<String>(venueId.value);
+    }
     if (recordedAt.present) {
       map['recorded_at'] = Variable<DateTime>(recordedAt.value);
     }
@@ -20262,6 +20310,7 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
           ..write('endNumber: $endNumber, ')
           ..write('shotCount: $shotCount, ')
           ..write('confidenceScore: $confidenceScore, ')
+          ..write('venueId: $venueId, ')
           ..write('recordedAt: $recordedAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -20648,6 +20697,519 @@ class SightMarkPreferencesTableCompanion
           ..write('bowId: $bowId, ')
           ..write('notationStyle: $notationStyle, ')
           ..write('decimalPlaces: $decimalPlaces, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $VenuesTable extends Venues with TableInfo<$VenuesTable, Venue> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VenuesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _latitudeMeta = const VerificationMeta(
+    'latitude',
+  );
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+    'latitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _longitudeMeta = const VerificationMeta(
+    'longitude',
+  );
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+    'longitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _temperatureRegionMeta = const VerificationMeta(
+    'temperatureRegion',
+  );
+  @override
+  late final GeneratedColumn<String> temperatureRegion =
+      GeneratedColumn<String>(
+        'temperature_region',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('temperate'),
+      );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    latitude,
+    longitude,
+    temperatureRegion,
+    notes,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'venues';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Venue> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('latitude')) {
+      context.handle(
+        _latitudeMeta,
+        latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta),
+      );
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(
+        _longitudeMeta,
+        longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta),
+      );
+    }
+    if (data.containsKey('temperature_region')) {
+      context.handle(
+        _temperatureRegionMeta,
+        temperatureRegion.isAcceptableOrUnknown(
+          data['temperature_region']!,
+          _temperatureRegionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Venue map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Venue(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      latitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}latitude'],
+      ),
+      longitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}longitude'],
+      ),
+      temperatureRegion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}temperature_region'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      ),
+    );
+  }
+
+  @override
+  $VenuesTable createAlias(String alias) {
+    return $VenuesTable(attachedDatabase, alias);
+  }
+}
+
+class Venue extends DataClass implements Insertable<Venue> {
+  final String id;
+  final String name;
+  final double? latitude;
+  final double? longitude;
+  final String temperatureRegion;
+  final String? notes;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
+  const Venue({
+    required this.id,
+    required this.name,
+    this.latitude,
+    this.longitude,
+    required this.temperatureRegion,
+    this.notes,
+    required this.createdAt,
+    this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || latitude != null) {
+      map['latitude'] = Variable<double>(latitude);
+    }
+    if (!nullToAbsent || longitude != null) {
+      map['longitude'] = Variable<double>(longitude);
+    }
+    map['temperature_region'] = Variable<String>(temperatureRegion);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    return map;
+  }
+
+  VenuesCompanion toCompanion(bool nullToAbsent) {
+    return VenuesCompanion(
+      id: Value(id),
+      name: Value(name),
+      latitude: latitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(latitude),
+      longitude: longitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(longitude),
+      temperatureRegion: Value(temperatureRegion),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      createdAt: Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
+  factory Venue.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Venue(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      latitude: serializer.fromJson<double?>(json['latitude']),
+      longitude: serializer.fromJson<double?>(json['longitude']),
+      temperatureRegion: serializer.fromJson<String>(json['temperatureRegion']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'latitude': serializer.toJson<double?>(latitude),
+      'longitude': serializer.toJson<double?>(longitude),
+      'temperatureRegion': serializer.toJson<String>(temperatureRegion),
+      'notes': serializer.toJson<String?>(notes),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
+    };
+  }
+
+  Venue copyWith({
+    String? id,
+    String? name,
+    Value<double?> latitude = const Value.absent(),
+    Value<double?> longitude = const Value.absent(),
+    String? temperatureRegion,
+    Value<String?> notes = const Value.absent(),
+    DateTime? createdAt,
+    Value<DateTime?> updatedAt = const Value.absent(),
+  }) => Venue(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    latitude: latitude.present ? latitude.value : this.latitude,
+    longitude: longitude.present ? longitude.value : this.longitude,
+    temperatureRegion: temperatureRegion ?? this.temperatureRegion,
+    notes: notes.present ? notes.value : this.notes,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+  );
+  Venue copyWithCompanion(VenuesCompanion data) {
+    return Venue(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
+      temperatureRegion: data.temperatureRegion.present
+          ? data.temperatureRegion.value
+          : this.temperatureRegion,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Venue(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('temperatureRegion: $temperatureRegion, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    latitude,
+    longitude,
+    temperatureRegion,
+    notes,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Venue &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
+          other.temperatureRegion == this.temperatureRegion &&
+          other.notes == this.notes &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class VenuesCompanion extends UpdateCompanion<Venue> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<double?> latitude;
+  final Value<double?> longitude;
+  final Value<String> temperatureRegion;
+  final Value<String?> notes;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> updatedAt;
+  final Value<int> rowid;
+  const VenuesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.temperatureRegion = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  VenuesCompanion.insert({
+    required String id,
+    required String name,
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.temperatureRegion = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name);
+  static Insertable<Venue> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
+    Expression<String>? temperatureRegion,
+    Expression<String>? notes,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (temperatureRegion != null) 'temperature_region': temperatureRegion,
+      if (notes != null) 'notes': notes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  VenuesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<double?>? latitude,
+    Value<double?>? longitude,
+    Value<String>? temperatureRegion,
+    Value<String?>? notes,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return VenuesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      temperatureRegion: temperatureRegion ?? this.temperatureRegion,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
+    }
+    if (temperatureRegion.present) {
+      map['temperature_region'] = Variable<String>(temperatureRegion.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VenuesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('temperatureRegion: $temperatureRegion, ')
+          ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -26838,6 +27400,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SightMarksTable sightMarks = $SightMarksTable(this);
   late final $SightMarkPreferencesTableTable sightMarkPreferencesTable =
       $SightMarkPreferencesTableTable(this);
+  late final $VenuesTable venues = $VenuesTable(this);
   late final $RegisteredTargetsTable registeredTargets =
       $RegisteredTargetsTable(this);
   late final $AutoPlotUsageTable autoPlotUsage = $AutoPlotUsageTable(this);
@@ -26885,6 +27448,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     xpHistory,
     sightMarks,
     sightMarkPreferencesTable,
+    venues,
     registeredTargets,
     autoPlotUsage,
     userProfiles,
@@ -39115,6 +39679,7 @@ typedef $$SightMarksTableCreateCompanionBuilder =
       Value<int?> endNumber,
       Value<int?> shotCount,
       Value<double?> confidenceScore,
+      Value<String?> venueId,
       Value<DateTime> recordedAt,
       Value<DateTime?> updatedAt,
       Value<DateTime?> deletedAt,
@@ -39134,6 +39699,7 @@ typedef $$SightMarksTableUpdateCompanionBuilder =
       Value<int?> endNumber,
       Value<int?> shotCount,
       Value<double?> confidenceScore,
+      Value<String?> venueId,
       Value<DateTime> recordedAt,
       Value<DateTime?> updatedAt,
       Value<DateTime?> deletedAt,
@@ -39224,6 +39790,11 @@ class $$SightMarksTableFilterComposer
 
   ColumnFilters<double> get confidenceScore => $composableBuilder(
     column: $table.confidenceScore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get venueId => $composableBuilder(
+    column: $table.venueId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -39330,6 +39901,11 @@ class $$SightMarksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get venueId => $composableBuilder(
+    column: $table.venueId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get recordedAt => $composableBuilder(
     column: $table.recordedAt,
     builder: (column) => ColumnOrderings(column),
@@ -39421,6 +39997,9 @@ class $$SightMarksTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get venueId =>
+      $composableBuilder(column: $table.venueId, builder: (column) => column);
+
   GeneratedColumn<DateTime> get recordedAt => $composableBuilder(
     column: $table.recordedAt,
     builder: (column) => column,
@@ -39496,6 +40075,7 @@ class $$SightMarksTableTableManager
                 Value<int?> endNumber = const Value.absent(),
                 Value<int?> shotCount = const Value.absent(),
                 Value<double?> confidenceScore = const Value.absent(),
+                Value<String?> venueId = const Value.absent(),
                 Value<DateTime> recordedAt = const Value.absent(),
                 Value<DateTime?> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -39513,6 +40093,7 @@ class $$SightMarksTableTableManager
                 endNumber: endNumber,
                 shotCount: shotCount,
                 confidenceScore: confidenceScore,
+                venueId: venueId,
                 recordedAt: recordedAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -39532,6 +40113,7 @@ class $$SightMarksTableTableManager
                 Value<int?> endNumber = const Value.absent(),
                 Value<int?> shotCount = const Value.absent(),
                 Value<double?> confidenceScore = const Value.absent(),
+                Value<String?> venueId = const Value.absent(),
                 Value<DateTime> recordedAt = const Value.absent(),
                 Value<DateTime?> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -39549,6 +40131,7 @@ class $$SightMarksTableTableManager
                 endNumber: endNumber,
                 shotCount: shotCount,
                 confidenceScore: confidenceScore,
+                venueId: venueId,
                 recordedAt: recordedAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -39970,6 +40553,259 @@ typedef $$SightMarkPreferencesTableTableProcessedTableManager =
       ),
       SightMarkPreferencesTableData,
       PrefetchHooks Function({bool bowId})
+    >;
+typedef $$VenuesTableCreateCompanionBuilder =
+    VenuesCompanion Function({
+      required String id,
+      required String name,
+      Value<double?> latitude,
+      Value<double?> longitude,
+      Value<String> temperatureRegion,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime?> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$VenuesTableUpdateCompanionBuilder =
+    VenuesCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<double?> latitude,
+      Value<double?> longitude,
+      Value<String> temperatureRegion,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime?> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$VenuesTableFilterComposer
+    extends Composer<_$AppDatabase, $VenuesTable> {
+  $$VenuesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get temperatureRegion => $composableBuilder(
+    column: $table.temperatureRegion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VenuesTableOrderingComposer
+    extends Composer<_$AppDatabase, $VenuesTable> {
+  $$VenuesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get temperatureRegion => $composableBuilder(
+    column: $table.temperatureRegion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VenuesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $VenuesTable> {
+  $$VenuesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
+
+  GeneratedColumn<String> get temperatureRegion => $composableBuilder(
+    column: $table.temperatureRegion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$VenuesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $VenuesTable,
+          Venue,
+          $$VenuesTableFilterComposer,
+          $$VenuesTableOrderingComposer,
+          $$VenuesTableAnnotationComposer,
+          $$VenuesTableCreateCompanionBuilder,
+          $$VenuesTableUpdateCompanionBuilder,
+          (Venue, BaseReferences<_$AppDatabase, $VenuesTable, Venue>),
+          Venue,
+          PrefetchHooks Function()
+        > {
+  $$VenuesTableTableManager(_$AppDatabase db, $VenuesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VenuesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$VenuesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$VenuesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
+                Value<String> temperatureRegion = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VenuesCompanion(
+                id: id,
+                name: name,
+                latitude: latitude,
+                longitude: longitude,
+                temperatureRegion: temperatureRegion,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
+                Value<String> temperatureRegion = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VenuesCompanion.insert(
+                id: id,
+                name: name,
+                latitude: latitude,
+                longitude: longitude,
+                temperatureRegion: temperatureRegion,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VenuesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $VenuesTable,
+      Venue,
+      $$VenuesTableFilterComposer,
+      $$VenuesTableOrderingComposer,
+      $$VenuesTableAnnotationComposer,
+      $$VenuesTableCreateCompanionBuilder,
+      $$VenuesTableUpdateCompanionBuilder,
+      (Venue, BaseReferences<_$AppDatabase, $VenuesTable, Venue>),
+      Venue,
+      PrefetchHooks Function()
     >;
 typedef $$RegisteredTargetsTableCreateCompanionBuilder =
     RegisteredTargetsCompanion Function({
@@ -43726,6 +44562,8 @@ class $AppDatabaseManager {
         _db,
         _db.sightMarkPreferencesTable,
       );
+  $$VenuesTableTableManager get venues =>
+      $$VenuesTableTableManager(_db, _db.venues);
   $$RegisteredTargetsTableTableManager get registeredTargets =>
       $$RegisteredTargetsTableTableManager(_db, _db.registeredTargets);
   $$AutoPlotUsageTableTableManager get autoPlotUsage =>

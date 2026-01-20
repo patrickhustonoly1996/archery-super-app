@@ -66,15 +66,12 @@ class _PlottingScreenState extends State<PlottingScreen> {
   bool _compoundScoring = false;
   // Group centre confidence multiplier (1.0 = 68%, 2.0 = 95%)
   double _confidenceMultiplier = 1.0;
-  // Show ring notation on group centre widgets
-  bool _showRingNotation = true;
-  // Track nock rotation per arrow
-  bool _trackNockRotation = false;
+  // Show ring notation on group centre widgets (hidden by default, show on long-press)
+  bool _showRingNotation = false;
   // Selected face for plotting (0, 1, or 2)
   int _selectedFaceIndex = 0;
-  bool _prefsLoaded = false;
-  // Triple spot auto-advance settings
-  bool _autoAdvanceEnabled = false;
+  // Triple spot auto-advance settings (enabled by default)
+  bool _autoAdvanceEnabled = true;
   String _autoAdvanceOrder = 'column'; // 'column' or 'triangular'
   // Hide scores mode (for sensitive athletes)
   bool _hideScores = false;
@@ -149,8 +146,8 @@ class _PlottingScreenState extends State<PlottingScreen> {
     final combined = await db.getBoolPreference(kTripleSpotCombinedViewPref, defaultValue: false);
     final compound = await db.getBoolPreference(kCompoundScoringPref, defaultValue: false);
     final confidence = await db.getDoublePreference(kGroupCentreConfidencePref, defaultValue: 1.0);
-    final ringNotation = await db.getBoolPreference(kShowRingNotationPref, defaultValue: true);
-    final autoAdvance = await db.getBoolPreference(kTripleSpotAutoAdvancePref, defaultValue: false);
+    final ringNotation = await db.getBoolPreference(kShowRingNotationPref, defaultValue: false);
+    final autoAdvance = await db.getBoolPreference(kTripleSpotAutoAdvancePref, defaultValue: true);
     final advanceOrder = await db.getPreference(kTripleSpotOrderPref);
     final hideScores = await db.getBoolPreference(kHideScoresPref, defaultValue: false);
     if (mounted) {
@@ -210,6 +207,12 @@ class _PlottingScreenState extends State<PlottingScreen> {
     final db = context.read<AppDatabase>();
     await db.setPreference(kTripleSpotOrderPref, value);
     setState(() => _autoAdvanceOrder = value);
+  }
+
+  Future<void> _toggleHideScores() async {
+    final db = context.read<AppDatabase>();
+    await db.setBoolPreference(kHideScoresPref, !_hideScores);
+    setState(() => _hideScores = !_hideScores);
   }
 
   void _showSettingsSheet(BuildContext context, SessionProvider provider, bool supportsTripleSpot) {
@@ -291,6 +294,16 @@ class _PlottingScreenState extends State<PlottingScreen> {
                   ),
                 ),
               ),
+              // Hide scores toggle (for sensitive athletes)
+              IconButton(
+                icon: Icon(
+                  _hideScores ? Icons.visibility_off : Icons.visibility,
+                  color: _hideScores ? AppColors.gold : null,
+                  semanticLabel: _hideScores ? 'Show scores' : 'Hide scores',
+                ),
+                tooltip: _hideScores ? 'Show scores' : 'Hide scores',
+                onPressed: _toggleHideScores,
+              ),
               // Settings gear icon
               IconButton(
                 icon: const Icon(Icons.settings, semanticLabel: 'Settings'),
@@ -323,11 +336,6 @@ class _PlottingScreenState extends State<PlottingScreen> {
           body: SafeArea(
             child: Column(
               children: [
-                // Score summary bar
-                _ScoreSummaryBar(provider: provider),
-
-                const SizedBox(height: AppSpacing.sm),
-
                 // Target face with rolling average overlay and fixed zoom window
                 Expanded(
                   child: Stack(
@@ -465,10 +473,9 @@ class _PlottingScreenState extends State<PlottingScreen> {
                             builder: (context) {
                               // Use synchronous cached data - no FutureBuilder needed
                               final arrows = provider.lastNArrows(12);
-                              final confLabel = _confidenceMultiplier == 1.0 ? '67%' : '95%';
                               return GroupCentreWidget(
                                 arrows: arrows,
-                                label: 'Last 12 ($confLabel)',
+                                label: 'Last 12',
                                 size: 80,
                                 confidenceMultiplier: _confidenceMultiplier,
                                 showRingNotation: _showRingNotation,
@@ -491,10 +498,9 @@ class _PlottingScreenState extends State<PlottingScreen> {
                             builder: (context) {
                               // Use synchronous allSessionArrows for all arrows in this round
                               final allArrows = provider.allSessionArrows;
-                              final confLabel = _confidenceMultiplier == 1.0 ? '67%' : '95%';
                               return GroupCentreWidget(
                                 arrows: allArrows,
-                                label: 'This Round ($confLabel)',
+                                label: 'This Round',
                                 size: 80,
                                 confidenceMultiplier: _confidenceMultiplier,
                                 showRingNotation: _showRingNotation,
@@ -505,10 +511,11 @@ class _PlottingScreenState extends State<PlottingScreen> {
                       ),
 
                       // Quick toggle for triple spot view mode (stacked vs combined)
+                      // Positioned at bottom left to avoid overlapping with triple spot target
                       if (supportsTripleSpot && _useTripleSpotView)
                         Positioned(
                           bottom: AppSpacing.md,
-                          right: AppSpacing.md,
+                          left: AppSpacing.md,
                           child: _TripleSpotViewToggle(
                             isCombined: _useCombinedView,
                             onToggle: () => _setCombinedView(!_useCombinedView),
@@ -518,11 +525,13 @@ class _PlottingScreenState extends State<PlottingScreen> {
                   ),
                 ),
 
-                // End history bar
-                if (provider.ends.isNotEmpty)
-                  _EndHistoryBar(
-                    completedEnds: provider.ends.length,
-                    currentEndNumber: provider.currentEndNumber,
+                // Collapsible scorecard (hidden when _hideScores is true)
+                if (!_hideScores)
+                  _CollapsibleScorecard(
+                    provider: provider,
+                    isExpanded: _scorecardExpanded,
+                    onToggleExpanded: () => setState(() => _scorecardExpanded = !_scorecardExpanded),
+                    onTapFullView: () => _showFullScorecard(context, provider),
                     viewingEndIndex: _viewingEndIndex,
                     onEndTapped: (index) {
                       if (index == provider.ends.length) {
@@ -532,34 +541,6 @@ class _PlottingScreenState extends State<PlottingScreen> {
                       }
                     },
                   ),
-
-                // Divider before scorecard
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                  height: 1,
-                  color: AppColors.surfaceLight,
-                ),
-
-                // Official scorecard (at bottom, not floating)
-                GestureDetector(
-                  onTap: () => _showFullScorecard(context, provider),
-                  child: Container(
-                    margin: const EdgeInsets.only(top: AppSpacing.sm),
-                    constraints: const BoxConstraints(maxHeight: 120),
-                    // Use synchronous cached data - no FutureBuilder needed
-                    child: FullScorecardWidget(
-                      completedEnds: provider.ends,
-                      completedEndArrows: provider.completedEndArrowsByEnd,
-                      currentEndArrows: provider.currentEndArrows,
-                      currentEndNumber: provider.currentEndNumber,
-                      arrowsPerEnd: provider.arrowsPerEnd,
-                      totalEnds: provider.totalEnds,
-                      roundName: provider.roundType?.name ?? '',
-                      maxScore: provider.roundType?.maxScore,
-                      roundType: provider.roundType,
-                    ),
-                  ),
-                ),
 
                 // Action buttons
                 _ActionButtons(
@@ -688,80 +669,6 @@ class _PlottingScreenState extends State<PlottingScreen> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _ScoreSummaryBar extends StatelessWidget {
-  final SessionProvider provider;
-
-  const _ScoreSummaryBar({required this.provider});
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: 'Score summary: Total ${provider.totalScore}, Xs ${provider.totalXs}, This end ${provider.currentEndScore}, ${provider.arrowsInCurrentEnd} of ${provider.arrowsPerEnd} arrows',
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.md,
-        ),
-        color: AppColors.surfaceDark,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _ScoreItem(
-              label: 'Total',
-              value: provider.totalScore.toString(),
-              highlight: true,
-            ),
-            _ScoreItem(
-              label: 'Xs',
-              value: provider.totalXs.toString(),
-            ),
-            _ScoreItem(
-              label: 'This End',
-              value: provider.currentEndScore.toString(),
-            ),
-            _ScoreItem(
-              label: 'Arrows',
-              value: '${provider.arrowsInCurrentEnd}/${provider.arrowsPerEnd}',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ScoreItem extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool highlight;
-
-  const _ScoreItem({
-    required this.label,
-    required this.value,
-    this.highlight = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          value,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: highlight ? AppColors.gold : AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-      ],
     );
   }
 }
@@ -1113,6 +1020,244 @@ class _ViewOption extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Collapsible scorecard showing current end by default, expandable to show full history
+class _CollapsibleScorecard extends StatelessWidget {
+  final SessionProvider provider;
+  final bool isExpanded;
+  final VoidCallback onToggleExpanded;
+  final VoidCallback onTapFullView;
+  final int? viewingEndIndex;
+  final ValueChanged<int> onEndTapped;
+
+  const _CollapsibleScorecard({
+    required this.provider,
+    required this.isExpanded,
+    required this.onToggleExpanded,
+    required this.onTapFullView,
+    required this.viewingEndIndex,
+    required this.onEndTapped,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onVerticalDragEnd: (details) {
+        // Drag up to expand, drag down to collapse
+        if (details.primaryVelocity != null) {
+          if (details.primaryVelocity! < -100 && !isExpanded) {
+            onToggleExpanded();
+          } else if (details.primaryVelocity! > 100 && isExpanded) {
+            onToggleExpanded();
+          }
+        }
+      },
+      onDoubleTap: onTapFullView,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceDark,
+          borderRadius: BorderRadius.circular(AppSpacing.sm),
+          border: Border.all(color: AppColors.surfaceLight, width: 1),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Drag handle indicator
+            GestureDetector(
+              onTap: onToggleExpanded,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceLight,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
+                      size: 16,
+                      color: AppColors.textMuted,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Current end row (always visible)
+            _CurrentEndRow(
+              provider: provider,
+              viewingEndIndex: viewingEndIndex,
+            ),
+
+            // Expanded content: end history and full scorecard
+            if (isExpanded) ...[
+              Container(height: 1, color: AppColors.surfaceLight),
+
+              // End history bar
+              if (provider.ends.isNotEmpty)
+                _EndHistoryBar(
+                  completedEnds: provider.ends.length,
+                  currentEndNumber: provider.currentEndNumber,
+                  viewingEndIndex: viewingEndIndex,
+                  onEndTapped: onEndTapped,
+                ),
+
+              // Full scorecard (limited height)
+              Container(
+                constraints: const BoxConstraints(maxHeight: 100),
+                child: FullScorecardWidget(
+                  completedEnds: provider.ends,
+                  completedEndArrows: provider.completedEndArrowsByEnd,
+                  currentEndArrows: provider.currentEndArrows,
+                  currentEndNumber: provider.currentEndNumber,
+                  arrowsPerEnd: provider.arrowsPerEnd,
+                  totalEnds: provider.totalEnds,
+                  roundName: provider.roundType?.name ?? '',
+                  maxScore: provider.roundType?.maxScore,
+                  roundType: provider.roundType,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Shows the current end being filled in with score summary
+class _CurrentEndRow extends StatelessWidget {
+  final SessionProvider provider;
+  final int? viewingEndIndex;
+
+  const _CurrentEndRow({
+    required this.provider,
+    required this.viewingEndIndex,
+  });
+
+  Color _getScoreColor(int score, bool isX) {
+    if (isX) return AppColors.gold;
+    if (score == 10) return AppColors.gold;
+    if (score >= 9) return AppColors.gold.withValues(alpha: 0.8);
+    if (score >= 7) return const Color(0xFFFF5555); // Red
+    if (score >= 5) return const Color(0xFF5599FF); // Blue
+    return AppColors.textMuted;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isViewingHistory = viewingEndIndex != null;
+    final arrows = provider.currentEndArrows;
+    final endScore = arrows.fold(0, (sum, a) => sum + a.score);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      child: Row(
+        children: [
+          // End number indicator
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: isViewingHistory
+                  ? Colors.transparent
+                  : AppColors.gold.withValues(alpha: 0.2),
+              border: Border.all(
+                color: isViewingHistory ? AppColors.surfaceLight : AppColors.gold,
+                width: 2,
+              ),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '${provider.currentEndNumber}',
+              style: TextStyle(
+                fontFamily: AppFonts.pixel,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: isViewingHistory ? AppColors.textMuted : AppColors.gold,
+              ),
+            ),
+          ),
+
+          const SizedBox(width: AppSpacing.md),
+
+          // Arrow scores
+          Expanded(
+            child: Row(
+              children: List.generate(provider.arrowsPerEnd, (i) {
+                final hasArrow = i < arrows.length;
+                final arrow = hasArrow ? arrows[i] : null;
+
+                return Container(
+                  width: 28,
+                  margin: const EdgeInsets.only(right: 4),
+                  child: Center(
+                    child: hasArrow
+                        ? Text(
+                            arrow!.isX ? 'X' : arrow.score.toString(),
+                            style: TextStyle(
+                              fontFamily: AppFonts.body,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: _getScoreColor(arrow.score, arrow.isX),
+                            ),
+                          )
+                        : Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: AppColors.surfaceLight,
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                  ),
+                );
+              }),
+            ),
+          ),
+
+          // End total
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  arrows.isNotEmpty ? '$endScore' : '-',
+                  style: TextStyle(
+                    fontFamily: AppFonts.pixel,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.gold,
+                  ),
+                ),
+                Text(
+                  'R/T: ${provider.totalScore}',
+                  style: TextStyle(
+                    fontFamily: AppFonts.body,
+                    fontSize: 10,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -83,26 +83,6 @@ class TripleSpotTarget extends StatelessWidget {
     );
   }
 
-  Widget _buildLabel(int faceIndex, double faceSize) {
-    final faceArrows = arrows.where((a) => a.faceIndex == faceIndex).toList();
-    final hasArrow = faceArrows.isNotEmpty;
-    final isSelected = selectedFace == faceIndex;
-
-    return SizedBox(
-      width: faceSize,
-      child: Text(
-        '${faceIndex + 1}',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontFamily: AppFonts.pixel,
-          fontSize: 14,
-          color: hasArrow
-              ? AppColors.gold
-              : (isSelected ? AppColors.gold : AppColors.textMuted),
-        ),
-      ),
-    );
-  }
 }
 
 /// Interactive triple spot target for plotting arrows.

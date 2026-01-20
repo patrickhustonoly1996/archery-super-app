@@ -154,16 +154,34 @@ class _TargetFacePainter extends CustomPainter {
     }
 
     // Draw X ring (innermost)
-    final xPaint = Paint()
-      ..color = _getRingColor(10)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, xSize * radius * ringScale, xPaint);
+    if (compoundScoring) {
+      // Compound: solid gold fill with clear black border
+      final xPaint = Paint()
+        ..color = _getRingColor(10)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(center, xSize * radius * ringScale, xPaint);
+
+      final xBorderPaint = Paint()
+        ..color = Colors.black
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5;
+      canvas.drawCircle(center, xSize * radius * ringScale, xBorderPaint);
+    } else {
+      // Recurve: subtle shadow line only (no fill, just a faint ring outline)
+      final xShadowPaint = Paint()
+        ..color = Colors.black.withValues(alpha: 0.3)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.5;
+      canvas.drawCircle(center, xSize * radius * ringScale, xShadowPaint);
+    }
 
     // Draw center cross (within X ring)
-    final crossSize = xSize * radius * ringScale * 0.25; // 25% of X ring
+    final crossSize = compoundScoring
+        ? xSize * radius * ringScale * 0.6 // Larger cross for compound
+        : xSize * radius * ringScale * 0.4; // Visible cross for recurve
     final crossPaint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = lineWidth
+      ..color = Colors.black.withValues(alpha: compoundScoring ? 1.0 : 0.5)
+      ..strokeWidth = compoundScoring ? 1.5 : lineWidth
       ..strokeCap = StrokeCap.round;
     // Vertical line
     canvas.drawLine(
@@ -849,10 +867,26 @@ class _FixedZoomWindowPainter extends CustomPainter {
     }
 
     // Draw X ring
-    final xPaint = Paint()
-      ..color = _getRingColor(10)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, xSize * radius * ringScale, xPaint);
+    if (compoundScoring) {
+      // Compound: solid gold fill with clear black border
+      final xPaint = Paint()
+        ..color = _getRingColor(10)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(center, xSize * radius * ringScale, xPaint);
+
+      final xBorderPaint = Paint()
+        ..color = Colors.black
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.0;
+      canvas.drawCircle(center, xSize * radius * ringScale, xBorderPaint);
+    } else {
+      // Recurve: subtle shadow line only
+      final xShadowPaint = Paint()
+        ..color = Colors.black.withValues(alpha: 0.3)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0;
+      canvas.drawCircle(center, xSize * radius * ringScale, xShadowPaint);
+    }
   }
 
   void _drawRingLines(Canvas canvas, Offset center, double radius) {
