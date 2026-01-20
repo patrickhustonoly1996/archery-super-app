@@ -347,10 +347,10 @@ class _SkillInfo {
               'Lower handicap means better skill.',
           howToEarnXp: [
             _XpEarnItem(_XpConceptIcon.target, 'Complete scored rounds'),
-            _XpEarnItem(_XpConceptIcon.formula, 'XP = (150 - handicap) x 10'),
-            _XpEarnItem(_XpConceptIcon.star, 'Elite (HC 0): 1,500 XP/round'),
-            _XpEarnItem(_XpConceptIcon.checkmark, 'Average (HC 60): 900 XP/round'),
-            _XpEarnItem(_XpConceptIcon.arrow, 'Beginner (HC 100+): 500 XP/round'),
+            _XpEarnItem(_XpConceptIcon.formula, 'XP = (150 - handicap) x 2'),
+            _XpEarnItem(_XpConceptIcon.star, 'Elite (HC 0): 300 XP/round'),
+            _XpEarnItem(_XpConceptIcon.checkmark, 'Average (HC 60): 180 XP/round'),
+            _XpEarnItem(_XpConceptIcon.arrow, 'Beginner (HC 100+): 100 XP/round'),
           ],
         );
       case 'volume':
@@ -359,7 +359,7 @@ class _SkillInfo {
               'Tracks your total arrows shot. More arrows = more practice = '
               'more muscle memory.',
           howToEarnXp: [
-            _XpEarnItem(_XpConceptIcon.arrow, '1 XP per arrow shot'),
+            _XpEarnItem(_XpConceptIcon.arrow, '1 XP per 5 arrows shot'),
             _XpEarnItem(_XpConceptIcon.star, 'Every arrow counts!'),
           ],
         );
@@ -369,7 +369,7 @@ class _SkillInfo {
               'Measures how regularly you train. Building a consistent '
               'practice habit is key to improvement.',
           howToEarnXp: [
-            _XpEarnItem(_XpConceptIcon.calendar, '50 XP per training day'),
+            _XpEarnItem(_XpConceptIcon.calendar, '10 XP per training day'),
             _XpEarnItem(_XpConceptIcon.flame, 'Streak bonus: +10%/day (max 7 days)'),
             _XpEarnItem(_XpConceptIcon.star, '7-day streak = +70% bonus'),
           ],
@@ -380,7 +380,7 @@ class _SkillInfo {
               'Physical conditioning for archery. Strong holds and good '
               'structure lead to better shots.',
           howToEarnXp: [
-            _XpEarnItem(_XpConceptIcon.timer, '1 XP per second of hold time'),
+            _XpEarnItem(_XpConceptIcon.timer, '1 XP per 5 seconds of hold time'),
             _XpEarnItem(_XpConceptIcon.checkmark, 'Good form (feedback 1-5): +25%'),
             _XpEarnItem(_XpConceptIcon.star, 'Excellent form (feedback 1-3): +50%'),
             _XpEarnItem(_XpConceptIcon.dumbbell, 'Do OLY training sessions'),
@@ -392,8 +392,8 @@ class _SkillInfo {
               'Breath control for mental calm and shot execution. Proper '
               'breathing helps manage pressure.',
           howToEarnXp: [
-            _XpEarnItem(_XpConceptIcon.lungs, '1 XP per 2 seconds of breath hold'),
-            _XpEarnItem(_XpConceptIcon.lungs, '1 XP per 2 seconds of exhale'),
+            _XpEarnItem(_XpConceptIcon.lungs, '1 XP per 10 seconds of breath hold'),
+            _XpEarnItem(_XpConceptIcon.lungs, '1 XP per 10 seconds of exhale'),
             _XpEarnItem(_XpConceptIcon.dumbbell, 'Complete breath training sessions'),
           ],
         );
@@ -403,7 +403,7 @@ class _SkillInfo {
               'Knowledge of your gear and how to tune it. Well-maintained '
               'equipment performs consistently.',
           howToEarnXp: [
-            _XpEarnItem(_XpConceptIcon.wrench, '25 XP per equipment change logged'),
+            _XpEarnItem(_XpConceptIcon.wrench, '5 XP per equipment change logged'),
             _XpEarnItem(_XpConceptIcon.wrench, 'Log tuning sessions'),
             _XpEarnItem(_XpConceptIcon.camera, 'Save kit snapshots'),
           ],
@@ -414,10 +414,10 @@ class _SkillInfo {
               'Experience shooting under pressure. Competition tests your '
               'skills when it counts.',
           howToEarnXp: [
-            _XpEarnItem(_XpConceptIcon.trophy, '100 XP for competing'),
-            _XpEarnItem(_XpConceptIcon.equals, '+50 XP if matching practice score'),
-            _XpEarnItem(_XpConceptIcon.upArrow, '+50 XP if beating practice by 2%+'),
-            _XpEarnItem(_XpConceptIcon.percent, '+50-100 XP for 80-90%+ of max score'),
+            _XpEarnItem(_XpConceptIcon.trophy, '20 XP for competing'),
+            _XpEarnItem(_XpConceptIcon.equals, '+10 XP if matching practice score'),
+            _XpEarnItem(_XpConceptIcon.upArrow, '+10 XP if beating practice by 2%+'),
+            _XpEarnItem(_XpConceptIcon.percent, '+10-20 XP for 80-90%+ of max score'),
           ],
         );
       case 'analysis':
@@ -426,9 +426,9 @@ class _SkillInfo {
               'Understanding your shot patterns. Plotting arrows reveals '
               'tendencies and areas for improvement.',
           howToEarnXp: [
-            _XpEarnItem(_XpConceptIcon.chart, '15 XP for plotting any session'),
-            _XpEarnItem(_XpConceptIcon.plus, '+10 XP for 30+ arrows plotted'),
-            _XpEarnItem(_XpConceptIcon.star, '+10 XP for 60+ arrows plotted'),
+            _XpEarnItem(_XpConceptIcon.chart, '3 XP for plotting any session'),
+            _XpEarnItem(_XpConceptIcon.plus, '+2 XP for 30+ arrows plotted'),
+            _XpEarnItem(_XpConceptIcon.star, '+2 XP for 60+ arrows plotted'),
           ],
         );
       default:

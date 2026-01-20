@@ -79,30 +79,30 @@ class XpCalculationService {
 
   /// Calculate XP for archery skill based on handicap.
   /// Lower handicap = better archer = more XP.
-  /// Formula: max(0, (150 - handicap) * 10) per completed round
+  /// Formula: max(0, (150 - handicap) * 2) per completed round
   static int calculateArcheryXp({required int handicap}) {
     // Handicap ranges from 0 (elite) to 150 (beginner)
-    // Elite archer (HC 0) gets 1500 XP per round
-    // Average club archer (HC 60) gets 900 XP per round
-    // Beginner (HC 100+) gets 500 XP or less
-    final xp = max(0, (150 - handicap) * 10);
+    // Elite archer (HC 0) gets 300 XP per round
+    // Average club archer (HC 60) gets 180 XP per round
+    // Beginner (HC 100+) gets 100 XP or less
+    final xp = max(0, (150 - handicap) * 2);
     return xp;
   }
 
   /// Calculate XP for volume skill.
-  /// 1 XP per arrow shot.
+  /// 1 XP per 5 arrows shot.
   static int calculateVolumeXp({required int arrowCount}) {
-    return max(0, arrowCount);
+    return max(0, arrowCount ~/ 5);
   }
 
   /// Calculate XP for consistency skill.
-  /// 50 XP per training day, plus streak multiplier.
+  /// 10 XP per training day, plus streak multiplier.
   static int calculateConsistencyXp({
     required int daysThisWeek,
     int streakDays = 0,
   }) {
-    // Base: 50 XP per training day
-    int xp = daysThisWeek * 50;
+    // Base: 10 XP per training day
+    int xp = daysThisWeek * 10;
 
     // Streak bonus: +10% per streak day (max 7x = +70%)
     if (streakDays > 0) {
@@ -114,15 +114,15 @@ class XpCalculationService {
   }
 
   /// Calculate XP for bow fitness from OLY training.
-  /// 1 XP per second of hold time + quality bonus.
+  /// 1 XP per 5 seconds of hold time + quality bonus.
   static int calculateBowFitnessXp({
     required int totalHoldSeconds,
     int feedbackShaking = 5,
     int feedbackStructure = 5,
     int feedbackRest = 5,
   }) {
-    // Base: 1 XP per second of hold time
-    int xp = totalHoldSeconds;
+    // Base: 1 XP per 5 seconds of hold time
+    int xp = totalHoldSeconds ~/ 5;
 
     // Quality bonus based on feedback (lower = better)
     // Feedback is 1-10 scale where 1 = excellent, 10 = poor
@@ -148,49 +148,49 @@ class XpCalculationService {
   }) {
     int xp = 0;
 
-    // Breath hold: 1 XP per 2 seconds
+    // Breath hold: 1 XP per 10 seconds
     if (bestHoldSeconds != null && bestHoldSeconds > 0) {
-      xp += bestHoldSeconds ~/ 2;
+      xp += bestHoldSeconds ~/ 10;
     }
 
-    // Exhale: 1 XP per 2 seconds (Patrick breath test)
+    // Exhale: 1 XP per 10 seconds (Patrick breath test)
     if (bestExhaleSeconds != null && bestExhaleSeconds > 0) {
-      xp += bestExhaleSeconds ~/ 2;
+      xp += bestExhaleSeconds ~/ 10;
     }
 
     return xp;
   }
 
   /// Calculate XP for equipment management.
-  /// 25 XP per logged change (tuning session, kit snapshot).
+  /// 5 XP per logged change (tuning session, kit snapshot).
   static int calculateEquipmentXp({
     int tuningSessions = 0,
     int kitSnapshots = 0,
   }) {
-    return (tuningSessions + kitSnapshots) * 25;
+    return (tuningSessions + kitSnapshots) * 5;
   }
 
   /// Calculate XP for competition.
-  /// 100 XP base entry + bonus based on performance vs practice.
+  /// 20 XP base entry + bonus based on performance vs practice.
   static int calculateCompetitionXp({
     required int competitionScore,
     int? avgPracticeScore,
     int maxScore = 720,
   }) {
-    // Base: 100 XP for competing
-    int xp = 100;
+    // Base: 20 XP for competing
+    int xp = 20;
 
     // Performance bonus if we have practice data to compare
     if (avgPracticeScore != null && avgPracticeScore > 0) {
       final percentOfPractice = competitionScore / avgPracticeScore;
 
       if (percentOfPractice >= 1.0) {
-        // Matched or exceeded practice: +50 XP
-        xp += 50;
+        // Matched or exceeded practice: +10 XP
+        xp += 10;
       }
       if (percentOfPractice >= 1.02) {
-        // Beat practice by 2%+: additional +50 XP
-        xp += 50;
+        // Beat practice by 2%+: additional +10 XP
+        xp += 10;
       }
     }
 
@@ -198,11 +198,11 @@ class XpCalculationService {
     if (maxScore > 0) {
       final scorePercent = competitionScore / maxScore;
       if (scorePercent >= 0.9) {
-        // 90%+ of max score: +100 XP
-        xp += 100;
+        // 90%+ of max score: +20 XP
+        xp += 20;
       } else if (scorePercent >= 0.8) {
-        // 80%+ of max score: +50 XP
-        xp += 50;
+        // 80%+ of max score: +10 XP
+        xp += 10;
       }
     }
 
@@ -210,23 +210,23 @@ class XpCalculationService {
   }
 
   /// Calculate XP for analysis (plotting arrows).
-  /// 15 XP per plotted session.
+  /// 3 XP per plotted session.
   static int calculateAnalysisXp({
     required int plottedArrows,
   }) {
     if (plottedArrows <= 0) return 0;
 
-    // Base: 15 XP for any plotted session
-    int xp = 15;
+    // Base: 3 XP for any plotted session
+    int xp = 3;
 
     // Bonus for thorough plotting
     if (plottedArrows >= 30) {
-      // Full session plotted: +10 XP
-      xp += 10;
+      // Full session plotted: +2 XP
+      xp += 2;
     }
     if (plottedArrows >= 60) {
-      // Large session plotted: +10 XP
-      xp += 10;
+      // Large session plotted: +2 XP
+      xp += 2;
     }
 
     return xp;
