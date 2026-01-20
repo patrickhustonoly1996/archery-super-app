@@ -15,6 +15,7 @@ import 'package:archery_super_app/db/database.dart';
 import 'package:archery_super_app/screens/bow_training_screen.dart';
 import 'package:archery_super_app/screens/bow_training_home_screen.dart';
 import 'package:archery_super_app/theme/app_theme.dart';
+import 'package:archery_super_app/providers/accessibility_provider.dart';
 
 // =============================================================================
 // MOCK CLASSES
@@ -195,8 +196,11 @@ Widget buildTestApp({
   required BowTrainingProvider provider,
   required Widget child,
 }) {
-  return ChangeNotifierProvider<BowTrainingProvider>.value(
-    value: provider,
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider<BowTrainingProvider>.value(value: provider),
+      ChangeNotifierProvider(create: (_) => AccessibilityProvider()..loadSettings()),
+    ],
     child: MaterialApp(
       theme: AppTheme.darkTheme,
       home: child,

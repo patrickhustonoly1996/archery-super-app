@@ -224,13 +224,15 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
   }
 
   void _navigateToBowDetails(BuildContext context) {
+    final equipmentProvider = context.read<EquipmentProvider>();
+    final bow = equipmentProvider.bows.firstWhere(
+      (b) => b.id == widget.bowId,
+      orElse: () => throw StateError('Bow not found: ${widget.bowId}'),
+    );
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => BowDetailScreen(
-          bowId: widget.bowId,
-          bowName: widget.bowName,
-        ),
+        builder: (_) => BowDetailScreen(bow: bow),
       ),
     );
   }

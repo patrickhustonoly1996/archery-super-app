@@ -179,8 +179,9 @@ void main() {
         );
 
         expect(result, isNotNull);
-        expect(result!.predictedValue, equals(4.00));
-        expect(result.source, equals('interpolated'));
+        // Power-law interpolation gives slightly lower value than linear
+        expect(result!.predictedValue, closeTo(3.95, 0.05));
+        expect(result.source, contains('interpolat'));
         expect(result.confidence, equals(SightMarkConfidence.medium));
         expect(result.interpolatedFrom, hasLength(2));
       });
@@ -234,8 +235,8 @@ void main() {
         );
 
         expect(result, isNotNull);
-        // Linear interpolation: 2 + (45-20)/(70-20) * (7-2) = 2 + 25/50 * 5 = 4.5
-        expect(result!.predictedValue, equals(4.50));
+        // Power-law interpolation gives slightly different value than linear
+        expect(result!.predictedValue, closeTo(4.21, 0.1));
       });
     });
 
@@ -358,7 +359,7 @@ void main() {
         );
 
         expect(result, isNotNull);
-        expect(result!.predictedValue, equals(4.00)); // Linear interp, not 9.99
+        expect(result!.predictedValue, closeTo(3.95, 0.1)); // Power-law interp, not 9.99
         expect(result.unit, equals(DistanceUnit.meters));
       });
 
@@ -377,7 +378,7 @@ void main() {
         );
 
         expect(result, isNotNull);
-        expect(result!.predictedValue, equals(4.50)); // Linear interp between 40yd and 60yd
+        expect(result!.predictedValue, closeTo(4.5, 0.1)); // Power-law interp between 40yd and 60yd
         expect(result.unit, equals(DistanceUnit.yards));
       });
     });
@@ -530,9 +531,9 @@ void main() {
         );
 
         expect(result, isNotNull);
-        expect(result!.confidence, equals(SightMarkConfidence.medium)); // Linear interp
-        // Linear interp: 3 + (25-18)/(30-18) * (4-3) = 3 + 7/12 = 3.583...
-        expect(result.predictedValue, closeTo(3.58, 0.02));
+        expect(result!.confidence, equals(SightMarkConfidence.medium)); // Power-law interp
+        // Power-law interpolation gives slightly different values
+        expect(result.predictedValue, closeTo(3.56, 0.05));
       });
 
       test('compound archer - tight sight marks', () {
@@ -730,7 +731,8 @@ void main() {
         );
 
         expect(result, isNotNull);
-        expect(result!.displayValue, equals('4.00'));
+        // Power-law interpolation gives ~3.95
+        expect(result!.displayValue, equals('3.95'));
       });
 
       test('distance display includes unit', () {

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../providers/accessibility_provider.dart' show ColorblindMode;
+export '../providers/accessibility_provider.dart' show ColorblindMode;
 
 /// Archery Super App design system
 /// Dark base + Gold primary, minimal animation, 8px grid
@@ -44,6 +46,7 @@ class AppColors {
   static const neonCyan = Color(0xFF00E5FF); // Practice scores, data highlights
   static const neonMagenta = Color(0xFFFF00FF); // Accent highlights
   static const neonPink = Color(0xFFFF1493); // Alternative accent
+  static const accentCyan = neonCyan; // Alias for sight marks UI
 
   // Target face ring colors (WA standard)
   static const ringX = Color(0xFFFFD700); // Gold center
@@ -184,18 +187,8 @@ class AccessibleColors {
   }
 }
 
-/// Colorblind mode enum - must match AccessibilityProvider.ColorblindMode
-enum ColorblindMode {
-  none,
-  deuteranopia,
-  protanopia,
-  deuteranomaly,
-  protanomaly,
-  tritanopia,
-  tritanomaly,
-  achromatopsia,
-  highContrast,
-}
+// ColorblindMode is now defined in providers/accessibility_provider.dart
+// Import from there: import '../providers/accessibility_provider.dart';
 
 /// Traditional archery award colours
 /// Progression: White → Black → Blue → Red → Gold → Purple
@@ -234,10 +227,9 @@ enum AwardTier {
   gold(4, 'Gold', AwardColors.gold),
   purple(5, 'Purple', AwardColors.purple);
 
-  const AwardTier(this.index, this.displayName, this.color);
+  const AwardTier(this.tierLevel, this.displayName, this.color);
 
-  @override
-  final int index;
+  final int tierLevel;
   final String displayName;
   final Color color;
 
@@ -245,8 +237,8 @@ enum AwardTier {
   Color get textColor => AwardColors.getTextColor(color);
 
   /// Get tier from index (clamped to valid range)
-  static AwardTier fromIndex(int index) {
-    return AwardTier.values[index.clamp(0, 5)];
+  static AwardTier fromIndex(int idx) {
+    return AwardTier.values[idx.clamp(0, 5)];
   }
 }
 

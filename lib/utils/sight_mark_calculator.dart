@@ -365,6 +365,57 @@ class SightMarkCalculator {
   }
 
 
+  /// Linear interpolation fallback when quadratic fails
+  static PredictedSightMark? _linearPredict(
+    List<SightMark> marks,
+    double targetDistance,
+    DistanceUnit unit,
+  ) {
+    if (marks.length < 2) return null;
+
+    // Find bracketing points or nearest two
+    SightMark? lower, upper;
+
+    for (final mark in marks) {
+      if (mark.distance <= targetDistance) {
+        lower = mark;
+      }
+      if (mark.distance >= targetDistance && upper == null) {
+        upper = mark;
+      }
+    }
+
+    // If no bracket, use the first and last points
+    lower ??= marks.first;
+    upper ??= marks.last;
+
+    if (lower.distance == upper.distance) {
+      return PredictedSightMark(
+        distance: targetDistance,
+        unit: unit,
+        predictedValue: lower.numericValue,
+        confidence: SightMarkConfidence.medium,
+        source: 'single point',
+        basedOn: lower,
+      );
+    }
+
+    final ratio = (targetDistance - lower.distance) / (upper.distance - lower.distance);
+    final predicted = lower.numericValue + (upper.numericValue - lower.numericValue) * ratio;
+
+    final isExtrapolating = targetDistance < marks.first.distance ||
+        targetDistance > marks.last.distance;
+
+    return PredictedSightMark(
+      distance: targetDistance,
+      unit: unit,
+      predictedValue: predicted,
+      confidence: isExtrapolating ? SightMarkConfidence.low : SightMarkConfidence.medium,
+      source: 'linear',
+      interpolatedFrom: [lower, upper],
+    );
+  }
+
   /// Calculate R² (coefficient of determination) for quadratic fit
   static double _calculateRSquared(
     List<SightMark> marks,

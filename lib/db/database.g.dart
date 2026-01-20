@@ -818,6 +818,17 @@ class $BowsTable extends Bows with TableInfo<$BowsTable, Bow> {
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _drawLengthMeta = const VerificationMeta(
+    'drawLength',
+  );
+  @override
+  late final GeneratedColumn<double> drawLength = GeneratedColumn<double>(
+    'draw_length',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _tillerTopMeta = const VerificationMeta(
     'tillerTop',
   );
@@ -921,6 +932,7 @@ class $BowsTable extends Bows with TableInfo<$BowsTable, Bow> {
     limbModel,
     limbPurchaseDate,
     poundage,
+    drawLength,
     tillerTop,
     tillerBottom,
     braceHeight,
@@ -1027,6 +1039,12 @@ class $BowsTable extends Bows with TableInfo<$BowsTable, Bow> {
       context.handle(
         _poundageMeta,
         poundage.isAcceptableOrUnknown(data['poundage']!, _poundageMeta),
+      );
+    }
+    if (data.containsKey('draw_length')) {
+      context.handle(
+        _drawLengthMeta,
+        drawLength.isAcceptableOrUnknown(data['draw_length']!, _drawLengthMeta),
       );
     }
     if (data.containsKey('tiller_top')) {
@@ -1159,6 +1177,10 @@ class $BowsTable extends Bows with TableInfo<$BowsTable, Bow> {
         DriftSqlType.double,
         data['${effectivePrefix}poundage'],
       ),
+      drawLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}draw_length'],
+      ),
       tillerTop: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}tiller_top'],
@@ -1214,6 +1236,7 @@ class Bow extends DataClass implements Insertable<Bow> {
   final String? limbModel;
   final DateTime? limbPurchaseDate;
   final double? poundage;
+  final double? drawLength;
   final double? tillerTop;
   final double? tillerBottom;
   final double? braceHeight;
@@ -1236,6 +1259,7 @@ class Bow extends DataClass implements Insertable<Bow> {
     this.limbModel,
     this.limbPurchaseDate,
     this.poundage,
+    this.drawLength,
     this.tillerTop,
     this.tillerBottom,
     this.braceHeight,
@@ -1274,6 +1298,9 @@ class Bow extends DataClass implements Insertable<Bow> {
     }
     if (!nullToAbsent || poundage != null) {
       map['poundage'] = Variable<double>(poundage);
+    }
+    if (!nullToAbsent || drawLength != null) {
+      map['draw_length'] = Variable<double>(drawLength);
     }
     if (!nullToAbsent || tillerTop != null) {
       map['tiller_top'] = Variable<double>(tillerTop);
@@ -1331,6 +1358,9 @@ class Bow extends DataClass implements Insertable<Bow> {
       poundage: poundage == null && nullToAbsent
           ? const Value.absent()
           : Value(poundage),
+      drawLength: drawLength == null && nullToAbsent
+          ? const Value.absent()
+          : Value(drawLength),
       tillerTop: tillerTop == null && nullToAbsent
           ? const Value.absent()
           : Value(tillerTop),
@@ -1381,6 +1411,7 @@ class Bow extends DataClass implements Insertable<Bow> {
         json['limbPurchaseDate'],
       ),
       poundage: serializer.fromJson<double?>(json['poundage']),
+      drawLength: serializer.fromJson<double?>(json['drawLength']),
       tillerTop: serializer.fromJson<double?>(json['tillerTop']),
       tillerBottom: serializer.fromJson<double?>(json['tillerBottom']),
       braceHeight: serializer.fromJson<double?>(json['braceHeight']),
@@ -1412,6 +1443,7 @@ class Bow extends DataClass implements Insertable<Bow> {
       'limbModel': serializer.toJson<String?>(limbModel),
       'limbPurchaseDate': serializer.toJson<DateTime?>(limbPurchaseDate),
       'poundage': serializer.toJson<double?>(poundage),
+      'drawLength': serializer.toJson<double?>(drawLength),
       'tillerTop': serializer.toJson<double?>(tillerTop),
       'tillerBottom': serializer.toJson<double?>(tillerBottom),
       'braceHeight': serializer.toJson<double?>(braceHeight),
@@ -1437,6 +1469,7 @@ class Bow extends DataClass implements Insertable<Bow> {
     Value<String?> limbModel = const Value.absent(),
     Value<DateTime?> limbPurchaseDate = const Value.absent(),
     Value<double?> poundage = const Value.absent(),
+    Value<double?> drawLength = const Value.absent(),
     Value<double?> tillerTop = const Value.absent(),
     Value<double?> tillerBottom = const Value.absent(),
     Value<double?> braceHeight = const Value.absent(),
@@ -1463,6 +1496,7 @@ class Bow extends DataClass implements Insertable<Bow> {
         ? limbPurchaseDate.value
         : this.limbPurchaseDate,
     poundage: poundage.present ? poundage.value : this.poundage,
+    drawLength: drawLength.present ? drawLength.value : this.drawLength,
     tillerTop: tillerTop.present ? tillerTop.value : this.tillerTop,
     tillerBottom: tillerBottom.present ? tillerBottom.value : this.tillerBottom,
     braceHeight: braceHeight.present ? braceHeight.value : this.braceHeight,
@@ -1503,6 +1537,9 @@ class Bow extends DataClass implements Insertable<Bow> {
           ? data.limbPurchaseDate.value
           : this.limbPurchaseDate,
       poundage: data.poundage.present ? data.poundage.value : this.poundage,
+      drawLength: data.drawLength.present
+          ? data.drawLength.value
+          : this.drawLength,
       tillerTop: data.tillerTop.present ? data.tillerTop.value : this.tillerTop,
       tillerBottom: data.tillerBottom.present
           ? data.tillerBottom.value
@@ -1544,6 +1581,7 @@ class Bow extends DataClass implements Insertable<Bow> {
           ..write('limbModel: $limbModel, ')
           ..write('limbPurchaseDate: $limbPurchaseDate, ')
           ..write('poundage: $poundage, ')
+          ..write('drawLength: $drawLength, ')
           ..write('tillerTop: $tillerTop, ')
           ..write('tillerBottom: $tillerBottom, ')
           ..write('braceHeight: $braceHeight, ')
@@ -1571,6 +1609,7 @@ class Bow extends DataClass implements Insertable<Bow> {
     limbModel,
     limbPurchaseDate,
     poundage,
+    drawLength,
     tillerTop,
     tillerBottom,
     braceHeight,
@@ -1597,6 +1636,7 @@ class Bow extends DataClass implements Insertable<Bow> {
           other.limbModel == this.limbModel &&
           other.limbPurchaseDate == this.limbPurchaseDate &&
           other.poundage == this.poundage &&
+          other.drawLength == this.drawLength &&
           other.tillerTop == this.tillerTop &&
           other.tillerBottom == this.tillerBottom &&
           other.braceHeight == this.braceHeight &&
@@ -1621,6 +1661,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
   final Value<String?> limbModel;
   final Value<DateTime?> limbPurchaseDate;
   final Value<double?> poundage;
+  final Value<double?> drawLength;
   final Value<double?> tillerTop;
   final Value<double?> tillerBottom;
   final Value<double?> braceHeight;
@@ -1644,6 +1685,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     this.limbModel = const Value.absent(),
     this.limbPurchaseDate = const Value.absent(),
     this.poundage = const Value.absent(),
+    this.drawLength = const Value.absent(),
     this.tillerTop = const Value.absent(),
     this.tillerBottom = const Value.absent(),
     this.braceHeight = const Value.absent(),
@@ -1668,6 +1710,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     this.limbModel = const Value.absent(),
     this.limbPurchaseDate = const Value.absent(),
     this.poundage = const Value.absent(),
+    this.drawLength = const Value.absent(),
     this.tillerTop = const Value.absent(),
     this.tillerBottom = const Value.absent(),
     this.braceHeight = const Value.absent(),
@@ -1694,6 +1737,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     Expression<String>? limbModel,
     Expression<DateTime>? limbPurchaseDate,
     Expression<double>? poundage,
+    Expression<double>? drawLength,
     Expression<double>? tillerTop,
     Expression<double>? tillerBottom,
     Expression<double>? braceHeight,
@@ -1718,6 +1762,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
       if (limbModel != null) 'limb_model': limbModel,
       if (limbPurchaseDate != null) 'limb_purchase_date': limbPurchaseDate,
       if (poundage != null) 'poundage': poundage,
+      if (drawLength != null) 'draw_length': drawLength,
       if (tillerTop != null) 'tiller_top': tillerTop,
       if (tillerBottom != null) 'tiller_bottom': tillerBottom,
       if (braceHeight != null) 'brace_height': braceHeight,
@@ -1746,6 +1791,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     Value<String?>? limbModel,
     Value<DateTime?>? limbPurchaseDate,
     Value<double?>? poundage,
+    Value<double?>? drawLength,
     Value<double?>? tillerTop,
     Value<double?>? tillerBottom,
     Value<double?>? braceHeight,
@@ -1770,6 +1816,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
       limbModel: limbModel ?? this.limbModel,
       limbPurchaseDate: limbPurchaseDate ?? this.limbPurchaseDate,
       poundage: poundage ?? this.poundage,
+      drawLength: drawLength ?? this.drawLength,
       tillerTop: tillerTop ?? this.tillerTop,
       tillerBottom: tillerBottom ?? this.tillerBottom,
       braceHeight: braceHeight ?? this.braceHeight,
@@ -1824,6 +1871,9 @@ class BowsCompanion extends UpdateCompanion<Bow> {
     if (poundage.present) {
       map['poundage'] = Variable<double>(poundage.value);
     }
+    if (drawLength.present) {
+      map['draw_length'] = Variable<double>(drawLength.value);
+    }
     if (tillerTop.present) {
       map['tiller_top'] = Variable<double>(tillerTop.value);
     }
@@ -1870,6 +1920,7 @@ class BowsCompanion extends UpdateCompanion<Bow> {
           ..write('limbModel: $limbModel, ')
           ..write('limbPurchaseDate: $limbPurchaseDate, ')
           ..write('poundage: $poundage, ')
+          ..write('drawLength: $drawLength, ')
           ..write('tillerTop: $tillerTop, ')
           ..write('tillerBottom: $tillerBottom, ')
           ..write('braceHeight: $braceHeight, ')
@@ -15534,6 +15585,432 @@ class BreathTrainingLogsCompanion extends UpdateCompanion<BreathTrainingLog> {
   }
 }
 
+class $BreathHoldAwardsTable extends BreathHoldAwards
+    with TableInfo<$BreathHoldAwardsTable, BreathHoldAward> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BreathHoldAwardsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _secondsThresholdMeta = const VerificationMeta(
+    'secondsThreshold',
+  );
+  @override
+  late final GeneratedColumn<int> secondsThreshold = GeneratedColumn<int>(
+    'seconds_threshold',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sessionLogIdMeta = const VerificationMeta(
+    'sessionLogId',
+  );
+  @override
+  late final GeneratedColumn<String> sessionLogId = GeneratedColumn<String>(
+    'session_log_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES breath_training_logs (id)',
+    ),
+  );
+  static const VerificationMeta _earnedAtMeta = const VerificationMeta(
+    'earnedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> earnedAt = GeneratedColumn<DateTime>(
+    'earned_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    secondsThreshold,
+    title,
+    sessionLogId,
+    earnedAt,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'breath_hold_awards';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BreathHoldAward> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('seconds_threshold')) {
+      context.handle(
+        _secondsThresholdMeta,
+        secondsThreshold.isAcceptableOrUnknown(
+          data['seconds_threshold']!,
+          _secondsThresholdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_secondsThresholdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('session_log_id')) {
+      context.handle(
+        _sessionLogIdMeta,
+        sessionLogId.isAcceptableOrUnknown(
+          data['session_log_id']!,
+          _sessionLogIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('earned_at')) {
+      context.handle(
+        _earnedAtMeta,
+        earnedAt.isAcceptableOrUnknown(data['earned_at']!, _earnedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_earnedAtMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  BreathHoldAward map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BreathHoldAward(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      secondsThreshold: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}seconds_threshold'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      sessionLogId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_log_id'],
+      ),
+      earnedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}earned_at'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $BreathHoldAwardsTable createAlias(String alias) {
+    return $BreathHoldAwardsTable(attachedDatabase, alias);
+  }
+}
+
+class BreathHoldAward extends DataClass implements Insertable<BreathHoldAward> {
+  final String id;
+  final int secondsThreshold;
+  final String title;
+  final String? sessionLogId;
+  final DateTime earnedAt;
+  final DateTime createdAt;
+  const BreathHoldAward({
+    required this.id,
+    required this.secondsThreshold,
+    required this.title,
+    this.sessionLogId,
+    required this.earnedAt,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['seconds_threshold'] = Variable<int>(secondsThreshold);
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || sessionLogId != null) {
+      map['session_log_id'] = Variable<String>(sessionLogId);
+    }
+    map['earned_at'] = Variable<DateTime>(earnedAt);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  BreathHoldAwardsCompanion toCompanion(bool nullToAbsent) {
+    return BreathHoldAwardsCompanion(
+      id: Value(id),
+      secondsThreshold: Value(secondsThreshold),
+      title: Value(title),
+      sessionLogId: sessionLogId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sessionLogId),
+      earnedAt: Value(earnedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory BreathHoldAward.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BreathHoldAward(
+      id: serializer.fromJson<String>(json['id']),
+      secondsThreshold: serializer.fromJson<int>(json['secondsThreshold']),
+      title: serializer.fromJson<String>(json['title']),
+      sessionLogId: serializer.fromJson<String?>(json['sessionLogId']),
+      earnedAt: serializer.fromJson<DateTime>(json['earnedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'secondsThreshold': serializer.toJson<int>(secondsThreshold),
+      'title': serializer.toJson<String>(title),
+      'sessionLogId': serializer.toJson<String?>(sessionLogId),
+      'earnedAt': serializer.toJson<DateTime>(earnedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  BreathHoldAward copyWith({
+    String? id,
+    int? secondsThreshold,
+    String? title,
+    Value<String?> sessionLogId = const Value.absent(),
+    DateTime? earnedAt,
+    DateTime? createdAt,
+  }) => BreathHoldAward(
+    id: id ?? this.id,
+    secondsThreshold: secondsThreshold ?? this.secondsThreshold,
+    title: title ?? this.title,
+    sessionLogId: sessionLogId.present ? sessionLogId.value : this.sessionLogId,
+    earnedAt: earnedAt ?? this.earnedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  BreathHoldAward copyWithCompanion(BreathHoldAwardsCompanion data) {
+    return BreathHoldAward(
+      id: data.id.present ? data.id.value : this.id,
+      secondsThreshold: data.secondsThreshold.present
+          ? data.secondsThreshold.value
+          : this.secondsThreshold,
+      title: data.title.present ? data.title.value : this.title,
+      sessionLogId: data.sessionLogId.present
+          ? data.sessionLogId.value
+          : this.sessionLogId,
+      earnedAt: data.earnedAt.present ? data.earnedAt.value : this.earnedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BreathHoldAward(')
+          ..write('id: $id, ')
+          ..write('secondsThreshold: $secondsThreshold, ')
+          ..write('title: $title, ')
+          ..write('sessionLogId: $sessionLogId, ')
+          ..write('earnedAt: $earnedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    secondsThreshold,
+    title,
+    sessionLogId,
+    earnedAt,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BreathHoldAward &&
+          other.id == this.id &&
+          other.secondsThreshold == this.secondsThreshold &&
+          other.title == this.title &&
+          other.sessionLogId == this.sessionLogId &&
+          other.earnedAt == this.earnedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class BreathHoldAwardsCompanion extends UpdateCompanion<BreathHoldAward> {
+  final Value<String> id;
+  final Value<int> secondsThreshold;
+  final Value<String> title;
+  final Value<String?> sessionLogId;
+  final Value<DateTime> earnedAt;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const BreathHoldAwardsCompanion({
+    this.id = const Value.absent(),
+    this.secondsThreshold = const Value.absent(),
+    this.title = const Value.absent(),
+    this.sessionLogId = const Value.absent(),
+    this.earnedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BreathHoldAwardsCompanion.insert({
+    required String id,
+    required int secondsThreshold,
+    required String title,
+    this.sessionLogId = const Value.absent(),
+    required DateTime earnedAt,
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       secondsThreshold = Value(secondsThreshold),
+       title = Value(title),
+       earnedAt = Value(earnedAt);
+  static Insertable<BreathHoldAward> custom({
+    Expression<String>? id,
+    Expression<int>? secondsThreshold,
+    Expression<String>? title,
+    Expression<String>? sessionLogId,
+    Expression<DateTime>? earnedAt,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (secondsThreshold != null) 'seconds_threshold': secondsThreshold,
+      if (title != null) 'title': title,
+      if (sessionLogId != null) 'session_log_id': sessionLogId,
+      if (earnedAt != null) 'earned_at': earnedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BreathHoldAwardsCompanion copyWith({
+    Value<String>? id,
+    Value<int>? secondsThreshold,
+    Value<String>? title,
+    Value<String?>? sessionLogId,
+    Value<DateTime>? earnedAt,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return BreathHoldAwardsCompanion(
+      id: id ?? this.id,
+      secondsThreshold: secondsThreshold ?? this.secondsThreshold,
+      title: title ?? this.title,
+      sessionLogId: sessionLogId ?? this.sessionLogId,
+      earnedAt: earnedAt ?? this.earnedAt,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (secondsThreshold.present) {
+      map['seconds_threshold'] = Variable<int>(secondsThreshold.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (sessionLogId.present) {
+      map['session_log_id'] = Variable<String>(sessionLogId.value);
+    }
+    if (earnedAt.present) {
+      map['earned_at'] = Variable<DateTime>(earnedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BreathHoldAwardsCompanion(')
+          ..write('id: $id, ')
+          ..write('secondsThreshold: $secondsThreshold, ')
+          ..write('title: $title, ')
+          ..write('sessionLogId: $sessionLogId, ')
+          ..write('earnedAt: $earnedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $MilestonesTable extends Milestones
     with TableInfo<$MilestonesTable, Milestone> {
   @override
@@ -20848,6 +21325,17 @@ class $UserProfilesTable extends UserProfiles
     requiredDuringInsert: false,
     defaultValue: const Constant('right'),
   );
+  static const VerificationMeta _drawLengthMeta = const VerificationMeta(
+    'drawLength',
+  );
+  @override
+  late final GeneratedColumn<double> drawLength = GeneratedColumn<double>(
+    'draw_length',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -20962,6 +21450,7 @@ class $UserProfilesTable extends UserProfiles
     id,
     primaryBowType,
     handedness,
+    drawLength,
     name,
     clubName,
     yearsShootingStart,
@@ -21003,6 +21492,12 @@ class $UserProfilesTable extends UserProfiles
       context.handle(
         _handednessMeta,
         handedness.isAcceptableOrUnknown(data['handedness']!, _handednessMeta),
+      );
+    }
+    if (data.containsKey('draw_length')) {
+      context.handle(
+        _drawLengthMeta,
+        drawLength.isAcceptableOrUnknown(data['draw_length']!, _drawLengthMeta),
       );
     }
     if (data.containsKey('name')) {
@@ -21098,6 +21593,10 @@ class $UserProfilesTable extends UserProfiles
         DriftSqlType.string,
         data['${effectivePrefix}handedness'],
       )!,
+      drawLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}draw_length'],
+      ),
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -21151,6 +21650,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
   final String id;
   final String primaryBowType;
   final String handedness;
+  final double? drawLength;
   final String? name;
   final String? clubName;
   final int? yearsShootingStart;
@@ -21165,6 +21665,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     required this.id,
     required this.primaryBowType,
     required this.handedness,
+    this.drawLength,
     this.name,
     this.clubName,
     this.yearsShootingStart,
@@ -21182,6 +21683,9 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     map['id'] = Variable<String>(id);
     map['primary_bow_type'] = Variable<String>(primaryBowType);
     map['handedness'] = Variable<String>(handedness);
+    if (!nullToAbsent || drawLength != null) {
+      map['draw_length'] = Variable<double>(drawLength);
+    }
     if (!nullToAbsent || name != null) {
       map['name'] = Variable<String>(name);
     }
@@ -21212,6 +21716,9 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
       id: Value(id),
       primaryBowType: Value(primaryBowType),
       handedness: Value(handedness),
+      drawLength: drawLength == null && nullToAbsent
+          ? const Value.absent()
+          : Value(drawLength),
       name: name == null && nullToAbsent ? const Value.absent() : Value(name),
       clubName: clubName == null && nullToAbsent
           ? const Value.absent()
@@ -21244,6 +21751,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
       id: serializer.fromJson<String>(json['id']),
       primaryBowType: serializer.fromJson<String>(json['primaryBowType']),
       handedness: serializer.fromJson<String>(json['handedness']),
+      drawLength: serializer.fromJson<double?>(json['drawLength']),
       name: serializer.fromJson<String?>(json['name']),
       clubName: serializer.fromJson<String?>(json['clubName']),
       yearsShootingStart: serializer.fromJson<int?>(json['yearsShootingStart']),
@@ -21263,6 +21771,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
       'id': serializer.toJson<String>(id),
       'primaryBowType': serializer.toJson<String>(primaryBowType),
       'handedness': serializer.toJson<String>(handedness),
+      'drawLength': serializer.toJson<double?>(drawLength),
       'name': serializer.toJson<String?>(name),
       'clubName': serializer.toJson<String?>(clubName),
       'yearsShootingStart': serializer.toJson<int?>(yearsShootingStart),
@@ -21280,6 +21789,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     String? id,
     String? primaryBowType,
     String? handedness,
+    Value<double?> drawLength = const Value.absent(),
     Value<String?> name = const Value.absent(),
     Value<String?> clubName = const Value.absent(),
     Value<int?> yearsShootingStart = const Value.absent(),
@@ -21294,6 +21804,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     id: id ?? this.id,
     primaryBowType: primaryBowType ?? this.primaryBowType,
     handedness: handedness ?? this.handedness,
+    drawLength: drawLength.present ? drawLength.value : this.drawLength,
     name: name.present ? name.value : this.name,
     clubName: clubName.present ? clubName.value : this.clubName,
     yearsShootingStart: yearsShootingStart.present
@@ -21316,6 +21827,9 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
       handedness: data.handedness.present
           ? data.handedness.value
           : this.handedness,
+      drawLength: data.drawLength.present
+          ? data.drawLength.value
+          : this.drawLength,
       name: data.name.present ? data.name.value : this.name,
       clubName: data.clubName.present ? data.clubName.value : this.clubName,
       yearsShootingStart: data.yearsShootingStart.present
@@ -21343,6 +21857,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
           ..write('id: $id, ')
           ..write('primaryBowType: $primaryBowType, ')
           ..write('handedness: $handedness, ')
+          ..write('drawLength: $drawLength, ')
           ..write('name: $name, ')
           ..write('clubName: $clubName, ')
           ..write('yearsShootingStart: $yearsShootingStart, ')
@@ -21362,6 +21877,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     id,
     primaryBowType,
     handedness,
+    drawLength,
     name,
     clubName,
     yearsShootingStart,
@@ -21380,6 +21896,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
           other.id == this.id &&
           other.primaryBowType == this.primaryBowType &&
           other.handedness == this.handedness &&
+          other.drawLength == this.drawLength &&
           other.name == this.name &&
           other.clubName == this.clubName &&
           other.yearsShootingStart == this.yearsShootingStart &&
@@ -21396,6 +21913,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
   final Value<String> id;
   final Value<String> primaryBowType;
   final Value<String> handedness;
+  final Value<double?> drawLength;
   final Value<String?> name;
   final Value<String?> clubName;
   final Value<int?> yearsShootingStart;
@@ -21411,6 +21929,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
     this.id = const Value.absent(),
     this.primaryBowType = const Value.absent(),
     this.handedness = const Value.absent(),
+    this.drawLength = const Value.absent(),
     this.name = const Value.absent(),
     this.clubName = const Value.absent(),
     this.yearsShootingStart = const Value.absent(),
@@ -21427,6 +21946,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
     required String id,
     this.primaryBowType = const Value.absent(),
     this.handedness = const Value.absent(),
+    this.drawLength = const Value.absent(),
     this.name = const Value.absent(),
     this.clubName = const Value.absent(),
     this.yearsShootingStart = const Value.absent(),
@@ -21443,6 +21963,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
     Expression<String>? id,
     Expression<String>? primaryBowType,
     Expression<String>? handedness,
+    Expression<double>? drawLength,
     Expression<String>? name,
     Expression<String>? clubName,
     Expression<int>? yearsShootingStart,
@@ -21459,6 +21980,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
       if (id != null) 'id': id,
       if (primaryBowType != null) 'primary_bow_type': primaryBowType,
       if (handedness != null) 'handedness': handedness,
+      if (drawLength != null) 'draw_length': drawLength,
       if (name != null) 'name': name,
       if (clubName != null) 'club_name': clubName,
       if (yearsShootingStart != null)
@@ -21478,6 +22000,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
     Value<String>? id,
     Value<String>? primaryBowType,
     Value<String>? handedness,
+    Value<double?>? drawLength,
     Value<String?>? name,
     Value<String?>? clubName,
     Value<int?>? yearsShootingStart,
@@ -21494,6 +22017,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
       id: id ?? this.id,
       primaryBowType: primaryBowType ?? this.primaryBowType,
       handedness: handedness ?? this.handedness,
+      drawLength: drawLength ?? this.drawLength,
       name: name ?? this.name,
       clubName: clubName ?? this.clubName,
       yearsShootingStart: yearsShootingStart ?? this.yearsShootingStart,
@@ -21519,6 +22043,9 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
     }
     if (handedness.present) {
       map['handedness'] = Variable<String>(handedness.value);
+    }
+    if (drawLength.present) {
+      map['draw_length'] = Variable<double>(drawLength.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -21562,6 +22089,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
           ..write('id: $id, ')
           ..write('primaryBowType: $primaryBowType, ')
           ..write('handedness: $handedness, ')
+          ..write('drawLength: $drawLength, ')
           ..write('name: $name, ')
           ..write('clubName: $clubName, ')
           ..write('yearsShootingStart: $yearsShootingStart, ')
@@ -23228,6 +23756,585 @@ class ClassificationsCompanion extends UpdateCompanion<Classification> {
           ..write('claimedAt: $claimedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AchievementsTable extends Achievements
+    with TableInfo<$AchievementsTable, Achievement> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AchievementsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _achievementTypeMeta = const VerificationMeta(
+    'achievementType',
+  );
+  @override
+  late final GeneratedColumn<String> achievementType = GeneratedColumn<String>(
+    'achievement_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _skillIdMeta = const VerificationMeta(
+    'skillId',
+  );
+  @override
+  late final GeneratedColumn<String> skillId = GeneratedColumn<String>(
+    'skill_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _roundTypeIdMeta = const VerificationMeta(
+    'roundTypeId',
+  );
+  @override
+  late final GeneratedColumn<String> roundTypeId = GeneratedColumn<String>(
+    'round_type_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _scoreMeta = const VerificationMeta('score');
+  @override
+  late final GeneratedColumn<int> score = GeneratedColumn<int>(
+    'score',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isCompetitionPbMeta = const VerificationMeta(
+    'isCompetitionPb',
+  );
+  @override
+  late final GeneratedColumn<bool> isCompetitionPb = GeneratedColumn<bool>(
+    'is_competition_pb',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_competition_pb" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _earnedAtMeta = const VerificationMeta(
+    'earnedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> earnedAt = GeneratedColumn<DateTime>(
+    'earned_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    achievementType,
+    skillId,
+    roundTypeId,
+    score,
+    title,
+    description,
+    isCompetitionPb,
+    earnedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'achievements';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Achievement> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('achievement_type')) {
+      context.handle(
+        _achievementTypeMeta,
+        achievementType.isAcceptableOrUnknown(
+          data['achievement_type']!,
+          _achievementTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_achievementTypeMeta);
+    }
+    if (data.containsKey('skill_id')) {
+      context.handle(
+        _skillIdMeta,
+        skillId.isAcceptableOrUnknown(data['skill_id']!, _skillIdMeta),
+      );
+    }
+    if (data.containsKey('round_type_id')) {
+      context.handle(
+        _roundTypeIdMeta,
+        roundTypeId.isAcceptableOrUnknown(
+          data['round_type_id']!,
+          _roundTypeIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('score')) {
+      context.handle(
+        _scoreMeta,
+        score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
+      );
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_competition_pb')) {
+      context.handle(
+        _isCompetitionPbMeta,
+        isCompetitionPb.isAcceptableOrUnknown(
+          data['is_competition_pb']!,
+          _isCompetitionPbMeta,
+        ),
+      );
+    }
+    if (data.containsKey('earned_at')) {
+      context.handle(
+        _earnedAtMeta,
+        earnedAt.isAcceptableOrUnknown(data['earned_at']!, _earnedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Achievement map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Achievement(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      achievementType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}achievement_type'],
+      )!,
+      skillId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}skill_id'],
+      ),
+      roundTypeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}round_type_id'],
+      ),
+      score: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}score'],
+      ),
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      isCompetitionPb: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_competition_pb'],
+      )!,
+      earnedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}earned_at'],
+      )!,
+    );
+  }
+
+  @override
+  $AchievementsTable createAlias(String alias) {
+    return $AchievementsTable(attachedDatabase, alias);
+  }
+}
+
+class Achievement extends DataClass implements Insertable<Achievement> {
+  final String id;
+  final String achievementType;
+  final String? skillId;
+  final String? roundTypeId;
+  final int? score;
+  final String title;
+  final String? description;
+  final bool isCompetitionPb;
+  final DateTime earnedAt;
+  const Achievement({
+    required this.id,
+    required this.achievementType,
+    this.skillId,
+    this.roundTypeId,
+    this.score,
+    required this.title,
+    this.description,
+    required this.isCompetitionPb,
+    required this.earnedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['achievement_type'] = Variable<String>(achievementType);
+    if (!nullToAbsent || skillId != null) {
+      map['skill_id'] = Variable<String>(skillId);
+    }
+    if (!nullToAbsent || roundTypeId != null) {
+      map['round_type_id'] = Variable<String>(roundTypeId);
+    }
+    if (!nullToAbsent || score != null) {
+      map['score'] = Variable<int>(score);
+    }
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    map['is_competition_pb'] = Variable<bool>(isCompetitionPb);
+    map['earned_at'] = Variable<DateTime>(earnedAt);
+    return map;
+  }
+
+  AchievementsCompanion toCompanion(bool nullToAbsent) {
+    return AchievementsCompanion(
+      id: Value(id),
+      achievementType: Value(achievementType),
+      skillId: skillId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(skillId),
+      roundTypeId: roundTypeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(roundTypeId),
+      score: score == null && nullToAbsent
+          ? const Value.absent()
+          : Value(score),
+      title: Value(title),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      isCompetitionPb: Value(isCompetitionPb),
+      earnedAt: Value(earnedAt),
+    );
+  }
+
+  factory Achievement.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Achievement(
+      id: serializer.fromJson<String>(json['id']),
+      achievementType: serializer.fromJson<String>(json['achievementType']),
+      skillId: serializer.fromJson<String?>(json['skillId']),
+      roundTypeId: serializer.fromJson<String?>(json['roundTypeId']),
+      score: serializer.fromJson<int?>(json['score']),
+      title: serializer.fromJson<String>(json['title']),
+      description: serializer.fromJson<String?>(json['description']),
+      isCompetitionPb: serializer.fromJson<bool>(json['isCompetitionPb']),
+      earnedAt: serializer.fromJson<DateTime>(json['earnedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'achievementType': serializer.toJson<String>(achievementType),
+      'skillId': serializer.toJson<String?>(skillId),
+      'roundTypeId': serializer.toJson<String?>(roundTypeId),
+      'score': serializer.toJson<int?>(score),
+      'title': serializer.toJson<String>(title),
+      'description': serializer.toJson<String?>(description),
+      'isCompetitionPb': serializer.toJson<bool>(isCompetitionPb),
+      'earnedAt': serializer.toJson<DateTime>(earnedAt),
+    };
+  }
+
+  Achievement copyWith({
+    String? id,
+    String? achievementType,
+    Value<String?> skillId = const Value.absent(),
+    Value<String?> roundTypeId = const Value.absent(),
+    Value<int?> score = const Value.absent(),
+    String? title,
+    Value<String?> description = const Value.absent(),
+    bool? isCompetitionPb,
+    DateTime? earnedAt,
+  }) => Achievement(
+    id: id ?? this.id,
+    achievementType: achievementType ?? this.achievementType,
+    skillId: skillId.present ? skillId.value : this.skillId,
+    roundTypeId: roundTypeId.present ? roundTypeId.value : this.roundTypeId,
+    score: score.present ? score.value : this.score,
+    title: title ?? this.title,
+    description: description.present ? description.value : this.description,
+    isCompetitionPb: isCompetitionPb ?? this.isCompetitionPb,
+    earnedAt: earnedAt ?? this.earnedAt,
+  );
+  Achievement copyWithCompanion(AchievementsCompanion data) {
+    return Achievement(
+      id: data.id.present ? data.id.value : this.id,
+      achievementType: data.achievementType.present
+          ? data.achievementType.value
+          : this.achievementType,
+      skillId: data.skillId.present ? data.skillId.value : this.skillId,
+      roundTypeId: data.roundTypeId.present
+          ? data.roundTypeId.value
+          : this.roundTypeId,
+      score: data.score.present ? data.score.value : this.score,
+      title: data.title.present ? data.title.value : this.title,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      isCompetitionPb: data.isCompetitionPb.present
+          ? data.isCompetitionPb.value
+          : this.isCompetitionPb,
+      earnedAt: data.earnedAt.present ? data.earnedAt.value : this.earnedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Achievement(')
+          ..write('id: $id, ')
+          ..write('achievementType: $achievementType, ')
+          ..write('skillId: $skillId, ')
+          ..write('roundTypeId: $roundTypeId, ')
+          ..write('score: $score, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('isCompetitionPb: $isCompetitionPb, ')
+          ..write('earnedAt: $earnedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    achievementType,
+    skillId,
+    roundTypeId,
+    score,
+    title,
+    description,
+    isCompetitionPb,
+    earnedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Achievement &&
+          other.id == this.id &&
+          other.achievementType == this.achievementType &&
+          other.skillId == this.skillId &&
+          other.roundTypeId == this.roundTypeId &&
+          other.score == this.score &&
+          other.title == this.title &&
+          other.description == this.description &&
+          other.isCompetitionPb == this.isCompetitionPb &&
+          other.earnedAt == this.earnedAt);
+}
+
+class AchievementsCompanion extends UpdateCompanion<Achievement> {
+  final Value<String> id;
+  final Value<String> achievementType;
+  final Value<String?> skillId;
+  final Value<String?> roundTypeId;
+  final Value<int?> score;
+  final Value<String> title;
+  final Value<String?> description;
+  final Value<bool> isCompetitionPb;
+  final Value<DateTime> earnedAt;
+  final Value<int> rowid;
+  const AchievementsCompanion({
+    this.id = const Value.absent(),
+    this.achievementType = const Value.absent(),
+    this.skillId = const Value.absent(),
+    this.roundTypeId = const Value.absent(),
+    this.score = const Value.absent(),
+    this.title = const Value.absent(),
+    this.description = const Value.absent(),
+    this.isCompetitionPb = const Value.absent(),
+    this.earnedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AchievementsCompanion.insert({
+    required String id,
+    required String achievementType,
+    this.skillId = const Value.absent(),
+    this.roundTypeId = const Value.absent(),
+    this.score = const Value.absent(),
+    required String title,
+    this.description = const Value.absent(),
+    this.isCompetitionPb = const Value.absent(),
+    this.earnedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       achievementType = Value(achievementType),
+       title = Value(title);
+  static Insertable<Achievement> custom({
+    Expression<String>? id,
+    Expression<String>? achievementType,
+    Expression<String>? skillId,
+    Expression<String>? roundTypeId,
+    Expression<int>? score,
+    Expression<String>? title,
+    Expression<String>? description,
+    Expression<bool>? isCompetitionPb,
+    Expression<DateTime>? earnedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (achievementType != null) 'achievement_type': achievementType,
+      if (skillId != null) 'skill_id': skillId,
+      if (roundTypeId != null) 'round_type_id': roundTypeId,
+      if (score != null) 'score': score,
+      if (title != null) 'title': title,
+      if (description != null) 'description': description,
+      if (isCompetitionPb != null) 'is_competition_pb': isCompetitionPb,
+      if (earnedAt != null) 'earned_at': earnedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AchievementsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? achievementType,
+    Value<String?>? skillId,
+    Value<String?>? roundTypeId,
+    Value<int?>? score,
+    Value<String>? title,
+    Value<String?>? description,
+    Value<bool>? isCompetitionPb,
+    Value<DateTime>? earnedAt,
+    Value<int>? rowid,
+  }) {
+    return AchievementsCompanion(
+      id: id ?? this.id,
+      achievementType: achievementType ?? this.achievementType,
+      skillId: skillId ?? this.skillId,
+      roundTypeId: roundTypeId ?? this.roundTypeId,
+      score: score ?? this.score,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      isCompetitionPb: isCompetitionPb ?? this.isCompetitionPb,
+      earnedAt: earnedAt ?? this.earnedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (achievementType.present) {
+      map['achievement_type'] = Variable<String>(achievementType.value);
+    }
+    if (skillId.present) {
+      map['skill_id'] = Variable<String>(skillId.value);
+    }
+    if (roundTypeId.present) {
+      map['round_type_id'] = Variable<String>(roundTypeId.value);
+    }
+    if (score.present) {
+      map['score'] = Variable<int>(score.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (isCompetitionPb.present) {
+      map['is_competition_pb'] = Variable<bool>(isCompetitionPb.value);
+    }
+    if (earnedAt.present) {
+      map['earned_at'] = Variable<DateTime>(earnedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AchievementsCompanion(')
+          ..write('id: $id, ')
+          ..write('achievementType: $achievementType, ')
+          ..write('skillId: $skillId, ')
+          ..write('roundTypeId: $roundTypeId, ')
+          ..write('score: $score, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('isCompetitionPb: $isCompetitionPb, ')
+          ..write('earnedAt: $earnedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -25719,6 +26826,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $UserTrainingProgressTable(this);
   late final $BreathTrainingLogsTable breathTrainingLogs =
       $BreathTrainingLogsTable(this);
+  late final $BreathHoldAwardsTable breathHoldAwards = $BreathHoldAwardsTable(
+    this,
+  );
   late final $MilestonesTable milestones = $MilestonesTable(this);
   late final $VolumeImportsTable volumeImports = $VolumeImportsTable(this);
   late final $KitSnapshotsTable kitSnapshots = $KitSnapshotsTable(this);
@@ -25736,6 +26846,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ClassificationsTable classifications = $ClassificationsTable(
     this,
   );
+  late final $AchievementsTable achievements = $AchievementsTable(this);
   late final $EntitlementsTable entitlements = $EntitlementsTable(this);
   late final $CourseProgressTable courseProgress = $CourseProgressTable(this);
   late final $PurchasesTable purchases = $PurchasesTable(this);
@@ -25765,6 +26876,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     olyTrainingLogs,
     userTrainingProgress,
     breathTrainingLogs,
+    breathHoldAwards,
     milestones,
     volumeImports,
     kitSnapshots,
@@ -25778,6 +26890,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     userProfiles,
     federations,
     classifications,
+    achievements,
     entitlements,
     courseProgress,
     purchases,
@@ -26223,6 +27336,7 @@ typedef $$BowsTableCreateCompanionBuilder =
       Value<String?> limbModel,
       Value<DateTime?> limbPurchaseDate,
       Value<double?> poundage,
+      Value<double?> drawLength,
       Value<double?> tillerTop,
       Value<double?> tillerBottom,
       Value<double?> braceHeight,
@@ -26248,6 +27362,7 @@ typedef $$BowsTableUpdateCompanionBuilder =
       Value<String?> limbModel,
       Value<DateTime?> limbPurchaseDate,
       Value<double?> poundage,
+      Value<double?> drawLength,
       Value<double?> tillerTop,
       Value<double?> tillerBottom,
       Value<double?> braceHeight,
@@ -26472,6 +27587,11 @@ class $$BowsTableFilterComposer extends Composer<_$AppDatabase, $BowsTable> {
 
   ColumnFilters<double> get poundage => $composableBuilder(
     column: $table.poundage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get drawLength => $composableBuilder(
+    column: $table.drawLength,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -26766,6 +27886,11 @@ class $$BowsTableOrderingComposer extends Composer<_$AppDatabase, $BowsTable> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get drawLength => $composableBuilder(
+    column: $table.drawLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get tillerTop => $composableBuilder(
     column: $table.tillerTop,
     builder: (column) => ColumnOrderings(column),
@@ -26860,6 +27985,11 @@ class $$BowsTableAnnotationComposer
 
   GeneratedColumn<double> get poundage =>
       $composableBuilder(column: $table.poundage, builder: (column) => column);
+
+  GeneratedColumn<double> get drawLength => $composableBuilder(
+    column: $table.drawLength,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<double> get tillerTop =>
       $composableBuilder(column: $table.tillerTop, builder: (column) => column);
@@ -27126,6 +28256,7 @@ class $$BowsTableTableManager
                 Value<String?> limbModel = const Value.absent(),
                 Value<DateTime?> limbPurchaseDate = const Value.absent(),
                 Value<double?> poundage = const Value.absent(),
+                Value<double?> drawLength = const Value.absent(),
                 Value<double?> tillerTop = const Value.absent(),
                 Value<double?> tillerBottom = const Value.absent(),
                 Value<double?> braceHeight = const Value.absent(),
@@ -27149,6 +28280,7 @@ class $$BowsTableTableManager
                 limbModel: limbModel,
                 limbPurchaseDate: limbPurchaseDate,
                 poundage: poundage,
+                drawLength: drawLength,
                 tillerTop: tillerTop,
                 tillerBottom: tillerBottom,
                 braceHeight: braceHeight,
@@ -27174,6 +28306,7 @@ class $$BowsTableTableManager
                 Value<String?> limbModel = const Value.absent(),
                 Value<DateTime?> limbPurchaseDate = const Value.absent(),
                 Value<double?> poundage = const Value.absent(),
+                Value<double?> drawLength = const Value.absent(),
                 Value<double?> tillerTop = const Value.absent(),
                 Value<double?> tillerBottom = const Value.absent(),
                 Value<double?> braceHeight = const Value.absent(),
@@ -27197,6 +28330,7 @@ class $$BowsTableTableManager
                 limbModel: limbModel,
                 limbPurchaseDate: limbPurchaseDate,
                 poundage: poundage,
+                drawLength: drawLength,
                 tillerTop: tillerTop,
                 tillerBottom: tillerBottom,
                 braceHeight: braceHeight,
@@ -35376,6 +36510,43 @@ typedef $$BreathTrainingLogsTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
+final class $$BreathTrainingLogsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $BreathTrainingLogsTable,
+          BreathTrainingLog
+        > {
+  $$BreathTrainingLogsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<$BreathHoldAwardsTable, List<BreathHoldAward>>
+  _breathHoldAwardsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.breathHoldAwards,
+    aliasName: $_aliasNameGenerator(
+      db.breathTrainingLogs.id,
+      db.breathHoldAwards.sessionLogId,
+    ),
+  );
+
+  $$BreathHoldAwardsTableProcessedTableManager get breathHoldAwardsRefs {
+    final manager = $$BreathHoldAwardsTableTableManager(
+      $_db,
+      $_db.breathHoldAwards,
+    ).filter((f) => f.sessionLogId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _breathHoldAwardsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
 class $$BreathTrainingLogsTableFilterComposer
     extends Composer<_$AppDatabase, $BreathTrainingLogsTable> {
   $$BreathTrainingLogsTableFilterComposer({
@@ -35444,6 +36615,31 @@ class $$BreathTrainingLogsTableFilterComposer
     column: $table.deletedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> breathHoldAwardsRefs(
+    Expression<bool> Function($$BreathHoldAwardsTableFilterComposer f) f,
+  ) {
+    final $$BreathHoldAwardsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.breathHoldAwards,
+      getReferencedColumn: (t) => t.sessionLogId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BreathHoldAwardsTableFilterComposer(
+            $db: $db,
+            $table: $db.breathHoldAwards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$BreathTrainingLogsTableOrderingComposer
@@ -35574,6 +36770,31 @@ class $$BreathTrainingLogsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  Expression<T> breathHoldAwardsRefs<T extends Object>(
+    Expression<T> Function($$BreathHoldAwardsTableAnnotationComposer a) f,
+  ) {
+    final $$BreathHoldAwardsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.breathHoldAwards,
+      getReferencedColumn: (t) => t.sessionLogId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BreathHoldAwardsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.breathHoldAwards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$BreathTrainingLogsTableTableManager
@@ -35587,16 +36808,9 @@ class $$BreathTrainingLogsTableTableManager
           $$BreathTrainingLogsTableAnnotationComposer,
           $$BreathTrainingLogsTableCreateCompanionBuilder,
           $$BreathTrainingLogsTableUpdateCompanionBuilder,
-          (
-            BreathTrainingLog,
-            BaseReferences<
-              _$AppDatabase,
-              $BreathTrainingLogsTable,
-              BreathTrainingLog
-            >,
-          ),
+          (BreathTrainingLog, $$BreathTrainingLogsTableReferences),
           BreathTrainingLog,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool breathHoldAwardsRefs})
         > {
   $$BreathTrainingLogsTableTableManager(
     _$AppDatabase db,
@@ -35675,9 +36889,47 @@ class $$BreathTrainingLogsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$BreathTrainingLogsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({breathHoldAwardsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (breathHoldAwardsRefs) db.breathHoldAwards,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (breathHoldAwardsRefs)
+                    await $_getPrefetchedData<
+                      BreathTrainingLog,
+                      $BreathTrainingLogsTable,
+                      BreathHoldAward
+                    >(
+                      currentTable: table,
+                      referencedTable: $$BreathTrainingLogsTableReferences
+                          ._breathHoldAwardsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$BreathTrainingLogsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).breathHoldAwardsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.sessionLogId == item.id,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -35692,16 +36944,362 @@ typedef $$BreathTrainingLogsTableProcessedTableManager =
       $$BreathTrainingLogsTableAnnotationComposer,
       $$BreathTrainingLogsTableCreateCompanionBuilder,
       $$BreathTrainingLogsTableUpdateCompanionBuilder,
-      (
-        BreathTrainingLog,
-        BaseReferences<
-          _$AppDatabase,
-          $BreathTrainingLogsTable,
-          BreathTrainingLog
-        >,
-      ),
+      (BreathTrainingLog, $$BreathTrainingLogsTableReferences),
       BreathTrainingLog,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool breathHoldAwardsRefs})
+    >;
+typedef $$BreathHoldAwardsTableCreateCompanionBuilder =
+    BreathHoldAwardsCompanion Function({
+      required String id,
+      required int secondsThreshold,
+      required String title,
+      Value<String?> sessionLogId,
+      required DateTime earnedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$BreathHoldAwardsTableUpdateCompanionBuilder =
+    BreathHoldAwardsCompanion Function({
+      Value<String> id,
+      Value<int> secondsThreshold,
+      Value<String> title,
+      Value<String?> sessionLogId,
+      Value<DateTime> earnedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+final class $$BreathHoldAwardsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $BreathHoldAwardsTable, BreathHoldAward> {
+  $$BreathHoldAwardsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $BreathTrainingLogsTable _sessionLogIdTable(_$AppDatabase db) =>
+      db.breathTrainingLogs.createAlias(
+        $_aliasNameGenerator(
+          db.breathHoldAwards.sessionLogId,
+          db.breathTrainingLogs.id,
+        ),
+      );
+
+  $$BreathTrainingLogsTableProcessedTableManager? get sessionLogId {
+    final $_column = $_itemColumn<String>('session_log_id');
+    if ($_column == null) return null;
+    final manager = $$BreathTrainingLogsTableTableManager(
+      $_db,
+      $_db.breathTrainingLogs,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sessionLogIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$BreathHoldAwardsTableFilterComposer
+    extends Composer<_$AppDatabase, $BreathHoldAwardsTable> {
+  $$BreathHoldAwardsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get secondsThreshold => $composableBuilder(
+    column: $table.secondsThreshold,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get earnedAt => $composableBuilder(
+    column: $table.earnedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$BreathTrainingLogsTableFilterComposer get sessionLogId {
+    final $$BreathTrainingLogsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionLogId,
+      referencedTable: $db.breathTrainingLogs,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BreathTrainingLogsTableFilterComposer(
+            $db: $db,
+            $table: $db.breathTrainingLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BreathHoldAwardsTableOrderingComposer
+    extends Composer<_$AppDatabase, $BreathHoldAwardsTable> {
+  $$BreathHoldAwardsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get secondsThreshold => $composableBuilder(
+    column: $table.secondsThreshold,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get earnedAt => $composableBuilder(
+    column: $table.earnedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$BreathTrainingLogsTableOrderingComposer get sessionLogId {
+    final $$BreathTrainingLogsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionLogId,
+      referencedTable: $db.breathTrainingLogs,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BreathTrainingLogsTableOrderingComposer(
+            $db: $db,
+            $table: $db.breathTrainingLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BreathHoldAwardsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BreathHoldAwardsTable> {
+  $$BreathHoldAwardsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get secondsThreshold => $composableBuilder(
+    column: $table.secondsThreshold,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get earnedAt =>
+      $composableBuilder(column: $table.earnedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$BreathTrainingLogsTableAnnotationComposer get sessionLogId {
+    final $$BreathTrainingLogsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.sessionLogId,
+          referencedTable: $db.breathTrainingLogs,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$BreathTrainingLogsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.breathTrainingLogs,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$BreathHoldAwardsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $BreathHoldAwardsTable,
+          BreathHoldAward,
+          $$BreathHoldAwardsTableFilterComposer,
+          $$BreathHoldAwardsTableOrderingComposer,
+          $$BreathHoldAwardsTableAnnotationComposer,
+          $$BreathHoldAwardsTableCreateCompanionBuilder,
+          $$BreathHoldAwardsTableUpdateCompanionBuilder,
+          (BreathHoldAward, $$BreathHoldAwardsTableReferences),
+          BreathHoldAward,
+          PrefetchHooks Function({bool sessionLogId})
+        > {
+  $$BreathHoldAwardsTableTableManager(
+    _$AppDatabase db,
+    $BreathHoldAwardsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BreathHoldAwardsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BreathHoldAwardsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BreathHoldAwardsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<int> secondsThreshold = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String?> sessionLogId = const Value.absent(),
+                Value<DateTime> earnedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BreathHoldAwardsCompanion(
+                id: id,
+                secondsThreshold: secondsThreshold,
+                title: title,
+                sessionLogId: sessionLogId,
+                earnedAt: earnedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required int secondsThreshold,
+                required String title,
+                Value<String?> sessionLogId = const Value.absent(),
+                required DateTime earnedAt,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BreathHoldAwardsCompanion.insert(
+                id: id,
+                secondsThreshold: secondsThreshold,
+                title: title,
+                sessionLogId: sessionLogId,
+                earnedAt: earnedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$BreathHoldAwardsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({sessionLogId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (sessionLogId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.sessionLogId,
+                                referencedTable:
+                                    $$BreathHoldAwardsTableReferences
+                                        ._sessionLogIdTable(db),
+                                referencedColumn:
+                                    $$BreathHoldAwardsTableReferences
+                                        ._sessionLogIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$BreathHoldAwardsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $BreathHoldAwardsTable,
+      BreathHoldAward,
+      $$BreathHoldAwardsTableFilterComposer,
+      $$BreathHoldAwardsTableOrderingComposer,
+      $$BreathHoldAwardsTableAnnotationComposer,
+      $$BreathHoldAwardsTableCreateCompanionBuilder,
+      $$BreathHoldAwardsTableUpdateCompanionBuilder,
+      (BreathHoldAward, $$BreathHoldAwardsTableReferences),
+      BreathHoldAward,
+      PrefetchHooks Function({bool sessionLogId})
     >;
 typedef $$MilestonesTableCreateCompanionBuilder =
     MilestonesCompanion Function({
@@ -38761,6 +40359,7 @@ typedef $$UserProfilesTableCreateCompanionBuilder =
       required String id,
       Value<String> primaryBowType,
       Value<String> handedness,
+      Value<double?> drawLength,
       Value<String?> name,
       Value<String?> clubName,
       Value<int?> yearsShootingStart,
@@ -38778,6 +40377,7 @@ typedef $$UserProfilesTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> primaryBowType,
       Value<String> handedness,
+      Value<double?> drawLength,
       Value<String?> name,
       Value<String?> clubName,
       Value<int?> yearsShootingStart,
@@ -38861,6 +40461,11 @@ class $$UserProfilesTableFilterComposer
 
   ColumnFilters<String> get handedness => $composableBuilder(
     column: $table.handedness,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get drawLength => $composableBuilder(
+    column: $table.drawLength,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -38989,6 +40594,11 @@ class $$UserProfilesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get drawLength => $composableBuilder(
+    column: $table.drawLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -39059,6 +40669,11 @@ class $$UserProfilesTableAnnotationComposer
 
   GeneratedColumn<String> get handedness => $composableBuilder(
     column: $table.handedness,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get drawLength => $composableBuilder(
+    column: $table.drawLength,
     builder: (column) => column,
   );
 
@@ -39185,6 +40800,7 @@ class $$UserProfilesTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> primaryBowType = const Value.absent(),
                 Value<String> handedness = const Value.absent(),
+                Value<double?> drawLength = const Value.absent(),
                 Value<String?> name = const Value.absent(),
                 Value<String?> clubName = const Value.absent(),
                 Value<int?> yearsShootingStart = const Value.absent(),
@@ -39200,6 +40816,7 @@ class $$UserProfilesTableTableManager
                 id: id,
                 primaryBowType: primaryBowType,
                 handedness: handedness,
+                drawLength: drawLength,
                 name: name,
                 clubName: clubName,
                 yearsShootingStart: yearsShootingStart,
@@ -39217,6 +40834,7 @@ class $$UserProfilesTableTableManager
                 required String id,
                 Value<String> primaryBowType = const Value.absent(),
                 Value<String> handedness = const Value.absent(),
+                Value<double?> drawLength = const Value.absent(),
                 Value<String?> name = const Value.absent(),
                 Value<String?> clubName = const Value.absent(),
                 Value<int?> yearsShootingStart = const Value.absent(),
@@ -39232,6 +40850,7 @@ class $$UserProfilesTableTableManager
                 id: id,
                 primaryBowType: primaryBowType,
                 handedness: handedness,
+                drawLength: drawLength,
                 name: name,
                 clubName: clubName,
                 yearsShootingStart: yearsShootingStart,
@@ -40516,6 +42135,290 @@ typedef $$ClassificationsTableProcessedTableManager =
         bool firstSessionId,
         bool secondSessionId,
       })
+    >;
+typedef $$AchievementsTableCreateCompanionBuilder =
+    AchievementsCompanion Function({
+      required String id,
+      required String achievementType,
+      Value<String?> skillId,
+      Value<String?> roundTypeId,
+      Value<int?> score,
+      required String title,
+      Value<String?> description,
+      Value<bool> isCompetitionPb,
+      Value<DateTime> earnedAt,
+      Value<int> rowid,
+    });
+typedef $$AchievementsTableUpdateCompanionBuilder =
+    AchievementsCompanion Function({
+      Value<String> id,
+      Value<String> achievementType,
+      Value<String?> skillId,
+      Value<String?> roundTypeId,
+      Value<int?> score,
+      Value<String> title,
+      Value<String?> description,
+      Value<bool> isCompetitionPb,
+      Value<DateTime> earnedAt,
+      Value<int> rowid,
+    });
+
+class $$AchievementsTableFilterComposer
+    extends Composer<_$AppDatabase, $AchievementsTable> {
+  $$AchievementsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get achievementType => $composableBuilder(
+    column: $table.achievementType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get skillId => $composableBuilder(
+    column: $table.skillId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get roundTypeId => $composableBuilder(
+    column: $table.roundTypeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isCompetitionPb => $composableBuilder(
+    column: $table.isCompetitionPb,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get earnedAt => $composableBuilder(
+    column: $table.earnedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AchievementsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AchievementsTable> {
+  $$AchievementsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get achievementType => $composableBuilder(
+    column: $table.achievementType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get skillId => $composableBuilder(
+    column: $table.skillId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get roundTypeId => $composableBuilder(
+    column: $table.roundTypeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isCompetitionPb => $composableBuilder(
+    column: $table.isCompetitionPb,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get earnedAt => $composableBuilder(
+    column: $table.earnedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AchievementsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AchievementsTable> {
+  $$AchievementsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get achievementType => $composableBuilder(
+    column: $table.achievementType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get skillId =>
+      $composableBuilder(column: $table.skillId, builder: (column) => column);
+
+  GeneratedColumn<String> get roundTypeId => $composableBuilder(
+    column: $table.roundTypeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get score =>
+      $composableBuilder(column: $table.score, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isCompetitionPb => $composableBuilder(
+    column: $table.isCompetitionPb,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get earnedAt =>
+      $composableBuilder(column: $table.earnedAt, builder: (column) => column);
+}
+
+class $$AchievementsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AchievementsTable,
+          Achievement,
+          $$AchievementsTableFilterComposer,
+          $$AchievementsTableOrderingComposer,
+          $$AchievementsTableAnnotationComposer,
+          $$AchievementsTableCreateCompanionBuilder,
+          $$AchievementsTableUpdateCompanionBuilder,
+          (
+            Achievement,
+            BaseReferences<_$AppDatabase, $AchievementsTable, Achievement>,
+          ),
+          Achievement,
+          PrefetchHooks Function()
+        > {
+  $$AchievementsTableTableManager(_$AppDatabase db, $AchievementsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AchievementsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AchievementsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AchievementsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> achievementType = const Value.absent(),
+                Value<String?> skillId = const Value.absent(),
+                Value<String?> roundTypeId = const Value.absent(),
+                Value<int?> score = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<bool> isCompetitionPb = const Value.absent(),
+                Value<DateTime> earnedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AchievementsCompanion(
+                id: id,
+                achievementType: achievementType,
+                skillId: skillId,
+                roundTypeId: roundTypeId,
+                score: score,
+                title: title,
+                description: description,
+                isCompetitionPb: isCompetitionPb,
+                earnedAt: earnedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String achievementType,
+                Value<String?> skillId = const Value.absent(),
+                Value<String?> roundTypeId = const Value.absent(),
+                Value<int?> score = const Value.absent(),
+                required String title,
+                Value<String?> description = const Value.absent(),
+                Value<bool> isCompetitionPb = const Value.absent(),
+                Value<DateTime> earnedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AchievementsCompanion.insert(
+                id: id,
+                achievementType: achievementType,
+                skillId: skillId,
+                roundTypeId: roundTypeId,
+                score: score,
+                title: title,
+                description: description,
+                isCompetitionPb: isCompetitionPb,
+                earnedAt: earnedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AchievementsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AchievementsTable,
+      Achievement,
+      $$AchievementsTableFilterComposer,
+      $$AchievementsTableOrderingComposer,
+      $$AchievementsTableAnnotationComposer,
+      $$AchievementsTableCreateCompanionBuilder,
+      $$AchievementsTableUpdateCompanionBuilder,
+      (
+        Achievement,
+        BaseReferences<_$AppDatabase, $AchievementsTable, Achievement>,
+      ),
+      Achievement,
+      PrefetchHooks Function()
     >;
 typedef $$EntitlementsTableCreateCompanionBuilder =
     EntitlementsCompanion Function({
@@ -41802,6 +43705,8 @@ class $AppDatabaseManager {
       $$UserTrainingProgressTableTableManager(_db, _db.userTrainingProgress);
   $$BreathTrainingLogsTableTableManager get breathTrainingLogs =>
       $$BreathTrainingLogsTableTableManager(_db, _db.breathTrainingLogs);
+  $$BreathHoldAwardsTableTableManager get breathHoldAwards =>
+      $$BreathHoldAwardsTableTableManager(_db, _db.breathHoldAwards);
   $$MilestonesTableTableManager get milestones =>
       $$MilestonesTableTableManager(_db, _db.milestones);
   $$VolumeImportsTableTableManager get volumeImports =>
@@ -41831,6 +43736,8 @@ class $AppDatabaseManager {
       $$FederationsTableTableManager(_db, _db.federations);
   $$ClassificationsTableTableManager get classifications =>
       $$ClassificationsTableTableManager(_db, _db.classifications);
+  $$AchievementsTableTableManager get achievements =>
+      $$AchievementsTableTableManager(_db, _db.achievements);
   $$EntitlementsTableTableManager get entitlements =>
       $$EntitlementsTableTableManager(_db, _db.entitlements);
   $$CourseProgressTableTableManager get courseProgress =>

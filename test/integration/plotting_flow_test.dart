@@ -19,6 +19,7 @@ import 'package:archery_super_app/providers/sight_marks_provider.dart';
 import 'package:archery_super_app/providers/auto_plot_provider.dart';
 import 'package:archery_super_app/providers/user_profile_provider.dart';
 import 'package:archery_super_app/providers/classification_provider.dart';
+import 'package:archery_super_app/providers/accessibility_provider.dart';
 import 'package:archery_super_app/services/vision_api_service.dart';
 import 'package:archery_super_app/screens/plotting_screen.dart';
 import 'package:archery_super_app/screens/session_start_screen.dart';
@@ -65,6 +66,9 @@ Widget buildTestApp({
             VisionApiService(),
           ),
         ),
+        ChangeNotifierProvider(
+          create: (_) => AccessibilityProvider()..loadSettings(),
+        ),
       ],
       child: MaterialApp(
         theme: AppTheme.darkTheme,
@@ -100,6 +104,9 @@ Widget buildPlottingTestApp({
             context.read<AppDatabase>(),
             VisionApiService(),
           ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AccessibilityProvider()..loadSettings(),
         ),
       ],
       child: MaterialApp(

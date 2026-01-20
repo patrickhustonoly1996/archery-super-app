@@ -96,6 +96,9 @@ class AccessibilityProvider extends ChangeNotifier {
   bool get showRingLabels => _showRingLabels;
   TextScaleOption get textScale => _textScale;
   double get textScaleFactor => _textScale.scaleFactor;
+  String get textScalePercentage => '${(_textScale.scaleFactor * 100).round()}%';
+  double get minTextScale => 0.85; // TextScaleOption.small
+  double get maxTextScale => 1.30; // TextScaleOption.extraLarge
   bool get reduceMotion => _reduceMotion;
   bool get boldText => _boldText;
   bool get screenReaderOptimized => _screenReaderOptimized;
@@ -169,6 +172,26 @@ class AccessibilityProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error saving text scale: $e');
     }
+  }
+
+  /// Set text scale by factor (maps to nearest TextScaleOption)
+  Future<void> setTextScaleFactor(double factor) async {
+    TextScaleOption option;
+    if (factor <= 0.92) {
+      option = TextScaleOption.small;
+    } else if (factor <= 1.07) {
+      option = TextScaleOption.normal;
+    } else if (factor <= 1.22) {
+      option = TextScaleOption.large;
+    } else {
+      option = TextScaleOption.extraLarge;
+    }
+    await setTextScale(option);
+  }
+
+  /// Reset to default text scale
+  Future<void> resetTextScale() async {
+    await setTextScale(TextScaleOption.normal);
   }
 
   /// Toggle reduced motion (disables animations)

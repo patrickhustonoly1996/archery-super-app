@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../theme/app_theme.dart';
+import '../theme/app_theme.dart' hide ColorblindMode;
 import '../providers/user_profile_provider.dart';
 import '../providers/accessibility_provider.dart';
 import '../providers/skills_provider.dart';
