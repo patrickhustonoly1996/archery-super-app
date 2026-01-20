@@ -24,7 +24,7 @@ The codebase **doubled** since the last roadmap was written. Tests didn't keep u
 
 ## Current Coverage (Honest)
 
-### Services: 10/20 tested (50%)
+### Services: 11/20 tested (55%)
 
 | Status | Service | Risk Level | Notes |
 |--------|---------|------------|-------|
@@ -41,7 +41,7 @@ The codebase **doubled** since the last roadmap was written. Tests didn't keep u
 | ✅ | training_session_service | - | Tested |
 | ❌ | **vision_api_service** | MEDIUM | Auto-plot failures |
 | ❌ | **scorecard_export_service** | MEDIUM | Export bugs |
-| ❌ | **weather_service** | LOW | Weather display bugs |
+| ✅ | weather_service | - | Tested |
 | ❌ | membership_card_service | LOW | Card generation |
 | ❌ | signature_service | LOW | Signature capture |
 | ❌ | chiptune_generator | LOW | Audio fun feature |
@@ -486,7 +486,7 @@ void main() {
 | tuning_suggestions_test | Claude | ✅ COMPLETE | 65 | 2026-01-20 |
 | undo_manager_test | Claude | ✅ COMPLETE | 29 | 2026-01-20 |
 | scorecard_export_service_test | - | NOT STARTED | 0 | - |
-| weather_service_test | - | NOT STARTED | 0 | - |
+| weather_service_test | Claude | ✅ COMPLETE | 111 | 2026-01-20 |
 | membership_card_service_test | - | NOT STARTED | 0 | - |
 | signature_service_test | - | NOT STARTED | 0 | - |
 | connectivity_provider_test | - | NOT STARTED | 0 | - |
