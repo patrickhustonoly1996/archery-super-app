@@ -284,90 +284,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       );
                     }
                   : null,
-              onLongPress: !s.isPlotted && s.importedScore != null
-                  ? () => _showScoreOptionsDialog(s.importedScore!)
+              onEdit: !s.isPlotted && s.importedScore != null
+                  ? () => _showEditScoreDialog(s.importedScore!)
+                  : null,
+              onDelete: !s.isPlotted && s.importedScore != null
+                  ? () => _confirmDeleteScore(s.importedScore!)
                   : null,
             )),
       ],
     );
-  }
-
-  Future<void> _showScoreOptionsDialog(ImportedScore score) async {
-    final result = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: AppColors.surfaceDark,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: AppSpacing.md),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.textMuted,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: Column(
-                children: [
-                  Text(
-                    score.roundName,
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${score.date.day}/${score.date.month}/${score.date.year} • ${score.score} pts',
-                    style: TextStyle(
-                      color: AppColors.gold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  if (score.location != null && score.location!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      score.location!,
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            ListTile(
-              leading: Icon(Icons.edit, color: AppColors.gold),
-              title: Text('Edit Score', style: TextStyle(color: AppColors.textPrimary)),
-              onTap: () => Navigator.pop(context, 'edit'),
-            ),
-            ListTile(
-              leading: Icon(Icons.delete, color: Colors.red),
-              title: Text('Delete Score', style: TextStyle(color: Colors.red)),
-              onTap: () => Navigator.pop(context, 'delete'),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-          ],
-        ),
-      ),
-    );
-
-    if (result == 'edit') {
-      await _showEditScoreDialog(score);
-    } else if (result == 'delete') {
-      await _confirmDeleteScore(score);
-    }
   }
 
   Future<void> _showEditScoreDialog(ImportedScore score) async {
@@ -610,7 +535,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Long-press any imported score to edit or delete'),
+                  content: Text('Swipe left on any imported score to edit or delete'),
                   duration: Duration(seconds: 3),
                 ),
               );
@@ -680,126 +605,306 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
 
 
-class _UnifiedScoreTile extends StatelessWidget {
+class _UnifiedScoreTile extends StatefulWidget {
   final UnifiedScore score;
   final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
-  const _UnifiedScoreTile({required this.score, this.onTap, this.onLongPress});
+  const _UnifiedScoreTile({
+    required this.score,
+    this.onTap,
+    this.onEdit,
+    this.onDelete,
+  });
+
+  @override
+  State<_UnifiedScoreTile> createState() => _UnifiedScoreTileState();
+}
+
+class _UnifiedScoreTileState extends State<_UnifiedScoreTile>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _slideAnimation;
+  bool _isOpen = false;
+
+  static const double _actionButtonWidth = 70.0;
+  static const double _totalActionsWidth = _actionButtonWidth * 2;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: Offset.zero,
+      end: const Offset(-_totalActionsWidth, 0),
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onHorizontalDragUpdate(DragUpdateDetails details) {
+    if (widget.onEdit == null && widget.onDelete == null) return;
+
+    final delta = details.primaryDelta ?? 0;
+    final newValue = _controller.value - (delta / _totalActionsWidth);
+    _controller.value = newValue.clamp(0.0, 1.0);
+  }
+
+  void _onHorizontalDragEnd(DragEndDetails details) {
+    if (widget.onEdit == null && widget.onDelete == null) return;
+
+    final velocity = details.primaryVelocity ?? 0;
+    if (velocity < -300) {
+      // Fast swipe left - open
+      _controller.forward();
+      _isOpen = true;
+    } else if (velocity > 300) {
+      // Fast swipe right - close
+      _controller.reverse();
+      _isOpen = false;
+    } else {
+      // Slow drag - snap based on position
+      if (_controller.value > 0.5) {
+        _controller.forward();
+        _isOpen = true;
+      } else {
+        _controller.reverse();
+        _isOpen = false;
+      }
+    }
+  }
+
+  void _closeActions() {
+    _controller.reverse();
+    _isOpen = false;
+  }
 
   @override
   Widget build(BuildContext context) {
     final dateStr =
-        '${score.date.day}/${score.date.month}/${score.date.year}';
+        '${widget.score.date.day}/${widget.score.date.month}/${widget.score.date.year}';
+    final canSwipe = widget.onEdit != null || widget.onDelete != null;
 
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: InkWell(
-        onTap: onTap ?? onLongPress,
-        onLongPress: onLongPress,
-        borderRadius: BorderRadius.circular(AppSpacing.sm),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
-            children: [
-              // Handicap prominently displayed
-              _HandicapBox(
-                handicap: score.handicap,
-                isPlotted: score.isPlotted,
-              ),
-
-              const SizedBox(width: AppSpacing.md),
-
-              // Details column
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      clipBehavior: Clip.antiAlias,
+      child: SizedBox(
+        height: 100,
+        child: Stack(
+          children: [
+            // Action buttons (revealed when swiped)
+            if (canSwipe)
+              Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                width: _totalActionsWidth,
+                child: Row(
                   children: [
-                    // Round name
-                    Text(
-                      score.roundName,
-                      style: Theme.of(context).textTheme.labelLarge,
+                    _ActionButton(
+                      icon: Icons.edit,
+                      label: 'Edit',
+                      color: AppColors.gold,
+                      onTap: () {
+                        _closeActions();
+                        widget.onEdit?.call();
+                      },
                     ),
-                    const SizedBox(height: 2),
-                    // Date and location
-                    Row(
-                      children: [
-                        Text(
-                          dateStr,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        if (score.location != null) ...[
-                          Text(
-                            '  •  ',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          Expanded(
-                            child: Text(
-                              score.location!,
-                              style: Theme.of(context).textTheme.bodySmall,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    // Category badges
-                    Row(
-                      children: [
-                        _CategoryBadge(
-                          label: score.isIndoor ? 'Indoor' : 'Outdoor',
-                          color: score.isIndoor
-                              ? AppColors.cyan
-                              : AppColors.magenta,
-                        ),
-                        const SizedBox(width: 6),
-                        _CategoryBadge(
-                          label: score.isCompetition ? 'Comp' : 'Practice',
-                          color: score.isCompetition
-                              ? AppColors.gold
-                              : AppColors.textSecondary,
-                        ),
-                      ],
+                    _ActionButton(
+                      icon: Icons.delete,
+                      label: 'Delete',
+                      color: Colors.red,
+                      onTap: () {
+                        _closeActions();
+                        widget.onDelete?.call();
+                      },
                     ),
                   ],
                 ),
               ),
 
-              // Score and X count
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    score.score.toString(),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  if (score.xCount != null && score.xCount! > 0)
-                    Container(
-                      margin: const EdgeInsets.only(top: 4),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.xs,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.gold.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        '${score.xCount}X',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.gold,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 10,
-                            ),
-                      ),
-                    ),
-                ],
+            // Main content (slides left)
+            AnimatedBuilder(
+              animation: _slideAnimation,
+              builder: (context, child) => Transform.translate(
+                offset: _slideAnimation.value,
+                child: child,
               ),
-            ],
-          ),
+              child: GestureDetector(
+                onHorizontalDragUpdate: canSwipe ? _onHorizontalDragUpdate : null,
+                onHorizontalDragEnd: canSwipe ? _onHorizontalDragEnd : null,
+                onTap: () {
+                  if (_isOpen) {
+                    _closeActions();
+                  } else {
+                    widget.onTap?.call();
+                  }
+                },
+                child: Container(
+                  color: AppColors.surfaceDark,
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Row(
+                    children: [
+                      // Handicap prominently displayed
+                      _HandicapBox(
+                        handicap: widget.score.handicap,
+                        isPlotted: widget.score.isPlotted,
+                      ),
+
+                      const SizedBox(width: AppSpacing.md),
+
+                      // Details column
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Round name
+                            Text(
+                              widget.score.roundName,
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
+                            const SizedBox(height: 2),
+                            // Date and location
+                            Row(
+                              children: [
+                                Text(
+                                  dateStr,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                                if (widget.score.location != null) ...[
+                                  Text(
+                                    '  •  ',
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      widget.score.location!,
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            // Category badges
+                            Row(
+                              children: [
+                                _CategoryBadge(
+                                  label: widget.score.isIndoor ? 'Indoor' : 'Outdoor',
+                                  color: widget.score.isIndoor
+                                      ? AppColors.cyan
+                                      : AppColors.magenta,
+                                ),
+                                const SizedBox(width: 6),
+                                _CategoryBadge(
+                                  label: widget.score.isCompetition ? 'Comp' : 'Practice',
+                                  color: widget.score.isCompetition
+                                      ? AppColors.gold
+                                      : AppColors.textSecondary,
+                                ),
+                                if (canSwipe) ...[
+                                  const Spacer(),
+                                  Icon(
+                                    Icons.chevron_left,
+                                    size: 16,
+                                    color: AppColors.textMuted.withValues(alpha: 0.5),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Score and X count
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            widget.score.score.toString(),
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          if (widget.score.xCount != null && widget.score.xCount! > 0)
+                            Container(
+                              margin: const EdgeInsets.only(top: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.xs,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.gold.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '${widget.score.xCount}X',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppColors.gold,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10,
+                                    ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 70,
+        color: color,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 24),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
