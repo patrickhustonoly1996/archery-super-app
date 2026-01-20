@@ -4,11 +4,13 @@ import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../models/arrow_coordinate.dart';
 import '../services/sync_service.dart';
+import '../services/vibration_service.dart';
 import '../utils/unique_id.dart';
 
 /// Manages the active scoring session state
 class SessionProvider extends ChangeNotifier {
   final AppDatabase _db;
+  final _vibration = VibrationService();
 
   SessionProvider(this._db);
 
@@ -268,6 +270,10 @@ class SessionProvider extends ChangeNotifier {
 
     // Reload current end arrows
     _currentEndArrows = await _db.getArrowsForEnd(_activeEnd!.id);
+
+    // Haptic feedback for arrow plotted
+    _vibration.light();
+
     notifyListeners();
 
     // Auto-commit when end is complete

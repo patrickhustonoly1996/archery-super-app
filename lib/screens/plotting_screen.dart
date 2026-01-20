@@ -47,6 +47,9 @@ const String kTripleSpotAutoAdvancePref = 'triple_spot_auto_advance';
 /// Preference key for triple spot advance order ('column' or 'triangular')
 const String kTripleSpotOrderPref = 'triple_spot_order';
 
+/// Preference key for hiding scores (sensitive athletes)
+const String kHideScoresPref = 'hide_scores_mode';
+
 class PlottingScreen extends StatefulWidget {
   const PlottingScreen({super.key});
 
@@ -73,6 +76,10 @@ class _PlottingScreenState extends State<PlottingScreen> {
   // Triple spot auto-advance settings
   bool _autoAdvanceEnabled = false;
   String _autoAdvanceOrder = 'column'; // 'column' or 'triangular'
+  // Hide scores mode (for sensitive athletes)
+  bool _hideScores = false;
+  // Scorecard expanded state
+  bool _scorecardExpanded = false;
 
   // Pending arrow position for fixed zoom window (normalized -1 to +1)
   // Using ValueNotifier for efficient updates without full widget rebuild
@@ -145,6 +152,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
     final ringNotation = await db.getBoolPreference(kShowRingNotationPref, defaultValue: true);
     final autoAdvance = await db.getBoolPreference(kTripleSpotAutoAdvancePref, defaultValue: false);
     final advanceOrder = await db.getPreference(kTripleSpotOrderPref);
+    final hideScores = await db.getBoolPreference(kHideScoresPref, defaultValue: false);
     if (mounted) {
       setState(() {
         _useTripleSpotView = tripleSpot;
@@ -154,6 +162,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
         _showRingNotation = ringNotation;
         _autoAdvanceEnabled = autoAdvance;
         _autoAdvanceOrder = advanceOrder ?? 'column';
+        _hideScores = hideScores;
         _prefsLoaded = true;
       });
     }
