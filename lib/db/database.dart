@@ -26,6 +26,11 @@ class RoundTypes extends Table {
   TextColumn get scoringType =>
       text().withDefault(const Constant('10-zone'))(); // 10-zone or 5-zone
 
+  /// Distance legs for multi-distance rounds (e.g., York: 100/80/60 yards)
+  /// JSON array: [{"distance": 100, "unit": "yd", "arrowCount": 72}, ...]
+  /// null for single-distance rounds
+  TextColumn get distanceLegs => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

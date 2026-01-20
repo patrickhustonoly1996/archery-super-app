@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../db/database.dart';
+import '../models/distance_leg.dart';
 
 /// World Archery format scorecard showing all ends in a scrollable table.
 /// Header row stays fixed while content scrolls.
@@ -49,55 +50,77 @@ class FullScorecardWidget extends StatelessWidget {
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Completed ends
-                  ...List.generate(completedEnds.length, (index) {
-                    final end = completedEnds[index];
-                    final arrows = index < completedEndArrows.length
-                        ? completedEndArrows[index]
-                        : <Arrow>[];
-                    return _buildEndRow(
-                      endNumber: end.endNumber,
-                      arrows: arrows,
-                      endTotal: end.endScore,
-                      runningTotal: _calculateRunningTotal(end.endNumber),
-                      cumulativeXs: _calculateCumulativeXs(end.endNumber),
-                      cumulative10s: _calculateCumulative10s(end.endNumber),
-                      isComplete: true,
-                      isDistanceEnd: _isDistanceEnd(end.endNumber),
-                    );
-                  }),
-
-                  // Current end (if not complete)
-                  if (currentEndNumber <= totalEnds &&
-                      currentEndNumber > completedEnds.length)
-                    _buildEndRow(
-                      endNumber: currentEndNumber,
-                      arrows: currentEndArrows,
-                      endTotal: _currentEndTotal(),
-                      runningTotal: _calculateRunningTotal(currentEndNumber - 1) +
-                          _currentEndTotal(),
-                      cumulativeXs: _calculateCumulativeXs(currentEndNumber - 1) +
-                          _currentXs(),
-                      cumulative10s: _calculateCumulative10s(currentEndNumber - 1) +
-                          _current10s(),
-                      isComplete: false,
-                      isDistanceEnd: _isDistanceEnd(currentEndNumber),
-                    ),
-
-                  // Distance subtotal row (if applicable)
-                  if (_shouldShowDistanceSubtotal())
-                    _buildDistanceSubtotalRow(),
-
-                  // Grand total row
-                  _buildGrandTotalRow(),
-                ],
+                children: _buildEndRowsWithSubtotals(),
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  /// Build all end rows with distance subtotals interleaved at leg boundaries
+  List<Widget> _buildEndRowsWithSubtotals() {
+    final widgets = <Widget>[];
+    final tracker = _getDistanceLegTracker();
+    final boundaries = _getDistanceBoundaryEnds();
+
+    // Track which leg we're in for subtotals
+    int lastSubtotalLegIndex = -1;
+
+    // Add completed end rows with subtotals after each distance leg
+    for (int index = 0; index < completedEnds.length; index++) {
+      final end = completedEnds[index];
+      final arrows = index < completedEndArrows.length
+          ? completedEndArrows[index]
+          : <Arrow>[];
+
+      widgets.add(_buildEndRow(
+        endNumber: end.endNumber,
+        arrows: arrows,
+        endTotal: end.endScore,
+        runningTotal: _calculateRunningTotal(end.endNumber),
+        cumulativeXs: _calculateCumulativeXs(end.endNumber),
+        cumulative10s: _calculateCumulative10s(end.endNumber),
+        isComplete: true,
+        isDistanceEnd: _isDistanceEnd(end.endNumber),
+      ));
+
+      // Add subtotal row after completing a distance leg
+      if (tracker != null && boundaries.contains(end.endNumber)) {
+        final legIndex = tracker.getLegIndexForEnd(end.endNumber);
+        if (legIndex > lastSubtotalLegIndex) {
+          widgets.add(_buildDistanceSubtotalRow(
+            legIndex: legIndex,
+            throughEndNumber: end.endNumber,
+          ));
+          lastSubtotalLegIndex = legIndex;
+        }
+      }
+    }
+
+    // Add current end (if not complete)
+    if (currentEndNumber <= totalEnds &&
+        currentEndNumber > completedEnds.length) {
+      widgets.add(_buildEndRow(
+        endNumber: currentEndNumber,
+        arrows: currentEndArrows,
+        endTotal: _currentEndTotal(),
+        runningTotal:
+            _calculateRunningTotal(currentEndNumber - 1) + _currentEndTotal(),
+        cumulativeXs:
+            _calculateCumulativeXs(currentEndNumber - 1) + _currentXs(),
+        cumulative10s:
+            _calculateCumulative10s(currentEndNumber - 1) + _current10s(),
+        isComplete: false,
+        isDistanceEnd: _isDistanceEnd(currentEndNumber),
+      ));
+    }
+
+    // Add grand total row
+    widgets.add(_buildGrandTotalRow());
+
+    return widgets;
   }
 
   Widget _buildHeaderRow() {
@@ -296,21 +319,29 @@ class FullScorecardWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildDistanceSubtotalRow() {
-    // Calculate distance subtotal based on round type
-    final distanceEnds = _getDistanceEndCount();
-    if (distanceEnds == 0 || distanceEnds >= totalEnds) return const SizedBox.shrink();
+  /// Build a subtotal row for a specific distance leg
+  Widget _buildDistanceSubtotalRow({
+    required int legIndex,
+    required int throughEndNumber,
+  }) {
+    final tracker = _getDistanceLegTracker();
+    if (tracker == null) return const SizedBox.shrink();
 
-    final subtotal = _calculateRunningTotal(distanceEnds);
-    final xs = _calculateCumulativeXs(distanceEnds);
-    final tens = _calculateCumulative10s(distanceEnds);
+    final leg = tracker.legs[legIndex];
+    final firstEndOfLeg = tracker.firstEndOfLeg(legIndex);
+
+    // Calculate subtotal for just this distance leg
+    final legSubtotal = _calculateLegScore(firstEndOfLeg, throughEndNumber);
+    final legXs = _calculateLegXs(firstEndOfLeg, throughEndNumber);
+    final leg10s = _calculateLeg10s(firstEndOfLeg, throughEndNumber);
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
       decoration: BoxDecoration(
         color: AppColors.gold.withValues(alpha: 0.1),
         border: Border(
-          bottom: BorderSide(color: AppColors.gold.withValues(alpha: 0.5), width: 1),
+          bottom:
+              BorderSide(color: AppColors.gold.withValues(alpha: 0.5), width: 1),
         ),
       ),
       child: Row(
@@ -318,7 +349,7 @@ class FullScorecardWidget extends StatelessWidget {
           SizedBox(
             width: 28 + (arrowsPerEnd * 24).toDouble(),
             child: Text(
-              'Distance Total',
+              '${leg.displayDistance} Total',
               style: TextStyle(
                 fontFamily: AppFonts.body,
                 color: AppColors.gold,
@@ -331,7 +362,7 @@ class FullScorecardWidget extends StatelessWidget {
             width: 32,
             child: Center(
               child: Text(
-                subtotal.toString(),
+                legSubtotal.toString(),
                 style: TextStyle(
                   fontFamily: AppFonts.body,
                   color: AppColors.gold,
@@ -346,7 +377,7 @@ class FullScorecardWidget extends StatelessWidget {
             width: 32,
             child: Center(
               child: Text(
-                tens > 0 ? tens.toString() : '',
+                leg10s > 0 ? leg10s.toString() : '',
                 style: TextStyle(
                   fontFamily: AppFonts.body,
                   color: AppColors.textSecondary,
@@ -359,7 +390,7 @@ class FullScorecardWidget extends StatelessWidget {
             width: 24,
             child: Center(
               child: Text(
-                xs > 0 ? xs.toString() : '',
+                legXs > 0 ? legXs.toString() : '',
                 style: TextStyle(
                   fontFamily: AppFonts.body,
                   color: AppColors.textSecondary,
@@ -371,6 +402,33 @@ class FullScorecardWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Calculate score for a range of ends (for leg subtotals)
+  int _calculateLegScore(int fromEnd, int toEnd) {
+    int total = 0;
+    for (int i = fromEnd - 1; i < toEnd && i < completedEnds.length; i++) {
+      total += completedEnds[i].endScore;
+    }
+    return total;
+  }
+
+  /// Calculate Xs for a range of ends (for leg subtotals)
+  int _calculateLegXs(int fromEnd, int toEnd) {
+    int xs = 0;
+    for (int i = fromEnd - 1; i < toEnd && i < completedEnds.length; i++) {
+      xs += completedEnds[i].endXs;
+    }
+    return xs;
+  }
+
+  /// Calculate 10s for a range of ends (for leg subtotals)
+  int _calculateLeg10s(int fromEnd, int toEnd) {
+    int tens = 0;
+    for (int i = fromEnd - 1; i < toEnd && i < completedEndArrows.length; i++) {
+      tens += completedEndArrows[i].where((a) => a.score == 10).length;
+    }
+    return tens;
   }
 
   Widget _buildGrandTotalRow() {
@@ -493,27 +551,32 @@ class FullScorecardWidget extends StatelessWidget {
     return currentEndArrows.where((a) => a.score == 10).length;
   }
 
+  /// Get the distance leg tracker for multi-distance rounds
+  DistanceLegTracker? _getDistanceLegTracker() {
+    if (roundType == null) return null;
+    final legs = roundType!.distanceLegs.parseDistanceLegs();
+    if (legs == null || legs.length <= 1) return null;
+    return DistanceLegTracker(legs: legs, arrowsPerEnd: arrowsPerEnd);
+  }
+
+  /// Check if this end marks the end of a distance leg
   bool _isDistanceEnd(int endNumber) {
-    // Check if this end marks the end of a distance
-    final distanceEnds = _getDistanceEndCount();
-    return distanceEnds > 0 && endNumber == distanceEnds;
+    final tracker = _getDistanceLegTracker();
+    if (tracker == null) return false;
+    return tracker.isLegBoundary(endNumber);
   }
 
-  int _getDistanceEndCount() {
-    // For multi-distance rounds, return the end number where first distance ends
-    // NOTE: Most WA/AGB rounds are single-distance. Multi-distance rounds like
-    // WA 1440 (4 distances) or Double rounds need proper round type metadata.
-    // For now, disable this feature until round type has explicit distance data.
-    // TODO: Add distanceBoundaries field to RoundType table
-    if (roundType == null) return 0;
-
-    // Only show distance subtotal for explicitly known multi-distance rounds
-    // Currently no rounds have this metadata, so return 0
-    return 0;
+  /// Get end numbers that mark distance boundaries
+  List<int> _getDistanceBoundaryEnds() {
+    final tracker = _getDistanceLegTracker();
+    if (tracker == null) return [];
+    return tracker.legBoundaryEnds;
   }
 
-  bool _shouldShowDistanceSubtotal() {
-    final distanceEnds = _getDistanceEndCount();
-    return distanceEnds > 0 && completedEnds.length >= distanceEnds;
+  /// Get distance leg info for a specific end
+  DistanceLeg? _getDistanceLegForEnd(int endNumber) {
+    final tracker = _getDistanceLegTracker();
+    if (tracker == null) return null;
+    return tracker.getLegForEnd(endNumber);
   }
 }

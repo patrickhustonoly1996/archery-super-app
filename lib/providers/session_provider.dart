@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../models/arrow_coordinate.dart';
+import '../models/distance_leg.dart';
 import '../services/sync_service.dart';
 import '../services/vibration_service.dart';
 import '../utils/unique_id.dart';
@@ -70,6 +71,66 @@ class SessionProvider extends ChangeNotifier {
 
   /// Maximum possible score for this round
   int? get maxScore => _currentRoundType?.maxScore;
+
+  // ============================================================================
+  // MULTI-DISTANCE ROUND SUPPORT
+  // ============================================================================
+
+  /// Parsed distance legs for the current round (null for single-distance rounds)
+  List<DistanceLeg>? get distanceLegs =>
+      _currentRoundType?.distanceLegs.parseDistanceLegs();
+
+  /// Distance leg tracker for the current round (null for single-distance rounds)
+  DistanceLegTracker? get distanceLegTracker {
+    final legs = distanceLegs;
+    if (legs == null || legs.length <= 1) return null;
+    return DistanceLegTracker(legs: legs, arrowsPerEnd: arrowsPerEnd);
+  }
+
+  /// Whether this is a multi-distance round
+  bool get isMultiDistance => (distanceLegs?.length ?? 0) > 1;
+
+  /// Current distance leg index (0-based), or 0 for single-distance rounds
+  int get currentLegIndex {
+    final tracker = distanceLegTracker;
+    if (tracker == null) return 0;
+    return tracker.getLegIndexForEnd(currentEndNumber);
+  }
+
+  /// Current distance leg, or null for single-distance rounds
+  DistanceLeg? get currentDistanceLeg {
+    final tracker = distanceLegTracker;
+    if (tracker == null) return null;
+    return tracker.getLegForEnd(currentEndNumber);
+  }
+
+  /// Current distance with unit (e.g., "100yd", "70m")
+  /// Falls back to round's default distance for single-distance rounds
+  String get currentDistanceDisplay {
+    final leg = currentDistanceLeg;
+    if (leg != null) return leg.displayDistance;
+    // Fallback for single-distance rounds
+    final dist = _currentRoundType?.distance ?? 0;
+    // Assume metric for outdoor, WA, etc. - imperial rounds will have distanceLegs
+    return '${dist}m';
+  }
+
+  /// End numbers that mark distance boundaries (for scorecard display)
+  /// Returns empty list for single-distance rounds
+  List<int> get distanceBoundaryEnds {
+    return distanceLegTracker?.legBoundaryEnds ?? [];
+  }
+
+  /// Check if a given end number is the last end of a distance leg
+  bool isDistanceBoundary(int endNumber) {
+    return distanceLegTracker?.isLegBoundary(endNumber) ?? false;
+  }
+
+  /// Get distance leg info for a specific end number
+  /// Returns null for single-distance rounds
+  DistanceLeg? getDistanceLegForEnd(int endNumber) {
+    return distanceLegTracker?.getLegForEnd(endNumber);
+  }
 
   /// Whether the current total score exceeds the round maximum
   /// This indicates a scoring bug that needs investigation

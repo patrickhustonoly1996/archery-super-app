@@ -123,7 +123,8 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       faceCount: const Value(1),
     ),
 
-    // WA 1440 (FITA) rounds
+    // WA 1440 (FITA) rounds - 4 distances, 36 arrows each = 144 total = 24 ends
+    // Face sizes: 122cm at long distances, 80cm at 50m and 30m
     RoundTypesCompanion.insert(
       id: 'wa_1440_90m',
       name: 'WA 1440 (90m)',
@@ -135,6 +136,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 1440,
       isIndoor: false,
       faceCount: const Value(1),
+      distanceLegs: const Value('[{"distance":90,"unit":"m","arrowCount":36},{"distance":70,"unit":"m","arrowCount":36},{"distance":50,"unit":"m","arrowCount":36,"faceSize":80},{"distance":30,"unit":"m","arrowCount":36,"faceSize":80}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'wa_1440_70m',
@@ -147,6 +149,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 1440,
       isIndoor: false,
       faceCount: const Value(1),
+      distanceLegs: const Value('[{"distance":70,"unit":"m","arrowCount":36},{"distance":60,"unit":"m","arrowCount":36},{"distance":50,"unit":"m","arrowCount":36,"faceSize":80},{"distance":30,"unit":"m","arrowCount":36,"faceSize":80}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'wa_1440_60m',
@@ -159,6 +162,7 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 1440,
       isIndoor: false,
       faceCount: const Value(1),
+      distanceLegs: const Value('[{"distance":60,"unit":"m","arrowCount":36},{"distance":50,"unit":"m","arrowCount":36},{"distance":40,"unit":"m","arrowCount":36,"faceSize":80},{"distance":30,"unit":"m","arrowCount":36,"faceSize":80}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'wa_1440_50m',
@@ -171,24 +175,27 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       maxScore: 1440,
       isIndoor: false,
       faceCount: const Value(1),
+      distanceLegs: const Value('[{"distance":50,"unit":"m","arrowCount":36},{"distance":40,"unit":"m","arrowCount":36},{"distance":30,"unit":"m","arrowCount":36,"faceSize":80},{"distance":20,"unit":"m","arrowCount":36,"faceSize":80}]'),
     ),
 
     // =========================================================================
     // AGB IMPERIAL OUTDOOR (5-zone scoring: 9-7-5-3-1 by color)
+    // Multi-distance rounds have distanceLegs defining each distance segment.
     // =========================================================================
-    // York / Hereford / Bristol series
+    // York / Hereford / Bristol series (72/48/24 arrows = 144 total = 24 ends)
     RoundTypesCompanion.insert(
       id: 'york',
       name: 'York',
       category: 'agb_imperial',
-      distance: 100, // yards, longest distance
+      distance: 100, // yards, longest distance (used for display/categorization)
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 12, // 72 arrows total (24@100, 24@80, 24@60)
+      totalEnds: 24, // 144 arrows: 72@100yd + 48@80yd + 24@60yd
       maxScore: 1296,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":100,"unit":"yd","arrowCount":72},{"distance":80,"unit":"yd","arrowCount":48},{"distance":60,"unit":"yd","arrowCount":24}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'hereford',
@@ -197,11 +204,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 80,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 12,
+      totalEnds: 24, // 144 arrows: 72@80yd + 48@60yd + 24@50yd
       maxScore: 1296,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":80,"unit":"yd","arrowCount":72},{"distance":60,"unit":"yd","arrowCount":48},{"distance":50,"unit":"yd","arrowCount":24}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'bristol_1',
@@ -210,11 +218,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 80,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 12,
+      totalEnds: 24, // 144 arrows: 72@80yd + 48@60yd + 24@50yd
       maxScore: 1296,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":80,"unit":"yd","arrowCount":72},{"distance":60,"unit":"yd","arrowCount":48},{"distance":50,"unit":"yd","arrowCount":24}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'bristol_2',
@@ -223,11 +232,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 60,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 12,
+      totalEnds: 24, // 144 arrows: 72@60yd + 48@50yd + 24@40yd
       maxScore: 1296,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":60,"unit":"yd","arrowCount":72},{"distance":50,"unit":"yd","arrowCount":48},{"distance":40,"unit":"yd","arrowCount":24}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'bristol_3',
@@ -236,11 +246,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 50,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 12,
+      totalEnds: 24, // 144 arrows: 72@50yd + 48@40yd + 24@30yd
       maxScore: 1296,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":50,"unit":"yd","arrowCount":72},{"distance":40,"unit":"yd","arrowCount":48},{"distance":30,"unit":"yd","arrowCount":24}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'bristol_4',
@@ -249,11 +260,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 40,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 12,
+      totalEnds: 24, // 144 arrows: 72@40yd + 48@30yd + 24@20yd
       maxScore: 1296,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":40,"unit":"yd","arrowCount":72},{"distance":30,"unit":"yd","arrowCount":48},{"distance":20,"unit":"yd","arrowCount":24}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'bristol_5',
@@ -262,14 +274,15 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 30,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 12,
+      totalEnds: 24, // 144 arrows: 72@30yd + 48@20yd + 24@10yd
       maxScore: 1296,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":30,"unit":"yd","arrowCount":72},{"distance":20,"unit":"yd","arrowCount":48},{"distance":10,"unit":"yd","arrowCount":24}]'),
     ),
 
-    // St George / Albion / Windsor series
+    // St George / Albion / Windsor series (36/36/36 arrows = 108 total = 18 ends)
     RoundTypesCompanion.insert(
       id: 'st_george',
       name: 'St George',
@@ -277,11 +290,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 100,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 6, // 36 arrows
-      maxScore: 648,
+      totalEnds: 18, // 108 arrows: 36@100yd + 36@80yd + 36@60yd
+      maxScore: 972,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":100,"unit":"yd","arrowCount":36},{"distance":80,"unit":"yd","arrowCount":36},{"distance":60,"unit":"yd","arrowCount":36}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'albion',
@@ -290,11 +304,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 80,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 6,
-      maxScore: 648,
+      totalEnds: 18, // 108 arrows: 36@80yd + 36@60yd + 36@50yd
+      maxScore: 972,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":80,"unit":"yd","arrowCount":36},{"distance":60,"unit":"yd","arrowCount":36},{"distance":50,"unit":"yd","arrowCount":36}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'windsor',
@@ -303,14 +318,15 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 60,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 6,
-      maxScore: 648,
+      totalEnds: 18, // 108 arrows: 36@60yd + 36@50yd + 36@40yd
+      maxScore: 972,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":60,"unit":"yd","arrowCount":36},{"distance":50,"unit":"yd","arrowCount":36},{"distance":40,"unit":"yd","arrowCount":36}]'),
     ),
 
-    // Short series
+    // Short Windsor series (36/36/36 arrows = 108 total = 18 ends)
     RoundTypesCompanion.insert(
       id: 'short_windsor',
       name: 'Short Windsor',
@@ -318,11 +334,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 50,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 6,
-      maxScore: 648,
+      totalEnds: 18, // 108 arrows: 36@50yd + 36@40yd + 36@30yd
+      maxScore: 972,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":50,"unit":"yd","arrowCount":36},{"distance":40,"unit":"yd","arrowCount":36},{"distance":30,"unit":"yd","arrowCount":36}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'junior_windsor',
@@ -331,11 +348,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 40,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 6,
-      maxScore: 648,
+      totalEnds: 18, // 108 arrows: 36@40yd + 36@30yd + 36@20yd
+      maxScore: 972,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":40,"unit":"yd","arrowCount":36},{"distance":30,"unit":"yd","arrowCount":36},{"distance":20,"unit":"yd","arrowCount":36}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'short_junior_windsor',
@@ -344,26 +362,28 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 30,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 6,
-      maxScore: 648,
+      totalEnds: 18, // 108 arrows: 36@30yd + 36@20yd + 36@10yd
+      maxScore: 972,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":30,"unit":"yd","arrowCount":36},{"distance":20,"unit":"yd","arrowCount":36},{"distance":10,"unit":"yd","arrowCount":36}]'),
     ),
 
-    // National series
+    // National series (48/24 arrows = 72 total = 12 ends)
     RoundTypesCompanion.insert(
       id: 'long_national',
       name: 'Long National',
       category: 'agb_imperial',
-      distance: 80, // 80, 60 yards
+      distance: 80,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 12, // 72 arrows
-      maxScore: 864,
+      totalEnds: 12, // 72 arrows: 48@80yd + 24@60yd
+      maxScore: 648,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":80,"unit":"yd","arrowCount":48},{"distance":60,"unit":"yd","arrowCount":24}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'national',
@@ -372,11 +392,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 60,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 12, // 72 arrows
-      maxScore: 864,
+      totalEnds: 12, // 72 arrows: 48@60yd + 24@50yd
+      maxScore: 648,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":60,"unit":"yd","arrowCount":48},{"distance":50,"unit":"yd","arrowCount":24}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'short_national',
@@ -385,11 +406,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 50,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 12,
-      maxScore: 864,
+      totalEnds: 12, // 72 arrows: 48@50yd + 24@40yd
+      maxScore: 648,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":50,"unit":"yd","arrowCount":48},{"distance":40,"unit":"yd","arrowCount":24}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'junior_national',
@@ -398,11 +420,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 40,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 12,
-      maxScore: 864,
+      totalEnds: 12, // 72 arrows: 48@40yd + 24@30yd
+      maxScore: 648,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":40,"unit":"yd","arrowCount":48},{"distance":30,"unit":"yd","arrowCount":24}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'short_junior_national',
@@ -411,14 +434,15 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 30,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 12,
-      maxScore: 864,
+      totalEnds: 12, // 72 arrows: 48@30yd + 24@20yd
+      maxScore: 648,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":30,"unit":"yd","arrowCount":48},{"distance":20,"unit":"yd","arrowCount":24}]'),
     ),
 
-    // Western series
+    // Western series (48/48 arrows = 96 total = 16 ends)
     RoundTypesCompanion.insert(
       id: 'western',
       name: 'Western',
@@ -426,11 +450,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 60,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 8,
+      totalEnds: 16, // 96 arrows: 48@60yd + 48@50yd
       maxScore: 864,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":60,"unit":"yd","arrowCount":48},{"distance":50,"unit":"yd","arrowCount":48}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'short_western',
@@ -439,11 +464,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 50,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 8,
+      totalEnds: 16, // 96 arrows: 48@50yd + 48@40yd
       maxScore: 864,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":50,"unit":"yd","arrowCount":48},{"distance":40,"unit":"yd","arrowCount":48}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'junior_western',
@@ -452,11 +478,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 40,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 8,
+      totalEnds: 16, // 96 arrows: 48@40yd + 48@30yd
       maxScore: 864,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":40,"unit":"yd","arrowCount":48},{"distance":30,"unit":"yd","arrowCount":48}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'short_junior_western',
@@ -465,14 +492,15 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 30,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 8,
+      totalEnds: 16, // 96 arrows: 48@30yd + 48@20yd
       maxScore: 864,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":30,"unit":"yd","arrowCount":48},{"distance":20,"unit":"yd","arrowCount":48}]'),
     ),
 
-    // American series
+    // American series (30/30/30 arrows = 90 total = 15 ends)
     RoundTypesCompanion.insert(
       id: 'american',
       name: 'American',
@@ -480,11 +508,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 60,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 5, // 30 arrows per distance, 90 total
+      totalEnds: 15, // 90 arrows: 30@60yd + 30@50yd + 30@40yd
       maxScore: 810,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":60,"unit":"yd","arrowCount":30},{"distance":50,"unit":"yd","arrowCount":30},{"distance":40,"unit":"yd","arrowCount":30}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'short_american',
@@ -493,14 +522,15 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 50,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 5,
+      totalEnds: 15, // 90 arrows: 30@50yd + 30@40yd + 30@30yd
       maxScore: 810,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":50,"unit":"yd","arrowCount":30},{"distance":40,"unit":"yd","arrowCount":30},{"distance":30,"unit":"yd","arrowCount":30}]'),
     ),
 
-    // Long/Short Warwick
+    // Warwick series (24/24 arrows = 48 total = 8 ends)
     RoundTypesCompanion.insert(
       id: 'long_warwick',
       name: 'Long Warwick',
@@ -508,11 +538,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 60,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 4, // 24 arrows per distance
+      totalEnds: 8, // 48 arrows: 24@60yd + 24@50yd
       maxScore: 432,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":60,"unit":"yd","arrowCount":24},{"distance":50,"unit":"yd","arrowCount":24}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'warwick',
@@ -521,11 +552,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 50,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 4,
+      totalEnds: 8, // 48 arrows: 24@50yd + 24@40yd
       maxScore: 432,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":50,"unit":"yd","arrowCount":24},{"distance":40,"unit":"yd","arrowCount":24}]'),
     ),
     RoundTypesCompanion.insert(
       id: 'short_warwick',
@@ -534,11 +566,12 @@ List<RoundTypesCompanion> getAllRoundTypesSeed() {
       distance: 40,
       faceSize: 122,
       arrowsPerEnd: 6,
-      totalEnds: 4,
+      totalEnds: 8, // 48 arrows: 24@40yd + 24@30yd
       maxScore: 432,
       isIndoor: false,
       faceCount: const Value(1),
       scoringType: const Value('5-zone'),
+      distanceLegs: const Value('[{"distance":40,"unit":"yd","arrowCount":24},{"distance":30,"unit":"yd","arrowCount":24}]'),
     ),
 
     // =========================================================================

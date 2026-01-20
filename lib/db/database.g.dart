@@ -131,6 +131,17 @@ class $RoundTypesTable extends RoundTypes
     requiredDuringInsert: false,
     defaultValue: const Constant('10-zone'),
   );
+  static const VerificationMeta _distanceLegsMeta = const VerificationMeta(
+    'distanceLegs',
+  );
+  @override
+  late final GeneratedColumn<String> distanceLegs = GeneratedColumn<String>(
+    'distance_legs',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -144,6 +155,7 @@ class $RoundTypesTable extends RoundTypes
     isIndoor,
     faceCount,
     scoringType,
+    distanceLegs,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -244,6 +256,15 @@ class $RoundTypesTable extends RoundTypes
         ),
       );
     }
+    if (data.containsKey('distance_legs')) {
+      context.handle(
+        _distanceLegsMeta,
+        distanceLegs.isAcceptableOrUnknown(
+          data['distance_legs']!,
+          _distanceLegsMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -297,6 +318,10 @@ class $RoundTypesTable extends RoundTypes
         DriftSqlType.string,
         data['${effectivePrefix}scoring_type'],
       )!,
+      distanceLegs: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}distance_legs'],
+      ),
     );
   }
 
@@ -318,6 +343,11 @@ class RoundType extends DataClass implements Insertable<RoundType> {
   final bool isIndoor;
   final int faceCount;
   final String scoringType;
+
+  /// Distance legs for multi-distance rounds (e.g., York: 100/80/60 yards)
+  /// JSON array: [{"distance": 100, "unit": "yd", "arrowCount": 72}, ...]
+  /// null for single-distance rounds
+  final String? distanceLegs;
   const RoundType({
     required this.id,
     required this.name,
@@ -330,6 +360,7 @@ class RoundType extends DataClass implements Insertable<RoundType> {
     required this.isIndoor,
     required this.faceCount,
     required this.scoringType,
+    this.distanceLegs,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -345,6 +376,9 @@ class RoundType extends DataClass implements Insertable<RoundType> {
     map['is_indoor'] = Variable<bool>(isIndoor);
     map['face_count'] = Variable<int>(faceCount);
     map['scoring_type'] = Variable<String>(scoringType);
+    if (!nullToAbsent || distanceLegs != null) {
+      map['distance_legs'] = Variable<String>(distanceLegs);
+    }
     return map;
   }
 
@@ -361,6 +395,9 @@ class RoundType extends DataClass implements Insertable<RoundType> {
       isIndoor: Value(isIndoor),
       faceCount: Value(faceCount),
       scoringType: Value(scoringType),
+      distanceLegs: distanceLegs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(distanceLegs),
     );
   }
 
@@ -381,6 +418,7 @@ class RoundType extends DataClass implements Insertable<RoundType> {
       isIndoor: serializer.fromJson<bool>(json['isIndoor']),
       faceCount: serializer.fromJson<int>(json['faceCount']),
       scoringType: serializer.fromJson<String>(json['scoringType']),
+      distanceLegs: serializer.fromJson<String?>(json['distanceLegs']),
     );
   }
   @override
@@ -398,6 +436,7 @@ class RoundType extends DataClass implements Insertable<RoundType> {
       'isIndoor': serializer.toJson<bool>(isIndoor),
       'faceCount': serializer.toJson<int>(faceCount),
       'scoringType': serializer.toJson<String>(scoringType),
+      'distanceLegs': serializer.toJson<String?>(distanceLegs),
     };
   }
 
@@ -413,6 +452,7 @@ class RoundType extends DataClass implements Insertable<RoundType> {
     bool? isIndoor,
     int? faceCount,
     String? scoringType,
+    Value<String?> distanceLegs = const Value.absent(),
   }) => RoundType(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -425,6 +465,7 @@ class RoundType extends DataClass implements Insertable<RoundType> {
     isIndoor: isIndoor ?? this.isIndoor,
     faceCount: faceCount ?? this.faceCount,
     scoringType: scoringType ?? this.scoringType,
+    distanceLegs: distanceLegs.present ? distanceLegs.value : this.distanceLegs,
   );
   RoundType copyWithCompanion(RoundTypesCompanion data) {
     return RoundType(
@@ -443,6 +484,9 @@ class RoundType extends DataClass implements Insertable<RoundType> {
       scoringType: data.scoringType.present
           ? data.scoringType.value
           : this.scoringType,
+      distanceLegs: data.distanceLegs.present
+          ? data.distanceLegs.value
+          : this.distanceLegs,
     );
   }
 
@@ -459,7 +503,8 @@ class RoundType extends DataClass implements Insertable<RoundType> {
           ..write('maxScore: $maxScore, ')
           ..write('isIndoor: $isIndoor, ')
           ..write('faceCount: $faceCount, ')
-          ..write('scoringType: $scoringType')
+          ..write('scoringType: $scoringType, ')
+          ..write('distanceLegs: $distanceLegs')
           ..write(')'))
         .toString();
   }
@@ -477,6 +522,7 @@ class RoundType extends DataClass implements Insertable<RoundType> {
     isIndoor,
     faceCount,
     scoringType,
+    distanceLegs,
   );
   @override
   bool operator ==(Object other) =>
@@ -492,7 +538,8 @@ class RoundType extends DataClass implements Insertable<RoundType> {
           other.maxScore == this.maxScore &&
           other.isIndoor == this.isIndoor &&
           other.faceCount == this.faceCount &&
-          other.scoringType == this.scoringType);
+          other.scoringType == this.scoringType &&
+          other.distanceLegs == this.distanceLegs);
 }
 
 class RoundTypesCompanion extends UpdateCompanion<RoundType> {
@@ -507,6 +554,7 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
   final Value<bool> isIndoor;
   final Value<int> faceCount;
   final Value<String> scoringType;
+  final Value<String?> distanceLegs;
   final Value<int> rowid;
   const RoundTypesCompanion({
     this.id = const Value.absent(),
@@ -520,6 +568,7 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
     this.isIndoor = const Value.absent(),
     this.faceCount = const Value.absent(),
     this.scoringType = const Value.absent(),
+    this.distanceLegs = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   RoundTypesCompanion.insert({
@@ -534,6 +583,7 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
     required bool isIndoor,
     this.faceCount = const Value.absent(),
     this.scoringType = const Value.absent(),
+    this.distanceLegs = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -556,6 +606,7 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
     Expression<bool>? isIndoor,
     Expression<int>? faceCount,
     Expression<String>? scoringType,
+    Expression<String>? distanceLegs,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -570,6 +621,7 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
       if (isIndoor != null) 'is_indoor': isIndoor,
       if (faceCount != null) 'face_count': faceCount,
       if (scoringType != null) 'scoring_type': scoringType,
+      if (distanceLegs != null) 'distance_legs': distanceLegs,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -586,6 +638,7 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
     Value<bool>? isIndoor,
     Value<int>? faceCount,
     Value<String>? scoringType,
+    Value<String?>? distanceLegs,
     Value<int>? rowid,
   }) {
     return RoundTypesCompanion(
@@ -600,6 +653,7 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
       isIndoor: isIndoor ?? this.isIndoor,
       faceCount: faceCount ?? this.faceCount,
       scoringType: scoringType ?? this.scoringType,
+      distanceLegs: distanceLegs ?? this.distanceLegs,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -640,6 +694,9 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
     if (scoringType.present) {
       map['scoring_type'] = Variable<String>(scoringType.value);
     }
+    if (distanceLegs.present) {
+      map['distance_legs'] = Variable<String>(distanceLegs.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -660,6 +717,7 @@ class RoundTypesCompanion extends UpdateCompanion<RoundType> {
           ..write('isIndoor: $isIndoor, ')
           ..write('faceCount: $faceCount, ')
           ..write('scoringType: $scoringType, ')
+          ..write('distanceLegs: $distanceLegs, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -27476,6 +27534,7 @@ typedef $$RoundTypesTableCreateCompanionBuilder =
       required bool isIndoor,
       Value<int> faceCount,
       Value<String> scoringType,
+      Value<String?> distanceLegs,
       Value<int> rowid,
     });
 typedef $$RoundTypesTableUpdateCompanionBuilder =
@@ -27491,6 +27550,7 @@ typedef $$RoundTypesTableUpdateCompanionBuilder =
       Value<bool> isIndoor,
       Value<int> faceCount,
       Value<String> scoringType,
+      Value<String?> distanceLegs,
       Value<int> rowid,
     });
 
@@ -27579,6 +27639,11 @@ class $$RoundTypesTableFilterComposer
 
   ColumnFilters<String> get scoringType => $composableBuilder(
     column: $table.scoringType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get distanceLegs => $composableBuilder(
+    column: $table.distanceLegs,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -27671,6 +27736,11 @@ class $$RoundTypesTableOrderingComposer
     column: $table.scoringType,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get distanceLegs => $composableBuilder(
+    column: $table.distanceLegs,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$RoundTypesTableAnnotationComposer
@@ -27716,6 +27786,11 @@ class $$RoundTypesTableAnnotationComposer
 
   GeneratedColumn<String> get scoringType => $composableBuilder(
     column: $table.scoringType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get distanceLegs => $composableBuilder(
+    column: $table.distanceLegs,
     builder: (column) => column,
   );
 
@@ -27784,6 +27859,7 @@ class $$RoundTypesTableTableManager
                 Value<bool> isIndoor = const Value.absent(),
                 Value<int> faceCount = const Value.absent(),
                 Value<String> scoringType = const Value.absent(),
+                Value<String?> distanceLegs = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RoundTypesCompanion(
                 id: id,
@@ -27797,6 +27873,7 @@ class $$RoundTypesTableTableManager
                 isIndoor: isIndoor,
                 faceCount: faceCount,
                 scoringType: scoringType,
+                distanceLegs: distanceLegs,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -27812,6 +27889,7 @@ class $$RoundTypesTableTableManager
                 required bool isIndoor,
                 Value<int> faceCount = const Value.absent(),
                 Value<String> scoringType = const Value.absent(),
+                Value<String?> distanceLegs = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RoundTypesCompanion.insert(
                 id: id,
@@ -27825,6 +27903,7 @@ class $$RoundTypesTableTableManager
                 isIndoor: isIndoor,
                 faceCount: faceCount,
                 scoringType: scoringType,
+                distanceLegs: distanceLegs,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
