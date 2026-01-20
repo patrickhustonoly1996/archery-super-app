@@ -342,6 +342,8 @@ class SessionProvider extends ChangeNotifier {
     if (_ends.length >= totalEnds) {
       await _completeSession();
     } else {
+      // Haptic feedback for end completed
+      _vibration.medium();
       // Create next end
       await _createNewEnd();
     }
@@ -361,6 +363,9 @@ class SessionProvider extends ChangeNotifier {
 
     // Trigger cloud backup in background
     _triggerCloudBackup();
+
+    // Haptic feedback for round/session completed
+    _vibration.double();
 
     notifyListeners();
   }

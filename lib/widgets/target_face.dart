@@ -153,17 +153,28 @@ class _TargetFacePainter extends CustomPainter {
       canvas.drawCircle(center, ring.$1 * radius * ringScale, linePaint);
     }
 
-    // Draw X ring (innermost)
+    // Draw X ring (innermost) - make it more visible for compound
     final xPaint = Paint()
       ..color = _getRingColor(10)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, xSize * radius * ringScale, xPaint);
 
-    // Draw center cross (within X ring)
-    final crossSize = xSize * radius * ringScale * 0.25; // 25% of X ring
+    // For compound mode, draw a more visible X ring boundary
+    if (compoundScoring) {
+      final xBorderPaint = Paint()
+        ..color = Colors.black
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5;
+      canvas.drawCircle(center, xSize * radius * ringScale, xBorderPaint);
+    }
+
+    // Draw center cross (within X ring) - make it more visible
+    final crossSize = compoundScoring
+        ? xSize * radius * ringScale * 0.6 // Larger cross for compound
+        : xSize * radius * ringScale * 0.25;
     final crossPaint = Paint()
       ..color = Colors.black
-      ..strokeWidth = lineWidth
+      ..strokeWidth = compoundScoring ? 1.5 : lineWidth
       ..strokeCap = StrokeCap.round;
     // Vertical line
     canvas.drawLine(
@@ -853,6 +864,15 @@ class _FixedZoomWindowPainter extends CustomPainter {
       ..color = _getRingColor(10)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, xSize * radius * ringScale, xPaint);
+
+    // For compound mode, draw a more visible X ring boundary
+    if (compoundScoring) {
+      final xBorderPaint = Paint()
+        ..color = Colors.black
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.0;
+      canvas.drawCircle(center, xSize * radius * ringScale, xBorderPaint);
+    }
   }
 
   void _drawRingLines(Canvas canvas, Offset center, double radius) {

@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import '../db/database.dart';
 import '../services/xp_calculation_service.dart';
 import '../services/sync_service.dart';
+import '../services/vibration_service.dart';
 import '../utils/unique_id.dart';
 import '../widgets/xp_badge_celebration.dart';
 
@@ -27,6 +28,7 @@ class LevelUpEvent {
 /// Handles XP awards, level progression, and celebrations.
 class SkillsProvider extends ChangeNotifier {
   final AppDatabase _db;
+  final _vibration = VibrationService();
 
   SkillsProvider(this._db);
 
@@ -160,6 +162,9 @@ class SkillsProvider extends ChangeNotifier {
           newLevel: newLevel,
           timestamp: DateTime.now(),
         ));
+
+        // Haptic feedback for level-up
+        _vibration.heavy();
       }
 
       // Reload skills to refresh state
