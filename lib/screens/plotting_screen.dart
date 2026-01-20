@@ -218,24 +218,50 @@ class _PlottingScreenState extends State<PlottingScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => PlottingSettingsSheet(
-        supportsTripleSpot: supportsTripleSpot,
-        useTripleSpot: _useTripleSpotView,
-        onTripleSpotChanged: _setTripleSpotView,
-        useCombinedView: _useCombinedView,
-        onCombinedViewChanged: _setCombinedView,
-        compoundScoring: _compoundScoring,
-        onCompoundScoringChanged: _setCompoundScoring,
-        confidenceMultiplier: _confidenceMultiplier,
-        onToggleConfidence: _toggleConfidenceMultiplier,
-        showRingNotation: _showRingNotation,
-        onToggleRingNotation: _toggleRingNotation,
-        shaftTaggingEnabled: provider.selectedQuiverId != null ? provider.shaftTaggingEnabled : null,
-        onShaftTaggingChanged: provider.selectedQuiverId != null ? provider.setShaftTagging : null,
-        autoAdvanceEnabled: _autoAdvanceEnabled,
-        onAutoAdvanceChanged: _setAutoAdvance,
-        autoAdvanceOrder: _autoAdvanceOrder,
-        onAutoAdvanceOrderChanged: _setAutoAdvanceOrder,
+      builder: (_) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => PlottingSettingsSheet(
+          supportsTripleSpot: supportsTripleSpot,
+          useTripleSpot: _useTripleSpotView,
+          onTripleSpotChanged: (value) {
+            _setTripleSpotView(value);
+            setSheetState(() {});
+          },
+          useCombinedView: _useCombinedView,
+          onCombinedViewChanged: (value) {
+            _setCombinedView(value);
+            setSheetState(() {});
+          },
+          compoundScoring: _compoundScoring,
+          onCompoundScoringChanged: (value) {
+            _setCompoundScoring(value);
+            setSheetState(() {});
+          },
+          confidenceMultiplier: _confidenceMultiplier,
+          onToggleConfidence: () {
+            _toggleConfidenceMultiplier();
+            setSheetState(() {});
+          },
+          showRingNotation: _showRingNotation,
+          onToggleRingNotation: () {
+            _toggleRingNotation();
+            setSheetState(() {});
+          },
+          shaftTaggingEnabled: provider.selectedQuiverId != null ? provider.shaftTaggingEnabled : null,
+          onShaftTaggingChanged: provider.selectedQuiverId != null ? (value) {
+            provider.setShaftTagging(value);
+            setSheetState(() {});
+          } : null,
+          autoAdvanceEnabled: _autoAdvanceEnabled,
+          onAutoAdvanceChanged: (value) {
+            _setAutoAdvance(value);
+            setSheetState(() {});
+          },
+          autoAdvanceOrder: _autoAdvanceOrder,
+          onAutoAdvanceOrderChanged: (value) {
+            _setAutoAdvanceOrder(value);
+            setSheetState(() {});
+          },
+        ),
       ),
     );
   }
