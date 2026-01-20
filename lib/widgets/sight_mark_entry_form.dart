@@ -98,9 +98,9 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
     setState(() => _isFetchingWeather = true);
 
     try {
-      // Try to get location first
+      // Try to get location (will prompt for permission if needed)
       final location = await LocationService.getCurrentLocation(
-        requestIfDenied: false, // Don't prompt on form open
+        requestIfDenied: true,
       );
 
       if (location != null) {
@@ -402,22 +402,12 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
                       ],
                     ),
                   ),
-                  // Auto-fetch weather button
-                  if (WeatherService.isConfigured)
-                    TextButton.icon(
-                      onPressed: _isFetchingWeather ? null : _fetchWeather,
-                      icon: _isFetchingWeather
-                          ? const SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.cloud_download, size: 16),
-                      label: Text(_isFetchingWeather ? 'Loading...' : 'Auto'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.gold,
-                        visualDensity: VisualDensity.compact,
-                      ),
+                  // Show loading indicator while fetching weather
+                  if (_isFetchingWeather)
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                 ],
               ),

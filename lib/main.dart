@@ -29,6 +29,7 @@ import 'services/vision_api_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/sync_service.dart';
+import 'services/weather_service.dart';
 import 'widgets/splash_branding.dart';
 import 'widgets/level_up_celebration.dart';
 
@@ -76,6 +77,8 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
     super.initState();
     // Initialize SyncService singleton with database reference
     SyncService().initialize(_database);
+    // Initialize weather API for sightmark conditions
+    WeatherService.setApiKey('c7baa373bebb99801fa7b67dce88c171');
   }
 
   @override
@@ -104,7 +107,8 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
             create: (context) => BreathTrainingProvider(),
           ),
           ChangeNotifierProvider(
-            create: (context) => ActiveSessionsProvider()..loadSessions(),
+            // Defer loading - not needed for home screen
+            create: (context) => ActiveSessionsProvider(),
           ),
           ChangeNotifierProvider(
             create: (context) => SpiderGraphProvider(context.read<AppDatabase>()),
@@ -113,18 +117,17 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
             create: (context) => ConnectivityProvider(),
           ),
           ChangeNotifierProvider(
-            create: (context) =>
-                SkillsProvider(context.read<AppDatabase>())..loadSkills(),
+            // Defer loading - badges show default values until loaded
+            create: (context) => SkillsProvider(context.read<AppDatabase>()),
           ),
           ChangeNotifierProvider(
             create: (context) => SightMarksProvider(context.read<AppDatabase>()),
           ),
           ChangeNotifierProvider(
+            // Defer initialization - only needed when using auto-plot
             create: (context) {
-              // VisionApiService uses Firebase Functions backend - no API key needed
               final visionService = VisionApiService();
-              return AutoPlotProvider(context.read<AppDatabase>(), visionService)
-                ..initialize();
+              return AutoPlotProvider(context.read<AppDatabase>(), visionService);
             },
           ),
           ChangeNotifierProvider(

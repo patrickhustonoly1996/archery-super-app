@@ -40,7 +40,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with WidgetsBindingObserver, TickerProviderStateMixin {
-  bool _isLoading = true;
+  // No loading state - render menu immediately
   bool _hasIncompleteSession = false;
   bool _hasPausedBowTraining = false;
   bool _hasPausedBreathTraining = false;
@@ -262,7 +262,29 @@ class _HomeScreenState extends State<HomeScreen>
       duration: const Duration(milliseconds: 800),
     );
 
+    // Start intro animation immediately - no waiting for database
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        _introController.forward().then((_) {
+          if (mounted) setState(() => _introComplete = true);
+        });
+      }
+    });
+
+    // Check for incomplete sessions in background (non-blocking)
     _checkForIncompleteSession();
+
+    // Trigger deferred provider loads after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadDeferredProviders();
+    });
+  }
+
+  /// Load deferred providers in background after UI renders
+  void _loadDeferredProviders() {
+    if (!mounted) return;
+    // Load skills for level badges (non-blocking)
+    context.read<SkillsProvider>().loadSkills();
   }
 
   @override
@@ -306,65 +328,44 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> _checkForIncompleteSession() async {
+    // Non-blocking background check - UI renders immediately
     try {
       final sessionProvider = context.read<SessionProvider>();
       final bowProvider = context.read<BowTrainingProvider>();
       final breathProvider = context.read<BreathTrainingProvider>();
 
-      final hasIncomplete = await sessionProvider
-          .checkForIncompleteSession()
-          .timeout(const Duration(seconds: 10), onTimeout: () => false);
-
-      // Check for paused bow training (provider state is in memory)
+      // Check for paused training first (in-memory, instant)
       final hasPausedBow = bowProvider.isActive &&
           bowProvider.timerState == TimerState.paused;
-
-      // Check for paused breath training
       final hasPausedBreath = breathProvider.isActive;
 
-      if (mounted) {
+      // Update UI immediately with in-memory state
+      if (mounted && (hasPausedBow || hasPausedBreath)) {
         setState(() {
-          _hasIncompleteSession = hasIncomplete;
           _hasPausedBowTraining = hasPausedBow;
           _hasPausedBreathTraining = hasPausedBreath;
-          _isLoading = false;
         });
-        // Start intro animation
-        Future.delayed(const Duration(milliseconds: 600), () {
-          if (mounted) {
-            _introController.forward().then((_) {
-              if (mounted) setState(() => _introComplete = true);
-            });
-          }
+      }
+
+      // Database check runs in background with timeout
+      final hasIncomplete = await sessionProvider
+          .checkForIncompleteSession()
+          .timeout(const Duration(seconds: 5), onTimeout: () => false);
+
+      if (mounted && hasIncomplete != _hasIncompleteSession) {
+        setState(() {
+          _hasIncompleteSession = hasIncomplete;
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _hasIncompleteSession = false;
-          _hasPausedBowTraining = false;
-          _hasPausedBreathTraining = false;
-          _isLoading = false;
-        });
-        Future.delayed(const Duration(milliseconds: 600), () {
-          if (mounted) {
-            _introController.forward().then((_) {
-              if (mounted) setState(() => _introComplete = true);
-            });
-          }
-        });
-      }
+      // Silently fail - menu works without resume option
+      debugPrint('Session check failed: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: _PixelLoadingIndicator()),
-      );
-    }
-
+    // No loading screen - render menu immediately for instant startup
     return Scaffold(
       body: Stack(
         children: [
