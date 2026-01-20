@@ -181,7 +181,7 @@ class _LevelUpCelebrationState extends State<LevelUpCelebration>
               ),
             ),
 
-            // Level up text
+            // Level up scroll banner
             Center(
               child: AnimatedBuilder(
                 animation: _scaleController,
@@ -194,81 +194,82 @@ class _LevelUpCelebrationState extends State<LevelUpCelebration>
                     ),
                   );
                 },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-                  decoration: BoxDecoration(
-                    color: AppColors.backgroundDark.withValues(alpha: 0.95),
-                    border: Border.all(color: AppColors.gold, width: 3),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.gold.withValues(alpha: 0.4),
-                        blurRadius: 30,
-                        spreadRadius: 5,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // "LEVEL UP!" header
-                      Text(
-                        'LEVEL UP!',
-                        style: TextStyle(
-                          fontFamily: AppFonts.pixel,
-                          fontSize: 28,
-                          color: AppColors.gold,
-                          letterSpacing: 4,
-                          shadows: [
-                            Shadow(
-                              color: AppColors.gold.withValues(alpha: 0.5),
-                              blurRadius: 10,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Skill name
-                      Text(
-                        widget.event.skillName.toUpperCase(),
-                        style: TextStyle(
-                          fontFamily: AppFonts.pixel,
-                          fontSize: 16,
-                          color: AppColors.textPrimary,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Level transition
-                      Row(
+                child: SizedBox(
+                  width: 280,
+                  height: 220,
+                  child: CustomPaint(
+                    painter: _ScrollBannerPainter(),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(40, 35, 40, 45),
+                      child: Column(
                         mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _LevelBox(level: widget.event.oldLevel, isOld: true),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Icon(
-                              Icons.arrow_forward,
+                          // "LEVEL UP!" header
+                          Text(
+                            'LEVEL UP!',
+                            style: TextStyle(
+                              fontFamily: AppFonts.pixel,
+                              fontSize: 24,
                               color: AppColors.gold,
-                              size: 24,
+                              letterSpacing: 3,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withValues(alpha: 0.5),
+                                  blurRadius: 4,
+                                  offset: const Offset(2, 2),
+                                ),
+                              ],
                             ),
                           ),
-                          _LevelBox(level: widget.event.newLevel, isOld: false),
+                          const SizedBox(height: 10),
+
+                          // Skill name
+                          Text(
+                            widget.event.skillName.toUpperCase(),
+                            style: TextStyle(
+                              fontFamily: AppFonts.pixel,
+                              fontSize: 12,
+                              color: AppColors.textPrimary,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Level transition
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _LevelBox(level: widget.event.oldLevel, isOld: true),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                child: Text(
+                                  '→',
+                                  style: TextStyle(
+                                    fontFamily: AppFonts.pixel,
+                                    fontSize: 20,
+                                    color: AppColors.gold,
+                                  ),
+                                ),
+                              ),
+                              _LevelBox(level: widget.event.newLevel, isOld: false),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Tap to dismiss hint
+                          Text(
+                            'TAP TO CONTINUE',
+                            style: TextStyle(
+                              fontFamily: AppFonts.pixel,
+                              fontSize: 8,
+                              color: AppColors.textMuted,
+                              letterSpacing: 1,
+                            ),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-
-                      // Tap to dismiss hint
-                      Text(
-                        'TAP TO CONTINUE',
-                        style: TextStyle(
-                          fontFamily: AppFonts.pixel,
-                          fontSize: 10,
-                          color: AppColors.textMuted,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -290,8 +291,8 @@ class _LevelBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 56,
-      height: 56,
+      width: 44,
+      height: 44,
       decoration: BoxDecoration(
         color: isOld
             ? AppColors.surfaceDark
@@ -306,7 +307,7 @@ class _LevelBox extends StatelessWidget {
           '$level',
           style: TextStyle(
             fontFamily: AppFonts.pixel,
-            fontSize: 24,
+            fontSize: 18,
             color: isOld ? AppColors.textMuted : AppColors.gold,
             fontWeight: FontWeight.bold,
           ),
@@ -314,6 +315,193 @@ class _LevelBox extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Scroll banner painter with curly rolled ends.
+class _ScrollBannerPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // Scroll colors
+    final parchmentColor = const Color(0xFF1A1510); // Dark parchment
+    final parchmentLight = const Color(0xFF2A2520); // Slightly lighter
+    final rollColor = const Color(0xFF0F0A08); // Darker roll shadow
+    final goldBorder = AppColors.gold;
+
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    // Roll thickness
+    const rollH = 22.0;
+    const rollCurve = 12.0;
+
+    // =========== TOP ROLL ===========
+    // Roll shadow/depth (darker part behind)
+    paint.color = rollColor;
+    final topRollShadow = Path()
+      ..moveTo(rollCurve, rollH + 4)
+      ..quadraticBezierTo(0, rollH + 4, 0, rollH / 2 + 4)
+      ..quadraticBezierTo(0, 4, rollCurve, 4)
+      ..lineTo(w - rollCurve, 4)
+      ..quadraticBezierTo(w, 4, w, rollH / 2 + 4)
+      ..quadraticBezierTo(w, rollH + 4, w - rollCurve, rollH + 4)
+      ..close();
+    canvas.drawPath(topRollShadow, paint);
+
+    // Top roll main body
+    paint.color = parchmentLight;
+    final topRoll = Path()
+      ..moveTo(rollCurve, rollH)
+      ..quadraticBezierTo(0, rollH, 0, rollH / 2)
+      ..quadraticBezierTo(0, 0, rollCurve, 0)
+      ..lineTo(w - rollCurve, 0)
+      ..quadraticBezierTo(w, 0, w, rollH / 2)
+      ..quadraticBezierTo(w, rollH, w - rollCurve, rollH)
+      ..close();
+    canvas.drawPath(topRoll, paint);
+
+    // Top roll curl detail (left)
+    paint.color = rollColor;
+    canvas.drawOval(
+      Rect.fromLTWH(-4, rollH / 2 - 6, 16, 12),
+      paint,
+    );
+    paint.color = parchmentLight;
+    canvas.drawOval(
+      Rect.fromLTWH(-2, rollH / 2 - 4, 12, 8),
+      paint,
+    );
+
+    // Top roll curl detail (right)
+    paint.color = rollColor;
+    canvas.drawOval(
+      Rect.fromLTWH(w - 12, rollH / 2 - 6, 16, 12),
+      paint,
+    );
+    paint.color = parchmentLight;
+    canvas.drawOval(
+      Rect.fromLTWH(w - 10, rollH / 2 - 4, 12, 8),
+      paint,
+    );
+
+    // =========== MAIN PARCHMENT BODY ===========
+    paint.color = parchmentColor;
+    final body = Path()
+      ..moveTo(8, rollH)
+      ..lineTo(w - 8, rollH)
+      ..lineTo(w - 8, h - rollH)
+      ..lineTo(8, h - rollH)
+      ..close();
+    canvas.drawPath(body, paint);
+
+    // =========== BOTTOM ROLL ===========
+    // Roll shadow/depth
+    paint.color = rollColor;
+    final bottomRollShadow = Path()
+      ..moveTo(rollCurve, h - rollH - 4)
+      ..quadraticBezierTo(0, h - rollH - 4, 0, h - rollH / 2 - 4)
+      ..quadraticBezierTo(0, h - 4, rollCurve, h - 4)
+      ..lineTo(w - rollCurve, h - 4)
+      ..quadraticBezierTo(w, h - 4, w, h - rollH / 2 - 4)
+      ..quadraticBezierTo(w, h - rollH - 4, w - rollCurve, h - rollH - 4)
+      ..close();
+    canvas.drawPath(bottomRollShadow, paint);
+
+    // Bottom roll main body
+    paint.color = parchmentLight;
+    final bottomRoll = Path()
+      ..moveTo(rollCurve, h - rollH)
+      ..quadraticBezierTo(0, h - rollH, 0, h - rollH / 2)
+      ..quadraticBezierTo(0, h, rollCurve, h)
+      ..lineTo(w - rollCurve, h)
+      ..quadraticBezierTo(w, h, w, h - rollH / 2)
+      ..quadraticBezierTo(w, h - rollH, w - rollCurve, h - rollH)
+      ..close();
+    canvas.drawPath(bottomRoll, paint);
+
+    // Bottom roll curl detail (left)
+    paint.color = rollColor;
+    canvas.drawOval(
+      Rect.fromLTWH(-4, h - rollH / 2 - 6, 16, 12),
+      paint,
+    );
+    paint.color = parchmentLight;
+    canvas.drawOval(
+      Rect.fromLTWH(-2, h - rollH / 2 - 4, 12, 8),
+      paint,
+    );
+
+    // Bottom roll curl detail (right)
+    paint.color = rollColor;
+    canvas.drawOval(
+      Rect.fromLTWH(w - 12, h - rollH / 2 - 6, 16, 12),
+      paint,
+    );
+    paint.color = parchmentLight;
+    canvas.drawOval(
+      Rect.fromLTWH(w - 10, h - rollH / 2 - 4, 12, 8),
+      paint,
+    );
+
+    // =========== GOLD BORDERS ===========
+    final borderPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..color = goldBorder;
+
+    // Top roll border
+    final topBorder = Path()
+      ..moveTo(rollCurve, rollH)
+      ..quadraticBezierTo(0, rollH, 0, rollH / 2)
+      ..quadraticBezierTo(0, 0, rollCurve, 0)
+      ..lineTo(w - rollCurve, 0)
+      ..quadraticBezierTo(w, 0, w, rollH / 2)
+      ..quadraticBezierTo(w, rollH, w - rollCurve, rollH);
+    canvas.drawPath(topBorder, borderPaint);
+
+    // Bottom roll border
+    final bottomBorder = Path()
+      ..moveTo(rollCurve, h - rollH)
+      ..quadraticBezierTo(0, h - rollH, 0, h - rollH / 2)
+      ..quadraticBezierTo(0, h, rollCurve, h)
+      ..lineTo(w - rollCurve, h)
+      ..quadraticBezierTo(w, h, w, h - rollH / 2)
+      ..quadraticBezierTo(w, h - rollH, w - rollCurve, h - rollH);
+    canvas.drawPath(bottomBorder, borderPaint);
+
+    // Side borders
+    canvas.drawLine(Offset(8, rollH), Offset(8, h - rollH), borderPaint);
+    canvas.drawLine(Offset(w - 8, rollH), Offset(w - 8, h - rollH), borderPaint);
+
+    // Decorative pixel dots on rolls
+    _drawRollDots(canvas, w, rollH, h);
+  }
+
+  void _drawRollDots(Canvas canvas, double w, double rollH, double h) {
+    final dotPaint = Paint()
+      ..color = AppColors.gold.withValues(alpha: 0.5)
+      ..style = PaintingStyle.fill;
+
+    // Top roll dots
+    for (double x = 30; x < w - 30; x += 40) {
+      canvas.drawRect(
+        Rect.fromCenter(center: Offset(x, rollH / 2), width: 4, height: 4),
+        dotPaint,
+      );
+    }
+
+    // Bottom roll dots
+    for (double x = 30; x < w - 30; x += 40) {
+      canvas.drawRect(
+        Rect.fromCenter(center: Offset(x, h - rollH / 2), width: 4, height: 4),
+        dotPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 /// Particle data for fireworks.

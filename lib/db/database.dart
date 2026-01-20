@@ -761,6 +761,23 @@ class Classifications extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Earned achievements (streaks, PBs, milestones, etc.)
+/// Records achievements for display in skills profile
+class Achievements extends Table {
+  TextColumn get id => text()();
+  TextColumn get achievementType => text()(); // 'streak7', 'streak14', 'streak30', 'personalBest', 'competitionPb', 'excellentForm', 'fullPlot', 'milestone'
+  TextColumn get skillId => text().nullable()(); // Related skill (optional)
+  TextColumn get roundTypeId => text().nullable()(); // For PBs: which round type
+  IntColumn get score => integer().nullable()(); // For PBs: the score achieved
+  TextColumn get title => text()(); // Display title (e.g., "7 DAY STREAK", "PORTSMOUTH PB")
+  TextColumn get description => text().nullable()(); // Details (e.g., "Score: 571")
+  BoolColumn get isCompetitionPb => boolean().withDefault(const Constant(false))(); // More elaborate shield for comp PBs
+  DateTimeColumn get earnedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // SYNC SYSTEM
 // ============================================================================
@@ -837,6 +854,7 @@ class SyncMetadata extends Table {
   UserProfiles,
   Federations,
   Classifications,
+  Achievements,
   // Entitlement & Education System
   Entitlements,
   CourseProgress,
@@ -1084,6 +1102,8 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(bows, bows.drawLength);
           // Breath hold awards table
           await m.createTable(breathHoldAwards);
+          // Achievements system for skills profile
+          await m.createTable(achievements);
         }
       },
     );
@@ -2648,6 +2668,66 @@ class AppDatabase extends _$AppDatabase {
   /// Delete all classifications for a profile
   Future<int> deleteClassificationsForProfile(String profileId) =>
       (delete(classifications)..where((t) => t.profileId.equals(profileId))).go();
+
+  // ===========================================================================
+  // ACHIEVEMENTS
+  // ===========================================================================
+
+  /// Get all achievements ordered by date (newest first)
+  Future<List<Achievement>> getAllAchievements() =>
+      (select(achievements)..orderBy([(t) => OrderingTerm.desc(t.earnedAt)])).get();
+
+  /// Get achievements by type
+  Future<List<Achievement>> getAchievementsByType(String type) =>
+      (select(achievements)
+            ..where((t) => t.achievementType.equals(type))
+            ..orderBy([(t) => OrderingTerm.desc(t.earnedAt)]))
+          .get();
+
+  /// Get recent achievements (limit count)
+  Future<List<Achievement>> getRecentAchievements({int limit = 10}) =>
+      (select(achievements)
+            ..orderBy([(t) => OrderingTerm.desc(t.earnedAt)])
+            ..limit(limit))
+          .get();
+
+  /// Check if achievement exists (for deduplication)
+  Future<Achievement?> getAchievement(String achievementType, {String? roundTypeId, int? score}) async {
+    if (roundTypeId != null && score != null) {
+      // For PBs, check exact match
+      return (select(achievements)
+            ..where((t) =>
+                t.achievementType.equals(achievementType) &
+                t.roundTypeId.equals(roundTypeId) &
+                t.score.equals(score)))
+          .getSingleOrNull();
+    } else {
+      // For streaks/milestones, check by type only
+      return (select(achievements)..where((t) => t.achievementType.equals(achievementType)))
+          .getSingleOrNull();
+    }
+  }
+
+  /// Get best PB for a round type
+  Future<Achievement?> getBestPbForRound(String roundTypeId) =>
+      (select(achievements)
+            ..where((t) =>
+                t.roundTypeId.equals(roundTypeId) &
+                (t.achievementType.equals('personalBest') | t.achievementType.equals('competitionPb')))
+            ..orderBy([(t) => OrderingTerm.desc(t.score)])
+            ..limit(1))
+          .getSingleOrNull();
+
+  /// Insert achievement
+  Future<int> insertAchievement(AchievementsCompanion achievement) =>
+      into(achievements).insert(achievement, mode: InsertMode.insertOrIgnore);
+
+  /// Delete achievement
+  Future<int> deleteAchievement(String id) =>
+      (delete(achievements)..where((t) => t.id.equals(id))).go();
+
+  /// Delete all achievements
+  Future<int> deleteAllAchievements() => delete(achievements).go();
 
   // ===========================================================================
   // ENTITLEMENTS
