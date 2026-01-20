@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:camera/camera.dart';
@@ -14,6 +15,7 @@ import 'package:ffmpeg_kit_flutter_full_gpl/return_code.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../theme/app_theme.dart';
+import '../utils/camera_stream_converter.dart';
 import 'delayed_camera_screen.dart';
 
 /// Entry point for platform-specific implementation
@@ -57,9 +59,11 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
   final Queue<TimestampedFrame> _frameBuffer = Queue();
   Uint8List? _displayFrame;
 
-  // Capture timer
-  Timer? _captureTimer;
-  static const int _captureIntervalMs = 100; // 10fps for smoother playback
+  // Stream-based capture for smooth video (30fps target)
+  bool _isStreaming = false;
+  int _lastFrameTime = 0;
+  static const int _captureIntervalMs = 33; // ~30fps for smooth playback
+  bool _isProcessingFrame = false; // Prevent frame pile-up
 
   // Saving state
   bool _isSaving = false;
@@ -76,7 +80,7 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _captureTimer?.cancel();
+    _stopImageStream();
     _cameraController?.dispose();
     super.dispose();
   }
@@ -88,9 +92,9 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
     }
 
     if (state == AppLifecycleState.inactive) {
-      _captureTimer?.cancel();
+      _stopImageStream();
     } else if (state == AppLifecycleState.resumed) {
-      _startCaptureLoop();
+      _startImageStream();
     }
   }
 
@@ -169,7 +173,7 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
         _isInitialized = true;
       });
 
-      _startCaptureLoop();
+      _startImageStream();
     } catch (e) {
       setState(() {
         _hasError = true;
@@ -178,15 +182,97 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
     }
   }
 
-  void _startCaptureLoop() {
-    _captureTimer?.cancel();
-    _captureTimer = Timer.periodic(
-      const Duration(milliseconds: _captureIntervalMs),
-      (_) => _captureFrame(),
+  void _startImageStream() async {
+    if (_cameraController == null ||
+        !_cameraController!.value.isInitialized ||
+        _isStreaming) {
+      return;
+    }
+
+    try {
+      await _cameraController!.startImageStream(_onImageAvailable);
+      _isStreaming = true;
+    } catch (e) {
+      // Fall back to timer-based capture if streaming not supported
+      debugPrint('Image stream not available, falling back to timer: $e');
+      _startFallbackCapture();
+    }
+  }
+
+  void _stopImageStream() async {
+    if (_cameraController != null &&
+        _cameraController!.value.isInitialized &&
+        _isStreaming) {
+      try {
+        await _cameraController!.stopImageStream();
+      } catch (_) {}
+      _isStreaming = false;
+    }
+  }
+
+  void _onImageAvailable(CameraImage image) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    // Throttle to target frame rate and prevent pile-up
+    if (now - _lastFrameTime < _captureIntervalMs || _isProcessingFrame) {
+      return;
+    }
+    _lastFrameTime = now;
+    _isProcessingFrame = true;
+
+    try {
+      // Convert to JPEG in isolate (non-blocking)
+      final bytes = await CameraStreamConverter.toJpeg(image);
+
+      if (!mounted) {
+        _isProcessingFrame = false;
+        return;
+      }
+
+      _frameBuffer.add(TimestampedFrame(bytes: bytes, timestamp: now));
+
+      // Keep 22 seconds of frames for 20s video export
+      const videoBufferSeconds = 22.0;
+      final bufferSeconds = videoBufferSeconds > (_delaySeconds + 2)
+          ? videoBufferSeconds
+          : (_delaySeconds + 2);
+      final cutoff = now - (bufferSeconds * 1000).toInt();
+      while (_frameBuffer.isNotEmpty && _frameBuffer.first.timestamp < cutoff) {
+        _frameBuffer.removeFirst();
+      }
+
+      final targetTime = now - (_delaySeconds * 1000).toInt();
+      TimestampedFrame? frameToDisplay;
+
+      for (final f in _frameBuffer) {
+        if (f.timestamp <= targetTime) {
+          frameToDisplay = f;
+        } else {
+          break;
+        }
+      }
+
+      if (frameToDisplay != null && mounted) {
+        setState(() {
+          _displayFrame = frameToDisplay!.bytes;
+        });
+      }
+    } catch (e) {
+      debugPrint('Frame processing error: $e');
+    } finally {
+      _isProcessingFrame = false;
+    }
+  }
+
+  // Fallback for devices that don't support image streaming
+  void _startFallbackCapture() {
+    Timer.periodic(
+      const Duration(milliseconds: 100), // 10fps fallback
+      (_) => _captureFallbackFrame(),
     );
   }
 
-  Future<void> _captureFrame() async {
+  Future<void> _captureFallbackFrame() async {
     if (_cameraController == null ||
         !_cameraController!.value.isInitialized ||
         _cameraController!.value.isTakingPicture) {
@@ -200,7 +286,6 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
 
       _frameBuffer.add(TimestampedFrame(bytes: bytes, timestamp: now));
 
-      // Keep 22 seconds of frames for 20s video export
       const videoBufferSeconds = 22.0;
       final bufferSeconds = videoBufferSeconds > (_delaySeconds + 2)
           ? videoBufferSeconds
