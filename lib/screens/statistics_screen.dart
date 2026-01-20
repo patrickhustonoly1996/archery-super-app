@@ -499,6 +499,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final recentEntries = entries.reversed.take(10).toList();
 
     return Card(
+      clipBehavior: Clip.antiAlias,
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
@@ -515,8 +516,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   ),
                 ),
                 const Spacer(),
+                Icon(
+                  Icons.chevron_left,
+                  size: 14,
+                  color: AppColors.textMuted,
+                ),
                 Text(
-                  'Tap to edit',
+                  ' Swipe to edit',
                   style: TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 12,
@@ -525,136 +531,15 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               ],
             ),
             const SizedBox(height: AppSpacing.md),
-            ...recentEntries.map((entry) => _buildEntryRow(entry)),
+            ...recentEntries.map((entry) => _SwipeableVolumeRow(
+              entry: entry,
+              onEdit: () => _showEditVolumeDialog(entry),
+              onDelete: () => _confirmDeleteVolume(entry),
+            )),
           ],
         ),
       ),
     );
-  }
-
-  Widget _buildEntryRow(VolumeEntry entry) {
-    return InkWell(
-      onTap: () => _showEntryOptionsDialog(entry),
-      borderRadius: BorderRadius.circular(AppSpacing.xs),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: AppSpacing.sm,
-          horizontal: AppSpacing.xs,
-        ),
-        child: Row(
-          children: [
-            Text(
-              '${entry.date.day}/${entry.date.month}/${entry.date.year}',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 14,
-              ),
-            ),
-            const Spacer(),
-            Text(
-              '${entry.arrowCount} arrows',
-              style: TextStyle(
-                color: AppColors.gold,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            if (entry.notes != null && entry.notes!.isNotEmpty) ...[
-              const SizedBox(width: AppSpacing.sm),
-              Icon(
-                Icons.note,
-                size: 16,
-                color: AppColors.textMuted,
-              ),
-            ],
-            const SizedBox(width: AppSpacing.sm),
-            Icon(
-              Icons.chevron_right,
-              size: 16,
-              color: AppColors.textMuted,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _showEntryOptionsDialog(VolumeEntry entry) async {
-    final result = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: AppColors.surfaceDark,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: AppSpacing.md),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.textMuted,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: Column(
-                children: [
-                  Text(
-                    '${entry.date.day}/${entry.date.month}/${entry.date.year}',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${entry.arrowCount} arrows',
-                    style: TextStyle(
-                      color: AppColors.gold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  if (entry.notes != null && entry.notes!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      entry.notes!,
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            ListTile(
-              leading: Icon(Icons.edit, color: AppColors.gold),
-              title: Text('Edit Entry', style: TextStyle(color: AppColors.textPrimary)),
-              onTap: () => Navigator.pop(context, 'edit'),
-            ),
-            ListTile(
-              leading: Icon(Icons.delete, color: Colors.red),
-              title: Text('Delete Entry', style: TextStyle(color: Colors.red)),
-              onTap: () => Navigator.pop(context, 'delete'),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-          ],
-        ),
-      ),
-    );
-
-    if (result == 'edit') {
-      await _showEditVolumeDialog(entry);
-    } else if (result == 'delete') {
-      await _confirmDeleteVolume(entry);
-    }
   }
 
   Future<void> _showEditVolumeDialog(VolumeEntry entry) async {
@@ -819,10 +704,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              // Scroll to recent entries or highlight them
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Tap any entry in the Recent Entries section to edit or delete'),
+                  content: Text('Swipe left on any entry to edit or delete'),
                   duration: Duration(seconds: 3),
                 ),
               );
@@ -924,6 +808,204 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             child: const Text('Add'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Swipeable row for volume entries - swipe left to reveal Edit/Delete actions
+class _SwipeableVolumeRow extends StatefulWidget {
+  final VolumeEntry entry;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _SwipeableVolumeRow({
+    required this.entry,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  State<_SwipeableVolumeRow> createState() => _SwipeableVolumeRowState();
+}
+
+class _SwipeableVolumeRowState extends State<_SwipeableVolumeRow>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _slideAnimation;
+  bool _isOpen = false;
+
+  static const double _actionButtonWidth = 60.0;
+  static const double _totalActionsWidth = _actionButtonWidth * 2;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _slideAnimation = Tween<double>(
+      begin: 0,
+      end: _totalActionsWidth,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onHorizontalDragUpdate(DragUpdateDetails details) {
+    final delta = details.primaryDelta ?? 0;
+    final newValue = _controller.value - (delta / _totalActionsWidth);
+    _controller.value = newValue.clamp(0.0, 1.0);
+  }
+
+  void _onHorizontalDragEnd(DragEndDetails details) {
+    final velocity = details.primaryVelocity ?? 0;
+    if (velocity < -300) {
+      _controller.forward();
+      _isOpen = true;
+    } else if (velocity > 300) {
+      _controller.reverse();
+      _isOpen = false;
+    } else {
+      if (_controller.value > 0.5) {
+        _controller.forward();
+        _isOpen = true;
+      } else {
+        _controller.reverse();
+        _isOpen = false;
+      }
+    }
+  }
+
+  void _closeActions() {
+    _controller.reverse();
+    _isOpen = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 48,
+      child: Stack(
+        children: [
+          // Action buttons (revealed when swiped)
+          Positioned(
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: _totalActionsWidth,
+            child: Row(
+              children: [
+                _VolumeActionButton(
+                  icon: Icons.edit,
+                  color: AppColors.gold,
+                  onTap: () {
+                    _closeActions();
+                    widget.onEdit();
+                  },
+                ),
+                _VolumeActionButton(
+                  icon: Icons.delete,
+                  color: Colors.red,
+                  onTap: () {
+                    _closeActions();
+                    widget.onDelete();
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          // Main content (slides left)
+          AnimatedBuilder(
+            animation: _slideAnimation,
+            builder: (context, child) => Transform.translate(
+              offset: Offset(-_slideAnimation.value, 0),
+              child: child,
+            ),
+            child: GestureDetector(
+              onHorizontalDragUpdate: _onHorizontalDragUpdate,
+              onHorizontalDragEnd: _onHorizontalDragEnd,
+              onTap: () {
+                if (_isOpen) {
+                  _closeActions();
+                }
+              },
+              child: Container(
+                color: AppColors.surfaceDark,
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppSpacing.sm,
+                  horizontal: AppSpacing.xs,
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      '${widget.entry.date.day}/${widget.entry.date.month}/${widget.entry.date.year}',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${widget.entry.arrowCount} arrows',
+                      style: TextStyle(
+                        color: AppColors.gold,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (widget.entry.notes != null && widget.entry.notes!.isNotEmpty) ...[
+                      const SizedBox(width: AppSpacing.sm),
+                      Icon(
+                        Icons.note,
+                        size: 16,
+                        color: AppColors.textMuted,
+                      ),
+                    ],
+                    const SizedBox(width: AppSpacing.sm),
+                    Icon(
+                      Icons.chevron_left,
+                      size: 16,
+                      color: AppColors.textMuted.withValues(alpha: 0.5),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VolumeActionButton extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _VolumeActionButton({
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 60,
+        color: color,
+        child: Center(
+          child: Icon(icon, color: Colors.white, size: 20),
+        ),
       ),
     );
   }
