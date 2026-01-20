@@ -1,8 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:provider/provider.dart';
 import '../providers/skills_provider.dart';
+import '../services/chiptune_service.dart';
 import '../theme/app_theme.dart';
 import 'xp_badge_celebration.dart';
 
@@ -43,7 +43,6 @@ class _LevelUpCelebrationState extends State<LevelUpCelebration>
   late Animation<double> _fadeAnimation;
   final List<_Particle> _particles = [];
   final Random _random = Random();
-  AudioPlayer? _audioPlayer;
 
   @override
   void initState() {
@@ -88,12 +87,16 @@ class _LevelUpCelebrationState extends State<LevelUpCelebration>
 
   void _playCelebrationSound() async {
     try {
-      _audioPlayer = AudioPlayer();
-      // Use a simple beep sound - in production, use a proper C64-style jingle
-      await _audioPlayer?.play(
-        AssetSource('sounds/level_up.mp3'),
-        volume: 0.5,
-      );
+      final chiptune = ChiptuneService();
+      final newLevel = widget.event.newLevel;
+
+      // Play milestone jingle for milestone levels (10, 25, 50, 75, 92, 99)
+      final milestones = [10, 25, 50, 75, 92, 99];
+      if (milestones.contains(newLevel)) {
+        await chiptune.playMilestone();
+      } else {
+        await chiptune.playLevelUp();
+      }
     } catch (e) {
       // Sound is optional, don't crash if it fails
       debugPrint('Could not play level up sound: $e');
@@ -160,7 +163,6 @@ class _LevelUpCelebrationState extends State<LevelUpCelebration>
   void dispose() {
     _scaleController.dispose();
     _fireworksController.dispose();
-    _audioPlayer?.dispose();
     super.dispose();
   }
 
