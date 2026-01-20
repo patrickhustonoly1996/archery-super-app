@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../db/database.dart';
 import '../theme/app_theme.dart';
-import '../widgets/full_scorecard_widget.dart';
+import '../widgets/world_archery_scorecard.dart';
 import '../widgets/signature_pad.dart';
 import '../services/signature_service.dart';
 import '../services/scorecard_export_service.dart';
@@ -178,9 +178,6 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
       );
     }
 
-    final date = _session!.completedAt ?? _session!.startedAt;
-    final dateStr = '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-
     return Scaffold(
       appBar: AppBar(
         title: Text(_roundType!.name),
@@ -197,30 +194,38 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with round info and date
-            _buildHeader(dateStr),
-            const SizedBox(height: AppSpacing.lg),
-
-            // Archer info section
-            _buildArcherInfo(),
-            const SizedBox(height: AppSpacing.lg),
-
-            // Full scorecard
-            FullScorecardWidget(
-              completedEnds: _ends,
-              completedEndArrows: _endArrows,
+            // World Archery format scorecard with integrated signatures
+            WorldArcheryScorecardWidget(
+              session: _session,
+              roundType: _roundType,
+              ends: _ends,
+              endArrows: _endArrows,
               currentEndArrows: const [],
               currentEndNumber: _ends.length + 1,
-              arrowsPerEnd: _roundType!.arrowsPerEnd,
-              totalEnds: _roundType!.totalEnds,
-              roundName: _roundType!.name,
-              maxScore: _roundType!.maxScore,
-              roundType: _roundType,
+              archerName: _archerName.isNotEmpty ? _archerName : null,
+              division: _archerDivision,
+              bowClass: _archerBowClass,
+              eventName: _session!.sessionType == 'competition' ? _session!.location : null,
+              eventLocation: _session!.location,
+              eventDate: _session!.completedAt ?? _session!.startedAt,
+              archerSignature: _archerSignature,
+              witnessSignature: _witnessSignature,
+              onArcherSignatureChanged: _onArcherSignatureChanged,
+              onWitnessSignatureChanged: _onWitnessSignatureChanged,
+              showSignatures: true,
+              isLive: widget.isLive,
             ),
-            const SizedBox(height: AppSpacing.xl),
 
-            // Signatures section
-            _buildSignatures(),
+            const SizedBox(height: AppSpacing.lg),
+
+            // Archer name edit section (tap to edit)
+            _buildArcherNameEdit(),
+
+            const SizedBox(height: AppSpacing.lg),
+
+            // Signature capture section (full-size pads for signing)
+            _buildSignatureCapture(),
+
             const SizedBox(height: AppSpacing.xl),
 
             // Export button
@@ -242,68 +247,7 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
     );
   }
 
-  Widget _buildHeader(String dateStr) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceDark,
-        borderRadius: BorderRadius.circular(AppSpacing.sm),
-        border: Border.all(color: AppColors.surfaceLight),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _roundType!.name.toUpperCase(),
-                style: TextStyle(
-                  fontFamily: AppFonts.pixel,
-                  fontSize: 20,
-                  color: AppColors.gold,
-                ),
-              ),
-              if (_session!.location != null)
-                Text(
-                  _session!.location!,
-                  style: TextStyle(
-                    fontFamily: AppFonts.body,
-                    fontSize: 12,
-                    color: AppColors.textMuted,
-                  ),
-                ),
-            ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                dateStr,
-                style: TextStyle(
-                  fontFamily: AppFonts.body,
-                  fontSize: 14,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              Text(
-                _session!.sessionType.toUpperCase(),
-                style: TextStyle(
-                  fontFamily: AppFonts.body,
-                  fontSize: 10,
-                  color: _session!.sessionType == 'competition'
-                      ? AppColors.gold
-                      : AppColors.textMuted,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildArcherInfo() {
+  Widget _buildArcherNameEdit() {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -315,7 +259,7 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'ARCHER DETAILS',
+            'ARCHER PROFILE',
             style: TextStyle(
               fontFamily: AppFonts.pixel,
               fontSize: 12,
@@ -387,12 +331,24 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
                 ),
             ],
           ),
+
+          // Note about auto-fill
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Your name will auto-fill on future scorecards.',
+            style: TextStyle(
+              fontFamily: AppFonts.body,
+              fontSize: 10,
+              color: AppColors.textMuted,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSignatures() {
+  Widget _buildSignatureCapture() {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -404,7 +360,7 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'SIGNATURES',
+            'CAPTURE SIGNATURES',
             style: TextStyle(
               fontFamily: AppFonts.pixel,
               fontSize: 12,
@@ -420,7 +376,7 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
                   savedSignature: _archerSignature,
                   onSignatureChanged: _onArcherSignatureChanged,
                   width: double.infinity,
-                  height: 80,
+                  height: 100,
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -430,14 +386,14 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
                   savedSignature: _witnessSignature,
                   onSignatureChanged: _onWitnessSignatureChanged,
                   width: double.infinity,
-                  height: 80,
+                  height: 100,
                 ),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Your signature is saved and will auto-fill on future scorecards.',
+            'Your archer signature is saved and will auto-fill on future scorecards.',
             style: TextStyle(
               fontFamily: AppFonts.body,
               fontSize: 10,
