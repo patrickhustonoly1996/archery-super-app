@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -42,9 +43,17 @@ void main() {
 
   // Start Firebase initialization (don't await - let app render while it loads)
   // AuthGate will await this with a timeout for offline resilience
+  // On web, also set persistence to LOCAL so PWA sessions survive browser restart
   firebaseInitFuture = Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-  );
+  ).then((app) async {
+    if (kIsWeb) {
+      // Ensure Firebase Auth persists sessions in IndexedDB for PWA
+      // Without this, sessions may not survive PWA restarts
+      await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+    }
+    return app;
+  });
 
   runApp(const ArcherySuperApp());
 }

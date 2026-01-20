@@ -18,8 +18,16 @@
 mixin FormValidationMixin {
   /// Validate email format.
   /// Returns error message or null if valid.
+  /// Trims whitespace before validation (handles keyboard shortcuts that add trailing spaces).
   String? validateEmail(String? value) {
     if (value == null || value.isEmpty) {
+      return 'Email is required';
+    }
+
+    // Trim whitespace - keyboard shortcuts often add trailing spaces
+    final trimmed = value.trim();
+
+    if (trimmed.isEmpty) {
       return 'Email is required';
     }
 
@@ -28,7 +36,7 @@ mixin FormValidationMixin {
       r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
     );
 
-    if (!emailRegex.hasMatch(value)) {
+    if (!emailRegex.hasMatch(trimmed)) {
       return 'Invalid email format';
     }
 
