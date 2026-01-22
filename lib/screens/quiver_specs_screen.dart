@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
 import '../db/database.dart';
 import '../models/arrow_specifications.dart';
+import '../models/bow_specifications.dart';
 
 /// Screen for editing arrow specifications
 class QuiverSpecsScreen extends StatefulWidget {
@@ -103,6 +104,69 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
 
     // Notes
     _notesController.text = _specs.notes ?? '';
+  }
+
+  /// Copy arrow details from the linked bow's settings
+  Future<void> _copyFromBow() async {
+    if (widget.quiver.bowId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This quiver is not linked to a bow'),
+          backgroundColor: AppColors.warning,
+        ),
+      );
+      return;
+    }
+
+    final bow = await context.read<EquipmentProvider>().getBow(widget.quiver.bowId!);
+    if (bow == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Linked bow not found'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+      return;
+    }
+
+    final bowSpecs = BowSpecifications.fromJson(bow.settings);
+
+    // Check if bow has any arrow specs to copy
+    if (bowSpecs.arrowModel == null && bowSpecs.arrowSpine == null && bowSpecs.arrowLength == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No arrow details found in bow settings'),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      // Copy available fields from bow
+      if (bowSpecs.arrowModel != null) {
+        _shaftModelController.text = bowSpecs.arrowModel!;
+      }
+      if (bowSpecs.arrowSpine != null) {
+        _shaftSpine = bowSpecs.arrowSpine;
+      }
+      if (bowSpecs.arrowLength != null) {
+        _totalLengthController.text = bowSpecs.arrowLength!.toStringAsFixed(2);
+      }
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Copied arrow details from ${bow.name}'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    }
   }
 
   @override
@@ -220,6 +284,11 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
+            // Copy from bow option (if linked)
+            if (widget.quiver.bowId != null) ...[
+              _buildCopyFromBowCard(),
+              const SizedBox(height: AppSpacing.lg),
+            ],
             // Shaft Section
             _buildSectionHeader('SHAFT', isPrimary: true),
             const SizedBox(height: AppSpacing.md),
@@ -469,6 +538,56 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
               letterSpacing: 1.2,
             ),
       ),
+    );
+  }
+
+  Widget _buildCopyFromBowCard() {
+    return FutureBuilder<Bow?>(
+      future: context.read<EquipmentProvider>().getBow(widget.quiver.bowId!),
+      builder: (context, snapshot) {
+        final bow = snapshot.data;
+        final bowName = bow?.name ?? 'linked bow';
+
+        return Card(
+          color: AppColors.surfaceLight,
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Linked to $bowName',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        'Copy arrow details from bow settings',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _copyFromBow,
+                  icon: const Icon(Icons.download, size: 18),
+                  label: const Text('Copy'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.gold,
+                    side: const BorderSide(color: AppColors.gold),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

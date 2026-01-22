@@ -1,9 +1,61 @@
 import 'dart:convert';
 
+/// Unit for brace height measurements
+enum BraceHeightUnit {
+  millimeters('mm'),
+  inches('in');
+
+  final String abbreviation;
+  const BraceHeightUnit(this.abbreviation);
+
+  static BraceHeightUnit fromString(String? value) {
+    if (value == 'inches' || value == 'in') return BraceHeightUnit.inches;
+    return BraceHeightUnit.millimeters;
+  }
+
+  String toDbString() => this == BraceHeightUnit.inches ? 'inches' : 'millimeters';
+
+  /// Get the opposite unit
+  BraceHeightUnit get other => this == millimeters ? inches : millimeters;
+
+  /// Convert a brace height to the other unit
+  double convert(double value) {
+    if (this == millimeters) {
+      // mm to inches
+      return value / 25.4;
+    } else {
+      // inches to mm
+      return value * 25.4;
+    }
+  }
+
+  /// Convert to millimeters (for consistent storage)
+  double toMillimeters(double value) {
+    if (this == inches) return value * 25.4;
+    return value;
+  }
+
+  /// Convert from millimeters to this unit
+  double fromMillimeters(double mm) {
+    if (this == inches) return mm / 25.4;
+    return mm;
+  }
+
+  /// Typical brace height ranges for this unit
+  String get typicalRange {
+    if (this == millimeters) {
+      return '210-240 mm (recurve)';
+    } else {
+      return '8.25-9.5" (recurve)';
+    }
+  }
+}
+
 /// Comprehensive bow specifications for recurve and compound bows
 class BowSpecifications {
   // === PRIMARY SETTINGS (Most Important) ===
-  final double? braceHeight; // mm
+  final double? braceHeight; // stored in mm internally
+  final BraceHeightUnit braceHeightUnit; // user's preferred display unit
   final double? nockingPoint; // mm above square (positive = above)
   final double? tillerTop; // mm
   final double? tillerBottom; // mm
@@ -15,7 +67,9 @@ class BowSpecifications {
   // === LIMBS ===
   final String? limbModel;
   final String? limbLength; // "short", "medium", "long"
-  final double? limbPoundage; // draw weight at 28"
+  final double? markedLimbWeight; // weight printed on limbs (at 28")
+  final double? drawWeightOnFingers; // actual draw weight at your draw length (recurve)
+  final double? peakWeight; // peak weight on cams (compound)
 
   // === STRING ===
   final String? stringMaterial; // "8125", "BCY-X", "Fast Flight", etc.
@@ -50,6 +104,7 @@ class BowSpecifications {
 
   BowSpecifications({
     this.braceHeight,
+    this.braceHeightUnit = BraceHeightUnit.millimeters,
     this.nockingPoint,
     this.tillerTop,
     this.tillerBottom,
@@ -57,7 +112,9 @@ class BowSpecifications {
     this.riserLength,
     this.limbModel,
     this.limbLength,
-    this.limbPoundage,
+    this.markedLimbWeight,
+    this.drawWeightOnFingers,
+    this.peakWeight,
     this.stringMaterial,
     this.stringStrands,
     this.buttonModel,
@@ -99,13 +156,16 @@ class BowSpecifications {
     return BowSpecifications(
       // Primary tuning - prefer dedicated columns
       braceHeight: bow.braceHeight as double? ?? base.braceHeight,
+      braceHeightUnit: base.braceHeightUnit,
       nockingPoint: bow.nockingPointHeight as double? ?? base.nockingPoint,
       tillerTop: bow.tillerTop as double? ?? base.tillerTop,
       tillerBottom: bow.tillerBottom as double? ?? base.tillerBottom,
       // Equipment - prefer dedicated columns
       riserModel: bow.riserModel as String? ?? base.riserModel,
       limbModel: bow.limbModel as String? ?? base.limbModel,
-      limbPoundage: bow.poundage as double? ?? base.limbPoundage,
+      markedLimbWeight: bow.poundage as double? ?? base.markedLimbWeight,
+      drawWeightOnFingers: base.drawWeightOnFingers,
+      peakWeight: base.peakWeight,
       // Button/clicker - prefer dedicated columns
       buttonSpringTension: bow.buttonTension as String? ?? base.buttonSpringTension,
       clickerPosition: bow.clickerPosition as double? ?? base.clickerPosition,
@@ -133,6 +193,7 @@ class BowSpecifications {
   factory BowSpecifications.fromMap(Map<String, dynamic> map) {
     return BowSpecifications(
       braceHeight: _parseDouble(map['braceHeight']),
+      braceHeightUnit: BraceHeightUnit.fromString(map['braceHeightUnit'] as String?),
       nockingPoint: _parseDouble(map['nockingPoint']),
       tillerTop: _parseDouble(map['tillerTop']),
       tillerBottom: _parseDouble(map['tillerBottom']),
@@ -140,7 +201,10 @@ class BowSpecifications {
       riserLength: map['riserLength'] as String?,
       limbModel: map['limbModel'] as String?,
       limbLength: map['limbLength'] as String?,
-      limbPoundage: _parseDouble(map['limbPoundage']),
+      // Support both old 'limbPoundage' and new field names
+      markedLimbWeight: _parseDouble(map['markedLimbWeight'] ?? map['limbPoundage']),
+      drawWeightOnFingers: _parseDouble(map['drawWeightOnFingers']),
+      peakWeight: _parseDouble(map['peakWeight']),
       stringMaterial: map['stringMaterial'] as String?,
       stringStrands: _parseInt(map['stringStrands']),
       buttonModel: map['buttonModel'] as String?,
@@ -180,6 +244,7 @@ class BowSpecifications {
   Map<String, dynamic> toMap() {
     return {
       if (braceHeight != null) 'braceHeight': braceHeight,
+      'braceHeightUnit': braceHeightUnit.toDbString(),
       if (nockingPoint != null) 'nockingPoint': nockingPoint,
       if (tillerTop != null) 'tillerTop': tillerTop,
       if (tillerBottom != null) 'tillerBottom': tillerBottom,
@@ -187,7 +252,9 @@ class BowSpecifications {
       if (riserLength != null) 'riserLength': riserLength,
       if (limbModel != null) 'limbModel': limbModel,
       if (limbLength != null) 'limbLength': limbLength,
-      if (limbPoundage != null) 'limbPoundage': limbPoundage,
+      if (markedLimbWeight != null) 'markedLimbWeight': markedLimbWeight,
+      if (drawWeightOnFingers != null) 'drawWeightOnFingers': drawWeightOnFingers,
+      if (peakWeight != null) 'peakWeight': peakWeight,
       if (stringMaterial != null) 'stringMaterial': stringMaterial,
       if (stringStrands != null) 'stringStrands': stringStrands,
       if (buttonModel != null) 'buttonModel': buttonModel,
@@ -216,6 +283,7 @@ class BowSpecifications {
 
   BowSpecifications copyWith({
     double? braceHeight,
+    BraceHeightUnit? braceHeightUnit,
     double? nockingPoint,
     double? tillerTop,
     double? tillerBottom,
@@ -223,7 +291,9 @@ class BowSpecifications {
     String? riserLength,
     String? limbModel,
     String? limbLength,
-    double? limbPoundage,
+    double? markedLimbWeight,
+    double? drawWeightOnFingers,
+    double? peakWeight,
     String? stringMaterial,
     int? stringStrands,
     String? buttonModel,
@@ -248,6 +318,7 @@ class BowSpecifications {
   }) {
     return BowSpecifications(
       braceHeight: clearBraceHeight ? null : (braceHeight ?? this.braceHeight),
+      braceHeightUnit: braceHeightUnit ?? this.braceHeightUnit,
       nockingPoint: clearNockingPoint ? null : (nockingPoint ?? this.nockingPoint),
       tillerTop: clearTillerTop ? null : (tillerTop ?? this.tillerTop),
       tillerBottom: clearTillerBottom ? null : (tillerBottom ?? this.tillerBottom),
@@ -255,7 +326,9 @@ class BowSpecifications {
       riserLength: riserLength ?? this.riserLength,
       limbModel: limbModel ?? this.limbModel,
       limbLength: limbLength ?? this.limbLength,
-      limbPoundage: limbPoundage ?? this.limbPoundage,
+      markedLimbWeight: markedLimbWeight ?? this.markedLimbWeight,
+      drawWeightOnFingers: drawWeightOnFingers ?? this.drawWeightOnFingers,
+      peakWeight: peakWeight ?? this.peakWeight,
       stringMaterial: stringMaterial ?? this.stringMaterial,
       stringStrands: stringStrands ?? this.stringStrands,
       buttonModel: buttonModel ?? this.buttonModel,
@@ -323,18 +396,34 @@ class BowSpecifications {
     final parts = <String>[];
 
     if (braceHeight != null) {
-      parts.add('BH: ${braceHeight!.toStringAsFixed(1)}mm');
+      final displayValue = braceHeightUnit.fromMillimeters(braceHeight!);
+      final decimals = braceHeightUnit == BraceHeightUnit.inches ? 2 : 1;
+      parts.add('BH: ${displayValue.toStringAsFixed(decimals)}${braceHeightUnit.abbreviation}');
     }
     if (tillerTop != null && tillerBottom != null) {
       final diff = tillerDifference!;
       parts.add('Tiller: ${diff >= 0 ? '+' : ''}${diff.toStringAsFixed(1)}mm');
     }
-    if (limbPoundage != null) {
-      parts.add('${limbPoundage!.toStringAsFixed(0)}#');
+    // Show whichever poundage is available
+    if (drawWeightOnFingers != null) {
+      parts.add('${drawWeightOnFingers!.toStringAsFixed(0)}# OTF');
+    } else if (markedLimbWeight != null) {
+      parts.add('${markedLimbWeight!.toStringAsFixed(0)}#');
+    } else if (peakWeight != null) {
+      parts.add('${peakWeight!.toStringAsFixed(0)}# peak');
     }
 
     return parts.isEmpty ? 'No specs recorded' : parts.join(' | ');
   }
+
+  /// Get brace height in the user's preferred unit
+  double? get braceHeightInPreferredUnit {
+    if (braceHeight == null) return null;
+    return braceHeightUnit.fromMillimeters(braceHeight!);
+  }
+
+  /// Get the primary draw weight (whichever is set)
+  double? get primaryDrawWeight => drawWeightOnFingers ?? markedLimbWeight ?? peakWeight;
 }
 
 /// Centre shot position options
