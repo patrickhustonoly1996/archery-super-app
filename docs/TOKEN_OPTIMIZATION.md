@@ -69,95 +69,101 @@ flutter test --reporter expanded test/services/failing_test.dart
 
 ---
 
-## Git Comments & Commit Messages
+## Git: Should Claude Do It?
 
-### Token-Efficient Commit Messages
+### The Honest Answer
 
-**Good commits are searchable and self-explanatory.** Future Claude sessions can understand history without reading full diffs.
+**Most git operations are wasteful through Claude.** Here's why:
 
-#### Format
+| Operation | Token Cost | Value Added by Claude |
+|-----------|------------|----------------------|
+| `git status` | ~100-300 | Low - you can read this yourself |
+| `git diff` | ~500-3000 | Low - unless Claude needs context |
+| `git add/commit/push` | ~50 each | Medium - commit message help |
+| `git log` | ~200-500 | Low - history browsing |
 
-```
-<type>: <what changed>
+**Estimated waste per session:** 500-2000 tokens on git housekeeping = ~£0.01-0.05
 
-Optional body for complex changes
-```
+### What Claude SHOULD Do
 
-#### Types
+1. **Write commit messages** - Claude sees what changed, writes good descriptions
+2. **Check status ONLY when needed for coding context** - e.g., "what files did I just change?"
+3. **Branch management during complex merges** - where understanding is needed
 
-| Type | When |
-|------|------|
-| `Add` | New feature/file |
-| `Fix` | Bug fix |
-| `Update` | Enhancement to existing |
-| `Refactor` | Code restructure, no behavior change |
-| `Test` | Adding/fixing tests |
-| `Docs` | Documentation only |
-
-#### Examples
+### What YOU Should Do (Save Tokens)
 
 ```bash
-# Good - clear, searchable
-git commit -m "Add multi-distance round progression support"
-git commit -m "Fix York round showing all arrows as line-cutters"
-git commit -m "Update scorecard export to include handicap"
+# You run these yourself - no AI needed:
+git status
+git add .
+git push
 
-# Bad - vague, useless for history
-git commit -m "stuff"
-git commit -m "fixes"
-git commit -m "WIP"
+# You type this, Claude already knows what changed:
+git commit -m "Add multi-distance round support"
 ```
 
-### WIP Commits
+**As you get comfortable with git, do more yourself.** Claude's value is in the code, not typing `git push`.
 
-Use sparingly. When necessary (mid-session pause):
+### Commit Message Format
 
-```bash
-git commit -m "WIP: mid-task (feature-a, feature-b)"
-```
-
-Include what's in progress so next session can continue.
-
-### Branch Naming
+When Claude does commit, or when you write them:
 
 ```
-feature/description    # New functionality
-fix/bug-name          # Bug fixes
-refactor/what         # Code cleanup
-claude/session-id     # Claude-managed branches
+Type: Short description
+
+# Types: Add, Fix, Update, Refactor, Test, Docs
 ```
+
+Examples:
+- `Add: multi-distance round progression`
+- `Fix: York round line-cutter display`
+- `Update: scorecard export with handicap`
+
+Good messages save future tokens - Claude can read `git log` and understand without reading diffs.
 
 ---
 
-## Deployment Workflow
+## Deployment: Don't Use Claude
 
-### Pre-Deployment Checklist
+### Why Deployment Wastes Tokens
 
-1. **All tests pass** - Full suite on main only
-2. **No WIP commits** - Clean history
-3. **Version bumped** - `pubspec.yaml`
-4. **Changelog updated** - If maintained
+Build commands are:
+- **Long-running** (minutes) - Claude sits idle, session stays open
+- **Verbose output** (thousands of lines) - Claude reads it all
+- **Mechanical** - no intelligence needed
 
-### Build Commands
+**Estimated waste:** 2000-5000 tokens per build = ~£0.05-0.15
+
+### Do Deployment Yourself
 
 ```bash
-# Flutter web (PWA)
+# Run in your terminal, not through Claude:
 flutter build web --release
-
-# iOS
 flutter build ios --release
-
-# Android
 flutter build appbundle --release
 ```
 
-### Deployment Environments
+### When to Involve Claude
 
-| Environment | Branch | Trigger |
-|-------------|--------|---------|
-| Development | feature/* | Manual |
-| Staging | main | Auto on merge |
-| Production | tags/v* | Manual release |
+Only if:
+- Build fails with unclear error → debugging (Opus task)
+- Need to change build config → code change
+- Setting up CI/CD for first time → architecture
+
+### Deployment Checklist (For You)
+
+```
+PRE-DEPLOY
+□ Tests pass (you ran: flutter test)
+□ No WIP commits
+□ Version bumped in pubspec.yaml
+
+DEPLOY
+□ Build locally first
+□ Deploy to staging
+□ Smoke test
+□ Deploy to production
+```
 
 ---
 
@@ -189,43 +195,60 @@ Claude reads CLAUDE.md automatically. Don't repeat what's there.
 
 ---
 
-## Token Costs Reference
+## Token Costs & Waste Summary
 
-Rough estimates for awareness:
+| Action | Token Cost | Who Should Do It |
+|--------|------------|------------------|
+| Read small file (<100 lines) | ~200 | Claude ✓ |
+| Read large file (>500 lines) | ~1500+ | Claude (if needed) |
+| Full test suite output | ~5000+ | **You** - never through Claude |
+| Targeted test output | ~200-500 | Claude ✓ |
+| Git status/diff/log | ~500-1500 | **You** (unless Claude needs context) |
+| Git add/commit/push | ~50-100 | **You** |
+| Build output | ~2000-5000 | **You** - never through Claude |
+| Codebase exploration | ~2000+ | Claude (use Explore agent) |
 
-| Action | Token Cost |
-|--------|------------|
-| Read small file (<100 lines) | ~200 tokens |
-| Read large file (>500 lines) | ~1500+ tokens |
-| Full test suite output | ~5000+ tokens |
-| Git diff (medium change) | ~500 tokens |
-| Codebase exploration | ~2000+ tokens |
+### Estimated Savings
 
-**Minimize:** Large file reads, full test runs, exploratory browsing
-**Maximize:** Targeted reads, specific tests, direct actions
+If you do git + deployment yourself instead of through Claude:
+
+| Per Session | Tokens Saved | Cost Saved |
+|-------------|--------------|------------|
+| Git housekeeping | 500-1500 | ~£0.02-0.05 |
+| Build/deploy | 2000-5000 | ~£0.05-0.15 |
+| **Total** | 2500-6500 | **~£0.07-0.20** |
+
+Over 100 sessions = **£7-20 saved** just on mechanical tasks.
 
 ---
 
 ## Quick Reference
 
 ```
-SESSION START
-├── git status (clean? skip tests)
-├── git log -1 --oneline
-└── Read task, start work
+CLAUDE DOES (valuable)          YOU DO (saves tokens)
+─────────────────────           ─────────────────────
+• Write/edit code               • git status
+• Write commit messages         • git add / git push
+• Debug failures                • flutter build
+• Run targeted tests            • flutter test (full suite)
+• Explain code                  • Deploy to production
+• Architecture decisions        • Version bumps
+```
 
-DURING WORK
-├── Edit files directly
-├── Run targeted tests only
-└── Commit logical chunks
+### Session Flow
 
-SESSION END
-├── Run directory-level tests
-├── Commit with clear message
-├── Push branch for backup
-└── Summarize what's done/pending
+```
+YOU: git status (clean? tell Claude)
+     ↓
+CLAUDE: Does the coding work
+        Runs targeted tests
+        Writes commit message
+     ↓
+YOU: git add . && git commit -m "[Claude's message]" && git push
+     ↓
+YOU: flutter build (if deploying)
 ```
 
 ---
 
-*This document optimizes for: reduced token spend, clear git history, efficient testing, and smooth handoffs between Claude sessions.*
+*Bottom line: Claude's value is thinking, not typing terminal commands. The more mechanical tasks you do yourself, the more budget you have for actual development work.*
