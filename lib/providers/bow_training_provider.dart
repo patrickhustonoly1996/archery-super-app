@@ -12,7 +12,8 @@ import '../utils/unique_id.dart';
 enum TimerPhase {
   idle,           // Not started
   prep,           // Preparation countdown before first hold
-  hold,           // Holding at draw
+  hold,           // Holding at draw (full draw for 7-2s)
+  halfDraw,       // Half draw phase (7-2s drill only)
   rest,           // Resting between reps
   exerciseBreak,  // Transition between exercises
   complete,       // Session finished
@@ -163,6 +164,67 @@ class CustomExercise {
   }
 }
 
+/// Configuration for the 7-2s drill
+///
+/// Within each block:
+/// - 4 reps of: 7s full draw → 2s half draw (NO rest between reps)
+/// - One block = 4 × (7+2) = 36 seconds of continuous work
+///
+/// Between blocks:
+/// - 45 seconds rest (configurable 30-90)
+class SevenTwoConfig {
+  final int fullDrawSeconds;    // Default 7
+  final int halfDrawSeconds;    // Default 2
+  final int restSeconds;        // Default 45, configurable 30-90
+  final int repsPerBlock;       // Default 4, configurable 2-6
+  final int numBlocks;          // Default 3, configurable 1-5
+
+  const SevenTwoConfig({
+    this.fullDrawSeconds = 7,
+    this.halfDrawSeconds = 2,
+    this.restSeconds = 45,
+    this.repsPerBlock = 4,
+    this.numBlocks = 3,
+  });
+
+  int get totalReps => repsPerBlock * numBlocks;
+
+  String get displayName => '7-2s Drill (${numBlocks}x$repsPerBlock)';
+
+  /// Estimated total duration in seconds
+  int get estimatedDurationSeconds {
+    // Each block: repsPerBlock * (fullDraw + halfDraw)
+    final blockWorkSeconds = repsPerBlock * (fullDrawSeconds + halfDrawSeconds);
+    // Total work time
+    final totalWorkSeconds = blockWorkSeconds * numBlocks;
+    // Rest between blocks (numBlocks - 1 rest periods)
+    final totalRestSeconds = restSeconds * (numBlocks - 1);
+    // Add prep time
+    return kPrepCountdownSeconds + totalWorkSeconds + totalRestSeconds;
+  }
+
+  /// Estimated duration in minutes (rounded up)
+  int get estimatedDurationMinutes => (estimatedDurationSeconds / 60).ceil();
+
+  Map<String, dynamic> toJson() => {
+    'fullDrawSeconds': fullDrawSeconds,
+    'halfDrawSeconds': halfDrawSeconds,
+    'restSeconds': restSeconds,
+    'repsPerBlock': repsPerBlock,
+    'numBlocks': numBlocks,
+  };
+
+  factory SevenTwoConfig.fromJson(Map<String, dynamic> json) {
+    return SevenTwoConfig(
+      fullDrawSeconds: json['fullDrawSeconds'] as int? ?? 7,
+      halfDrawSeconds: json['halfDrawSeconds'] as int? ?? 2,
+      restSeconds: json['restSeconds'] as int? ?? 45,
+      repsPerBlock: json['repsPerBlock'] as int? ?? 4,
+      numBlocks: json['numBlocks'] as int? ?? 3,
+    );
+  }
+}
+
 class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
   final AppDatabase _db;
   final _vibration = VibrationService();
@@ -255,6 +317,12 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
   int _customCurrentRep = 0;
   String? _currentMovementCue;
 
+  // 7-2s drill state
+  SevenTwoConfig? _sevenTwoConfig;
+  SevenTwoConfig? get sevenTwoConfig => _sevenTwoConfig;
+  int _sevenTwoCurrentBlock = 1;
+  int _sevenTwoCurrentRep = 1;
+
   // ===========================================================================
   // GETTERS
   // ===========================================================================
@@ -294,6 +362,20 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
   String? get movementCue => _currentMovementCue;
   int get customRep => _customCurrentRep;
   int get customTotalReps => _customTotalReps;
+
+  /// True if currently running a 7-2s drill
+  bool get isSevenTwoSession => _sevenTwoConfig != null;
+  int get sevenTwoCurrentBlock => _sevenTwoCurrentBlock;
+  int get sevenTwoCurrentRep => _sevenTwoCurrentRep;
+  int get sevenTwoTotalBlocks => _sevenTwoConfig?.numBlocks ?? 0;
+  int get sevenTwoRepsPerBlock => _sevenTwoConfig?.repsPerBlock ?? 0;
+  int get sevenTwoTotalReps => _sevenTwoConfig?.totalReps ?? 0;
+
+  /// Progress text for 7-2s drill: "Block 2/3 - Rep 3/4"
+  String get sevenTwoProgressText {
+    if (_sevenTwoConfig == null) return '';
+    return 'Block $_sevenTwoCurrentBlock/${_sevenTwoConfig!.numBlocks} - Rep $_sevenTwoCurrentRep/${_sevenTwoConfig!.repsPerBlock}';
+  }
 
   /// True if timer was auto-paused because app went to background
   bool get wasPausedByBackground => _wasRunningBeforeBackground;
@@ -646,6 +728,29 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  /// Start a 7-2s drill session
+  void startSevenTwoSession(SevenTwoConfig config) {
+    _sevenTwoConfig = config;
+    _activeSession = null;
+    _exercises = [];
+    _customConfig = null;
+    _sevenTwoCurrentBlock = 1;
+    _sevenTwoCurrentRep = 1;
+    _currentExerciseIndex = 0;
+    _currentRep = 1;
+    _phase = TimerPhase.prep;
+    _timerState = TimerState.running;
+    _secondsRemaining = kPrepCountdownSeconds;
+    _sessionStartedAt = DateTime.now();
+    _totalHoldSecondsActual = 0;
+    _totalRestSecondsActual = 0;
+    _completedExercises = 0;
+
+    _startTimer();
+    _playStartBeep();
+    notifyListeners();
+  }
+
   /// Update movement cue based on stimulus setting
   void _updateMovementCue() {
     if (_customConfig == null) {
@@ -772,6 +877,51 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  /// Complete a 7-2s drill session and log it with feedback
+  Future<void> completeSevenTwoSession({
+    int? feedbackShaking,
+    int? feedbackStructure,
+    int? feedbackRest,
+    String? notes,
+  }) async {
+    if (_sevenTwoConfig == null || _sessionStartedAt == null) return;
+
+    final config = _sevenTwoConfig!;
+
+    // Build notes - include drill info plus any user notes
+    final drillInfo = '${config.numBlocks} blocks x ${config.repsPerBlock} reps, ${config.restSeconds}s rest';
+    final combinedNotes = notes != null && notes.isNotEmpty
+        ? '$drillInfo\n$notes'
+        : drillInfo;
+
+    final log = OlyTrainingLogsCompanion.insert(
+      id: UniqueId.withPrefix('log'),
+      sessionTemplateId: const Value.absent(), // No template for 7-2s
+      sessionVersion: '7-2s',
+      sessionName: config.displayName,
+      plannedDurationSeconds: config.estimatedDurationSeconds,
+      actualDurationSeconds: DateTime.now().difference(_sessionStartedAt!).inSeconds,
+      plannedExercises: config.totalReps,
+      completedExercises: _completedExercises,
+      totalHoldSeconds: _totalHoldSecondsActual,
+      totalRestSeconds: _totalRestSecondsActual,
+      feedbackShaking: Value(feedbackShaking),
+      feedbackStructure: Value(feedbackStructure),
+      feedbackRest: Value(feedbackRest),
+      progressionSuggestion: const Value.absent(),
+      suggestedNextVersion: const Value.absent(),
+      notes: Value(combinedNotes),
+      startedAt: _sessionStartedAt!,
+      completedAt: DateTime.now(),
+    );
+
+    await _db.insertOlyTrainingLog(log);
+    await loadData(); // Refresh recent logs
+    _triggerCloudBackup(); // Backup to cloud
+    _resetState();
+    notifyListeners();
+  }
+
   /// Complete the session and log it with feedback
   Future<void> completeSession({
     int? feedbackShaking,
@@ -846,7 +996,7 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
     if (_timerState != TimerState.running) return;
 
     // Track actual time
-    if (_phase == TimerPhase.hold) {
+    if (_phase == TimerPhase.hold || _phase == TimerPhase.halfDraw) {
       _totalHoldSecondsActual++;
     } else if (_phase == TimerPhase.rest || _phase == TimerPhase.exerciseBreak) {
       _totalRestSecondsActual++;
@@ -865,6 +1015,12 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void _advancePhase() {
+    // Handle 7-2s session
+    if (_sevenTwoConfig != null) {
+      _advanceSevenTwoPhase();
+      return;
+    }
+
     // Handle custom session
     if (_customConfig != null) {
       _advanceCustomPhase();
@@ -936,7 +1092,8 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
 
       case TimerPhase.idle:
       case TimerPhase.complete:
-        // No-op
+      case TimerPhase.halfDraw:
+        // No-op for standard OLY sessions (halfDraw not used)
         break;
     }
 
@@ -985,6 +1142,74 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
       case TimerPhase.idle:
       case TimerPhase.complete:
       case TimerPhase.exerciseBreak:
+      case TimerPhase.halfDraw:
+        // No-op for custom sessions (halfDraw not used)
+        break;
+    }
+
+    notifyListeners();
+  }
+
+  /// Advance phase for 7-2s drill
+  /// Flow: prep → hold → halfDraw → (next rep or rest) → ... → complete
+  void _advanceSevenTwoPhase() {
+    final config = _sevenTwoConfig!;
+
+    switch (_phase) {
+      case TimerPhase.prep:
+        // Prep countdown finished - start first full draw
+        _phase = TimerPhase.hold;
+        _secondsRemaining = config.fullDrawSeconds;
+        _playHoldBeep();
+        break;
+
+      case TimerPhase.hold:
+        // Full draw finished - go to half draw (no rest between)
+        _phase = TimerPhase.halfDraw;
+        _secondsRemaining = config.halfDrawSeconds;
+        _playHalfDrawBeep();
+        break;
+
+      case TimerPhase.halfDraw:
+        // Half draw finished - count rep as completed
+        _completedExercises++;
+
+        if (_sevenTwoCurrentRep < config.repsPerBlock) {
+          // More reps in this block - go directly to next full draw (NO REST)
+          _sevenTwoCurrentRep++;
+          _phase = TimerPhase.hold;
+          _secondsRemaining = config.fullDrawSeconds;
+          _playHoldBeep();
+        } else {
+          // Block complete
+          if (_sevenTwoCurrentBlock < config.numBlocks) {
+            // More blocks to go - rest between blocks
+            _phase = TimerPhase.rest;
+            _secondsRemaining = config.restSeconds;
+            _playRestBeep();
+          } else {
+            // All blocks complete - session done
+            _timer?.cancel();
+            _trainingSession.endSession();
+            _phase = TimerPhase.complete;
+            _timerState = TimerState.stopped;
+            _playCompleteSound();
+          }
+        }
+        break;
+
+      case TimerPhase.rest:
+        // Rest between blocks finished - start next block
+        _sevenTwoCurrentBlock++;
+        _sevenTwoCurrentRep = 1;
+        _phase = TimerPhase.hold;
+        _secondsRemaining = config.fullDrawSeconds;
+        _playHoldBeep();
+        break;
+
+      case TimerPhase.idle:
+      case TimerPhase.complete:
+      case TimerPhase.exerciseBreak:
         // No-op
         break;
     }
@@ -1011,6 +1236,10 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
     _customTotalReps = 0;
     _customCurrentRep = 0;
     _currentMovementCue = null;
+    // Reset 7-2s state
+    _sevenTwoConfig = null;
+    _sevenTwoCurrentBlock = 1;
+    _sevenTwoCurrentRep = 1;
   }
 
   // ===========================================================================
@@ -1118,6 +1347,10 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
     _vibration.heavy();
   }
 
+  void _playHalfDrawBeep() {
+    _vibration.medium();
+  }
+
   void _playRestBeep() {
     _vibration.medium();
   }
@@ -1159,7 +1392,10 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
       case TimerPhase.prep:
         return 'Get Ready';
       case TimerPhase.hold:
-        return 'HOLD';
+        // For 7-2s sessions, specify "FULL DRAW" for clarity
+        return _sevenTwoConfig != null ? 'FULL DRAW' : 'HOLD';
+      case TimerPhase.halfDraw:
+        return 'HALF DRAW';
       case TimerPhase.rest:
         return 'Rest';
       case TimerPhase.exerciseBreak:
@@ -1171,6 +1407,29 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Get progress within current phase (0.0 to 1.0)
   double get phaseProgress {
+    // Handle 7-2s session
+    if (_sevenTwoConfig != null) {
+      int totalSeconds;
+      switch (_phase) {
+        case TimerPhase.prep:
+          totalSeconds = kPrepCountdownSeconds;
+          break;
+        case TimerPhase.hold:
+          totalSeconds = _sevenTwoConfig!.fullDrawSeconds;
+          break;
+        case TimerPhase.halfDraw:
+          totalSeconds = _sevenTwoConfig!.halfDrawSeconds;
+          break;
+        case TimerPhase.rest:
+          totalSeconds = _sevenTwoConfig!.restSeconds;
+          break;
+        default:
+          return 0;
+      }
+      if (totalSeconds <= 0) return 1.0;
+      return 1 - (_secondsRemaining / totalSeconds);
+    }
+
     // Handle custom session
     if (_customConfig != null) {
       int totalSeconds;
@@ -1218,6 +1477,16 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Get overall session progress (0.0 to 1.0)
   double get sessionProgress {
+    // Handle 7-2s session
+    if (_sevenTwoConfig != null) {
+      final totalReps = _sevenTwoConfig!.totalReps;
+      if (totalReps == 0) return 0;
+      // Completed reps from previous blocks + current rep progress
+      final completedBlockReps = (_sevenTwoCurrentBlock - 1) * _sevenTwoConfig!.repsPerBlock;
+      final currentRepProgress = (_sevenTwoCurrentRep - 1);
+      return (completedBlockReps + currentRepProgress) / totalReps;
+    }
+
     // Handle custom session
     if (_customConfig != null) {
       if (_customTotalReps == 0) return 0;
@@ -1352,6 +1621,9 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Get title for paused session display
   String get pausedSessionTitle {
+    if (_sevenTwoConfig != null) {
+      return _sevenTwoConfig!.displayName;
+    }
     if (_customConfig != null) {
       return 'Custom Session';
     }
@@ -1360,6 +1632,9 @@ class BowTrainingProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Get subtitle for paused session display
   String get pausedSessionSubtitle {
+    if (_sevenTwoConfig != null) {
+      return sevenTwoProgressText;
+    }
     if (_customConfig != null) {
       return '${_customCurrentRep}/${_customTotalReps} reps';
     }

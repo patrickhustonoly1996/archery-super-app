@@ -30,6 +30,7 @@ import 'education/courses_home_screen.dart';
 import 'settings_screen.dart';
 import 'chiptune_test_screen.dart'; // TODO: Remove after testing sounds
 import 'sight_marks_hub_screen.dart';
+import 'field_session_start_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -103,6 +104,15 @@ class _HomeScreenState extends State<HomeScreen>
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const SessionStartScreen()),
+      ),
+    ),
+    _MenuItem(
+      label: 'FIELD',
+      sublabel: 'Outdoor course',
+      pixelIcon: PixelIconType.tree,
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const FieldSessionStartScreen()),
       ),
     ),
     _MenuItem(
@@ -840,7 +850,7 @@ class _ArrowCountButton extends StatelessWidget {
 // DATA MODEL
 // =============================================================================
 
-enum PixelIconType { resume, target, scroll, chart, bow, lungs, video, radar, gear, exit, lightning, crosshair }
+enum PixelIconType { resume, target, scroll, chart, bow, lungs, video, radar, gear, exit, lightning, crosshair, tree }
 
 class _MenuItem {
   final String label;
@@ -1457,6 +1467,8 @@ class _PixelMenuIconPainter extends CustomPainter {
         _drawLightning(canvas, p, paint, dimPaint);
       case PixelIconType.crosshair:
         _drawCrosshair(canvas, p, paint, dimPaint);
+      case PixelIconType.tree:
+        _drawTree(canvas, p, paint, dimPaint);
     }
   }
 
@@ -1912,6 +1924,51 @@ class _PixelMenuIconPainter extends CustomPainter {
     _px(canvas, 6, 5, p, paint);
     _px(canvas, 5, 6, p, paint);
     _px(canvas, 6, 6, p, paint);
+  }
+
+  // Tree icon for field archery
+  void _drawTree(Canvas canvas, double p, Paint paint, Paint dimPaint) {
+    // Tree top (triangle)
+    _px(canvas, 5, 1, p, paint);
+    _px(canvas, 6, 1, p, paint);
+    _px(canvas, 4, 2, p, paint);
+    _px(canvas, 5, 2, p, paint);
+    _px(canvas, 6, 2, p, paint);
+    _px(canvas, 7, 2, p, paint);
+    _px(canvas, 3, 3, p, paint);
+    _px(canvas, 4, 3, p, paint);
+    _px(canvas, 5, 3, p, paint);
+    _px(canvas, 6, 3, p, paint);
+    _px(canvas, 7, 3, p, paint);
+    _px(canvas, 8, 3, p, paint);
+    // Middle layer
+    _px(canvas, 4, 4, p, paint);
+    _px(canvas, 5, 4, p, paint);
+    _px(canvas, 6, 4, p, paint);
+    _px(canvas, 7, 4, p, paint);
+    _px(canvas, 3, 5, p, paint);
+    _px(canvas, 4, 5, p, paint);
+    _px(canvas, 5, 5, p, paint);
+    _px(canvas, 6, 5, p, paint);
+    _px(canvas, 7, 5, p, paint);
+    _px(canvas, 8, 5, p, paint);
+    _px(canvas, 2, 6, p, paint);
+    _px(canvas, 3, 6, p, paint);
+    _px(canvas, 4, 6, p, paint);
+    _px(canvas, 5, 6, p, paint);
+    _px(canvas, 6, 6, p, paint);
+    _px(canvas, 7, 6, p, paint);
+    _px(canvas, 8, 6, p, paint);
+    _px(canvas, 9, 6, p, paint);
+    // Trunk
+    _px(canvas, 5, 7, p, dimPaint);
+    _px(canvas, 6, 7, p, dimPaint);
+    _px(canvas, 5, 8, p, dimPaint);
+    _px(canvas, 6, 8, p, dimPaint);
+    _px(canvas, 5, 9, p, dimPaint);
+    _px(canvas, 6, 9, p, dimPaint);
+    _px(canvas, 5, 10, p, dimPaint);
+    _px(canvas, 6, 10, p, dimPaint);
   }
 
   void _px(Canvas canvas, int x, int y, double p, Paint paint) {

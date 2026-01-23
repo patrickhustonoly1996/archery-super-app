@@ -138,16 +138,20 @@ class _ActiveTimerView extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPrep = provider.phase == TimerPhase.prep;
     final isHold = provider.phase == TimerPhase.hold;
+    final isHalfDraw = provider.phase == TimerPhase.halfDraw;
     final isBreak = provider.phase == TimerPhase.exerciseBreak;
     final phaseColor = isPrep
         ? const Color(0xFF26C6DA) // Cyan for prep/get ready
         : isHold
             ? AppColors.gold
-            : isBreak
-                ? const Color(0xFF26C6DA) // Cyan for exercise transitions
-                : AppColors.textSecondary;
+            : isHalfDraw
+                ? const Color(0xFF26C6DA) // Cyan for half draw
+                : isBreak
+                    ? const Color(0xFF26C6DA) // Cyan for exercise transitions
+                    : AppColors.textSecondary;
 
     final isCustom = provider.isCustomSession;
+    final isSevenTwo = provider.isSevenTwoSession;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
@@ -170,17 +174,21 @@ class _ActiveTimerView extends StatelessWidget {
                   Column(
                     children: [
                       Text(
-                        isCustom
-                            ? provider.customConfig!.displayName
-                            : (provider.activeSession?.name ?? ''),
+                        isSevenTwo
+                            ? provider.sevenTwoConfig!.displayName
+                            : isCustom
+                                ? provider.customConfig!.displayName
+                                : (provider.activeSession?.name ?? ''),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
+                              color: isSevenTwo ? const Color(0xFF26C6DA) : AppColors.textSecondary,
                             ),
                       ),
                       Text(
-                        isCustom
-                            ? 'Quick Session'
-                            : 'Exercise ${provider.currentExerciseNumber} of ${provider.totalExercises}',
+                        isSevenTwo
+                            ? provider.sevenTwoProgressText
+                            : isCustom
+                                ? 'Quick Session'
+                                : 'Exercise ${provider.currentExerciseNumber} of ${provider.totalExercises}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.textMuted,
                             ),
@@ -208,12 +216,35 @@ class _ActiveTimerView extends StatelessWidget {
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
-                      'Session starting soon',
+                      isSevenTwo ? '7-2s Drill starting' : 'Session starting soon',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppColors.textMuted,
                           ),
                       textAlign: TextAlign.center,
                     ),
+                  ] else if (isSevenTwo) ...[
+                    // 7-2s drill phase-specific messages
+                    Text(
+                      isHold
+                          ? 'Full draw - hold strong'
+                          : isHalfDraw
+                              ? 'Half draw - stay controlled'
+                              : 'Recover for next block',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: AppColors.textPrimary,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (provider.phase == TimerPhase.rest) ...[
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        'Block ${provider.sevenTwoCurrentBlock} of ${provider.sevenTwoTotalBlocks} complete',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: const Color(0xFF26C6DA),
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ] else if (isCustom) ...[
                     // Show movement cue for custom sessions
                     if (provider.movementCue != null && isHold) ...[
@@ -293,11 +324,13 @@ class _ActiveTimerView extends StatelessWidget {
 
             // Rep progress
             Text(
-              isCustom
-                  ? 'Rep ${provider.customRep} of ${provider.customTotalReps}'
-                  : 'Rep ${provider.currentRep} of ${provider.currentExerciseReps}',
+              isSevenTwo
+                  ? 'Rep ${provider.sevenTwoCurrentRep} of ${provider.sevenTwoRepsPerBlock}'
+                  : isCustom
+                      ? 'Rep ${provider.customRep} of ${provider.customTotalReps}'
+                      : 'Rep ${provider.currentRep} of ${provider.currentExerciseReps}',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: isSevenTwo ? const Color(0xFF26C6DA) : AppColors.textSecondary,
                   ),
             ),
 
@@ -309,7 +342,9 @@ class _ActiveTimerView extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: provider.sessionProgress,
                 backgroundColor: AppColors.surfaceDark,
-                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.gold),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isSevenTwo ? const Color(0xFF26C6DA) : AppColors.gold,
+                ),
               ),
             ),
 
@@ -614,7 +649,7 @@ class _CompletionView extends StatefulWidget {
 class _CompletionViewState extends State<_CompletionView> {
   bool _isSaving = false;
 
-  Future<void> _saveSession(BuildContext context, BowTrainingProvider provider, bool isCustom) async {
+  Future<void> _saveSession(BuildContext context, BowTrainingProvider provider, bool isCustom, bool isSevenTwo) async {
     if (_isSaving) return; // Prevent double-tap
 
     setState(() => _isSaving = true);
@@ -625,8 +660,8 @@ class _CompletionViewState extends State<_CompletionView> {
     try {
       final result = await ErrorHandler.run(
         context,
-        () => isCustom
-            ? provider.completeCustomSession(
+        () => isSevenTwo
+            ? provider.completeSevenTwoSession(
                 feedbackShaking: widget.feedbackShaking,
                 feedbackStructure: widget.feedbackStructure,
                 feedbackRest: widget.feedbackRest,
@@ -634,14 +669,23 @@ class _CompletionViewState extends State<_CompletionView> {
                     ? null
                     : widget.notesController.text,
               )
-            : provider.completeSession(
-                feedbackShaking: widget.feedbackShaking,
-                feedbackStructure: widget.feedbackStructure,
-                feedbackRest: widget.feedbackRest,
-                notes: widget.notesController.text.isEmpty
-                    ? null
-                    : widget.notesController.text,
-              ),
+            : isCustom
+                ? provider.completeCustomSession(
+                    feedbackShaking: widget.feedbackShaking,
+                    feedbackStructure: widget.feedbackStructure,
+                    feedbackRest: widget.feedbackRest,
+                    notes: widget.notesController.text.isEmpty
+                        ? null
+                        : widget.notesController.text,
+                  )
+                : provider.completeSession(
+                    feedbackShaking: widget.feedbackShaking,
+                    feedbackStructure: widget.feedbackStructure,
+                    feedbackRest: widget.feedbackRest,
+                    notes: widget.notesController.text.isEmpty
+                        ? null
+                        : widget.notesController.text,
+                  ),
         successMessage: 'Session logged',
         errorMessage: 'Failed to save session',
       );
@@ -687,21 +731,30 @@ class _CompletionViewState extends State<_CompletionView> {
   Widget build(BuildContext context) {
     final provider = widget.provider;
     final isCustom = provider.isCustomSession;
+    final isSevenTwo = provider.isSevenTwoSession;
     final session = provider.activeSession;
     final customConfig = provider.customConfig;
+    final sevenTwoConfig = provider.sevenTwoConfig;
 
-    // For custom sessions, we don't require activeSession
-    if (!isCustom && session == null) return const SizedBox.shrink();
+    // For custom/7-2s sessions, we don't require activeSession
+    if (!isCustom && !isSevenTwo && session == null) return const SizedBox.shrink();
 
-    final sessionName = isCustom
-        ? customConfig!.displayName
-        : session!.name;
+    final sessionName = isSevenTwo
+        ? sevenTwoConfig!.displayName
+        : isCustom
+            ? customConfig!.displayName
+            : session!.name;
 
-    final totalReps = isCustom
-        ? provider.customTotalReps
-        : provider.totalExercises;
+    final totalReps = isSevenTwo
+        ? sevenTwoConfig!.totalReps
+        : isCustom
+            ? provider.customTotalReps
+            : provider.totalExercises;
 
     final completedReps = provider.completedExercisesCount;
+
+    // Use cyan accent for 7-2s sessions
+    final accentColor = isSevenTwo ? const Color(0xFF26C6DA) : AppColors.gold;
 
     final completionRate = totalReps > 0
         ? (completedReps / totalReps * 100).round()
@@ -733,15 +786,15 @@ class _CompletionViewState extends State<_CompletionView> {
               Text(
                 sessionName,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: AppColors.gold,
+                      color: accentColor,
                     ),
                 textAlign: TextAlign.center,
               ),
 
-              if (isCustom) ...[
+              if (isSevenTwo || isCustom) ...[
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  'Quick Session',
+                  isSevenTwo ? '7-2s Drill' : 'Quick Session',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textMuted,
                       ),
@@ -753,9 +806,10 @@ class _CompletionViewState extends State<_CompletionView> {
 
               // Stats
               _StatRow(
-                label: isCustom ? 'Reps Completed' : 'Exercises Completed',
+                label: isSevenTwo || isCustom ? 'Reps Completed' : 'Exercises Completed',
                 value: '$completedReps / $totalReps',
                 highlight: completionRate >= 100,
+                highlightColor: accentColor,
               ),
               _StatRow(
                 label: 'Total Hold Time',
@@ -766,6 +820,7 @@ class _CompletionViewState extends State<_CompletionView> {
                 label: 'Completion',
                 value: '$completionRate%',
                 highlight: completionRate >= 100,
+                highlightColor: accentColor,
               ),
 
               const SizedBox(height: AppSpacing.xl),
@@ -818,7 +873,7 @@ class _CompletionViewState extends State<_CompletionView> {
 
               // Log/Save session button
               ElevatedButton(
-                onPressed: _isSaving ? null : () => _saveSession(context, provider, isCustom),
+                onPressed: _isSaving ? null : () => _saveSession(context, provider, isCustom, isSevenTwo),
                 child: _isSaving
                     ? const SizedBox(
                         width: 20,
@@ -944,11 +999,13 @@ class _StatRow extends StatelessWidget {
   final String label;
   final String value;
   final bool highlight;
+  final Color highlightColor;
 
   const _StatRow({
     required this.label,
     required this.value,
     this.highlight = false,
+    this.highlightColor = AppColors.gold,
   });
 
   @override
@@ -967,7 +1024,7 @@ class _StatRow extends StatelessWidget {
           Text(
             value,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: highlight ? AppColors.gold : AppColors.textPrimary,
+                  color: highlight ? highlightColor : AppColors.textPrimary,
                   fontWeight: highlight ? FontWeight.bold : FontWeight.normal,
                 ),
           ),

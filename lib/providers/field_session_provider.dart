@@ -50,8 +50,8 @@ class FieldSessionProvider extends ChangeNotifier {
   model.FieldCourse? _course;
   model.FieldCourse? get course => _course;
 
-  model.model.FieldRoundType? _roundType;
-  model.model.FieldRoundType? get roundType => _roundType;
+  model.FieldRoundType? _roundType;
+  model.FieldRoundType? get roundType => _roundType;
 
   int _currentTargetNumber = 1;
   int get currentTargetNumber => _currentTargetNumber;
@@ -239,7 +239,7 @@ class FieldSessionProvider extends ChangeNotifier {
     }
 
     // Save to database
-    await _db.insertmodel.FieldCourseTarget(model.FieldCourseTargetsCompanion.insert(
+    await _db.insertFieldCourseTarget(FieldCourseTargetsCompanion.insert(
       id: targetId,
       courseId: _course!.id,
       targetNumber: _currentTargetNumber,
@@ -247,8 +247,8 @@ class FieldSessionProvider extends ChangeNotifier {
       faceSize: faceSize,
       primaryDistance: pegConfig.primaryDistance,
       unit: Value(pegConfig.unit.name),
-      isWalkUp: Value(pegConfig.type == PegType.walkUp),
-      isWalkDown: Value(pegConfig.type == PegType.walkDown),
+      isWalkUp: Value(pegConfig.type == model.PegType.walkUp),
+      isWalkDown: Value(pegConfig.type == model.PegType.walkDown),
       arrowsRequired: Value(arrowsRequired),
       notes: Value(notes),
     ));
@@ -262,8 +262,8 @@ class FieldSessionProvider extends ChangeNotifier {
       faceSize: faceSize,
       primaryDistance: pegConfig.primaryDistance,
       unit: pegConfig.unit,
-      isWalkUp: pegConfig.type == PegType.walkUp,
-      isWalkDown: pegConfig.type == PegType.walkDown,
+      isWalkUp: pegConfig.type == model.PegType.walkUp,
+      isWalkDown: pegConfig.type == model.PegType.walkDown,
       arrowsRequired: arrowsRequired,
       notes: notes,
     );
@@ -513,7 +513,7 @@ class FieldSessionProvider extends ChangeNotifier {
     if (meta.courseId != null) {
       final dbCourse = await _db.getFieldCourse(meta.courseId!);
       if (dbCourse != null) {
-        final targets = await _db.getmodel.FieldCourseTargets(meta.courseId!);
+        final dbTargets = await _db.getFieldCourseTargets(meta.courseId!);
         _course = model.FieldCourse(
           id: dbCourse.id,
           name: dbCourse.name,
@@ -521,7 +521,7 @@ class FieldSessionProvider extends ChangeNotifier {
           roundType: model.FieldRoundType.fromString(dbCourse.roundType),
           targetCount: dbCourse.targetCount,
           notes: dbCourse.notes,
-          targets: targets.map(_dbTargetToModel).toList(),
+          targets: dbTargets.map(_dbTargetToModel).toList(),
           createdAt: dbCourse.createdAt,
         );
       }
@@ -553,7 +553,8 @@ class FieldSessionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  model.FieldCourseTarget _dbTargetToModel(model.FieldCourseTarget dbTarget) {
+  /// Convert database FieldCourseTarget to domain model
+  model.FieldCourseTarget _dbTargetToModel(FieldCourseTarget dbTarget) {
     return model.FieldCourseTarget(
       id: dbTarget.id,
       courseId: dbTarget.courseId,

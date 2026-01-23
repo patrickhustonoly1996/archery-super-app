@@ -88,6 +88,28 @@ class _BowTrainingHomeScreenState extends State<BowTrainingHomeScreen> {
     );
   }
 
+  void _openSevenTwoBuilder() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surfaceDark,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => _SevenTwoBuilder(
+        onStart: (config) {
+          Navigator.pop(context);
+          final provider = context.read<BowTrainingProvider>();
+          provider.startSevenTwoSession(config);
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const BowTrainingScreen()),
+          ).then((_) => _loadMinimalData());
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,6 +127,11 @@ class _BowTrainingHomeScreenState extends State<BowTrainingHomeScreen> {
                 children: [
                   // Custom Timer - prominent at top
                   _CustomTimerCard(onTap: _openCustomTimer),
+
+                  const SizedBox(height: AppSpacing.md),
+
+                  // 7-2s Drill card
+                  _SevenTwoDrillCard(onTap: _openSevenTwoBuilder),
 
                   const SizedBox(height: AppSpacing.lg),
 
@@ -598,6 +625,103 @@ class _CustomTimerCard extends StatelessWidget {
   }
 }
 
+/// 7-2s Drill card - prominent entry point for the drill
+class _SevenTwoDrillCard extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _SevenTwoDrillCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: AppColors.surfaceDark,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSpacing.md),
+        side: BorderSide(color: const Color(0xFF26C6DA).withValues(alpha: 0.4)),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.md),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF26C6DA).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                ),
+                child: const Icon(
+                  Icons.bolt,
+                  color: Color(0xFF26C6DA),
+                  size: 32,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          '7-2s Drill',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF26C6DA),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'NEW',
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                  color: AppColors.backgroundDark,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 10,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '7s full draw, 2s half draw, rest between blocks',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                    ),
+                    Text(
+                      'Default: 4 reps × 3 blocks',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                color: Color(0xFF26C6DA),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _RecentLogTile extends StatelessWidget {
   final OlyTrainingLog log;
 
@@ -825,6 +949,251 @@ class _CustomSessionBuilderState extends State<_CustomSessionBuilder> {
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
               ),
               child: const Text('START SESSION'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// 7-2s Drill Builder - Bottom sheet for configuring 7-2s drill
+// =============================================================================
+
+class _SevenTwoBuilder extends StatefulWidget {
+  final Function(SevenTwoConfig) onStart;
+
+  const _SevenTwoBuilder({required this.onStart});
+
+  @override
+  State<_SevenTwoBuilder> createState() => _SevenTwoBuilderState();
+}
+
+class _SevenTwoBuilderState extends State<_SevenTwoBuilder> {
+  int _restSeconds = 45;
+  int _repsPerBlock = 4;
+  int _numBlocks = 3;
+
+  SevenTwoConfig get _config => SevenTwoConfig(
+    restSeconds: _restSeconds,
+    repsPerBlock: _repsPerBlock,
+    numBlocks: _numBlocks,
+  );
+
+  String _formatDuration(int seconds) {
+    final mins = seconds ~/ 60;
+    final secs = seconds % 60;
+    if (mins == 0) return '${secs}s';
+    if (secs == 0) return '${mins}min';
+    return '${mins}min ${secs}s';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final totalReps = _repsPerBlock * _numBlocks;
+    final estimatedDuration = _config.estimatedDurationSeconds;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: AppSpacing.lg,
+        right: AppSpacing.lg,
+        top: AppSpacing.lg,
+        bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.bolt, color: Color(0xFF26C6DA), size: 24),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    '7-2s Drill',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: const Color(0xFF26C6DA),
+                        ),
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, color: AppColors.textMuted),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+
+          // Description
+          Text(
+            '7s full draw → 2s half draw, no rest within blocks',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textMuted,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
+          // Rest time slider
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Rest between blocks',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
+              ),
+              Text(
+                '${_restSeconds}s',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: const Color(0xFF26C6DA),
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ],
+          ),
+          Slider(
+            value: _restSeconds.toDouble(),
+            min: 30,
+            max: 90,
+            divisions: 12,
+            activeColor: const Color(0xFF26C6DA),
+            inactiveColor: const Color(0xFF26C6DA).withValues(alpha: 0.3),
+            onChanged: (value) => setState(() => _restSeconds = value.toInt()),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // Reps per block slider
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Reps per block',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
+              ),
+              Text(
+                '$_repsPerBlock',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: const Color(0xFF26C6DA),
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ],
+          ),
+          Slider(
+            value: _repsPerBlock.toDouble(),
+            min: 2,
+            max: 6,
+            divisions: 4,
+            activeColor: const Color(0xFF26C6DA),
+            inactiveColor: const Color(0xFF26C6DA).withValues(alpha: 0.3),
+            onChanged: (value) => setState(() => _repsPerBlock = value.toInt()),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // Number of blocks slider
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Number of blocks',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
+              ),
+              Text(
+                '$_numBlocks',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: const Color(0xFF26C6DA),
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ],
+          ),
+          Slider(
+            value: _numBlocks.toDouble(),
+            min: 1,
+            max: 5,
+            divisions: 4,
+            activeColor: const Color(0xFF26C6DA),
+            inactiveColor: const Color(0xFF26C6DA).withValues(alpha: 0.3),
+            onChanged: (value) => setState(() => _numBlocks = value.toInt()),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
+          // Preview summary
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: const Color(0xFF26C6DA).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppSpacing.sm),
+              border: Border.all(color: const Color(0xFF26C6DA).withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Column(
+                  children: [
+                    Text(
+                      '$totalReps',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            color: const Color(0xFF26C6DA),
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    Text(
+                      'total reps',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                    ),
+                  ],
+                ),
+                Container(
+                  width: 1,
+                  height: 40,
+                  color: const Color(0xFF26C6DA).withValues(alpha: 0.3),
+                ),
+                Column(
+                  children: [
+                    Text(
+                      _formatDuration(estimatedDuration),
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            color: const Color(0xFF26C6DA),
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    Text(
+                      'estimated',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+
+          // Start button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => widget.onStart(_config),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF26C6DA),
+                foregroundColor: AppColors.backgroundDark,
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+              ),
+              child: const Text('START DRILL'),
             ),
           ),
         ],

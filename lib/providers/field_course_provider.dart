@@ -27,11 +27,11 @@ class FieldCourseProvider extends ChangeNotifier {
   /// Load all field courses
   Future<void> loadCourses() async {
     final dbCourses = await _db.getAllFieldCourses();
-    final coursesWithTargets = <FieldCourse>[];
+    final coursesWithTargets = <model.FieldCourse>[];
 
     for (final dbCourse in dbCourses) {
-      final targets = await _db.getmodel.FieldCourseTargets(dbCourse.id);
-      coursesWithTargets.add(_dbCourseToModel(dbCourse, targets));
+      final dbTargets = await _db.getFieldCourseTargets(dbCourse.id);
+      coursesWithTargets.add(_dbCourseToModel(dbCourse, dbTargets));
     }
 
     _courses = coursesWithTargets;
@@ -41,11 +41,11 @@ class FieldCourseProvider extends ChangeNotifier {
   /// Load courses by venue
   Future<List<model.FieldCourse>> getCoursesByVenue(String venueId) async {
     final dbCourses = await _db.getFieldCoursesByVenue(venueId);
-    final coursesWithTargets = <FieldCourse>[];
+    final coursesWithTargets = <model.FieldCourse>[];
 
     for (final dbCourse in dbCourses) {
-      final targets = await _db.getmodel.FieldCourseTargets(dbCourse.id);
-      coursesWithTargets.add(_dbCourseToModel(dbCourse, targets));
+      final dbTargets = await _db.getFieldCourseTargets(dbCourse.id);
+      coursesWithTargets.add(_dbCourseToModel(dbCourse, dbTargets));
     }
 
     return coursesWithTargets;
@@ -54,11 +54,11 @@ class FieldCourseProvider extends ChangeNotifier {
   /// Load courses by round type
   Future<List<model.FieldCourse>> getCoursesByRoundType(model.FieldRoundType roundType) async {
     final dbCourses = await _db.getFieldCoursesByRoundType(roundType.name);
-    final coursesWithTargets = <FieldCourse>[];
+    final coursesWithTargets = <model.FieldCourse>[];
 
     for (final dbCourse in dbCourses) {
-      final targets = await _db.getmodel.FieldCourseTargets(dbCourse.id);
-      coursesWithTargets.add(_dbCourseToModel(dbCourse, targets));
+      final dbTargets = await _db.getFieldCourseTargets(dbCourse.id);
+      coursesWithTargets.add(_dbCourseToModel(dbCourse, dbTargets));
     }
 
     return coursesWithTargets;
@@ -73,8 +73,8 @@ class FieldCourseProvider extends ChangeNotifier {
       return;
     }
 
-    final targets = await _db.getmodel.FieldCourseTargets(courseId);
-    _selectedCourse = _dbCourseToModel(dbCourse, targets);
+    final dbTargets = await _db.getFieldCourseTargets(courseId);
+    _selectedCourse = _dbCourseToModel(dbCourse, dbTargets);
     notifyListeners();
   }
 
@@ -184,7 +184,7 @@ class FieldCourseProvider extends ChangeNotifier {
         arrowsRequired = 4; // Field, Hunter, Expert
     }
 
-    await _db.insertmodel.FieldCourseTarget(model.FieldCourseTargetsCompanion.insert(
+    await _db.insertFieldCourseTarget(FieldCourseTargetsCompanion.insert(
       id: id,
       courseId: courseId,
       targetNumber: targetNumber,
@@ -212,7 +212,7 @@ class FieldCourseProvider extends ChangeNotifier {
     int? faceSize,
     String? notes,
   }) async {
-    final existing = await _db.getmodel.FieldCourseTarget(id);
+    final existing = await _db.getFieldCourseTarget(id);
     if (existing == null) return;
 
     final newPegConfig = pegConfig != null
@@ -220,7 +220,7 @@ class FieldCourseProvider extends ChangeNotifier {
         : existing.pegConfig;
     final parsedConfig = model.PegConfiguration.fromJson(newPegConfig);
 
-    await _db.updatemodel.FieldCourseTarget(model.FieldCourseTargetsCompanion(
+    await _db.updateFieldCourseTarget(FieldCourseTargetsCompanion(
       id: Value(id),
       courseId: Value(existing.courseId),
       targetNumber: Value(existing.targetNumber),
@@ -239,7 +239,7 @@ class FieldCourseProvider extends ChangeNotifier {
 
   /// Delete a target
   Future<void> deleteTarget(String id) async {
-    await _db.deletemodel.FieldCourseTarget(id);
+    await _db.deleteFieldCourseTarget(id);
     await loadCourses();
   }
 
@@ -256,7 +256,7 @@ class FieldCourseProvider extends ChangeNotifier {
   /// Load used pegs from existing course targets
   Future<void> loadUsedPegsForCourse(String courseId) async {
     _usedPegConfigs.clear();
-    final targets = await _db.getmodel.FieldCourseTargets(courseId);
+    final targets = await _db.getFieldCourseTargets(courseId);
     for (final target in targets) {
       final config = model.PegConfiguration.fromJson(target.pegConfig);
       _usedPegConfigs.add(config.displayString);
@@ -324,13 +324,14 @@ class FieldCourseProvider extends ChangeNotifier {
   // HELPERS
   // ===========================================================================
 
-  FieldCourse _dbCourseToModel(
+  /// Convert database FieldCourse + FieldCourseTargets to domain model
+  model.FieldCourse _dbCourseToModel(
     FieldCourse dbCourse,
-    List<model.FieldCourseTarget> dbTargets,
+    List<FieldCourseTarget> dbTargets,
   ) {
     final targets = dbTargets.map(_dbTargetToModel).toList();
 
-    return FieldCourse(
+    return model.FieldCourse(
       id: dbCourse.id,
       name: dbCourse.name,
       venueId: dbCourse.venueId,
@@ -344,7 +345,8 @@ class FieldCourseProvider extends ChangeNotifier {
     );
   }
 
-  model.FieldCourseTarget _dbTargetToModel(model.FieldCourseTarget dbTarget) {
+  /// Convert database FieldCourseTarget to domain model
+  model.FieldCourseTarget _dbTargetToModel(FieldCourseTarget dbTarget) {
     return model.FieldCourseTarget(
       id: dbTarget.id,
       courseId: dbTarget.courseId,
