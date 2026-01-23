@@ -67,3 +67,20 @@ Build partner for Patrick Huston (Olympic archer). New to software, time-constra
 ## GitHub
 
 Run `git fetch origin` and check branches with `git branch -r` when needed. Don't ask - just follow the git discipline above.
+
+## AI Tool Routing
+
+Full guide: `docs/AI_TOOL_ROUTING.md`
+
+**Z.ai (cheap):** Pattern-following, clear fixes, mechanical tasks, cosmetic changes
+**Claude Opus (expensive):** Architecture, debugging mysteries, new integrations, security, "I don't know how"
+
+If task is "follow existing pattern" → Z.ai. If task is "figure out what to do" → Opus.
+
+## Token Efficiency
+
+Full guide: `docs/TOKEN_OPTIMIZATION.md`
+
+- Targeted tests only (never full suite during dev)
+- Clear commit messages (type: description)
+- Minimal file reads, specific actions
