@@ -32,10 +32,15 @@ class _BowSpecsScreenState extends State<BowSpecsScreen> {
   final _tillerTopController = TextEditingController();
   final _tillerBottomController = TextEditingController();
 
+  // Brace height unit
+  BraceHeightUnit _braceHeightUnit = BraceHeightUnit.millimeters;
+
   // Controllers for equipment
   final _riserModelController = TextEditingController();
   final _limbModelController = TextEditingController();
-  final _limbPoundageController = TextEditingController();
+  final _markedLimbWeightController = TextEditingController();
+  final _drawWeightOnFingersController = TextEditingController();
+  final _peakWeightController = TextEditingController();
   final _stringMaterialController = TextEditingController();
   final _stringStrandsController = TextEditingController();
 
@@ -76,8 +81,13 @@ class _BowSpecsScreenState extends State<BowSpecsScreen> {
   }
 
   void _initializeControllers() {
-    // Primary
-    _braceHeightController.text = _specs.braceHeight?.toStringAsFixed(1) ?? '';
+    // Primary - brace height in user's preferred unit
+    _braceHeightUnit = _specs.braceHeightUnit;
+    if (_specs.braceHeight != null) {
+      final displayValue = _braceHeightUnit.fromMillimeters(_specs.braceHeight!);
+      final decimals = _braceHeightUnit == BraceHeightUnit.inches ? 2 : 1;
+      _braceHeightController.text = displayValue.toStringAsFixed(decimals);
+    }
     _nockingPointController.text = _specs.nockingPoint?.toStringAsFixed(1) ?? '';
     _tillerTopController.text = _specs.tillerTop?.toStringAsFixed(1) ?? '';
     _tillerBottomController.text = _specs.tillerBottom?.toStringAsFixed(1) ?? '';
@@ -87,7 +97,9 @@ class _BowSpecsScreenState extends State<BowSpecsScreen> {
     _riserLength = _specs.riserLength;
     _limbModelController.text = _specs.limbModel ?? '';
     _limbLength = _specs.limbLength;
-    _limbPoundageController.text = _specs.limbPoundage?.toStringAsFixed(0) ?? '';
+    _markedLimbWeightController.text = _specs.markedLimbWeight?.toStringAsFixed(0) ?? '';
+    _drawWeightOnFingersController.text = _specs.drawWeightOnFingers?.toStringAsFixed(0) ?? '';
+    _peakWeightController.text = _specs.peakWeight?.toStringAsFixed(0) ?? '';
     _stringMaterialController.text = _specs.stringMaterial ?? '';
     _stringStrandsController.text = _specs.stringStrands?.toString() ?? '';
 
@@ -125,7 +137,9 @@ class _BowSpecsScreenState extends State<BowSpecsScreen> {
     _tillerBottomController.dispose();
     _riserModelController.dispose();
     _limbModelController.dispose();
-    _limbPoundageController.dispose();
+    _markedLimbWeightController.dispose();
+    _drawWeightOnFingersController.dispose();
+    _peakWeightController.dispose();
     _stringMaterialController.dispose();
     _stringStrandsController.dispose();
     _buttonModelController.dispose();
@@ -151,9 +165,17 @@ class _BowSpecsScreenState extends State<BowSpecsScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // Convert brace height from display unit to mm for storage
+      double? braceHeightMm;
+      final braceHeightInput = double.tryParse(_braceHeightController.text);
+      if (braceHeightInput != null) {
+        braceHeightMm = _braceHeightUnit.toMillimeters(braceHeightInput);
+      }
+
       final newSpecs = BowSpecifications(
         // Primary
-        braceHeight: double.tryParse(_braceHeightController.text),
+        braceHeight: braceHeightMm,
+        braceHeightUnit: _braceHeightUnit,
         nockingPoint: double.tryParse(_nockingPointController.text),
         tillerTop: double.tryParse(_tillerTopController.text),
         tillerBottom: double.tryParse(_tillerBottomController.text),
@@ -162,7 +184,9 @@ class _BowSpecsScreenState extends State<BowSpecsScreen> {
         riserLength: _riserLength,
         limbModel: _limbModelController.text.isEmpty ? null : _limbModelController.text,
         limbLength: _limbLength,
-        limbPoundage: double.tryParse(_limbPoundageController.text),
+        markedLimbWeight: double.tryParse(_markedLimbWeightController.text),
+        drawWeightOnFingers: double.tryParse(_drawWeightOnFingersController.text),
+        peakWeight: double.tryParse(_peakWeightController.text),
         stringMaterial: _stringMaterialController.text.isEmpty ? null : _stringMaterialController.text,
         stringStrands: int.tryParse(_stringStrandsController.text),
         // Button
@@ -250,13 +274,7 @@ class _BowSpecsScreenState extends State<BowSpecsScreen> {
               'Record these after every equipment change.',
             ),
             const SizedBox(height: AppSpacing.md),
-            _buildNumberField(
-              controller: _braceHeightController,
-              label: 'Brace Height',
-              suffix: 'mm',
-              hint: 'e.g., 215',
-              helperText: 'Distance from grip pivot to string',
-            ),
+            _buildBraceHeightField(),
             _buildNumberField(
               controller: _nockingPointController,
               label: 'Nocking Point',
@@ -318,12 +336,28 @@ class _BowSpecsScreenState extends State<BowSpecsScreen> {
               onChanged: (v) => setState(() => _limbLength = v),
             ),
             _buildNumberField(
-              controller: _limbPoundageController,
-              label: 'Limb Poundage',
+              controller: _markedLimbWeightController,
+              label: 'Marked Limb Weight',
               suffix: '#',
               hint: 'e.g., 44',
-              helperText: 'Draw weight at 28"',
+              helperText: 'Weight printed on limbs (at 28")',
             ),
+            if (widget.bow.bowType == 'recurve')
+              _buildNumberField(
+                controller: _drawWeightOnFingersController,
+                label: 'Draw Weight on Fingers',
+                suffix: '#',
+                hint: 'e.g., 48',
+                helperText: 'Actual weight at your draw length',
+              ),
+            if (widget.bow.bowType == 'compound')
+              _buildNumberField(
+                controller: _peakWeightController,
+                label: 'Peak Weight',
+                suffix: '#',
+                hint: 'e.g., 60',
+                helperText: 'Peak draw weight on cams',
+              ),
             _buildTextField(
               controller: _stringMaterialController,
               label: 'String Material',
@@ -498,6 +532,65 @@ class _BowSpecsScreenState extends State<BowSpecsScreen> {
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppColors.textMuted,
             ),
+      ),
+    );
+  }
+
+  Widget _buildBraceHeightField() {
+    final hint = _braceHeightUnit == BraceHeightUnit.millimeters ? 'e.g., 215' : 'e.g., 8.5';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: TextFormField(
+              controller: _braceHeightController,
+              decoration: InputDecoration(
+                labelText: 'Brace Height',
+                hintText: hint,
+                helperText: 'Distance from grip pivot to string',
+                suffixText: _braceHeightUnit.abbreviation,
+              ),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.xs),
+            child: ToggleButtons(
+              isSelected: [
+                _braceHeightUnit == BraceHeightUnit.millimeters,
+                _braceHeightUnit == BraceHeightUnit.inches,
+              ],
+              onPressed: (index) {
+                final newUnit = index == 0 ? BraceHeightUnit.millimeters : BraceHeightUnit.inches;
+                if (newUnit != _braceHeightUnit) {
+                  // Convert the current value to the new unit
+                  final currentValue = double.tryParse(_braceHeightController.text);
+                  if (currentValue != null) {
+                    // Convert: old unit display -> mm -> new unit display
+                    final mmValue = _braceHeightUnit.toMillimeters(currentValue);
+                    final newValue = newUnit.fromMillimeters(mmValue);
+                    final decimals = newUnit == BraceHeightUnit.inches ? 2 : 1;
+                    _braceHeightController.text = newValue.toStringAsFixed(decimals);
+                  }
+                  setState(() => _braceHeightUnit = newUnit);
+                }
+              },
+              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+              borderRadius: BorderRadius.circular(AppSpacing.xs),
+              children: const [
+                Text('mm'),
+                Text('in'),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
