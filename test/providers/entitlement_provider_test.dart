@@ -969,8 +969,10 @@ void main() {
       });
 
       test('one millisecond before expiry', () {
-        final expiresAt = DateTime.now().add(const Duration(milliseconds: 1));
-        final isActive = DateTime.now().isBefore(expiresAt);
+        // Use fixed times to avoid race condition
+        final now = DateTime(2025, 1, 15, 12, 0, 0, 0);
+        final expiresAt = now.add(const Duration(milliseconds: 1));
+        final isActive = now.isBefore(expiresAt);
         expect(isActive, isTrue);
       });
 

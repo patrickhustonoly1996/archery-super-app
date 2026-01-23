@@ -36,6 +36,7 @@ class AppColors {
 
   // Semantic
   static const error = Color(0xFFCF6679);
+  static const warning = Color(0xFFFFB74D);
   static const success = Color(0xFF4CAF50);
 
   // Muted fluorescent accents (≤50% opacity highlights)

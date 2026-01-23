@@ -529,8 +529,8 @@ class _BowDetailScreenState extends State<BowDetailScreen> {
     if (specs.limbLength != null) {
       parts.add(LimbLengthOptions.displayName(specs.limbLength));
     }
-    if (specs.limbPoundage != null) {
-      parts.add('${specs.limbPoundage!.toStringAsFixed(0)}#');
+    if (specs.markedLimbWeight != null) {
+      parts.add('${specs.markedLimbWeight!.toStringAsFixed(0)}#');
     }
     return parts.isEmpty ? null : parts.join(' • ');
   }
