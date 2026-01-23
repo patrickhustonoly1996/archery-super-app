@@ -10,6 +10,7 @@ node_modules/
 # Local testing
 *.local
 .env.local
+.env
 
 # IDE
 .idea/

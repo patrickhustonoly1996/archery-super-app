@@ -11,7 +11,8 @@ Complete checklist for launching the subscription and payment system.
 | Stripe products | Done |
 | Stripe webhook | Done |
 | Code updated | Done |
-| Firebase secrets | Waiting on email access |
+| Firebase secrets | Done (locally) - needs Blaze plan to deploy |
+| Firebase deploy | Blocked - needs Blaze plan upgrade |
 | Bunny.net videos | Not started |
 | Email migration | Not started |
 | Email list system | Not started |
@@ -39,7 +40,7 @@ Complete checklist for launching the subscription and payment system.
 
 - [x] Endpoint: `https://us-central1-archery-super.cloudfunctions.net/stripeWebhook`
 - [x] Events: 6 events configured (checkout, subscription, invoice)
-- [x] Webhook secret: `whsec_Tkal8LkePTQ6Hi25kYlJvVF0xibTeSZc`
+- [x] Webhook secret stored in `functions/.env` (gitignored)
 
 ### Customer Portal
 
@@ -51,22 +52,31 @@ Complete checklist for launching the subscription and payment system.
 
 - [x] `lib/services/stripe_service.dart` - All price IDs added
 - [x] `functions/src/stripe.ts` - Price-to-tier mapping + product ID added
+- [x] `functions/.env` - Stripe secrets configured (gitignored, safe)
+- [x] `functions/.gitignore` - Updated to exclude `.env`
 
 ---
 
-## 3. Firebase Configuration - BLOCKED (needs email access)
+## 3. Firebase Configuration - BLOCKED (needs Blaze plan)
 
-### Set Secrets (run when you have the API key)
+### Secrets Configuration - DONE
 
-```bash
-cd C:\Users\patri\Desktop\archery_super_app_v1
-firebase functions:config:set stripe.secret_key="sk_test_XXXXX" stripe.webhook_secret="whsec_Tkal8LkePTQ6Hi25kYlJvVF0xibTeSZc"
-firebase deploy --only functions
-```
+The Stripe secrets are stored in `functions/.env`:
+- `STRIPE_SECRET_KEY` - Live API key (set 23 Jan 2026)
+- `STRIPE_WEBHOOK_SECRET` - Webhook signing secret
 
-- [ ] Get Stripe secret key from Developers > API keys
-- [ ] Run the config command above
-- [ ] Deploy functions
+**IMPORTANT:** The `.env` file is gitignored and will NOT be committed. It lives only on this machine.
+
+### Deploy Functions - BLOCKED
+
+Firebase requires Blaze (pay-as-you-go) plan to deploy Cloud Functions.
+
+**Action required:**
+1. Go to: https://console.firebase.google.com/project/archery-super/usage/details
+2. Upgrade to Blaze plan (pay-as-you-go)
+3. Then run: `firebase deploy --only functions`
+
+Functions are built and ready - just need the plan upgrade.
 
 ### Firestore Security Rules
 
@@ -131,9 +141,10 @@ Pick ONE of these (don't build custom):
 
 ### Update App Code
 
-- [ ] Add Bunny API key to Firebase config:
-  ```bash
-  firebase functions:config:set bunny.api_key="XXXXX" bunny.library_id="XXXXX"
+- [ ] Add Bunny config to `functions/.env`:
+  ```
+  BUNNY_API_KEY=XXXXX
+  BUNNY_LIBRARY_ID=XXXXX
   ```
 
 - [ ] Update `lib/data/courses.dart` with real Bunny video IDs:
@@ -172,9 +183,9 @@ Pick ONE of these (don't build custom):
 
 ### Switch to Live Mode
 
-- [ ] Replace test API keys with live keys
-- [ ] Update webhook to live secret
-- [ ] Deploy functions
+- [x] Live API keys configured (23 Jan 2026)
+- [ ] Deploy functions (after Blaze upgrade)
+- [ ] Verify webhook receiving events
 
 ### Legal
 
@@ -186,12 +197,12 @@ Pick ONE of these (don't build custom):
 
 ## Next Actions (in order)
 
-1. **Monday**: Get email access sorted with hosting guy
-2. **Get Stripe secret key** and run Firebase config command
-3. **Deploy functions** to Firebase
-4. **Test Stripe** with test card
-5. **Set up Bunny.net** - upload videos, get IDs
-6. **Export emails from GHL** and import to chosen email service
+1. **Upgrade Firebase to Blaze plan**: https://console.firebase.google.com/project/archery-super/usage/details
+2. **Deploy functions**: `firebase deploy --only functions`
+3. **Test Stripe** with test card in app
+4. **Set up Bunny.net** - upload videos, get IDs
+5. **Export emails from GHL** and import to chosen email service
+6. **Final testing** of all payment flows
 7. **Go live** when all tested
 
 ---
@@ -212,4 +223,15 @@ Pick ONE of these (don't build custom):
 
 ---
 
-*Last updated: 18 Jan 2026*
+## Session Notes
+
+### 23 Jan 2026
+- Stripe live secret key configured in `functions/.env`
+- Webhook secret configured in `functions/.env`
+- Functions built successfully
+- **Blocker:** Firebase needs Blaze plan upgrade to deploy functions
+- Tomorrow: Discuss paywall feature visibility in detail
+
+---
+
+*Last updated: 23 Jan 2026*
