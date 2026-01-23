@@ -14,6 +14,12 @@ class BeepService {
   BytesSource? _shortBeepSource;     // One short beep for inhale
   BytesSource? _longBeepSource;      // One long beep for exhale
   BytesSource? _holdStartBeepSource; // 3 short + 1 long + 1 short for hold transition
+
+  // Timer beep sources
+  BytesSource? _singleBeepSource;    // 1 beep for timer start
+  BytesSource? _doubleBeepSource;    // 2 beeps for 10s warning
+  BytesSource? _tripleBeepSource;    // 3 beeps for lead-in/expired
+
   bool _initialized = false;
   Completer<void>? _initCompleter;
 
@@ -38,6 +44,11 @@ class BeepService {
       _shortBeepSource = BytesSource(_generateBeepWav(beepCount: 1, durationMs: 100));  // Short inhale beep
       _longBeepSource = BytesSource(_generateBeepWav(beepCount: 1, durationMs: 300));   // Long exhale beep
       _holdStartBeepSource = BytesSource(_generateHoldStartBeepWav());                   // Hold transition pattern
+
+      // Timer beeps - higher pitch (523Hz, C5) for distinction from breathing beeps
+      _singleBeepSource = BytesSource(_generateTimerBeepWav(beepCount: 1));   // Main timer start
+      _doubleBeepSource = BytesSource(_generateTimerBeepWav(beepCount: 2));   // 10s warning
+      _tripleBeepSource = BytesSource(_generateTimerBeepWav(beepCount: 3));   // Lead-in/expired
 
       _initialized = true;
     } finally {
@@ -73,6 +84,43 @@ class BeepService {
     try {
       await _player!.stop();
       await _player!.play(_holdStartBeepSource!);
+    } catch (e) {
+      // Silently fail - beeps are non-critical
+    }
+  }
+
+  // ============================================================================
+  // SCORING TIMER BEEPS
+  // ============================================================================
+
+  /// Play single beep (for main timer start).
+  Future<void> playSingleBeep() async {
+    if (!_initialized) await initialize();
+    try {
+      await _player!.stop();
+      await _player!.play(_singleBeepSource!);
+    } catch (e) {
+      // Silently fail - beeps are non-critical
+    }
+  }
+
+  /// Play double beep (for 10-second warning).
+  Future<void> playDoubleBeep() async {
+    if (!_initialized) await initialize();
+    try {
+      await _player!.stop();
+      await _player!.play(_doubleBeepSource!);
+    } catch (e) {
+      // Silently fail - beeps are non-critical
+    }
+  }
+
+  /// Play triple beep (for lead-in start and timer expired).
+  Future<void> playTripleBeep() async {
+    if (!_initialized) await initialize();
+    try {
+      await _player!.stop();
+      await _player!.play(_tripleBeepSource!);
     } catch (e) {
       // Silently fail - beeps are non-critical
     }
@@ -200,6 +248,56 @@ class BeepService {
     generateBeep(samplesPerLongTone);   // Long (transition)
     addSilence(samplesPerFinalPause);
     generateBeep(samplesPerFinalShort); // Short (now in hold)
+
+    return _createWavFile(samples, sampleRate);
+  }
+
+  /// Generate a WAV file for scoring timer beeps.
+  /// Uses a higher pitch (523Hz - C5 note) for clear distinction from breathing beeps.
+  Uint8List _generateTimerBeepWav({required int beepCount}) {
+    const int sampleRate = 44100;
+    const double frequency = 523.0; // C5 note - clear and distinct
+    const int beepDurationMs = 150; // Slightly longer for audibility
+    const int gapMs = 150; // Gap between beeps
+    const double fadeMs = 15.0; // Quick fade for crispness
+
+    final int samplesPerBeep = (sampleRate * beepDurationMs / 1000).round();
+    final int samplesPerGap = (sampleRate * gapMs / 1000).round();
+    final int fadeSamples = (sampleRate * fadeMs / 1000).round();
+
+    // Calculate total samples
+    int totalSamples = samplesPerBeep * beepCount;
+    if (beepCount > 1) {
+      totalSamples += samplesPerGap * (beepCount - 1);
+    }
+
+    final samples = Int16List(totalSamples);
+    int sampleIndex = 0;
+
+    for (int beep = 0; beep < beepCount; beep++) {
+      // Add gap between beeps (not before first beep)
+      if (beep > 0) {
+        for (int i = 0; i < samplesPerGap; i++) {
+          samples[sampleIndex++] = 0;
+        }
+      }
+
+      // Generate beep with fade in/out
+      for (int i = 0; i < samplesPerBeep; i++) {
+        double envelope = 1.0;
+        if (i < fadeSamples) {
+          envelope = math.sin((i / fadeSamples) * (math.pi / 2));
+        } else if (i > samplesPerBeep - fadeSamples) {
+          final fadeIndex = samplesPerBeep - i;
+          envelope = math.sin((fadeIndex / fadeSamples) * (math.pi / 2));
+        }
+
+        final t = i / sampleRate;
+        final sampleValue = math.sin(2 * math.pi * frequency * t) * envelope;
+        // Slightly louder than breathing beeps (0.5 vs 0.4)
+        samples[sampleIndex++] = (sampleValue * 32767 * 0.5).round().clamp(-32768, 32767);
+      }
+    }
 
     return _createWavFile(samples, sampleRate);
   }

@@ -143,18 +143,13 @@ class _XpBadgeCelebrationState extends State<XpBadgeCelebration>
     _entranceController.forward();
     _fireworksController.forward();
 
-    // Play celebration sound
-    _playCelebrationSound();
-
-    // Start exit after delay
-    Future.delayed(const Duration(milliseconds: 1800), () {
-      if (mounted) {
-        _startExitAnimation();
-      }
-    });
+    // Play celebration sound and wait for it to complete before exit
+    _playCelebrationSoundAndWait();
   }
 
-  void _playCelebrationSound() async {
+  bool _soundComplete = false;
+
+  void _playCelebrationSoundAndWait() async {
     try {
       final chiptune = ChiptuneService();
 
@@ -186,6 +181,17 @@ class _XpBadgeCelebrationState extends State<XpBadgeCelebration>
     } catch (e) {
       // Sound is optional, don't crash if it fails
       debugPrint('Could not play achievement sound: $e');
+    }
+
+    // Sound complete - can now exit
+    if (mounted) {
+      setState(() => _soundComplete = true);
+      // Brief pause after sound, then start exit animation
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted && !_isExiting) {
+          _startExitAnimation();
+        }
+      });
     }
   }
 
@@ -274,7 +280,7 @@ class _XpBadgeCelebrationState extends State<XpBadgeCelebration>
     return Material(
       type: MaterialType.transparency,
       child: GestureDetector(
-        onTap: _isExiting ? null : _startExitAnimation,
+        onTap: (_soundComplete && !_isExiting) ? _startExitAnimation : null,
         child: Stack(
           children: [
             // Fireworks particles (only during entrance)

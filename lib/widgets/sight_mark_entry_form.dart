@@ -42,6 +42,7 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
   late DistanceUnit _unit;
   bool _isSaving = false;
   bool _isFetchingWeather = false;
+  bool _isIndoor = false;
 
   // Slope angle (-45 to +45)
   double _slopeAngle = 0;
@@ -52,9 +53,12 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
   // Wind (Beaufort scale, null = not set)
   int? _windBeaufort;
 
-  // Light conditions
+  // Light conditions (outdoor)
   LightQuality? _lightQuality;
   SunPosition? _sunPosition;
+
+  // Light conditions (indoor)
+  IndoorLightQuality? _indoorLightQuality;
 
   // Common outdoor distances for quick selection
   final List<double> _commonMeters = [18, 25, 30, 40, 50, 60, 70, 90];
@@ -69,6 +73,7 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
       _distanceController.text = widget.existingMark!.distance.toStringAsFixed(0);
       _sightValueController.text = widget.existingMark!.sightValue;
       _slopeAngle = widget.existingMark!.slopeAngle ?? 0;
+      _isIndoor = widget.existingMark!.isIndoor;
 
       if (widget.existingMark!.weather != null) {
         final w = widget.existingMark!.weather!;
@@ -76,13 +81,15 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
         _windBeaufort = w.windBeaufort ?? windStringToBeaufort(w.wind);
         _lightQuality = LightQuality.fromString(w.lightQuality ?? w.sky);
         _sunPosition = SunPosition.fromString(w.sunPosition);
+        // Try to parse indoor light quality from lightQuality field
+        _indoorLightQuality = IndoorLightQuality.fromString(w.lightQuality);
       }
     } else {
       _unit = widget.defaultUnit ?? DistanceUnit.meters;
       if (widget.defaultDistance != null) {
         _distanceController.text = widget.defaultDistance!.toStringAsFixed(0);
       }
-      // Try to auto-fetch weather when adding new mark
+      // Try to auto-fetch weather when adding new mark (outdoor only)
       _tryAutoFetchWeather();
     }
   }
@@ -368,13 +375,55 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
                 ],
               ),
 
-              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.lg),
 
-              // SLOPE SECTION - Visual slider with archer/target
-              SlopeSlider(
-                value: _slopeAngle,
-                onChanged: (value) => setState(() => _slopeAngle = value),
+              // INDOOR TOGGLE
+              Row(
+                children: [
+                  Text(
+                    'Indoor:',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Switch(
+                    value: _isIndoor,
+                    onChanged: (value) {
+                      setState(() {
+                        _isIndoor = value;
+                        // Clear outdoor-specific values when switching to indoor
+                        if (value) {
+                          _windBeaufort = null;
+                          _sunPosition = null;
+                          _lightQuality = null;
+                          _slopeAngle = 0;
+                        } else {
+                          _indoorLightQuality = null;
+                        }
+                      });
+                    },
+                    activeTrackColor: AppColors.gold.withValues(alpha: 0.5),
+                    activeThumbColor: AppColors.gold,
+                  ),
+                  if (_isIndoor)
+                    Text(
+                      'Indoor',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.gold,
+                          ),
+                    ),
+                ],
               ),
+
+              // SLOPE SECTION - Visual slider with archer/target (outdoor only)
+              if (!_isIndoor) ...[
+                const SizedBox(height: AppSpacing.lg),
+                SlopeSlider(
+                  value: _slopeAngle,
+                  onChanged: (value) => setState(() => _slopeAngle = value),
+                ),
+              ],
 
               const SizedBox(height: AppSpacing.xl),
 
@@ -402,8 +451,8 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
                       ],
                     ),
                   ),
-                  // Show loading indicator while fetching weather
-                  if (_isFetchingWeather)
+                  // Show loading indicator while fetching weather (outdoor only)
+                  if (_isFetchingWeather && !_isIndoor)
                     const SizedBox(
                       width: 16,
                       height: 16,
@@ -413,7 +462,7 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
               ),
               const SizedBox(height: AppSpacing.md),
 
-              // Temperature slider
+              // Temperature slider (both indoor and outdoor)
               TemperatureSlider(
                 value: _temperature,
                 onChanged: (value) => setState(() => _temperature = value),
@@ -421,23 +470,35 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
 
               const SizedBox(height: AppSpacing.lg),
 
-              // Wind Beaufort slider
-              WindSlider(
-                beaufortScale: _windBeaufort,
-                onChanged: (value) => setState(() => _windBeaufort = value),
-              ),
+              // INDOOR: Only light condition
+              if (_isIndoor) ...[
+                IndoorLightSelector(
+                  lightQuality: _indoorLightQuality,
+                  onLightQualityChanged: (value) =>
+                      setState(() => _indoorLightQuality = value),
+                ),
+              ],
 
-              const SizedBox(height: AppSpacing.lg),
+              // OUTDOOR: Wind and sun/light
+              if (!_isIndoor) ...[
+                // Wind Beaufort slider
+                WindSlider(
+                  beaufortScale: _windBeaufort,
+                  onChanged: (value) => setState(() => _windBeaufort = value),
+                ),
 
-              // Sun/Light selector
-              SunLightSelector(
-                lightQuality: _lightQuality,
-                sunPosition: _sunPosition,
-                onLightQualityChanged: (value) =>
-                    setState(() => _lightQuality = value),
-                onSunPositionChanged: (value) =>
-                    setState(() => _sunPosition = value),
-              ),
+                const SizedBox(height: AppSpacing.lg),
+
+                // Sun/Light selector
+                SunLightSelector(
+                  lightQuality: _lightQuality,
+                  sunPosition: _sunPosition,
+                  onLightQualityChanged: (value) =>
+                      setState(() => _lightQuality = value),
+                  onSunPositionChanged: (value) =>
+                      setState(() => _sunPosition = value),
+                ),
+              ],
 
               const SizedBox(height: AppSpacing.xl),
 
@@ -480,25 +541,36 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
       final distance = double.parse(_distanceController.text);
       final sightValue = _sightValueController.text;
 
-      // Only include slope if not zero
-      final slope = _slopeAngle != 0 ? _slopeAngle : null;
+      // Only include slope if not zero (and not indoor)
+      final slope = (!_isIndoor && _slopeAngle != 0) ? _slopeAngle : null;
 
       // Build weather conditions from selections
       final hasConditions = _temperature != null ||
           _windBeaufort != null ||
           _lightQuality != null ||
-          _sunPosition != null;
+          _sunPosition != null ||
+          _indoorLightQuality != null;
 
-      final weather = hasConditions
-          ? WeatherConditions(
-              temperature: _temperature,
-              lightQuality: _lightQuality?.value,
-              sky: _lightQuality?.toSkyString(), // Backwards compatibility
-              sunPosition: _sunPosition?.value,
-              windBeaufort: _windBeaufort,
-              wind: beaufortToWindString(_windBeaufort), // Backwards compatibility
-            )
-          : null;
+      WeatherConditions? weather;
+      if (hasConditions) {
+        if (_isIndoor) {
+          // Indoor: only temperature and indoor light quality
+          weather = WeatherConditions(
+            temperature: _temperature,
+            lightQuality: _indoorLightQuality?.value,
+          );
+        } else {
+          // Outdoor: full weather conditions
+          weather = WeatherConditions(
+            temperature: _temperature,
+            lightQuality: _lightQuality?.value,
+            sky: _lightQuality?.toSkyString(), // Backwards compatibility
+            sunPosition: _sunPosition?.value,
+            windBeaufort: _windBeaufort,
+            wind: beaufortToWindString(_windBeaufort), // Backwards compatibility
+          );
+        }
+      }
 
       if (widget.existingMark != null) {
         await provider.updateSightMark(
@@ -509,6 +581,7 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
           sightValue: sightValue,
           weather: weather,
           slopeAngle: slope,
+          isIndoor: _isIndoor,
         );
       } else {
         await provider.addSightMark(
@@ -519,6 +592,7 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
           weather: weather,
           slopeAngle: slope,
           confidenceScore: 0.7, // Default confidence for manual entry
+          isIndoor: _isIndoor,
         );
 
         // Show reminder to write it down

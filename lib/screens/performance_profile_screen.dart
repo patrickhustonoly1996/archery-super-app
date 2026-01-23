@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../providers/skills_provider.dart';
 import '../services/xp_calculation_service.dart';
@@ -15,12 +16,27 @@ class PerformanceProfileScreen extends StatefulWidget {
 }
 
 class _PerformanceProfileScreenState extends State<PerformanceProfileScreen> {
+  static const _seenXpTipsKey = 'skills_profile_seen_xp_tips';
+  bool _xpTipsExpanded = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SkillsProvider>().loadSkills();
+      _checkFirstVisit();
     });
+  }
+
+  Future<void> _checkFirstVisit() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeen = prefs.getBool(_seenXpTipsKey) ?? false;
+    if (!hasSeen && mounted) {
+      // First visit - auto-expand the XP tips section
+      setState(() => _xpTipsExpanded = true);
+      // Mark as seen
+      await prefs.setBool(_seenXpTipsKey, true);
+    }
   }
 
   @override
@@ -28,7 +44,7 @@ class _PerformanceProfileScreenState extends State<PerformanceProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'SKILL LEVELS',
+          'SKILLS PROFILE',
           style: TextStyle(
             fontFamily: AppFonts.pixel,
             letterSpacing: 2,
@@ -60,25 +76,20 @@ class _PerformanceProfileScreenState extends State<PerformanceProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(skills),
+          _buildHeader(skills, provider),
           const SizedBox(height: 24),
           _buildSkillsGrid(skills),
           const SizedBox(height: 24),
           _buildTotalXpCard(skills),
+          const SizedBox(height: 24),
+          _buildHowToEarnXpSection(),
         ],
       ),
     );
   }
 
-  /// Calculate combined level as average of all skill levels (1-99)
-  int _calculateCombinedLevel(List<SkillLevel> skills) {
-    if (skills.isEmpty) return 1;
-    final sum = skills.fold<int>(0, (sum, s) => sum + s.currentLevel);
-    return (sum / skills.length).round().clamp(1, 99);
-  }
-
-  Widget _buildHeader(List<SkillLevel> skills) {
-    final combinedLevel = _calculateCombinedLevel(skills);
+  Widget _buildHeader(List<SkillLevel> skills, SkillsProvider provider) {
+    final combinedLevel = provider.combinedLevel;
     final isMaxLevel = combinedLevel >= 99;
 
     return Container(
@@ -251,6 +262,105 @@ class _PerformanceProfileScreenState extends State<PerformanceProfileScreen> {
               fontFamily: AppFonts.pixel,
               fontSize: 20,
               color: AppColors.gold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHowToEarnXpSection() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark,
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Collapsible header
+          GestureDetector(
+            onTap: () => setState(() => _xpTipsExpanded = !_xpTipsExpanded),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'HOW TO EARN XP',
+                    style: TextStyle(
+                      fontFamily: AppFonts.pixel,
+                      fontSize: 14,
+                      color: AppColors.gold,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  Icon(
+                    _xpTipsExpanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: AppColors.gold,
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Expandable content
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildXpTip('ARCHERY', 'Complete scored rounds. XP = (150 - handicap) × 2'),
+                  _buildXpTip('VOLUME', 'Shoot arrows. 1 XP per 5 arrows'),
+                  _buildXpTip('CONSISTENCY', 'Train daily. 10 XP/day + streak bonuses'),
+                  _buildXpTip('BOW FITNESS', 'OLY drills. 1 XP per 5s hold time'),
+                  _buildXpTip('BREATH WORK', 'Breath training. 1 XP per 10s'),
+                  _buildXpTip('EQUIPMENT', 'Log gear changes. 5 XP each'),
+                  _buildXpTip('COMPETITION', 'Compete. 20+ XP per competition'),
+                  _buildXpTip('ANALYSIS', 'Plot arrows. 3+ XP per session'),
+                ],
+              ),
+            ),
+            crossFadeState: _xpTipsExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildXpTip(String skill, String tip) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              skill,
+              style: TextStyle(
+                fontFamily: AppFonts.pixel,
+                fontSize: 10,
+                color: AppColors.gold.withValues(alpha: 0.8),
+                letterSpacing: 1,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              tip,
+              style: TextStyle(
+                fontFamily: AppFonts.body,
+                fontSize: 11,
+                color: AppColors.textMuted,
+              ),
             ),
           ),
         ],

@@ -74,18 +74,13 @@ class _LevelUpCelebrationState extends State<LevelUpCelebration>
     _scaleController.forward();
     _fireworksController.forward();
 
-    // Play celebration sound
-    _playCelebrationSound();
-
-    // Auto-dismiss after animation
-    Future.delayed(const Duration(milliseconds: 3000), () {
-      if (mounted) {
-        widget.onComplete();
-      }
-    });
+    // Play celebration sound and wait for it to complete before allowing dismiss
+    _playCelebrationSoundAndWait();
   }
 
-  void _playCelebrationSound() async {
+  bool _soundComplete = false;
+
+  void _playCelebrationSoundAndWait() async {
     try {
       final chiptune = ChiptuneService();
       final newLevel = widget.event.newLevel;
@@ -100,6 +95,17 @@ class _LevelUpCelebrationState extends State<LevelUpCelebration>
     } catch (e) {
       // Sound is optional, don't crash if it fails
       debugPrint('Could not play level up sound: $e');
+    }
+
+    // Sound complete - auto-dismiss after a brief pause
+    if (mounted) {
+      setState(() => _soundComplete = true);
+      // Give a moment to see the full celebration, then dismiss
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          widget.onComplete();
+        }
+      });
     }
   }
 
@@ -173,7 +179,7 @@ class _LevelUpCelebrationState extends State<LevelUpCelebration>
     return Material(
       type: MaterialType.transparency,
       child: GestureDetector(
-        onTap: widget.onComplete,
+        onTap: _soundComplete ? widget.onComplete : null,
         child: Stack(
           children: [
             // Fireworks particles
@@ -261,14 +267,18 @@ class _LevelUpCelebrationState extends State<LevelUpCelebration>
                           ),
                           const SizedBox(height: 12),
 
-                          // Tap to dismiss hint
-                          Text(
-                            'TAP TO CONTINUE',
-                            style: TextStyle(
-                              fontFamily: AppFonts.pixel,
-                              fontSize: 8,
-                              color: AppColors.textMuted,
-                              letterSpacing: 1,
+                          // Tap to dismiss hint (only show when sound complete)
+                          AnimatedOpacity(
+                            opacity: _soundComplete ? 1.0 : 0.0,
+                            duration: const Duration(milliseconds: 200),
+                            child: Text(
+                              'TAP TO CONTINUE',
+                              style: TextStyle(
+                                fontFamily: AppFonts.pixel,
+                                fontSize: 8,
+                                color: AppColors.textMuted,
+                                letterSpacing: 1,
+                              ),
                             ),
                           ),
                         ],

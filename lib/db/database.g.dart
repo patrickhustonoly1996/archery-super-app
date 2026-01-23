@@ -19599,6 +19599,21 @@ class $SightMarksTable extends SightMarks
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _isIndoorMeta = const VerificationMeta(
+    'isIndoor',
+  );
+  @override
+  late final GeneratedColumn<bool> isIndoor = GeneratedColumn<bool>(
+    'is_indoor',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_indoor" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _recordedAtMeta = const VerificationMeta(
     'recordedAt',
   );
@@ -19648,6 +19663,7 @@ class $SightMarksTable extends SightMarks
     shotCount,
     confidenceScore,
     venueId,
+    isIndoor,
     recordedAt,
     updatedAt,
     deletedAt,
@@ -19756,6 +19772,12 @@ class $SightMarksTable extends SightMarks
         venueId.isAcceptableOrUnknown(data['venue_id']!, _venueIdMeta),
       );
     }
+    if (data.containsKey('is_indoor')) {
+      context.handle(
+        _isIndoorMeta,
+        isIndoor.isAcceptableOrUnknown(data['is_indoor']!, _isIndoorMeta),
+      );
+    }
     if (data.containsKey('recorded_at')) {
       context.handle(
         _recordedAtMeta,
@@ -19835,6 +19857,10 @@ class $SightMarksTable extends SightMarks
         DriftSqlType.string,
         data['${effectivePrefix}venue_id'],
       ),
+      isIndoor: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_indoor'],
+      )!,
       recordedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}recorded_at'],
@@ -19870,6 +19896,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
   final int? shotCount;
   final double? confidenceScore;
   final String? venueId;
+  final bool isIndoor;
   final DateTime recordedAt;
   final DateTime? updatedAt;
   final DateTime? deletedAt;
@@ -19887,6 +19914,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
     this.shotCount,
     this.confidenceScore,
     this.venueId,
+    required this.isIndoor,
     required this.recordedAt,
     this.updatedAt,
     this.deletedAt,
@@ -19923,6 +19951,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
     if (!nullToAbsent || venueId != null) {
       map['venue_id'] = Variable<String>(venueId);
     }
+    map['is_indoor'] = Variable<bool>(isIndoor);
     map['recorded_at'] = Variable<DateTime>(recordedAt);
     if (!nullToAbsent || updatedAt != null) {
       map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -19964,6 +19993,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
       venueId: venueId == null && nullToAbsent
           ? const Value.absent()
           : Value(venueId),
+      isIndoor: Value(isIndoor),
       recordedAt: Value(recordedAt),
       updatedAt: updatedAt == null && nullToAbsent
           ? const Value.absent()
@@ -19993,6 +20023,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
       shotCount: serializer.fromJson<int?>(json['shotCount']),
       confidenceScore: serializer.fromJson<double?>(json['confidenceScore']),
       venueId: serializer.fromJson<String?>(json['venueId']),
+      isIndoor: serializer.fromJson<bool>(json['isIndoor']),
       recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
       updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
@@ -20015,6 +20046,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
       'shotCount': serializer.toJson<int?>(shotCount),
       'confidenceScore': serializer.toJson<double?>(confidenceScore),
       'venueId': serializer.toJson<String?>(venueId),
+      'isIndoor': serializer.toJson<bool>(isIndoor),
       'recordedAt': serializer.toJson<DateTime>(recordedAt),
       'updatedAt': serializer.toJson<DateTime?>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
@@ -20035,6 +20067,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
     Value<int?> shotCount = const Value.absent(),
     Value<double?> confidenceScore = const Value.absent(),
     Value<String?> venueId = const Value.absent(),
+    bool? isIndoor,
     DateTime? recordedAt,
     Value<DateTime?> updatedAt = const Value.absent(),
     Value<DateTime?> deletedAt = const Value.absent(),
@@ -20056,6 +20089,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
         ? confidenceScore.value
         : this.confidenceScore,
     venueId: venueId.present ? venueId.value : this.venueId,
+    isIndoor: isIndoor ?? this.isIndoor,
     recordedAt: recordedAt ?? this.recordedAt,
     updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
@@ -20085,6 +20119,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
           ? data.confidenceScore.value
           : this.confidenceScore,
       venueId: data.venueId.present ? data.venueId.value : this.venueId,
+      isIndoor: data.isIndoor.present ? data.isIndoor.value : this.isIndoor,
       recordedAt: data.recordedAt.present
           ? data.recordedAt.value
           : this.recordedAt,
@@ -20109,6 +20144,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
           ..write('shotCount: $shotCount, ')
           ..write('confidenceScore: $confidenceScore, ')
           ..write('venueId: $venueId, ')
+          ..write('isIndoor: $isIndoor, ')
           ..write('recordedAt: $recordedAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt')
@@ -20131,6 +20167,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
     shotCount,
     confidenceScore,
     venueId,
+    isIndoor,
     recordedAt,
     updatedAt,
     deletedAt,
@@ -20152,6 +20189,7 @@ class SightMark extends DataClass implements Insertable<SightMark> {
           other.shotCount == this.shotCount &&
           other.confidenceScore == this.confidenceScore &&
           other.venueId == this.venueId &&
+          other.isIndoor == this.isIndoor &&
           other.recordedAt == this.recordedAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt);
@@ -20171,6 +20209,7 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
   final Value<int?> shotCount;
   final Value<double?> confidenceScore;
   final Value<String?> venueId;
+  final Value<bool> isIndoor;
   final Value<DateTime> recordedAt;
   final Value<DateTime?> updatedAt;
   final Value<DateTime?> deletedAt;
@@ -20189,6 +20228,7 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
     this.shotCount = const Value.absent(),
     this.confidenceScore = const Value.absent(),
     this.venueId = const Value.absent(),
+    this.isIndoor = const Value.absent(),
     this.recordedAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -20208,6 +20248,7 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
     this.shotCount = const Value.absent(),
     this.confidenceScore = const Value.absent(),
     this.venueId = const Value.absent(),
+    this.isIndoor = const Value.absent(),
     this.recordedAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -20230,6 +20271,7 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
     Expression<int>? shotCount,
     Expression<double>? confidenceScore,
     Expression<String>? venueId,
+    Expression<bool>? isIndoor,
     Expression<DateTime>? recordedAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
@@ -20249,6 +20291,7 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
       if (shotCount != null) 'shot_count': shotCount,
       if (confidenceScore != null) 'confidence_score': confidenceScore,
       if (venueId != null) 'venue_id': venueId,
+      if (isIndoor != null) 'is_indoor': isIndoor,
       if (recordedAt != null) 'recorded_at': recordedAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
@@ -20270,6 +20313,7 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
     Value<int?>? shotCount,
     Value<double?>? confidenceScore,
     Value<String?>? venueId,
+    Value<bool>? isIndoor,
     Value<DateTime>? recordedAt,
     Value<DateTime?>? updatedAt,
     Value<DateTime?>? deletedAt,
@@ -20289,6 +20333,7 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
       shotCount: shotCount ?? this.shotCount,
       confidenceScore: confidenceScore ?? this.confidenceScore,
       venueId: venueId ?? this.venueId,
+      isIndoor: isIndoor ?? this.isIndoor,
       recordedAt: recordedAt ?? this.recordedAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -20338,6 +20383,9 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
     if (venueId.present) {
       map['venue_id'] = Variable<String>(venueId.value);
     }
+    if (isIndoor.present) {
+      map['is_indoor'] = Variable<bool>(isIndoor.value);
+    }
     if (recordedAt.present) {
       map['recorded_at'] = Variable<DateTime>(recordedAt.value);
     }
@@ -20369,6 +20417,7 @@ class SightMarksCompanion extends UpdateCompanion<SightMark> {
           ..write('shotCount: $shotCount, ')
           ..write('confidenceScore: $confidenceScore, ')
           ..write('venueId: $venueId, ')
+          ..write('isIndoor: $isIndoor, ')
           ..write('recordedAt: $recordedAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -27414,6 +27463,3022 @@ class SyncMetadataCompanion extends UpdateCompanion<SyncMetadataData> {
   }
 }
 
+class $FieldCoursesTable extends FieldCourses
+    with TableInfo<$FieldCoursesTable, FieldCourse> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FieldCoursesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _venueIdMeta = const VerificationMeta(
+    'venueId',
+  );
+  @override
+  late final GeneratedColumn<String> venueId = GeneratedColumn<String>(
+    'venue_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES venues (id)',
+    ),
+  );
+  static const VerificationMeta _roundTypeMeta = const VerificationMeta(
+    'roundType',
+  );
+  @override
+  late final GeneratedColumn<String> roundType = GeneratedColumn<String>(
+    'round_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetCountMeta = const VerificationMeta(
+    'targetCount',
+  );
+  @override
+  late final GeneratedColumn<int> targetCount = GeneratedColumn<int>(
+    'target_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(28),
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    venueId,
+    roundType,
+    targetCount,
+    notes,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'field_courses';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FieldCourse> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('venue_id')) {
+      context.handle(
+        _venueIdMeta,
+        venueId.isAcceptableOrUnknown(data['venue_id']!, _venueIdMeta),
+      );
+    }
+    if (data.containsKey('round_type')) {
+      context.handle(
+        _roundTypeMeta,
+        roundType.isAcceptableOrUnknown(data['round_type']!, _roundTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_roundTypeMeta);
+    }
+    if (data.containsKey('target_count')) {
+      context.handle(
+        _targetCountMeta,
+        targetCount.isAcceptableOrUnknown(
+          data['target_count']!,
+          _targetCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FieldCourse map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FieldCourse(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      venueId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}venue_id'],
+      ),
+      roundType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}round_type'],
+      )!,
+      targetCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}target_count'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      ),
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $FieldCoursesTable createAlias(String alias) {
+    return $FieldCoursesTable(attachedDatabase, alias);
+  }
+}
+
+class FieldCourse extends DataClass implements Insertable<FieldCourse> {
+  final String id;
+  final String name;
+  final String? venueId;
+  final String roundType;
+  final int targetCount;
+  final String? notes;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
+  final DateTime? deletedAt;
+  const FieldCourse({
+    required this.id,
+    required this.name,
+    this.venueId,
+    required this.roundType,
+    required this.targetCount,
+    this.notes,
+    required this.createdAt,
+    this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || venueId != null) {
+      map['venue_id'] = Variable<String>(venueId);
+    }
+    map['round_type'] = Variable<String>(roundType);
+    map['target_count'] = Variable<int>(targetCount);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  FieldCoursesCompanion toCompanion(bool nullToAbsent) {
+    return FieldCoursesCompanion(
+      id: Value(id),
+      name: Value(name),
+      venueId: venueId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(venueId),
+      roundType: Value(roundType),
+      targetCount: Value(targetCount),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      createdAt: Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory FieldCourse.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FieldCourse(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      venueId: serializer.fromJson<String?>(json['venueId']),
+      roundType: serializer.fromJson<String>(json['roundType']),
+      targetCount: serializer.fromJson<int>(json['targetCount']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'venueId': serializer.toJson<String?>(venueId),
+      'roundType': serializer.toJson<String>(roundType),
+      'targetCount': serializer.toJson<int>(targetCount),
+      'notes': serializer.toJson<String?>(notes),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  FieldCourse copyWith({
+    String? id,
+    String? name,
+    Value<String?> venueId = const Value.absent(),
+    String? roundType,
+    int? targetCount,
+    Value<String?> notes = const Value.absent(),
+    DateTime? createdAt,
+    Value<DateTime?> updatedAt = const Value.absent(),
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => FieldCourse(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    venueId: venueId.present ? venueId.value : this.venueId,
+    roundType: roundType ?? this.roundType,
+    targetCount: targetCount ?? this.targetCount,
+    notes: notes.present ? notes.value : this.notes,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  FieldCourse copyWithCompanion(FieldCoursesCompanion data) {
+    return FieldCourse(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      venueId: data.venueId.present ? data.venueId.value : this.venueId,
+      roundType: data.roundType.present ? data.roundType.value : this.roundType,
+      targetCount: data.targetCount.present
+          ? data.targetCount.value
+          : this.targetCount,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldCourse(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('venueId: $venueId, ')
+          ..write('roundType: $roundType, ')
+          ..write('targetCount: $targetCount, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    venueId,
+    roundType,
+    targetCount,
+    notes,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FieldCourse &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.venueId == this.venueId &&
+          other.roundType == this.roundType &&
+          other.targetCount == this.targetCount &&
+          other.notes == this.notes &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class FieldCoursesCompanion extends UpdateCompanion<FieldCourse> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String?> venueId;
+  final Value<String> roundType;
+  final Value<int> targetCount;
+  final Value<String?> notes;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const FieldCoursesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.venueId = const Value.absent(),
+    this.roundType = const Value.absent(),
+    this.targetCount = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FieldCoursesCompanion.insert({
+    required String id,
+    required String name,
+    this.venueId = const Value.absent(),
+    required String roundType,
+    this.targetCount = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       roundType = Value(roundType);
+  static Insertable<FieldCourse> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? venueId,
+    Expression<String>? roundType,
+    Expression<int>? targetCount,
+    Expression<String>? notes,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (venueId != null) 'venue_id': venueId,
+      if (roundType != null) 'round_type': roundType,
+      if (targetCount != null) 'target_count': targetCount,
+      if (notes != null) 'notes': notes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FieldCoursesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String?>? venueId,
+    Value<String>? roundType,
+    Value<int>? targetCount,
+    Value<String?>? notes,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return FieldCoursesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      venueId: venueId ?? this.venueId,
+      roundType: roundType ?? this.roundType,
+      targetCount: targetCount ?? this.targetCount,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (venueId.present) {
+      map['venue_id'] = Variable<String>(venueId.value);
+    }
+    if (roundType.present) {
+      map['round_type'] = Variable<String>(roundType.value);
+    }
+    if (targetCount.present) {
+      map['target_count'] = Variable<int>(targetCount.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldCoursesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('venueId: $venueId, ')
+          ..write('roundType: $roundType, ')
+          ..write('targetCount: $targetCount, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FieldCourseTargetsTable extends FieldCourseTargets
+    with TableInfo<$FieldCourseTargetsTable, FieldCourseTarget> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FieldCourseTargetsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _courseIdMeta = const VerificationMeta(
+    'courseId',
+  );
+  @override
+  late final GeneratedColumn<String> courseId = GeneratedColumn<String>(
+    'course_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES field_courses (id)',
+    ),
+  );
+  static const VerificationMeta _targetNumberMeta = const VerificationMeta(
+    'targetNumber',
+  );
+  @override
+  late final GeneratedColumn<int> targetNumber = GeneratedColumn<int>(
+    'target_number',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pegConfigMeta = const VerificationMeta(
+    'pegConfig',
+  );
+  @override
+  late final GeneratedColumn<String> pegConfig = GeneratedColumn<String>(
+    'peg_config',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _faceSizeMeta = const VerificationMeta(
+    'faceSize',
+  );
+  @override
+  late final GeneratedColumn<int> faceSize = GeneratedColumn<int>(
+    'face_size',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _primaryDistanceMeta = const VerificationMeta(
+    'primaryDistance',
+  );
+  @override
+  late final GeneratedColumn<double> primaryDistance = GeneratedColumn<double>(
+    'primary_distance',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+    'unit',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('yards'),
+  );
+  static const VerificationMeta _isWalkUpMeta = const VerificationMeta(
+    'isWalkUp',
+  );
+  @override
+  late final GeneratedColumn<bool> isWalkUp = GeneratedColumn<bool>(
+    'is_walk_up',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_walk_up" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _isWalkDownMeta = const VerificationMeta(
+    'isWalkDown',
+  );
+  @override
+  late final GeneratedColumn<bool> isWalkDown = GeneratedColumn<bool>(
+    'is_walk_down',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_walk_down" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _arrowsRequiredMeta = const VerificationMeta(
+    'arrowsRequired',
+  );
+  @override
+  late final GeneratedColumn<int> arrowsRequired = GeneratedColumn<int>(
+    'arrows_required',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(4),
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    courseId,
+    targetNumber,
+    pegConfig,
+    faceSize,
+    primaryDistance,
+    unit,
+    isWalkUp,
+    isWalkDown,
+    arrowsRequired,
+    notes,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'field_course_targets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FieldCourseTarget> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('course_id')) {
+      context.handle(
+        _courseIdMeta,
+        courseId.isAcceptableOrUnknown(data['course_id']!, _courseIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_courseIdMeta);
+    }
+    if (data.containsKey('target_number')) {
+      context.handle(
+        _targetNumberMeta,
+        targetNumber.isAcceptableOrUnknown(
+          data['target_number']!,
+          _targetNumberMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_targetNumberMeta);
+    }
+    if (data.containsKey('peg_config')) {
+      context.handle(
+        _pegConfigMeta,
+        pegConfig.isAcceptableOrUnknown(data['peg_config']!, _pegConfigMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pegConfigMeta);
+    }
+    if (data.containsKey('face_size')) {
+      context.handle(
+        _faceSizeMeta,
+        faceSize.isAcceptableOrUnknown(data['face_size']!, _faceSizeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_faceSizeMeta);
+    }
+    if (data.containsKey('primary_distance')) {
+      context.handle(
+        _primaryDistanceMeta,
+        primaryDistance.isAcceptableOrUnknown(
+          data['primary_distance']!,
+          _primaryDistanceMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_primaryDistanceMeta);
+    }
+    if (data.containsKey('unit')) {
+      context.handle(
+        _unitMeta,
+        unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    }
+    if (data.containsKey('is_walk_up')) {
+      context.handle(
+        _isWalkUpMeta,
+        isWalkUp.isAcceptableOrUnknown(data['is_walk_up']!, _isWalkUpMeta),
+      );
+    }
+    if (data.containsKey('is_walk_down')) {
+      context.handle(
+        _isWalkDownMeta,
+        isWalkDown.isAcceptableOrUnknown(
+          data['is_walk_down']!,
+          _isWalkDownMeta,
+        ),
+      );
+    }
+    if (data.containsKey('arrows_required')) {
+      context.handle(
+        _arrowsRequiredMeta,
+        arrowsRequired.isAcceptableOrUnknown(
+          data['arrows_required']!,
+          _arrowsRequiredMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FieldCourseTarget map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FieldCourseTarget(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      courseId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}course_id'],
+      )!,
+      targetNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}target_number'],
+      )!,
+      pegConfig: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}peg_config'],
+      )!,
+      faceSize: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}face_size'],
+      )!,
+      primaryDistance: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}primary_distance'],
+      )!,
+      unit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}unit'],
+      )!,
+      isWalkUp: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_walk_up'],
+      )!,
+      isWalkDown: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_walk_down'],
+      )!,
+      arrowsRequired: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}arrows_required'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+    );
+  }
+
+  @override
+  $FieldCourseTargetsTable createAlias(String alias) {
+    return $FieldCourseTargetsTable(attachedDatabase, alias);
+  }
+}
+
+class FieldCourseTarget extends DataClass
+    implements Insertable<FieldCourseTarget> {
+  final String id;
+  final String courseId;
+  final int targetNumber;
+  final String pegConfig;
+  final int faceSize;
+  final double primaryDistance;
+  final String unit;
+  final bool isWalkUp;
+  final bool isWalkDown;
+  final int arrowsRequired;
+  final String? notes;
+  const FieldCourseTarget({
+    required this.id,
+    required this.courseId,
+    required this.targetNumber,
+    required this.pegConfig,
+    required this.faceSize,
+    required this.primaryDistance,
+    required this.unit,
+    required this.isWalkUp,
+    required this.isWalkDown,
+    required this.arrowsRequired,
+    this.notes,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['course_id'] = Variable<String>(courseId);
+    map['target_number'] = Variable<int>(targetNumber);
+    map['peg_config'] = Variable<String>(pegConfig);
+    map['face_size'] = Variable<int>(faceSize);
+    map['primary_distance'] = Variable<double>(primaryDistance);
+    map['unit'] = Variable<String>(unit);
+    map['is_walk_up'] = Variable<bool>(isWalkUp);
+    map['is_walk_down'] = Variable<bool>(isWalkDown);
+    map['arrows_required'] = Variable<int>(arrowsRequired);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    return map;
+  }
+
+  FieldCourseTargetsCompanion toCompanion(bool nullToAbsent) {
+    return FieldCourseTargetsCompanion(
+      id: Value(id),
+      courseId: Value(courseId),
+      targetNumber: Value(targetNumber),
+      pegConfig: Value(pegConfig),
+      faceSize: Value(faceSize),
+      primaryDistance: Value(primaryDistance),
+      unit: Value(unit),
+      isWalkUp: Value(isWalkUp),
+      isWalkDown: Value(isWalkDown),
+      arrowsRequired: Value(arrowsRequired),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+    );
+  }
+
+  factory FieldCourseTarget.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FieldCourseTarget(
+      id: serializer.fromJson<String>(json['id']),
+      courseId: serializer.fromJson<String>(json['courseId']),
+      targetNumber: serializer.fromJson<int>(json['targetNumber']),
+      pegConfig: serializer.fromJson<String>(json['pegConfig']),
+      faceSize: serializer.fromJson<int>(json['faceSize']),
+      primaryDistance: serializer.fromJson<double>(json['primaryDistance']),
+      unit: serializer.fromJson<String>(json['unit']),
+      isWalkUp: serializer.fromJson<bool>(json['isWalkUp']),
+      isWalkDown: serializer.fromJson<bool>(json['isWalkDown']),
+      arrowsRequired: serializer.fromJson<int>(json['arrowsRequired']),
+      notes: serializer.fromJson<String?>(json['notes']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'courseId': serializer.toJson<String>(courseId),
+      'targetNumber': serializer.toJson<int>(targetNumber),
+      'pegConfig': serializer.toJson<String>(pegConfig),
+      'faceSize': serializer.toJson<int>(faceSize),
+      'primaryDistance': serializer.toJson<double>(primaryDistance),
+      'unit': serializer.toJson<String>(unit),
+      'isWalkUp': serializer.toJson<bool>(isWalkUp),
+      'isWalkDown': serializer.toJson<bool>(isWalkDown),
+      'arrowsRequired': serializer.toJson<int>(arrowsRequired),
+      'notes': serializer.toJson<String?>(notes),
+    };
+  }
+
+  FieldCourseTarget copyWith({
+    String? id,
+    String? courseId,
+    int? targetNumber,
+    String? pegConfig,
+    int? faceSize,
+    double? primaryDistance,
+    String? unit,
+    bool? isWalkUp,
+    bool? isWalkDown,
+    int? arrowsRequired,
+    Value<String?> notes = const Value.absent(),
+  }) => FieldCourseTarget(
+    id: id ?? this.id,
+    courseId: courseId ?? this.courseId,
+    targetNumber: targetNumber ?? this.targetNumber,
+    pegConfig: pegConfig ?? this.pegConfig,
+    faceSize: faceSize ?? this.faceSize,
+    primaryDistance: primaryDistance ?? this.primaryDistance,
+    unit: unit ?? this.unit,
+    isWalkUp: isWalkUp ?? this.isWalkUp,
+    isWalkDown: isWalkDown ?? this.isWalkDown,
+    arrowsRequired: arrowsRequired ?? this.arrowsRequired,
+    notes: notes.present ? notes.value : this.notes,
+  );
+  FieldCourseTarget copyWithCompanion(FieldCourseTargetsCompanion data) {
+    return FieldCourseTarget(
+      id: data.id.present ? data.id.value : this.id,
+      courseId: data.courseId.present ? data.courseId.value : this.courseId,
+      targetNumber: data.targetNumber.present
+          ? data.targetNumber.value
+          : this.targetNumber,
+      pegConfig: data.pegConfig.present ? data.pegConfig.value : this.pegConfig,
+      faceSize: data.faceSize.present ? data.faceSize.value : this.faceSize,
+      primaryDistance: data.primaryDistance.present
+          ? data.primaryDistance.value
+          : this.primaryDistance,
+      unit: data.unit.present ? data.unit.value : this.unit,
+      isWalkUp: data.isWalkUp.present ? data.isWalkUp.value : this.isWalkUp,
+      isWalkDown: data.isWalkDown.present
+          ? data.isWalkDown.value
+          : this.isWalkDown,
+      arrowsRequired: data.arrowsRequired.present
+          ? data.arrowsRequired.value
+          : this.arrowsRequired,
+      notes: data.notes.present ? data.notes.value : this.notes,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldCourseTarget(')
+          ..write('id: $id, ')
+          ..write('courseId: $courseId, ')
+          ..write('targetNumber: $targetNumber, ')
+          ..write('pegConfig: $pegConfig, ')
+          ..write('faceSize: $faceSize, ')
+          ..write('primaryDistance: $primaryDistance, ')
+          ..write('unit: $unit, ')
+          ..write('isWalkUp: $isWalkUp, ')
+          ..write('isWalkDown: $isWalkDown, ')
+          ..write('arrowsRequired: $arrowsRequired, ')
+          ..write('notes: $notes')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    courseId,
+    targetNumber,
+    pegConfig,
+    faceSize,
+    primaryDistance,
+    unit,
+    isWalkUp,
+    isWalkDown,
+    arrowsRequired,
+    notes,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FieldCourseTarget &&
+          other.id == this.id &&
+          other.courseId == this.courseId &&
+          other.targetNumber == this.targetNumber &&
+          other.pegConfig == this.pegConfig &&
+          other.faceSize == this.faceSize &&
+          other.primaryDistance == this.primaryDistance &&
+          other.unit == this.unit &&
+          other.isWalkUp == this.isWalkUp &&
+          other.isWalkDown == this.isWalkDown &&
+          other.arrowsRequired == this.arrowsRequired &&
+          other.notes == this.notes);
+}
+
+class FieldCourseTargetsCompanion extends UpdateCompanion<FieldCourseTarget> {
+  final Value<String> id;
+  final Value<String> courseId;
+  final Value<int> targetNumber;
+  final Value<String> pegConfig;
+  final Value<int> faceSize;
+  final Value<double> primaryDistance;
+  final Value<String> unit;
+  final Value<bool> isWalkUp;
+  final Value<bool> isWalkDown;
+  final Value<int> arrowsRequired;
+  final Value<String?> notes;
+  final Value<int> rowid;
+  const FieldCourseTargetsCompanion({
+    this.id = const Value.absent(),
+    this.courseId = const Value.absent(),
+    this.targetNumber = const Value.absent(),
+    this.pegConfig = const Value.absent(),
+    this.faceSize = const Value.absent(),
+    this.primaryDistance = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.isWalkUp = const Value.absent(),
+    this.isWalkDown = const Value.absent(),
+    this.arrowsRequired = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FieldCourseTargetsCompanion.insert({
+    required String id,
+    required String courseId,
+    required int targetNumber,
+    required String pegConfig,
+    required int faceSize,
+    required double primaryDistance,
+    this.unit = const Value.absent(),
+    this.isWalkUp = const Value.absent(),
+    this.isWalkDown = const Value.absent(),
+    this.arrowsRequired = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       courseId = Value(courseId),
+       targetNumber = Value(targetNumber),
+       pegConfig = Value(pegConfig),
+       faceSize = Value(faceSize),
+       primaryDistance = Value(primaryDistance);
+  static Insertable<FieldCourseTarget> custom({
+    Expression<String>? id,
+    Expression<String>? courseId,
+    Expression<int>? targetNumber,
+    Expression<String>? pegConfig,
+    Expression<int>? faceSize,
+    Expression<double>? primaryDistance,
+    Expression<String>? unit,
+    Expression<bool>? isWalkUp,
+    Expression<bool>? isWalkDown,
+    Expression<int>? arrowsRequired,
+    Expression<String>? notes,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (courseId != null) 'course_id': courseId,
+      if (targetNumber != null) 'target_number': targetNumber,
+      if (pegConfig != null) 'peg_config': pegConfig,
+      if (faceSize != null) 'face_size': faceSize,
+      if (primaryDistance != null) 'primary_distance': primaryDistance,
+      if (unit != null) 'unit': unit,
+      if (isWalkUp != null) 'is_walk_up': isWalkUp,
+      if (isWalkDown != null) 'is_walk_down': isWalkDown,
+      if (arrowsRequired != null) 'arrows_required': arrowsRequired,
+      if (notes != null) 'notes': notes,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FieldCourseTargetsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? courseId,
+    Value<int>? targetNumber,
+    Value<String>? pegConfig,
+    Value<int>? faceSize,
+    Value<double>? primaryDistance,
+    Value<String>? unit,
+    Value<bool>? isWalkUp,
+    Value<bool>? isWalkDown,
+    Value<int>? arrowsRequired,
+    Value<String?>? notes,
+    Value<int>? rowid,
+  }) {
+    return FieldCourseTargetsCompanion(
+      id: id ?? this.id,
+      courseId: courseId ?? this.courseId,
+      targetNumber: targetNumber ?? this.targetNumber,
+      pegConfig: pegConfig ?? this.pegConfig,
+      faceSize: faceSize ?? this.faceSize,
+      primaryDistance: primaryDistance ?? this.primaryDistance,
+      unit: unit ?? this.unit,
+      isWalkUp: isWalkUp ?? this.isWalkUp,
+      isWalkDown: isWalkDown ?? this.isWalkDown,
+      arrowsRequired: arrowsRequired ?? this.arrowsRequired,
+      notes: notes ?? this.notes,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (courseId.present) {
+      map['course_id'] = Variable<String>(courseId.value);
+    }
+    if (targetNumber.present) {
+      map['target_number'] = Variable<int>(targetNumber.value);
+    }
+    if (pegConfig.present) {
+      map['peg_config'] = Variable<String>(pegConfig.value);
+    }
+    if (faceSize.present) {
+      map['face_size'] = Variable<int>(faceSize.value);
+    }
+    if (primaryDistance.present) {
+      map['primary_distance'] = Variable<double>(primaryDistance.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (isWalkUp.present) {
+      map['is_walk_up'] = Variable<bool>(isWalkUp.value);
+    }
+    if (isWalkDown.present) {
+      map['is_walk_down'] = Variable<bool>(isWalkDown.value);
+    }
+    if (arrowsRequired.present) {
+      map['arrows_required'] = Variable<int>(arrowsRequired.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldCourseTargetsCompanion(')
+          ..write('id: $id, ')
+          ..write('courseId: $courseId, ')
+          ..write('targetNumber: $targetNumber, ')
+          ..write('pegConfig: $pegConfig, ')
+          ..write('faceSize: $faceSize, ')
+          ..write('primaryDistance: $primaryDistance, ')
+          ..write('unit: $unit, ')
+          ..write('isWalkUp: $isWalkUp, ')
+          ..write('isWalkDown: $isWalkDown, ')
+          ..write('arrowsRequired: $arrowsRequired, ')
+          ..write('notes: $notes, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FieldCourseSightMarksTable extends FieldCourseSightMarks
+    with TableInfo<$FieldCourseSightMarksTable, FieldCourseSightMark> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FieldCourseSightMarksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _courseTargetIdMeta = const VerificationMeta(
+    'courseTargetId',
+  );
+  @override
+  late final GeneratedColumn<String> courseTargetId = GeneratedColumn<String>(
+    'course_target_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES field_course_targets (id)',
+    ),
+  );
+  static const VerificationMeta _bowIdMeta = const VerificationMeta('bowId');
+  @override
+  late final GeneratedColumn<String> bowId = GeneratedColumn<String>(
+    'bow_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES bows (id)',
+    ),
+  );
+  static const VerificationMeta _calculatedMarkMeta = const VerificationMeta(
+    'calculatedMark',
+  );
+  @override
+  late final GeneratedColumn<double> calculatedMark = GeneratedColumn<double>(
+    'calculated_mark',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _actualMarkMeta = const VerificationMeta(
+    'actualMark',
+  );
+  @override
+  late final GeneratedColumn<double> actualMark = GeneratedColumn<double>(
+    'actual_mark',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _differentialMeta = const VerificationMeta(
+    'differential',
+  );
+  @override
+  late final GeneratedColumn<double> differential = GeneratedColumn<double>(
+    'differential',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _confidenceScoreMeta = const VerificationMeta(
+    'confidenceScore',
+  );
+  @override
+  late final GeneratedColumn<double> confidenceScore = GeneratedColumn<double>(
+    'confidence_score',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _weatherDataMeta = const VerificationMeta(
+    'weatherData',
+  );
+  @override
+  late final GeneratedColumn<String> weatherData = GeneratedColumn<String>(
+    'weather_data',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _shotCountMeta = const VerificationMeta(
+    'shotCount',
+  );
+  @override
+  late final GeneratedColumn<int> shotCount = GeneratedColumn<int>(
+    'shot_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _recordedAtMeta = const VerificationMeta(
+    'recordedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> recordedAt = GeneratedColumn<DateTime>(
+    'recorded_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    courseTargetId,
+    bowId,
+    calculatedMark,
+    actualMark,
+    differential,
+    confidenceScore,
+    weatherData,
+    shotCount,
+    recordedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'field_course_sight_marks';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FieldCourseSightMark> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('course_target_id')) {
+      context.handle(
+        _courseTargetIdMeta,
+        courseTargetId.isAcceptableOrUnknown(
+          data['course_target_id']!,
+          _courseTargetIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_courseTargetIdMeta);
+    }
+    if (data.containsKey('bow_id')) {
+      context.handle(
+        _bowIdMeta,
+        bowId.isAcceptableOrUnknown(data['bow_id']!, _bowIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bowIdMeta);
+    }
+    if (data.containsKey('calculated_mark')) {
+      context.handle(
+        _calculatedMarkMeta,
+        calculatedMark.isAcceptableOrUnknown(
+          data['calculated_mark']!,
+          _calculatedMarkMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_calculatedMarkMeta);
+    }
+    if (data.containsKey('actual_mark')) {
+      context.handle(
+        _actualMarkMeta,
+        actualMark.isAcceptableOrUnknown(data['actual_mark']!, _actualMarkMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_actualMarkMeta);
+    }
+    if (data.containsKey('differential')) {
+      context.handle(
+        _differentialMeta,
+        differential.isAcceptableOrUnknown(
+          data['differential']!,
+          _differentialMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_differentialMeta);
+    }
+    if (data.containsKey('confidence_score')) {
+      context.handle(
+        _confidenceScoreMeta,
+        confidenceScore.isAcceptableOrUnknown(
+          data['confidence_score']!,
+          _confidenceScoreMeta,
+        ),
+      );
+    }
+    if (data.containsKey('weather_data')) {
+      context.handle(
+        _weatherDataMeta,
+        weatherData.isAcceptableOrUnknown(
+          data['weather_data']!,
+          _weatherDataMeta,
+        ),
+      );
+    }
+    if (data.containsKey('shot_count')) {
+      context.handle(
+        _shotCountMeta,
+        shotCount.isAcceptableOrUnknown(data['shot_count']!, _shotCountMeta),
+      );
+    }
+    if (data.containsKey('recorded_at')) {
+      context.handle(
+        _recordedAtMeta,
+        recordedAt.isAcceptableOrUnknown(data['recorded_at']!, _recordedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FieldCourseSightMark map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FieldCourseSightMark(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      courseTargetId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}course_target_id'],
+      )!,
+      bowId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bow_id'],
+      )!,
+      calculatedMark: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}calculated_mark'],
+      )!,
+      actualMark: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}actual_mark'],
+      )!,
+      differential: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}differential'],
+      )!,
+      confidenceScore: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}confidence_score'],
+      ),
+      weatherData: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}weather_data'],
+      ),
+      shotCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}shot_count'],
+      )!,
+      recordedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}recorded_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FieldCourseSightMarksTable createAlias(String alias) {
+    return $FieldCourseSightMarksTable(attachedDatabase, alias);
+  }
+}
+
+class FieldCourseSightMark extends DataClass
+    implements Insertable<FieldCourseSightMark> {
+  final String id;
+  final String courseTargetId;
+  final String bowId;
+  final double calculatedMark;
+  final double actualMark;
+  final double differential;
+  final double? confidenceScore;
+  final String? weatherData;
+  final int shotCount;
+  final DateTime recordedAt;
+  const FieldCourseSightMark({
+    required this.id,
+    required this.courseTargetId,
+    required this.bowId,
+    required this.calculatedMark,
+    required this.actualMark,
+    required this.differential,
+    this.confidenceScore,
+    this.weatherData,
+    required this.shotCount,
+    required this.recordedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['course_target_id'] = Variable<String>(courseTargetId);
+    map['bow_id'] = Variable<String>(bowId);
+    map['calculated_mark'] = Variable<double>(calculatedMark);
+    map['actual_mark'] = Variable<double>(actualMark);
+    map['differential'] = Variable<double>(differential);
+    if (!nullToAbsent || confidenceScore != null) {
+      map['confidence_score'] = Variable<double>(confidenceScore);
+    }
+    if (!nullToAbsent || weatherData != null) {
+      map['weather_data'] = Variable<String>(weatherData);
+    }
+    map['shot_count'] = Variable<int>(shotCount);
+    map['recorded_at'] = Variable<DateTime>(recordedAt);
+    return map;
+  }
+
+  FieldCourseSightMarksCompanion toCompanion(bool nullToAbsent) {
+    return FieldCourseSightMarksCompanion(
+      id: Value(id),
+      courseTargetId: Value(courseTargetId),
+      bowId: Value(bowId),
+      calculatedMark: Value(calculatedMark),
+      actualMark: Value(actualMark),
+      differential: Value(differential),
+      confidenceScore: confidenceScore == null && nullToAbsent
+          ? const Value.absent()
+          : Value(confidenceScore),
+      weatherData: weatherData == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weatherData),
+      shotCount: Value(shotCount),
+      recordedAt: Value(recordedAt),
+    );
+  }
+
+  factory FieldCourseSightMark.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FieldCourseSightMark(
+      id: serializer.fromJson<String>(json['id']),
+      courseTargetId: serializer.fromJson<String>(json['courseTargetId']),
+      bowId: serializer.fromJson<String>(json['bowId']),
+      calculatedMark: serializer.fromJson<double>(json['calculatedMark']),
+      actualMark: serializer.fromJson<double>(json['actualMark']),
+      differential: serializer.fromJson<double>(json['differential']),
+      confidenceScore: serializer.fromJson<double?>(json['confidenceScore']),
+      weatherData: serializer.fromJson<String?>(json['weatherData']),
+      shotCount: serializer.fromJson<int>(json['shotCount']),
+      recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'courseTargetId': serializer.toJson<String>(courseTargetId),
+      'bowId': serializer.toJson<String>(bowId),
+      'calculatedMark': serializer.toJson<double>(calculatedMark),
+      'actualMark': serializer.toJson<double>(actualMark),
+      'differential': serializer.toJson<double>(differential),
+      'confidenceScore': serializer.toJson<double?>(confidenceScore),
+      'weatherData': serializer.toJson<String?>(weatherData),
+      'shotCount': serializer.toJson<int>(shotCount),
+      'recordedAt': serializer.toJson<DateTime>(recordedAt),
+    };
+  }
+
+  FieldCourseSightMark copyWith({
+    String? id,
+    String? courseTargetId,
+    String? bowId,
+    double? calculatedMark,
+    double? actualMark,
+    double? differential,
+    Value<double?> confidenceScore = const Value.absent(),
+    Value<String?> weatherData = const Value.absent(),
+    int? shotCount,
+    DateTime? recordedAt,
+  }) => FieldCourseSightMark(
+    id: id ?? this.id,
+    courseTargetId: courseTargetId ?? this.courseTargetId,
+    bowId: bowId ?? this.bowId,
+    calculatedMark: calculatedMark ?? this.calculatedMark,
+    actualMark: actualMark ?? this.actualMark,
+    differential: differential ?? this.differential,
+    confidenceScore: confidenceScore.present
+        ? confidenceScore.value
+        : this.confidenceScore,
+    weatherData: weatherData.present ? weatherData.value : this.weatherData,
+    shotCount: shotCount ?? this.shotCount,
+    recordedAt: recordedAt ?? this.recordedAt,
+  );
+  FieldCourseSightMark copyWithCompanion(FieldCourseSightMarksCompanion data) {
+    return FieldCourseSightMark(
+      id: data.id.present ? data.id.value : this.id,
+      courseTargetId: data.courseTargetId.present
+          ? data.courseTargetId.value
+          : this.courseTargetId,
+      bowId: data.bowId.present ? data.bowId.value : this.bowId,
+      calculatedMark: data.calculatedMark.present
+          ? data.calculatedMark.value
+          : this.calculatedMark,
+      actualMark: data.actualMark.present
+          ? data.actualMark.value
+          : this.actualMark,
+      differential: data.differential.present
+          ? data.differential.value
+          : this.differential,
+      confidenceScore: data.confidenceScore.present
+          ? data.confidenceScore.value
+          : this.confidenceScore,
+      weatherData: data.weatherData.present
+          ? data.weatherData.value
+          : this.weatherData,
+      shotCount: data.shotCount.present ? data.shotCount.value : this.shotCount,
+      recordedAt: data.recordedAt.present
+          ? data.recordedAt.value
+          : this.recordedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldCourseSightMark(')
+          ..write('id: $id, ')
+          ..write('courseTargetId: $courseTargetId, ')
+          ..write('bowId: $bowId, ')
+          ..write('calculatedMark: $calculatedMark, ')
+          ..write('actualMark: $actualMark, ')
+          ..write('differential: $differential, ')
+          ..write('confidenceScore: $confidenceScore, ')
+          ..write('weatherData: $weatherData, ')
+          ..write('shotCount: $shotCount, ')
+          ..write('recordedAt: $recordedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    courseTargetId,
+    bowId,
+    calculatedMark,
+    actualMark,
+    differential,
+    confidenceScore,
+    weatherData,
+    shotCount,
+    recordedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FieldCourseSightMark &&
+          other.id == this.id &&
+          other.courseTargetId == this.courseTargetId &&
+          other.bowId == this.bowId &&
+          other.calculatedMark == this.calculatedMark &&
+          other.actualMark == this.actualMark &&
+          other.differential == this.differential &&
+          other.confidenceScore == this.confidenceScore &&
+          other.weatherData == this.weatherData &&
+          other.shotCount == this.shotCount &&
+          other.recordedAt == this.recordedAt);
+}
+
+class FieldCourseSightMarksCompanion
+    extends UpdateCompanion<FieldCourseSightMark> {
+  final Value<String> id;
+  final Value<String> courseTargetId;
+  final Value<String> bowId;
+  final Value<double> calculatedMark;
+  final Value<double> actualMark;
+  final Value<double> differential;
+  final Value<double?> confidenceScore;
+  final Value<String?> weatherData;
+  final Value<int> shotCount;
+  final Value<DateTime> recordedAt;
+  final Value<int> rowid;
+  const FieldCourseSightMarksCompanion({
+    this.id = const Value.absent(),
+    this.courseTargetId = const Value.absent(),
+    this.bowId = const Value.absent(),
+    this.calculatedMark = const Value.absent(),
+    this.actualMark = const Value.absent(),
+    this.differential = const Value.absent(),
+    this.confidenceScore = const Value.absent(),
+    this.weatherData = const Value.absent(),
+    this.shotCount = const Value.absent(),
+    this.recordedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FieldCourseSightMarksCompanion.insert({
+    required String id,
+    required String courseTargetId,
+    required String bowId,
+    required double calculatedMark,
+    required double actualMark,
+    required double differential,
+    this.confidenceScore = const Value.absent(),
+    this.weatherData = const Value.absent(),
+    this.shotCount = const Value.absent(),
+    this.recordedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       courseTargetId = Value(courseTargetId),
+       bowId = Value(bowId),
+       calculatedMark = Value(calculatedMark),
+       actualMark = Value(actualMark),
+       differential = Value(differential);
+  static Insertable<FieldCourseSightMark> custom({
+    Expression<String>? id,
+    Expression<String>? courseTargetId,
+    Expression<String>? bowId,
+    Expression<double>? calculatedMark,
+    Expression<double>? actualMark,
+    Expression<double>? differential,
+    Expression<double>? confidenceScore,
+    Expression<String>? weatherData,
+    Expression<int>? shotCount,
+    Expression<DateTime>? recordedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (courseTargetId != null) 'course_target_id': courseTargetId,
+      if (bowId != null) 'bow_id': bowId,
+      if (calculatedMark != null) 'calculated_mark': calculatedMark,
+      if (actualMark != null) 'actual_mark': actualMark,
+      if (differential != null) 'differential': differential,
+      if (confidenceScore != null) 'confidence_score': confidenceScore,
+      if (weatherData != null) 'weather_data': weatherData,
+      if (shotCount != null) 'shot_count': shotCount,
+      if (recordedAt != null) 'recorded_at': recordedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FieldCourseSightMarksCompanion copyWith({
+    Value<String>? id,
+    Value<String>? courseTargetId,
+    Value<String>? bowId,
+    Value<double>? calculatedMark,
+    Value<double>? actualMark,
+    Value<double>? differential,
+    Value<double?>? confidenceScore,
+    Value<String?>? weatherData,
+    Value<int>? shotCount,
+    Value<DateTime>? recordedAt,
+    Value<int>? rowid,
+  }) {
+    return FieldCourseSightMarksCompanion(
+      id: id ?? this.id,
+      courseTargetId: courseTargetId ?? this.courseTargetId,
+      bowId: bowId ?? this.bowId,
+      calculatedMark: calculatedMark ?? this.calculatedMark,
+      actualMark: actualMark ?? this.actualMark,
+      differential: differential ?? this.differential,
+      confidenceScore: confidenceScore ?? this.confidenceScore,
+      weatherData: weatherData ?? this.weatherData,
+      shotCount: shotCount ?? this.shotCount,
+      recordedAt: recordedAt ?? this.recordedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (courseTargetId.present) {
+      map['course_target_id'] = Variable<String>(courseTargetId.value);
+    }
+    if (bowId.present) {
+      map['bow_id'] = Variable<String>(bowId.value);
+    }
+    if (calculatedMark.present) {
+      map['calculated_mark'] = Variable<double>(calculatedMark.value);
+    }
+    if (actualMark.present) {
+      map['actual_mark'] = Variable<double>(actualMark.value);
+    }
+    if (differential.present) {
+      map['differential'] = Variable<double>(differential.value);
+    }
+    if (confidenceScore.present) {
+      map['confidence_score'] = Variable<double>(confidenceScore.value);
+    }
+    if (weatherData.present) {
+      map['weather_data'] = Variable<String>(weatherData.value);
+    }
+    if (shotCount.present) {
+      map['shot_count'] = Variable<int>(shotCount.value);
+    }
+    if (recordedAt.present) {
+      map['recorded_at'] = Variable<DateTime>(recordedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldCourseSightMarksCompanion(')
+          ..write('id: $id, ')
+          ..write('courseTargetId: $courseTargetId, ')
+          ..write('bowId: $bowId, ')
+          ..write('calculatedMark: $calculatedMark, ')
+          ..write('actualMark: $actualMark, ')
+          ..write('differential: $differential, ')
+          ..write('confidenceScore: $confidenceScore, ')
+          ..write('weatherData: $weatherData, ')
+          ..write('shotCount: $shotCount, ')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FieldSessionTargetsTable extends FieldSessionTargets
+    with TableInfo<$FieldSessionTargetsTable, FieldSessionTarget> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FieldSessionTargetsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sessionIdMeta = const VerificationMeta(
+    'sessionId',
+  );
+  @override
+  late final GeneratedColumn<String> sessionId = GeneratedColumn<String>(
+    'session_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES sessions (id)',
+    ),
+  );
+  static const VerificationMeta _courseTargetIdMeta = const VerificationMeta(
+    'courseTargetId',
+  );
+  @override
+  late final GeneratedColumn<String> courseTargetId = GeneratedColumn<String>(
+    'course_target_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES field_course_targets (id)',
+    ),
+  );
+  static const VerificationMeta _targetNumberMeta = const VerificationMeta(
+    'targetNumber',
+  );
+  @override
+  late final GeneratedColumn<int> targetNumber = GeneratedColumn<int>(
+    'target_number',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _totalScoreMeta = const VerificationMeta(
+    'totalScore',
+  );
+  @override
+  late final GeneratedColumn<int> totalScore = GeneratedColumn<int>(
+    'total_score',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _xCountMeta = const VerificationMeta('xCount');
+  @override
+  late final GeneratedColumn<int> xCount = GeneratedColumn<int>(
+    'x_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _arrowScoresMeta = const VerificationMeta(
+    'arrowScores',
+  );
+  @override
+  late final GeneratedColumn<String> arrowScores = GeneratedColumn<String>(
+    'arrow_scores',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sightMarkUsedMeta = const VerificationMeta(
+    'sightMarkUsed',
+  );
+  @override
+  late final GeneratedColumn<String> sightMarkUsed = GeneratedColumn<String>(
+    'sight_mark_used',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _stationMeta = const VerificationMeta(
+    'station',
+  );
+  @override
+  late final GeneratedColumn<int> station = GeneratedColumn<int>(
+    'station',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _wasHitMeta = const VerificationMeta('wasHit');
+  @override
+  late final GeneratedColumn<bool> wasHit = GeneratedColumn<bool>(
+    'was_hit',
+    aliasedName,
+    true,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("was_hit" IN (0, 1))',
+    ),
+  );
+  static const VerificationMeta _completedAtMeta = const VerificationMeta(
+    'completedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+    'completed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sessionId,
+    courseTargetId,
+    targetNumber,
+    totalScore,
+    xCount,
+    arrowScores,
+    sightMarkUsed,
+    station,
+    wasHit,
+    completedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'field_session_targets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FieldSessionTarget> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('session_id')) {
+      context.handle(
+        _sessionIdMeta,
+        sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionIdMeta);
+    }
+    if (data.containsKey('course_target_id')) {
+      context.handle(
+        _courseTargetIdMeta,
+        courseTargetId.isAcceptableOrUnknown(
+          data['course_target_id']!,
+          _courseTargetIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('target_number')) {
+      context.handle(
+        _targetNumberMeta,
+        targetNumber.isAcceptableOrUnknown(
+          data['target_number']!,
+          _targetNumberMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_targetNumberMeta);
+    }
+    if (data.containsKey('total_score')) {
+      context.handle(
+        _totalScoreMeta,
+        totalScore.isAcceptableOrUnknown(data['total_score']!, _totalScoreMeta),
+      );
+    }
+    if (data.containsKey('x_count')) {
+      context.handle(
+        _xCountMeta,
+        xCount.isAcceptableOrUnknown(data['x_count']!, _xCountMeta),
+      );
+    }
+    if (data.containsKey('arrow_scores')) {
+      context.handle(
+        _arrowScoresMeta,
+        arrowScores.isAcceptableOrUnknown(
+          data['arrow_scores']!,
+          _arrowScoresMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_arrowScoresMeta);
+    }
+    if (data.containsKey('sight_mark_used')) {
+      context.handle(
+        _sightMarkUsedMeta,
+        sightMarkUsed.isAcceptableOrUnknown(
+          data['sight_mark_used']!,
+          _sightMarkUsedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('station')) {
+      context.handle(
+        _stationMeta,
+        station.isAcceptableOrUnknown(data['station']!, _stationMeta),
+      );
+    }
+    if (data.containsKey('was_hit')) {
+      context.handle(
+        _wasHitMeta,
+        wasHit.isAcceptableOrUnknown(data['was_hit']!, _wasHitMeta),
+      );
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+        _completedAtMeta,
+        completedAt.isAcceptableOrUnknown(
+          data['completed_at']!,
+          _completedAtMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FieldSessionTarget map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FieldSessionTarget(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      sessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_id'],
+      )!,
+      courseTargetId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}course_target_id'],
+      ),
+      targetNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}target_number'],
+      )!,
+      totalScore: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_score'],
+      )!,
+      xCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}x_count'],
+      )!,
+      arrowScores: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}arrow_scores'],
+      )!,
+      sightMarkUsed: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sight_mark_used'],
+      ),
+      station: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}station'],
+      ),
+      wasHit: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}was_hit'],
+      ),
+      completedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}completed_at'],
+      ),
+    );
+  }
+
+  @override
+  $FieldSessionTargetsTable createAlias(String alias) {
+    return $FieldSessionTargetsTable(attachedDatabase, alias);
+  }
+}
+
+class FieldSessionTarget extends DataClass
+    implements Insertable<FieldSessionTarget> {
+  final String id;
+  final String sessionId;
+  final String? courseTargetId;
+  final int targetNumber;
+  final int totalScore;
+  final int xCount;
+  final String arrowScores;
+  final String? sightMarkUsed;
+  final int? station;
+  final bool? wasHit;
+  final DateTime? completedAt;
+  const FieldSessionTarget({
+    required this.id,
+    required this.sessionId,
+    this.courseTargetId,
+    required this.targetNumber,
+    required this.totalScore,
+    required this.xCount,
+    required this.arrowScores,
+    this.sightMarkUsed,
+    this.station,
+    this.wasHit,
+    this.completedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['session_id'] = Variable<String>(sessionId);
+    if (!nullToAbsent || courseTargetId != null) {
+      map['course_target_id'] = Variable<String>(courseTargetId);
+    }
+    map['target_number'] = Variable<int>(targetNumber);
+    map['total_score'] = Variable<int>(totalScore);
+    map['x_count'] = Variable<int>(xCount);
+    map['arrow_scores'] = Variable<String>(arrowScores);
+    if (!nullToAbsent || sightMarkUsed != null) {
+      map['sight_mark_used'] = Variable<String>(sightMarkUsed);
+    }
+    if (!nullToAbsent || station != null) {
+      map['station'] = Variable<int>(station);
+    }
+    if (!nullToAbsent || wasHit != null) {
+      map['was_hit'] = Variable<bool>(wasHit);
+    }
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<DateTime>(completedAt);
+    }
+    return map;
+  }
+
+  FieldSessionTargetsCompanion toCompanion(bool nullToAbsent) {
+    return FieldSessionTargetsCompanion(
+      id: Value(id),
+      sessionId: Value(sessionId),
+      courseTargetId: courseTargetId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(courseTargetId),
+      targetNumber: Value(targetNumber),
+      totalScore: Value(totalScore),
+      xCount: Value(xCount),
+      arrowScores: Value(arrowScores),
+      sightMarkUsed: sightMarkUsed == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sightMarkUsed),
+      station: station == null && nullToAbsent
+          ? const Value.absent()
+          : Value(station),
+      wasHit: wasHit == null && nullToAbsent
+          ? const Value.absent()
+          : Value(wasHit),
+      completedAt: completedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedAt),
+    );
+  }
+
+  factory FieldSessionTarget.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FieldSessionTarget(
+      id: serializer.fromJson<String>(json['id']),
+      sessionId: serializer.fromJson<String>(json['sessionId']),
+      courseTargetId: serializer.fromJson<String?>(json['courseTargetId']),
+      targetNumber: serializer.fromJson<int>(json['targetNumber']),
+      totalScore: serializer.fromJson<int>(json['totalScore']),
+      xCount: serializer.fromJson<int>(json['xCount']),
+      arrowScores: serializer.fromJson<String>(json['arrowScores']),
+      sightMarkUsed: serializer.fromJson<String?>(json['sightMarkUsed']),
+      station: serializer.fromJson<int?>(json['station']),
+      wasHit: serializer.fromJson<bool?>(json['wasHit']),
+      completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'sessionId': serializer.toJson<String>(sessionId),
+      'courseTargetId': serializer.toJson<String?>(courseTargetId),
+      'targetNumber': serializer.toJson<int>(targetNumber),
+      'totalScore': serializer.toJson<int>(totalScore),
+      'xCount': serializer.toJson<int>(xCount),
+      'arrowScores': serializer.toJson<String>(arrowScores),
+      'sightMarkUsed': serializer.toJson<String?>(sightMarkUsed),
+      'station': serializer.toJson<int?>(station),
+      'wasHit': serializer.toJson<bool?>(wasHit),
+      'completedAt': serializer.toJson<DateTime?>(completedAt),
+    };
+  }
+
+  FieldSessionTarget copyWith({
+    String? id,
+    String? sessionId,
+    Value<String?> courseTargetId = const Value.absent(),
+    int? targetNumber,
+    int? totalScore,
+    int? xCount,
+    String? arrowScores,
+    Value<String?> sightMarkUsed = const Value.absent(),
+    Value<int?> station = const Value.absent(),
+    Value<bool?> wasHit = const Value.absent(),
+    Value<DateTime?> completedAt = const Value.absent(),
+  }) => FieldSessionTarget(
+    id: id ?? this.id,
+    sessionId: sessionId ?? this.sessionId,
+    courseTargetId: courseTargetId.present
+        ? courseTargetId.value
+        : this.courseTargetId,
+    targetNumber: targetNumber ?? this.targetNumber,
+    totalScore: totalScore ?? this.totalScore,
+    xCount: xCount ?? this.xCount,
+    arrowScores: arrowScores ?? this.arrowScores,
+    sightMarkUsed: sightMarkUsed.present
+        ? sightMarkUsed.value
+        : this.sightMarkUsed,
+    station: station.present ? station.value : this.station,
+    wasHit: wasHit.present ? wasHit.value : this.wasHit,
+    completedAt: completedAt.present ? completedAt.value : this.completedAt,
+  );
+  FieldSessionTarget copyWithCompanion(FieldSessionTargetsCompanion data) {
+    return FieldSessionTarget(
+      id: data.id.present ? data.id.value : this.id,
+      sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
+      courseTargetId: data.courseTargetId.present
+          ? data.courseTargetId.value
+          : this.courseTargetId,
+      targetNumber: data.targetNumber.present
+          ? data.targetNumber.value
+          : this.targetNumber,
+      totalScore: data.totalScore.present
+          ? data.totalScore.value
+          : this.totalScore,
+      xCount: data.xCount.present ? data.xCount.value : this.xCount,
+      arrowScores: data.arrowScores.present
+          ? data.arrowScores.value
+          : this.arrowScores,
+      sightMarkUsed: data.sightMarkUsed.present
+          ? data.sightMarkUsed.value
+          : this.sightMarkUsed,
+      station: data.station.present ? data.station.value : this.station,
+      wasHit: data.wasHit.present ? data.wasHit.value : this.wasHit,
+      completedAt: data.completedAt.present
+          ? data.completedAt.value
+          : this.completedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldSessionTarget(')
+          ..write('id: $id, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('courseTargetId: $courseTargetId, ')
+          ..write('targetNumber: $targetNumber, ')
+          ..write('totalScore: $totalScore, ')
+          ..write('xCount: $xCount, ')
+          ..write('arrowScores: $arrowScores, ')
+          ..write('sightMarkUsed: $sightMarkUsed, ')
+          ..write('station: $station, ')
+          ..write('wasHit: $wasHit, ')
+          ..write('completedAt: $completedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    sessionId,
+    courseTargetId,
+    targetNumber,
+    totalScore,
+    xCount,
+    arrowScores,
+    sightMarkUsed,
+    station,
+    wasHit,
+    completedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FieldSessionTarget &&
+          other.id == this.id &&
+          other.sessionId == this.sessionId &&
+          other.courseTargetId == this.courseTargetId &&
+          other.targetNumber == this.targetNumber &&
+          other.totalScore == this.totalScore &&
+          other.xCount == this.xCount &&
+          other.arrowScores == this.arrowScores &&
+          other.sightMarkUsed == this.sightMarkUsed &&
+          other.station == this.station &&
+          other.wasHit == this.wasHit &&
+          other.completedAt == this.completedAt);
+}
+
+class FieldSessionTargetsCompanion extends UpdateCompanion<FieldSessionTarget> {
+  final Value<String> id;
+  final Value<String> sessionId;
+  final Value<String?> courseTargetId;
+  final Value<int> targetNumber;
+  final Value<int> totalScore;
+  final Value<int> xCount;
+  final Value<String> arrowScores;
+  final Value<String?> sightMarkUsed;
+  final Value<int?> station;
+  final Value<bool?> wasHit;
+  final Value<DateTime?> completedAt;
+  final Value<int> rowid;
+  const FieldSessionTargetsCompanion({
+    this.id = const Value.absent(),
+    this.sessionId = const Value.absent(),
+    this.courseTargetId = const Value.absent(),
+    this.targetNumber = const Value.absent(),
+    this.totalScore = const Value.absent(),
+    this.xCount = const Value.absent(),
+    this.arrowScores = const Value.absent(),
+    this.sightMarkUsed = const Value.absent(),
+    this.station = const Value.absent(),
+    this.wasHit = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FieldSessionTargetsCompanion.insert({
+    required String id,
+    required String sessionId,
+    this.courseTargetId = const Value.absent(),
+    required int targetNumber,
+    this.totalScore = const Value.absent(),
+    this.xCount = const Value.absent(),
+    required String arrowScores,
+    this.sightMarkUsed = const Value.absent(),
+    this.station = const Value.absent(),
+    this.wasHit = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       sessionId = Value(sessionId),
+       targetNumber = Value(targetNumber),
+       arrowScores = Value(arrowScores);
+  static Insertable<FieldSessionTarget> custom({
+    Expression<String>? id,
+    Expression<String>? sessionId,
+    Expression<String>? courseTargetId,
+    Expression<int>? targetNumber,
+    Expression<int>? totalScore,
+    Expression<int>? xCount,
+    Expression<String>? arrowScores,
+    Expression<String>? sightMarkUsed,
+    Expression<int>? station,
+    Expression<bool>? wasHit,
+    Expression<DateTime>? completedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sessionId != null) 'session_id': sessionId,
+      if (courseTargetId != null) 'course_target_id': courseTargetId,
+      if (targetNumber != null) 'target_number': targetNumber,
+      if (totalScore != null) 'total_score': totalScore,
+      if (xCount != null) 'x_count': xCount,
+      if (arrowScores != null) 'arrow_scores': arrowScores,
+      if (sightMarkUsed != null) 'sight_mark_used': sightMarkUsed,
+      if (station != null) 'station': station,
+      if (wasHit != null) 'was_hit': wasHit,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FieldSessionTargetsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? sessionId,
+    Value<String?>? courseTargetId,
+    Value<int>? targetNumber,
+    Value<int>? totalScore,
+    Value<int>? xCount,
+    Value<String>? arrowScores,
+    Value<String?>? sightMarkUsed,
+    Value<int?>? station,
+    Value<bool?>? wasHit,
+    Value<DateTime?>? completedAt,
+    Value<int>? rowid,
+  }) {
+    return FieldSessionTargetsCompanion(
+      id: id ?? this.id,
+      sessionId: sessionId ?? this.sessionId,
+      courseTargetId: courseTargetId ?? this.courseTargetId,
+      targetNumber: targetNumber ?? this.targetNumber,
+      totalScore: totalScore ?? this.totalScore,
+      xCount: xCount ?? this.xCount,
+      arrowScores: arrowScores ?? this.arrowScores,
+      sightMarkUsed: sightMarkUsed ?? this.sightMarkUsed,
+      station: station ?? this.station,
+      wasHit: wasHit ?? this.wasHit,
+      completedAt: completedAt ?? this.completedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (sessionId.present) {
+      map['session_id'] = Variable<String>(sessionId.value);
+    }
+    if (courseTargetId.present) {
+      map['course_target_id'] = Variable<String>(courseTargetId.value);
+    }
+    if (targetNumber.present) {
+      map['target_number'] = Variable<int>(targetNumber.value);
+    }
+    if (totalScore.present) {
+      map['total_score'] = Variable<int>(totalScore.value);
+    }
+    if (xCount.present) {
+      map['x_count'] = Variable<int>(xCount.value);
+    }
+    if (arrowScores.present) {
+      map['arrow_scores'] = Variable<String>(arrowScores.value);
+    }
+    if (sightMarkUsed.present) {
+      map['sight_mark_used'] = Variable<String>(sightMarkUsed.value);
+    }
+    if (station.present) {
+      map['station'] = Variable<int>(station.value);
+    }
+    if (wasHit.present) {
+      map['was_hit'] = Variable<bool>(wasHit.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldSessionTargetsCompanion(')
+          ..write('id: $id, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('courseTargetId: $courseTargetId, ')
+          ..write('targetNumber: $targetNumber, ')
+          ..write('totalScore: $totalScore, ')
+          ..write('xCount: $xCount, ')
+          ..write('arrowScores: $arrowScores, ')
+          ..write('sightMarkUsed: $sightMarkUsed, ')
+          ..write('station: $station, ')
+          ..write('wasHit: $wasHit, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FieldSessionMetaTable extends FieldSessionMeta
+    with TableInfo<$FieldSessionMetaTable, FieldSessionMetaData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FieldSessionMetaTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _sessionIdMeta = const VerificationMeta(
+    'sessionId',
+  );
+  @override
+  late final GeneratedColumn<String> sessionId = GeneratedColumn<String>(
+    'session_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES sessions (id)',
+    ),
+  );
+  static const VerificationMeta _courseIdMeta = const VerificationMeta(
+    'courseId',
+  );
+  @override
+  late final GeneratedColumn<String> courseId = GeneratedColumn<String>(
+    'course_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES field_courses (id)',
+    ),
+  );
+  static const VerificationMeta _roundTypeMeta = const VerificationMeta(
+    'roundType',
+  );
+  @override
+  late final GeneratedColumn<String> roundType = GeneratedColumn<String>(
+    'round_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isNewCourseCreationMeta =
+      const VerificationMeta('isNewCourseCreation');
+  @override
+  late final GeneratedColumn<bool> isNewCourseCreation = GeneratedColumn<bool>(
+    'is_new_course_creation',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_new_course_creation" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _currentTargetNumberMeta =
+      const VerificationMeta('currentTargetNumber');
+  @override
+  late final GeneratedColumn<int> currentTargetNumber = GeneratedColumn<int>(
+    'current_target_number',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _usedPegsMeta = const VerificationMeta(
+    'usedPegs',
+  );
+  @override
+  late final GeneratedColumn<String> usedPegs = GeneratedColumn<String>(
+    'used_pegs',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    sessionId,
+    courseId,
+    roundType,
+    isNewCourseCreation,
+    currentTargetNumber,
+    usedPegs,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'field_session_meta';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FieldSessionMetaData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('session_id')) {
+      context.handle(
+        _sessionIdMeta,
+        sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionIdMeta);
+    }
+    if (data.containsKey('course_id')) {
+      context.handle(
+        _courseIdMeta,
+        courseId.isAcceptableOrUnknown(data['course_id']!, _courseIdMeta),
+      );
+    }
+    if (data.containsKey('round_type')) {
+      context.handle(
+        _roundTypeMeta,
+        roundType.isAcceptableOrUnknown(data['round_type']!, _roundTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_roundTypeMeta);
+    }
+    if (data.containsKey('is_new_course_creation')) {
+      context.handle(
+        _isNewCourseCreationMeta,
+        isNewCourseCreation.isAcceptableOrUnknown(
+          data['is_new_course_creation']!,
+          _isNewCourseCreationMeta,
+        ),
+      );
+    }
+    if (data.containsKey('current_target_number')) {
+      context.handle(
+        _currentTargetNumberMeta,
+        currentTargetNumber.isAcceptableOrUnknown(
+          data['current_target_number']!,
+          _currentTargetNumberMeta,
+        ),
+      );
+    }
+    if (data.containsKey('used_pegs')) {
+      context.handle(
+        _usedPegsMeta,
+        usedPegs.isAcceptableOrUnknown(data['used_pegs']!, _usedPegsMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {sessionId};
+  @override
+  FieldSessionMetaData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FieldSessionMetaData(
+      sessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_id'],
+      )!,
+      courseId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}course_id'],
+      ),
+      roundType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}round_type'],
+      )!,
+      isNewCourseCreation: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_new_course_creation'],
+      )!,
+      currentTargetNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}current_target_number'],
+      )!,
+      usedPegs: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}used_pegs'],
+      )!,
+    );
+  }
+
+  @override
+  $FieldSessionMetaTable createAlias(String alias) {
+    return $FieldSessionMetaTable(attachedDatabase, alias);
+  }
+}
+
+class FieldSessionMetaData extends DataClass
+    implements Insertable<FieldSessionMetaData> {
+  final String sessionId;
+  final String? courseId;
+  final String roundType;
+  final bool isNewCourseCreation;
+  final int currentTargetNumber;
+  final String usedPegs;
+  const FieldSessionMetaData({
+    required this.sessionId,
+    this.courseId,
+    required this.roundType,
+    required this.isNewCourseCreation,
+    required this.currentTargetNumber,
+    required this.usedPegs,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['session_id'] = Variable<String>(sessionId);
+    if (!nullToAbsent || courseId != null) {
+      map['course_id'] = Variable<String>(courseId);
+    }
+    map['round_type'] = Variable<String>(roundType);
+    map['is_new_course_creation'] = Variable<bool>(isNewCourseCreation);
+    map['current_target_number'] = Variable<int>(currentTargetNumber);
+    map['used_pegs'] = Variable<String>(usedPegs);
+    return map;
+  }
+
+  FieldSessionMetaCompanion toCompanion(bool nullToAbsent) {
+    return FieldSessionMetaCompanion(
+      sessionId: Value(sessionId),
+      courseId: courseId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(courseId),
+      roundType: Value(roundType),
+      isNewCourseCreation: Value(isNewCourseCreation),
+      currentTargetNumber: Value(currentTargetNumber),
+      usedPegs: Value(usedPegs),
+    );
+  }
+
+  factory FieldSessionMetaData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FieldSessionMetaData(
+      sessionId: serializer.fromJson<String>(json['sessionId']),
+      courseId: serializer.fromJson<String?>(json['courseId']),
+      roundType: serializer.fromJson<String>(json['roundType']),
+      isNewCourseCreation: serializer.fromJson<bool>(
+        json['isNewCourseCreation'],
+      ),
+      currentTargetNumber: serializer.fromJson<int>(
+        json['currentTargetNumber'],
+      ),
+      usedPegs: serializer.fromJson<String>(json['usedPegs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'sessionId': serializer.toJson<String>(sessionId),
+      'courseId': serializer.toJson<String?>(courseId),
+      'roundType': serializer.toJson<String>(roundType),
+      'isNewCourseCreation': serializer.toJson<bool>(isNewCourseCreation),
+      'currentTargetNumber': serializer.toJson<int>(currentTargetNumber),
+      'usedPegs': serializer.toJson<String>(usedPegs),
+    };
+  }
+
+  FieldSessionMetaData copyWith({
+    String? sessionId,
+    Value<String?> courseId = const Value.absent(),
+    String? roundType,
+    bool? isNewCourseCreation,
+    int? currentTargetNumber,
+    String? usedPegs,
+  }) => FieldSessionMetaData(
+    sessionId: sessionId ?? this.sessionId,
+    courseId: courseId.present ? courseId.value : this.courseId,
+    roundType: roundType ?? this.roundType,
+    isNewCourseCreation: isNewCourseCreation ?? this.isNewCourseCreation,
+    currentTargetNumber: currentTargetNumber ?? this.currentTargetNumber,
+    usedPegs: usedPegs ?? this.usedPegs,
+  );
+  FieldSessionMetaData copyWithCompanion(FieldSessionMetaCompanion data) {
+    return FieldSessionMetaData(
+      sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
+      courseId: data.courseId.present ? data.courseId.value : this.courseId,
+      roundType: data.roundType.present ? data.roundType.value : this.roundType,
+      isNewCourseCreation: data.isNewCourseCreation.present
+          ? data.isNewCourseCreation.value
+          : this.isNewCourseCreation,
+      currentTargetNumber: data.currentTargetNumber.present
+          ? data.currentTargetNumber.value
+          : this.currentTargetNumber,
+      usedPegs: data.usedPegs.present ? data.usedPegs.value : this.usedPegs,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldSessionMetaData(')
+          ..write('sessionId: $sessionId, ')
+          ..write('courseId: $courseId, ')
+          ..write('roundType: $roundType, ')
+          ..write('isNewCourseCreation: $isNewCourseCreation, ')
+          ..write('currentTargetNumber: $currentTargetNumber, ')
+          ..write('usedPegs: $usedPegs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    sessionId,
+    courseId,
+    roundType,
+    isNewCourseCreation,
+    currentTargetNumber,
+    usedPegs,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FieldSessionMetaData &&
+          other.sessionId == this.sessionId &&
+          other.courseId == this.courseId &&
+          other.roundType == this.roundType &&
+          other.isNewCourseCreation == this.isNewCourseCreation &&
+          other.currentTargetNumber == this.currentTargetNumber &&
+          other.usedPegs == this.usedPegs);
+}
+
+class FieldSessionMetaCompanion extends UpdateCompanion<FieldSessionMetaData> {
+  final Value<String> sessionId;
+  final Value<String?> courseId;
+  final Value<String> roundType;
+  final Value<bool> isNewCourseCreation;
+  final Value<int> currentTargetNumber;
+  final Value<String> usedPegs;
+  final Value<int> rowid;
+  const FieldSessionMetaCompanion({
+    this.sessionId = const Value.absent(),
+    this.courseId = const Value.absent(),
+    this.roundType = const Value.absent(),
+    this.isNewCourseCreation = const Value.absent(),
+    this.currentTargetNumber = const Value.absent(),
+    this.usedPegs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FieldSessionMetaCompanion.insert({
+    required String sessionId,
+    this.courseId = const Value.absent(),
+    required String roundType,
+    this.isNewCourseCreation = const Value.absent(),
+    this.currentTargetNumber = const Value.absent(),
+    this.usedPegs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : sessionId = Value(sessionId),
+       roundType = Value(roundType);
+  static Insertable<FieldSessionMetaData> custom({
+    Expression<String>? sessionId,
+    Expression<String>? courseId,
+    Expression<String>? roundType,
+    Expression<bool>? isNewCourseCreation,
+    Expression<int>? currentTargetNumber,
+    Expression<String>? usedPegs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (sessionId != null) 'session_id': sessionId,
+      if (courseId != null) 'course_id': courseId,
+      if (roundType != null) 'round_type': roundType,
+      if (isNewCourseCreation != null)
+        'is_new_course_creation': isNewCourseCreation,
+      if (currentTargetNumber != null)
+        'current_target_number': currentTargetNumber,
+      if (usedPegs != null) 'used_pegs': usedPegs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FieldSessionMetaCompanion copyWith({
+    Value<String>? sessionId,
+    Value<String?>? courseId,
+    Value<String>? roundType,
+    Value<bool>? isNewCourseCreation,
+    Value<int>? currentTargetNumber,
+    Value<String>? usedPegs,
+    Value<int>? rowid,
+  }) {
+    return FieldSessionMetaCompanion(
+      sessionId: sessionId ?? this.sessionId,
+      courseId: courseId ?? this.courseId,
+      roundType: roundType ?? this.roundType,
+      isNewCourseCreation: isNewCourseCreation ?? this.isNewCourseCreation,
+      currentTargetNumber: currentTargetNumber ?? this.currentTargetNumber,
+      usedPegs: usedPegs ?? this.usedPegs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (sessionId.present) {
+      map['session_id'] = Variable<String>(sessionId.value);
+    }
+    if (courseId.present) {
+      map['course_id'] = Variable<String>(courseId.value);
+    }
+    if (roundType.present) {
+      map['round_type'] = Variable<String>(roundType.value);
+    }
+    if (isNewCourseCreation.present) {
+      map['is_new_course_creation'] = Variable<bool>(isNewCourseCreation.value);
+    }
+    if (currentTargetNumber.present) {
+      map['current_target_number'] = Variable<int>(currentTargetNumber.value);
+    }
+    if (usedPegs.present) {
+      map['used_pegs'] = Variable<String>(usedPegs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldSessionMetaCompanion(')
+          ..write('sessionId: $sessionId, ')
+          ..write('courseId: $courseId, ')
+          ..write('roundType: $roundType, ')
+          ..write('isNewCourseCreation: $isNewCourseCreation, ')
+          ..write('currentTargetNumber: $currentTargetNumber, ')
+          ..write('usedPegs: $usedPegs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -27473,6 +30538,16 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PurchasesTable purchases = $PurchasesTable(this);
   late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
   late final $SyncMetadataTable syncMetadata = $SyncMetadataTable(this);
+  late final $FieldCoursesTable fieldCourses = $FieldCoursesTable(this);
+  late final $FieldCourseTargetsTable fieldCourseTargets =
+      $FieldCourseTargetsTable(this);
+  late final $FieldCourseSightMarksTable fieldCourseSightMarks =
+      $FieldCourseSightMarksTable(this);
+  late final $FieldSessionTargetsTable fieldSessionTargets =
+      $FieldSessionTargetsTable(this);
+  late final $FieldSessionMetaTable fieldSessionMeta = $FieldSessionMetaTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -27518,6 +30593,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     purchases,
     syncQueue,
     syncMetadata,
+    fieldCourses,
+    fieldCourseTargets,
+    fieldCourseSightMarks,
+    fieldSessionTargets,
+    fieldSessionMeta,
   ];
 }
 
@@ -28158,6 +31238,34 @@ final class $$BowsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<
+    $FieldCourseSightMarksTable,
+    List<FieldCourseSightMark>
+  >
+  _fieldCourseSightMarksRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.fieldCourseSightMarks,
+        aliasName: $_aliasNameGenerator(
+          db.bows.id,
+          db.fieldCourseSightMarks.bowId,
+        ),
+      );
+
+  $$FieldCourseSightMarksTableProcessedTableManager
+  get fieldCourseSightMarksRefs {
+    final manager = $$FieldCourseSightMarksTableTableManager(
+      $_db,
+      $_db.fieldCourseSightMarks,
+    ).filter((f) => f.bowId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _fieldCourseSightMarksRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$BowsTableFilterComposer extends Composer<_$AppDatabase, $BowsTable> {
@@ -28446,6 +31554,32 @@ class $$BowsTableFilterComposer extends Composer<_$AppDatabase, $BowsTable> {
               }) => $$SightMarkPreferencesTableTableFilterComposer(
                 $db: $db,
                 $table: $db.sightMarkPreferencesTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> fieldCourseSightMarksRefs(
+    Expression<bool> Function($$FieldCourseSightMarksTableFilterComposer f) f,
+  ) {
+    final $$FieldCourseSightMarksTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.fieldCourseSightMarks,
+          getReferencedColumn: (t) => t.bowId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldCourseSightMarksTableFilterComposer(
+                $db: $db,
+                $table: $db.fieldCourseSightMarks,
                 $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
                 joinBuilder: joinBuilder,
                 $removeJoinBuilderFromRootComposer:
@@ -28848,6 +31982,32 @@ class $$BowsTableAnnotationComposer
         );
     return f(composer);
   }
+
+  Expression<T> fieldCourseSightMarksRefs<T extends Object>(
+    Expression<T> Function($$FieldCourseSightMarksTableAnnotationComposer a) f,
+  ) {
+    final $$FieldCourseSightMarksTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.fieldCourseSightMarks,
+          getReferencedColumn: (t) => t.bowId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldCourseSightMarksTableAnnotationComposer(
+                $db: $db,
+                $table: $db.fieldCourseSightMarks,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$BowsTableTableManager
@@ -28871,6 +32031,7 @@ class $$BowsTableTableManager
             bool tuningSessionsRefs,
             bool sightMarksRefs,
             bool sightMarkPreferencesTableRefs,
+            bool fieldCourseSightMarksRefs,
           })
         > {
   $$BowsTableTableManager(_$AppDatabase db, $BowsTable table)
@@ -28999,6 +32160,7 @@ class $$BowsTableTableManager
                 tuningSessionsRefs = false,
                 sightMarksRefs = false,
                 sightMarkPreferencesTableRefs = false,
+                fieldCourseSightMarksRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -29011,6 +32173,7 @@ class $$BowsTableTableManager
                     if (sightMarksRefs) db.sightMarks,
                     if (sightMarkPreferencesTableRefs)
                       db.sightMarkPreferencesTable,
+                    if (fieldCourseSightMarksRefs) db.fieldCourseSightMarks,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -29129,6 +32292,26 @@ class $$BowsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (fieldCourseSightMarksRefs)
+                        await $_getPrefetchedData<
+                          Bow,
+                          $BowsTable,
+                          FieldCourseSightMark
+                        >(
+                          currentTable: table,
+                          referencedTable: $$BowsTableReferences
+                              ._fieldCourseSightMarksRefsTable(db),
+                          managerFromTypedResult: (p0) => $$BowsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).fieldCourseSightMarksRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bowId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -29157,6 +32340,7 @@ typedef $$BowsTableProcessedTableManager =
         bool tuningSessionsRefs,
         bool sightMarksRefs,
         bool sightMarkPreferencesTableRefs,
+        bool fieldCourseSightMarksRefs,
       })
     >;
 typedef $$QuiversTableCreateCompanionBuilder =
@@ -29849,6 +33033,56 @@ final class $$SessionsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<
+    $FieldSessionTargetsTable,
+    List<FieldSessionTarget>
+  >
+  _fieldSessionTargetsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.fieldSessionTargets,
+        aliasName: $_aliasNameGenerator(
+          db.sessions.id,
+          db.fieldSessionTargets.sessionId,
+        ),
+      );
+
+  $$FieldSessionTargetsTableProcessedTableManager get fieldSessionTargetsRefs {
+    final manager = $$FieldSessionTargetsTableTableManager(
+      $_db,
+      $_db.fieldSessionTargets,
+    ).filter((f) => f.sessionId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _fieldSessionTargetsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$FieldSessionMetaTable, List<FieldSessionMetaData>>
+  _fieldSessionMetaRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.fieldSessionMeta,
+    aliasName: $_aliasNameGenerator(
+      db.sessions.id,
+      db.fieldSessionMeta.sessionId,
+    ),
+  );
+
+  $$FieldSessionMetaTableProcessedTableManager get fieldSessionMetaRefs {
+    final manager = $$FieldSessionMetaTableTableManager(
+      $_db,
+      $_db.fieldSessionMeta,
+    ).filter((f) => f.sessionId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _fieldSessionMetaRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$SessionsTableFilterComposer
@@ -29995,6 +33229,56 @@ class $$SessionsTableFilterComposer
           }) => $$EndsTableFilterComposer(
             $db: $db,
             $table: $db.ends,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> fieldSessionTargetsRefs(
+    Expression<bool> Function($$FieldSessionTargetsTableFilterComposer f) f,
+  ) {
+    final $$FieldSessionTargetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fieldSessionTargets,
+      getReferencedColumn: (t) => t.sessionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldSessionTargetsTableFilterComposer(
+            $db: $db,
+            $table: $db.fieldSessionTargets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> fieldSessionMetaRefs(
+    Expression<bool> Function($$FieldSessionMetaTableFilterComposer f) f,
+  ) {
+    final $$FieldSessionMetaTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fieldSessionMeta,
+      getReferencedColumn: (t) => t.sessionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldSessionMetaTableFilterComposer(
+            $db: $db,
+            $table: $db.fieldSessionMeta,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -30274,6 +33558,57 @@ class $$SessionsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> fieldSessionTargetsRefs<T extends Object>(
+    Expression<T> Function($$FieldSessionTargetsTableAnnotationComposer a) f,
+  ) {
+    final $$FieldSessionTargetsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.fieldSessionTargets,
+          getReferencedColumn: (t) => t.sessionId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldSessionTargetsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.fieldSessionTargets,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> fieldSessionMetaRefs<T extends Object>(
+    Expression<T> Function($$FieldSessionMetaTableAnnotationComposer a) f,
+  ) {
+    final $$FieldSessionMetaTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fieldSessionMeta,
+      getReferencedColumn: (t) => t.sessionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldSessionMetaTableAnnotationComposer(
+            $db: $db,
+            $table: $db.fieldSessionMeta,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$SessionsTableTableManager
@@ -30294,6 +33629,8 @@ class $$SessionsTableTableManager
             bool bowId,
             bool quiverId,
             bool endsRefs,
+            bool fieldSessionTargetsRefs,
+            bool fieldSessionMetaRefs,
           })
         > {
   $$SessionsTableTableManager(_$AppDatabase db, $SessionsTable table)
@@ -30385,10 +33722,16 @@ class $$SessionsTableTableManager
                 bowId = false,
                 quiverId = false,
                 endsRefs = false,
+                fieldSessionTargetsRefs = false,
+                fieldSessionMetaRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
-                  explicitlyWatchedTables: [if (endsRefs) db.ends],
+                  explicitlyWatchedTables: [
+                    if (endsRefs) db.ends,
+                    if (fieldSessionTargetsRefs) db.fieldSessionTargets,
+                    if (fieldSessionMetaRefs) db.fieldSessionMeta,
+                  ],
                   addJoins:
                       <
                         T extends TableManagerState<
@@ -30462,6 +33805,48 @@ class $$SessionsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (fieldSessionTargetsRefs)
+                        await $_getPrefetchedData<
+                          Session,
+                          $SessionsTable,
+                          FieldSessionTarget
+                        >(
+                          currentTable: table,
+                          referencedTable: $$SessionsTableReferences
+                              ._fieldSessionTargetsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$SessionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).fieldSessionTargetsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.sessionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (fieldSessionMetaRefs)
+                        await $_getPrefetchedData<
+                          Session,
+                          $SessionsTable,
+                          FieldSessionMetaData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$SessionsTableReferences
+                              ._fieldSessionMetaRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$SessionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).fieldSessionMetaRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.sessionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -30487,6 +33872,8 @@ typedef $$SessionsTableProcessedTableManager =
         bool bowId,
         bool quiverId,
         bool endsRefs,
+        bool fieldSessionTargetsRefs,
+        bool fieldSessionMetaRefs,
       })
     >;
 typedef $$EndsTableCreateCompanionBuilder =
@@ -39759,6 +43146,7 @@ typedef $$SightMarksTableCreateCompanionBuilder =
       Value<int?> shotCount,
       Value<double?> confidenceScore,
       Value<String?> venueId,
+      Value<bool> isIndoor,
       Value<DateTime> recordedAt,
       Value<DateTime?> updatedAt,
       Value<DateTime?> deletedAt,
@@ -39779,6 +43167,7 @@ typedef $$SightMarksTableUpdateCompanionBuilder =
       Value<int?> shotCount,
       Value<double?> confidenceScore,
       Value<String?> venueId,
+      Value<bool> isIndoor,
       Value<DateTime> recordedAt,
       Value<DateTime?> updatedAt,
       Value<DateTime?> deletedAt,
@@ -39874,6 +43263,11 @@ class $$SightMarksTableFilterComposer
 
   ColumnFilters<String> get venueId => $composableBuilder(
     column: $table.venueId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isIndoor => $composableBuilder(
+    column: $table.isIndoor,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -39985,6 +43379,11 @@ class $$SightMarksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isIndoor => $composableBuilder(
+    column: $table.isIndoor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get recordedAt => $composableBuilder(
     column: $table.recordedAt,
     builder: (column) => ColumnOrderings(column),
@@ -40079,6 +43478,9 @@ class $$SightMarksTableAnnotationComposer
   GeneratedColumn<String> get venueId =>
       $composableBuilder(column: $table.venueId, builder: (column) => column);
 
+  GeneratedColumn<bool> get isIndoor =>
+      $composableBuilder(column: $table.isIndoor, builder: (column) => column);
+
   GeneratedColumn<DateTime> get recordedAt => $composableBuilder(
     column: $table.recordedAt,
     builder: (column) => column,
@@ -40155,6 +43557,7 @@ class $$SightMarksTableTableManager
                 Value<int?> shotCount = const Value.absent(),
                 Value<double?> confidenceScore = const Value.absent(),
                 Value<String?> venueId = const Value.absent(),
+                Value<bool> isIndoor = const Value.absent(),
                 Value<DateTime> recordedAt = const Value.absent(),
                 Value<DateTime?> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -40173,6 +43576,7 @@ class $$SightMarksTableTableManager
                 shotCount: shotCount,
                 confidenceScore: confidenceScore,
                 venueId: venueId,
+                isIndoor: isIndoor,
                 recordedAt: recordedAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -40193,6 +43597,7 @@ class $$SightMarksTableTableManager
                 Value<int?> shotCount = const Value.absent(),
                 Value<double?> confidenceScore = const Value.absent(),
                 Value<String?> venueId = const Value.absent(),
+                Value<bool> isIndoor = const Value.absent(),
                 Value<DateTime> recordedAt = const Value.absent(),
                 Value<DateTime?> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -40211,6 +43616,7 @@ class $$SightMarksTableTableManager
                 shotCount: shotCount,
                 confidenceScore: confidenceScore,
                 venueId: venueId,
+                isIndoor: isIndoor,
                 recordedAt: recordedAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -40658,6 +44064,29 @@ typedef $$VenuesTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
+final class $$VenuesTableReferences
+    extends BaseReferences<_$AppDatabase, $VenuesTable, Venue> {
+  $$VenuesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$FieldCoursesTable, List<FieldCourse>>
+  _fieldCoursesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.fieldCourses,
+    aliasName: $_aliasNameGenerator(db.venues.id, db.fieldCourses.venueId),
+  );
+
+  $$FieldCoursesTableProcessedTableManager get fieldCoursesRefs {
+    final manager = $$FieldCoursesTableTableManager(
+      $_db,
+      $_db.fieldCourses,
+    ).filter((f) => f.venueId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_fieldCoursesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
 class $$VenuesTableFilterComposer
     extends Composer<_$AppDatabase, $VenuesTable> {
   $$VenuesTableFilterComposer({
@@ -40706,6 +44135,31 @@ class $$VenuesTableFilterComposer
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> fieldCoursesRefs(
+    Expression<bool> Function($$FieldCoursesTableFilterComposer f) f,
+  ) {
+    final $$FieldCoursesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fieldCourses,
+      getReferencedColumn: (t) => t.venueId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldCoursesTableFilterComposer(
+            $db: $db,
+            $table: $db.fieldCourses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$VenuesTableOrderingComposer
@@ -40792,6 +44246,31 @@ class $$VenuesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> fieldCoursesRefs<T extends Object>(
+    Expression<T> Function($$FieldCoursesTableAnnotationComposer a) f,
+  ) {
+    final $$FieldCoursesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fieldCourses,
+      getReferencedColumn: (t) => t.venueId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldCoursesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.fieldCourses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$VenuesTableTableManager
@@ -40805,9 +44284,9 @@ class $$VenuesTableTableManager
           $$VenuesTableAnnotationComposer,
           $$VenuesTableCreateCompanionBuilder,
           $$VenuesTableUpdateCompanionBuilder,
-          (Venue, BaseReferences<_$AppDatabase, $VenuesTable, Venue>),
+          (Venue, $$VenuesTableReferences),
           Venue,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool fieldCoursesRefs})
         > {
   $$VenuesTableTableManager(_$AppDatabase db, $VenuesTable table)
     : super(
@@ -40865,9 +44344,36 @@ class $$VenuesTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) =>
+                    (e.readTable(table), $$VenuesTableReferences(db, table, e)),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({fieldCoursesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (fieldCoursesRefs) db.fieldCourses],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (fieldCoursesRefs)
+                    await $_getPrefetchedData<Venue, $VenuesTable, FieldCourse>(
+                      currentTable: table,
+                      referencedTable: $$VenuesTableReferences
+                          ._fieldCoursesRefsTable(db),
+                      managerFromTypedResult: (p0) => $$VenuesTableReferences(
+                        db,
+                        table,
+                        p0,
+                      ).fieldCoursesRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.venueId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -40882,9 +44388,9 @@ typedef $$VenuesTableProcessedTableManager =
       $$VenuesTableAnnotationComposer,
       $$VenuesTableCreateCompanionBuilder,
       $$VenuesTableUpdateCompanionBuilder,
-      (Venue, BaseReferences<_$AppDatabase, $VenuesTable, Venue>),
+      (Venue, $$VenuesTableReferences),
       Venue,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool fieldCoursesRefs})
     >;
 typedef $$RegisteredTargetsTableCreateCompanionBuilder =
     RegisteredTargetsCompanion Function({
@@ -44580,6 +48086,2830 @@ typedef $$SyncMetadataTableProcessedTableManager =
       SyncMetadataData,
       PrefetchHooks Function()
     >;
+typedef $$FieldCoursesTableCreateCompanionBuilder =
+    FieldCoursesCompanion Function({
+      required String id,
+      required String name,
+      Value<String?> venueId,
+      required String roundType,
+      Value<int> targetCount,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime?> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$FieldCoursesTableUpdateCompanionBuilder =
+    FieldCoursesCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String?> venueId,
+      Value<String> roundType,
+      Value<int> targetCount,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime?> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+final class $$FieldCoursesTableReferences
+    extends BaseReferences<_$AppDatabase, $FieldCoursesTable, FieldCourse> {
+  $$FieldCoursesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $VenuesTable _venueIdTable(_$AppDatabase db) => db.venues.createAlias(
+    $_aliasNameGenerator(db.fieldCourses.venueId, db.venues.id),
+  );
+
+  $$VenuesTableProcessedTableManager? get venueId {
+    final $_column = $_itemColumn<String>('venue_id');
+    if ($_column == null) return null;
+    final manager = $$VenuesTableTableManager(
+      $_db,
+      $_db.venues,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_venueIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$FieldCourseTargetsTable, List<FieldCourseTarget>>
+  _fieldCourseTargetsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.fieldCourseTargets,
+        aliasName: $_aliasNameGenerator(
+          db.fieldCourses.id,
+          db.fieldCourseTargets.courseId,
+        ),
+      );
+
+  $$FieldCourseTargetsTableProcessedTableManager get fieldCourseTargetsRefs {
+    final manager = $$FieldCourseTargetsTableTableManager(
+      $_db,
+      $_db.fieldCourseTargets,
+    ).filter((f) => f.courseId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _fieldCourseTargetsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$FieldSessionMetaTable, List<FieldSessionMetaData>>
+  _fieldSessionMetaRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.fieldSessionMeta,
+    aliasName: $_aliasNameGenerator(
+      db.fieldCourses.id,
+      db.fieldSessionMeta.courseId,
+    ),
+  );
+
+  $$FieldSessionMetaTableProcessedTableManager get fieldSessionMetaRefs {
+    final manager = $$FieldSessionMetaTableTableManager(
+      $_db,
+      $_db.fieldSessionMeta,
+    ).filter((f) => f.courseId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _fieldSessionMetaRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$FieldCoursesTableFilterComposer
+    extends Composer<_$AppDatabase, $FieldCoursesTable> {
+  $$FieldCoursesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get roundType => $composableBuilder(
+    column: $table.roundType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get targetCount => $composableBuilder(
+    column: $table.targetCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$VenuesTableFilterComposer get venueId {
+    final $$VenuesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.venueId,
+      referencedTable: $db.venues,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$VenuesTableFilterComposer(
+            $db: $db,
+            $table: $db.venues,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> fieldCourseTargetsRefs(
+    Expression<bool> Function($$FieldCourseTargetsTableFilterComposer f) f,
+  ) {
+    final $$FieldCourseTargetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fieldCourseTargets,
+      getReferencedColumn: (t) => t.courseId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldCourseTargetsTableFilterComposer(
+            $db: $db,
+            $table: $db.fieldCourseTargets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> fieldSessionMetaRefs(
+    Expression<bool> Function($$FieldSessionMetaTableFilterComposer f) f,
+  ) {
+    final $$FieldSessionMetaTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fieldSessionMeta,
+      getReferencedColumn: (t) => t.courseId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldSessionMetaTableFilterComposer(
+            $db: $db,
+            $table: $db.fieldSessionMeta,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$FieldCoursesTableOrderingComposer
+    extends Composer<_$AppDatabase, $FieldCoursesTable> {
+  $$FieldCoursesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get roundType => $composableBuilder(
+    column: $table.roundType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get targetCount => $composableBuilder(
+    column: $table.targetCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$VenuesTableOrderingComposer get venueId {
+    final $$VenuesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.venueId,
+      referencedTable: $db.venues,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$VenuesTableOrderingComposer(
+            $db: $db,
+            $table: $db.venues,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FieldCoursesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FieldCoursesTable> {
+  $$FieldCoursesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get roundType =>
+      $composableBuilder(column: $table.roundType, builder: (column) => column);
+
+  GeneratedColumn<int> get targetCount => $composableBuilder(
+    column: $table.targetCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  $$VenuesTableAnnotationComposer get venueId {
+    final $$VenuesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.venueId,
+      referencedTable: $db.venues,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$VenuesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.venues,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> fieldCourseTargetsRefs<T extends Object>(
+    Expression<T> Function($$FieldCourseTargetsTableAnnotationComposer a) f,
+  ) {
+    final $$FieldCourseTargetsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.fieldCourseTargets,
+          getReferencedColumn: (t) => t.courseId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldCourseTargetsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.fieldCourseTargets,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> fieldSessionMetaRefs<T extends Object>(
+    Expression<T> Function($$FieldSessionMetaTableAnnotationComposer a) f,
+  ) {
+    final $$FieldSessionMetaTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fieldSessionMeta,
+      getReferencedColumn: (t) => t.courseId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldSessionMetaTableAnnotationComposer(
+            $db: $db,
+            $table: $db.fieldSessionMeta,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$FieldCoursesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FieldCoursesTable,
+          FieldCourse,
+          $$FieldCoursesTableFilterComposer,
+          $$FieldCoursesTableOrderingComposer,
+          $$FieldCoursesTableAnnotationComposer,
+          $$FieldCoursesTableCreateCompanionBuilder,
+          $$FieldCoursesTableUpdateCompanionBuilder,
+          (FieldCourse, $$FieldCoursesTableReferences),
+          FieldCourse,
+          PrefetchHooks Function({
+            bool venueId,
+            bool fieldCourseTargetsRefs,
+            bool fieldSessionMetaRefs,
+          })
+        > {
+  $$FieldCoursesTableTableManager(_$AppDatabase db, $FieldCoursesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FieldCoursesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FieldCoursesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FieldCoursesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> venueId = const Value.absent(),
+                Value<String> roundType = const Value.absent(),
+                Value<int> targetCount = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldCoursesCompanion(
+                id: id,
+                name: name,
+                venueId: venueId,
+                roundType: roundType,
+                targetCount: targetCount,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                Value<String?> venueId = const Value.absent(),
+                required String roundType,
+                Value<int> targetCount = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldCoursesCompanion.insert(
+                id: id,
+                name: name,
+                venueId: venueId,
+                roundType: roundType,
+                targetCount: targetCount,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$FieldCoursesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                venueId = false,
+                fieldCourseTargetsRefs = false,
+                fieldSessionMetaRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (fieldCourseTargetsRefs) db.fieldCourseTargets,
+                    if (fieldSessionMetaRefs) db.fieldSessionMeta,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (venueId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.venueId,
+                                    referencedTable:
+                                        $$FieldCoursesTableReferences
+                                            ._venueIdTable(db),
+                                    referencedColumn:
+                                        $$FieldCoursesTableReferences
+                                            ._venueIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (fieldCourseTargetsRefs)
+                        await $_getPrefetchedData<
+                          FieldCourse,
+                          $FieldCoursesTable,
+                          FieldCourseTarget
+                        >(
+                          currentTable: table,
+                          referencedTable: $$FieldCoursesTableReferences
+                              ._fieldCourseTargetsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$FieldCoursesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).fieldCourseTargetsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.courseId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (fieldSessionMetaRefs)
+                        await $_getPrefetchedData<
+                          FieldCourse,
+                          $FieldCoursesTable,
+                          FieldSessionMetaData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$FieldCoursesTableReferences
+                              ._fieldSessionMetaRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$FieldCoursesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).fieldSessionMetaRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.courseId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$FieldCoursesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FieldCoursesTable,
+      FieldCourse,
+      $$FieldCoursesTableFilterComposer,
+      $$FieldCoursesTableOrderingComposer,
+      $$FieldCoursesTableAnnotationComposer,
+      $$FieldCoursesTableCreateCompanionBuilder,
+      $$FieldCoursesTableUpdateCompanionBuilder,
+      (FieldCourse, $$FieldCoursesTableReferences),
+      FieldCourse,
+      PrefetchHooks Function({
+        bool venueId,
+        bool fieldCourseTargetsRefs,
+        bool fieldSessionMetaRefs,
+      })
+    >;
+typedef $$FieldCourseTargetsTableCreateCompanionBuilder =
+    FieldCourseTargetsCompanion Function({
+      required String id,
+      required String courseId,
+      required int targetNumber,
+      required String pegConfig,
+      required int faceSize,
+      required double primaryDistance,
+      Value<String> unit,
+      Value<bool> isWalkUp,
+      Value<bool> isWalkDown,
+      Value<int> arrowsRequired,
+      Value<String?> notes,
+      Value<int> rowid,
+    });
+typedef $$FieldCourseTargetsTableUpdateCompanionBuilder =
+    FieldCourseTargetsCompanion Function({
+      Value<String> id,
+      Value<String> courseId,
+      Value<int> targetNumber,
+      Value<String> pegConfig,
+      Value<int> faceSize,
+      Value<double> primaryDistance,
+      Value<String> unit,
+      Value<bool> isWalkUp,
+      Value<bool> isWalkDown,
+      Value<int> arrowsRequired,
+      Value<String?> notes,
+      Value<int> rowid,
+    });
+
+final class $$FieldCourseTargetsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $FieldCourseTargetsTable,
+          FieldCourseTarget
+        > {
+  $$FieldCourseTargetsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $FieldCoursesTable _courseIdTable(_$AppDatabase db) =>
+      db.fieldCourses.createAlias(
+        $_aliasNameGenerator(
+          db.fieldCourseTargets.courseId,
+          db.fieldCourses.id,
+        ),
+      );
+
+  $$FieldCoursesTableProcessedTableManager get courseId {
+    final $_column = $_itemColumn<String>('course_id')!;
+
+    final manager = $$FieldCoursesTableTableManager(
+      $_db,
+      $_db.fieldCourses,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_courseIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $FieldCourseSightMarksTable,
+    List<FieldCourseSightMark>
+  >
+  _fieldCourseSightMarksRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.fieldCourseSightMarks,
+        aliasName: $_aliasNameGenerator(
+          db.fieldCourseTargets.id,
+          db.fieldCourseSightMarks.courseTargetId,
+        ),
+      );
+
+  $$FieldCourseSightMarksTableProcessedTableManager
+  get fieldCourseSightMarksRefs {
+    final manager = $$FieldCourseSightMarksTableTableManager(
+      $_db,
+      $_db.fieldCourseSightMarks,
+    ).filter((f) => f.courseTargetId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _fieldCourseSightMarksRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $FieldSessionTargetsTable,
+    List<FieldSessionTarget>
+  >
+  _fieldSessionTargetsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.fieldSessionTargets,
+        aliasName: $_aliasNameGenerator(
+          db.fieldCourseTargets.id,
+          db.fieldSessionTargets.courseTargetId,
+        ),
+      );
+
+  $$FieldSessionTargetsTableProcessedTableManager get fieldSessionTargetsRefs {
+    final manager = $$FieldSessionTargetsTableTableManager(
+      $_db,
+      $_db.fieldSessionTargets,
+    ).filter((f) => f.courseTargetId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _fieldSessionTargetsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$FieldCourseTargetsTableFilterComposer
+    extends Composer<_$AppDatabase, $FieldCourseTargetsTable> {
+  $$FieldCourseTargetsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get targetNumber => $composableBuilder(
+    column: $table.targetNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get pegConfig => $composableBuilder(
+    column: $table.pegConfig,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get faceSize => $composableBuilder(
+    column: $table.faceSize,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get primaryDistance => $composableBuilder(
+    column: $table.primaryDistance,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isWalkUp => $composableBuilder(
+    column: $table.isWalkUp,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isWalkDown => $composableBuilder(
+    column: $table.isWalkDown,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get arrowsRequired => $composableBuilder(
+    column: $table.arrowsRequired,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$FieldCoursesTableFilterComposer get courseId {
+    final $$FieldCoursesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.courseId,
+      referencedTable: $db.fieldCourses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldCoursesTableFilterComposer(
+            $db: $db,
+            $table: $db.fieldCourses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> fieldCourseSightMarksRefs(
+    Expression<bool> Function($$FieldCourseSightMarksTableFilterComposer f) f,
+  ) {
+    final $$FieldCourseSightMarksTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.fieldCourseSightMarks,
+          getReferencedColumn: (t) => t.courseTargetId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldCourseSightMarksTableFilterComposer(
+                $db: $db,
+                $table: $db.fieldCourseSightMarks,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> fieldSessionTargetsRefs(
+    Expression<bool> Function($$FieldSessionTargetsTableFilterComposer f) f,
+  ) {
+    final $$FieldSessionTargetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fieldSessionTargets,
+      getReferencedColumn: (t) => t.courseTargetId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldSessionTargetsTableFilterComposer(
+            $db: $db,
+            $table: $db.fieldSessionTargets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$FieldCourseTargetsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FieldCourseTargetsTable> {
+  $$FieldCourseTargetsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get targetNumber => $composableBuilder(
+    column: $table.targetNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get pegConfig => $composableBuilder(
+    column: $table.pegConfig,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get faceSize => $composableBuilder(
+    column: $table.faceSize,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get primaryDistance => $composableBuilder(
+    column: $table.primaryDistance,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isWalkUp => $composableBuilder(
+    column: $table.isWalkUp,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isWalkDown => $composableBuilder(
+    column: $table.isWalkDown,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get arrowsRequired => $composableBuilder(
+    column: $table.arrowsRequired,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$FieldCoursesTableOrderingComposer get courseId {
+    final $$FieldCoursesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.courseId,
+      referencedTable: $db.fieldCourses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldCoursesTableOrderingComposer(
+            $db: $db,
+            $table: $db.fieldCourses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FieldCourseTargetsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FieldCourseTargetsTable> {
+  $$FieldCourseTargetsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get targetNumber => $composableBuilder(
+    column: $table.targetNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get pegConfig =>
+      $composableBuilder(column: $table.pegConfig, builder: (column) => column);
+
+  GeneratedColumn<int> get faceSize =>
+      $composableBuilder(column: $table.faceSize, builder: (column) => column);
+
+  GeneratedColumn<double> get primaryDistance => $composableBuilder(
+    column: $table.primaryDistance,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
+
+  GeneratedColumn<bool> get isWalkUp =>
+      $composableBuilder(column: $table.isWalkUp, builder: (column) => column);
+
+  GeneratedColumn<bool> get isWalkDown => $composableBuilder(
+    column: $table.isWalkDown,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get arrowsRequired => $composableBuilder(
+    column: $table.arrowsRequired,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  $$FieldCoursesTableAnnotationComposer get courseId {
+    final $$FieldCoursesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.courseId,
+      referencedTable: $db.fieldCourses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldCoursesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.fieldCourses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> fieldCourseSightMarksRefs<T extends Object>(
+    Expression<T> Function($$FieldCourseSightMarksTableAnnotationComposer a) f,
+  ) {
+    final $$FieldCourseSightMarksTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.fieldCourseSightMarks,
+          getReferencedColumn: (t) => t.courseTargetId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldCourseSightMarksTableAnnotationComposer(
+                $db: $db,
+                $table: $db.fieldCourseSightMarks,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> fieldSessionTargetsRefs<T extends Object>(
+    Expression<T> Function($$FieldSessionTargetsTableAnnotationComposer a) f,
+  ) {
+    final $$FieldSessionTargetsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.fieldSessionTargets,
+          getReferencedColumn: (t) => t.courseTargetId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldSessionTargetsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.fieldSessionTargets,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$FieldCourseTargetsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FieldCourseTargetsTable,
+          FieldCourseTarget,
+          $$FieldCourseTargetsTableFilterComposer,
+          $$FieldCourseTargetsTableOrderingComposer,
+          $$FieldCourseTargetsTableAnnotationComposer,
+          $$FieldCourseTargetsTableCreateCompanionBuilder,
+          $$FieldCourseTargetsTableUpdateCompanionBuilder,
+          (FieldCourseTarget, $$FieldCourseTargetsTableReferences),
+          FieldCourseTarget,
+          PrefetchHooks Function({
+            bool courseId,
+            bool fieldCourseSightMarksRefs,
+            bool fieldSessionTargetsRefs,
+          })
+        > {
+  $$FieldCourseTargetsTableTableManager(
+    _$AppDatabase db,
+    $FieldCourseTargetsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FieldCourseTargetsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FieldCourseTargetsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FieldCourseTargetsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> courseId = const Value.absent(),
+                Value<int> targetNumber = const Value.absent(),
+                Value<String> pegConfig = const Value.absent(),
+                Value<int> faceSize = const Value.absent(),
+                Value<double> primaryDistance = const Value.absent(),
+                Value<String> unit = const Value.absent(),
+                Value<bool> isWalkUp = const Value.absent(),
+                Value<bool> isWalkDown = const Value.absent(),
+                Value<int> arrowsRequired = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldCourseTargetsCompanion(
+                id: id,
+                courseId: courseId,
+                targetNumber: targetNumber,
+                pegConfig: pegConfig,
+                faceSize: faceSize,
+                primaryDistance: primaryDistance,
+                unit: unit,
+                isWalkUp: isWalkUp,
+                isWalkDown: isWalkDown,
+                arrowsRequired: arrowsRequired,
+                notes: notes,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String courseId,
+                required int targetNumber,
+                required String pegConfig,
+                required int faceSize,
+                required double primaryDistance,
+                Value<String> unit = const Value.absent(),
+                Value<bool> isWalkUp = const Value.absent(),
+                Value<bool> isWalkDown = const Value.absent(),
+                Value<int> arrowsRequired = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldCourseTargetsCompanion.insert(
+                id: id,
+                courseId: courseId,
+                targetNumber: targetNumber,
+                pegConfig: pegConfig,
+                faceSize: faceSize,
+                primaryDistance: primaryDistance,
+                unit: unit,
+                isWalkUp: isWalkUp,
+                isWalkDown: isWalkDown,
+                arrowsRequired: arrowsRequired,
+                notes: notes,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$FieldCourseTargetsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                courseId = false,
+                fieldCourseSightMarksRefs = false,
+                fieldSessionTargetsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (fieldCourseSightMarksRefs) db.fieldCourseSightMarks,
+                    if (fieldSessionTargetsRefs) db.fieldSessionTargets,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (courseId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.courseId,
+                                    referencedTable:
+                                        $$FieldCourseTargetsTableReferences
+                                            ._courseIdTable(db),
+                                    referencedColumn:
+                                        $$FieldCourseTargetsTableReferences
+                                            ._courseIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (fieldCourseSightMarksRefs)
+                        await $_getPrefetchedData<
+                          FieldCourseTarget,
+                          $FieldCourseTargetsTable,
+                          FieldCourseSightMark
+                        >(
+                          currentTable: table,
+                          referencedTable: $$FieldCourseTargetsTableReferences
+                              ._fieldCourseSightMarksRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$FieldCourseTargetsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).fieldCourseSightMarksRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.courseTargetId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (fieldSessionTargetsRefs)
+                        await $_getPrefetchedData<
+                          FieldCourseTarget,
+                          $FieldCourseTargetsTable,
+                          FieldSessionTarget
+                        >(
+                          currentTable: table,
+                          referencedTable: $$FieldCourseTargetsTableReferences
+                              ._fieldSessionTargetsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$FieldCourseTargetsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).fieldSessionTargetsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.courseTargetId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$FieldCourseTargetsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FieldCourseTargetsTable,
+      FieldCourseTarget,
+      $$FieldCourseTargetsTableFilterComposer,
+      $$FieldCourseTargetsTableOrderingComposer,
+      $$FieldCourseTargetsTableAnnotationComposer,
+      $$FieldCourseTargetsTableCreateCompanionBuilder,
+      $$FieldCourseTargetsTableUpdateCompanionBuilder,
+      (FieldCourseTarget, $$FieldCourseTargetsTableReferences),
+      FieldCourseTarget,
+      PrefetchHooks Function({
+        bool courseId,
+        bool fieldCourseSightMarksRefs,
+        bool fieldSessionTargetsRefs,
+      })
+    >;
+typedef $$FieldCourseSightMarksTableCreateCompanionBuilder =
+    FieldCourseSightMarksCompanion Function({
+      required String id,
+      required String courseTargetId,
+      required String bowId,
+      required double calculatedMark,
+      required double actualMark,
+      required double differential,
+      Value<double?> confidenceScore,
+      Value<String?> weatherData,
+      Value<int> shotCount,
+      Value<DateTime> recordedAt,
+      Value<int> rowid,
+    });
+typedef $$FieldCourseSightMarksTableUpdateCompanionBuilder =
+    FieldCourseSightMarksCompanion Function({
+      Value<String> id,
+      Value<String> courseTargetId,
+      Value<String> bowId,
+      Value<double> calculatedMark,
+      Value<double> actualMark,
+      Value<double> differential,
+      Value<double?> confidenceScore,
+      Value<String?> weatherData,
+      Value<int> shotCount,
+      Value<DateTime> recordedAt,
+      Value<int> rowid,
+    });
+
+final class $$FieldCourseSightMarksTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $FieldCourseSightMarksTable,
+          FieldCourseSightMark
+        > {
+  $$FieldCourseSightMarksTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $FieldCourseTargetsTable _courseTargetIdTable(_$AppDatabase db) =>
+      db.fieldCourseTargets.createAlias(
+        $_aliasNameGenerator(
+          db.fieldCourseSightMarks.courseTargetId,
+          db.fieldCourseTargets.id,
+        ),
+      );
+
+  $$FieldCourseTargetsTableProcessedTableManager get courseTargetId {
+    final $_column = $_itemColumn<String>('course_target_id')!;
+
+    final manager = $$FieldCourseTargetsTableTableManager(
+      $_db,
+      $_db.fieldCourseTargets,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_courseTargetIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $BowsTable _bowIdTable(_$AppDatabase db) => db.bows.createAlias(
+    $_aliasNameGenerator(db.fieldCourseSightMarks.bowId, db.bows.id),
+  );
+
+  $$BowsTableProcessedTableManager get bowId {
+    final $_column = $_itemColumn<String>('bow_id')!;
+
+    final manager = $$BowsTableTableManager(
+      $_db,
+      $_db.bows,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_bowIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$FieldCourseSightMarksTableFilterComposer
+    extends Composer<_$AppDatabase, $FieldCourseSightMarksTable> {
+  $$FieldCourseSightMarksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get calculatedMark => $composableBuilder(
+    column: $table.calculatedMark,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get actualMark => $composableBuilder(
+    column: $table.actualMark,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get differential => $composableBuilder(
+    column: $table.differential,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get confidenceScore => $composableBuilder(
+    column: $table.confidenceScore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get weatherData => $composableBuilder(
+    column: $table.weatherData,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get shotCount => $composableBuilder(
+    column: $table.shotCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$FieldCourseTargetsTableFilterComposer get courseTargetId {
+    final $$FieldCourseTargetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.courseTargetId,
+      referencedTable: $db.fieldCourseTargets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldCourseTargetsTableFilterComposer(
+            $db: $db,
+            $table: $db.fieldCourseTargets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$BowsTableFilterComposer get bowId {
+    final $$BowsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableFilterComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FieldCourseSightMarksTableOrderingComposer
+    extends Composer<_$AppDatabase, $FieldCourseSightMarksTable> {
+  $$FieldCourseSightMarksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get calculatedMark => $composableBuilder(
+    column: $table.calculatedMark,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get actualMark => $composableBuilder(
+    column: $table.actualMark,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get differential => $composableBuilder(
+    column: $table.differential,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get confidenceScore => $composableBuilder(
+    column: $table.confidenceScore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get weatherData => $composableBuilder(
+    column: $table.weatherData,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get shotCount => $composableBuilder(
+    column: $table.shotCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$FieldCourseTargetsTableOrderingComposer get courseTargetId {
+    final $$FieldCourseTargetsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.courseTargetId,
+      referencedTable: $db.fieldCourseTargets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldCourseTargetsTableOrderingComposer(
+            $db: $db,
+            $table: $db.fieldCourseTargets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$BowsTableOrderingComposer get bowId {
+    final $$BowsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableOrderingComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FieldCourseSightMarksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FieldCourseSightMarksTable> {
+  $$FieldCourseSightMarksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<double> get calculatedMark => $composableBuilder(
+    column: $table.calculatedMark,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get actualMark => $composableBuilder(
+    column: $table.actualMark,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get differential => $composableBuilder(
+    column: $table.differential,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get confidenceScore => $composableBuilder(
+    column: $table.confidenceScore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get weatherData => $composableBuilder(
+    column: $table.weatherData,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get shotCount =>
+      $composableBuilder(column: $table.shotCount, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => column,
+  );
+
+  $$FieldCourseTargetsTableAnnotationComposer get courseTargetId {
+    final $$FieldCourseTargetsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.courseTargetId,
+          referencedTable: $db.fieldCourseTargets,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldCourseTargetsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.fieldCourseTargets,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+
+  $$BowsTableAnnotationComposer get bowId {
+    final $$BowsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FieldCourseSightMarksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FieldCourseSightMarksTable,
+          FieldCourseSightMark,
+          $$FieldCourseSightMarksTableFilterComposer,
+          $$FieldCourseSightMarksTableOrderingComposer,
+          $$FieldCourseSightMarksTableAnnotationComposer,
+          $$FieldCourseSightMarksTableCreateCompanionBuilder,
+          $$FieldCourseSightMarksTableUpdateCompanionBuilder,
+          (FieldCourseSightMark, $$FieldCourseSightMarksTableReferences),
+          FieldCourseSightMark,
+          PrefetchHooks Function({bool courseTargetId, bool bowId})
+        > {
+  $$FieldCourseSightMarksTableTableManager(
+    _$AppDatabase db,
+    $FieldCourseSightMarksTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FieldCourseSightMarksTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$FieldCourseSightMarksTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$FieldCourseSightMarksTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> courseTargetId = const Value.absent(),
+                Value<String> bowId = const Value.absent(),
+                Value<double> calculatedMark = const Value.absent(),
+                Value<double> actualMark = const Value.absent(),
+                Value<double> differential = const Value.absent(),
+                Value<double?> confidenceScore = const Value.absent(),
+                Value<String?> weatherData = const Value.absent(),
+                Value<int> shotCount = const Value.absent(),
+                Value<DateTime> recordedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldCourseSightMarksCompanion(
+                id: id,
+                courseTargetId: courseTargetId,
+                bowId: bowId,
+                calculatedMark: calculatedMark,
+                actualMark: actualMark,
+                differential: differential,
+                confidenceScore: confidenceScore,
+                weatherData: weatherData,
+                shotCount: shotCount,
+                recordedAt: recordedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String courseTargetId,
+                required String bowId,
+                required double calculatedMark,
+                required double actualMark,
+                required double differential,
+                Value<double?> confidenceScore = const Value.absent(),
+                Value<String?> weatherData = const Value.absent(),
+                Value<int> shotCount = const Value.absent(),
+                Value<DateTime> recordedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldCourseSightMarksCompanion.insert(
+                id: id,
+                courseTargetId: courseTargetId,
+                bowId: bowId,
+                calculatedMark: calculatedMark,
+                actualMark: actualMark,
+                differential: differential,
+                confidenceScore: confidenceScore,
+                weatherData: weatherData,
+                shotCount: shotCount,
+                recordedAt: recordedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$FieldCourseSightMarksTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({courseTargetId = false, bowId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (courseTargetId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.courseTargetId,
+                                referencedTable:
+                                    $$FieldCourseSightMarksTableReferences
+                                        ._courseTargetIdTable(db),
+                                referencedColumn:
+                                    $$FieldCourseSightMarksTableReferences
+                                        ._courseTargetIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+                    if (bowId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.bowId,
+                                referencedTable:
+                                    $$FieldCourseSightMarksTableReferences
+                                        ._bowIdTable(db),
+                                referencedColumn:
+                                    $$FieldCourseSightMarksTableReferences
+                                        ._bowIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$FieldCourseSightMarksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FieldCourseSightMarksTable,
+      FieldCourseSightMark,
+      $$FieldCourseSightMarksTableFilterComposer,
+      $$FieldCourseSightMarksTableOrderingComposer,
+      $$FieldCourseSightMarksTableAnnotationComposer,
+      $$FieldCourseSightMarksTableCreateCompanionBuilder,
+      $$FieldCourseSightMarksTableUpdateCompanionBuilder,
+      (FieldCourseSightMark, $$FieldCourseSightMarksTableReferences),
+      FieldCourseSightMark,
+      PrefetchHooks Function({bool courseTargetId, bool bowId})
+    >;
+typedef $$FieldSessionTargetsTableCreateCompanionBuilder =
+    FieldSessionTargetsCompanion Function({
+      required String id,
+      required String sessionId,
+      Value<String?> courseTargetId,
+      required int targetNumber,
+      Value<int> totalScore,
+      Value<int> xCount,
+      required String arrowScores,
+      Value<String?> sightMarkUsed,
+      Value<int?> station,
+      Value<bool?> wasHit,
+      Value<DateTime?> completedAt,
+      Value<int> rowid,
+    });
+typedef $$FieldSessionTargetsTableUpdateCompanionBuilder =
+    FieldSessionTargetsCompanion Function({
+      Value<String> id,
+      Value<String> sessionId,
+      Value<String?> courseTargetId,
+      Value<int> targetNumber,
+      Value<int> totalScore,
+      Value<int> xCount,
+      Value<String> arrowScores,
+      Value<String?> sightMarkUsed,
+      Value<int?> station,
+      Value<bool?> wasHit,
+      Value<DateTime?> completedAt,
+      Value<int> rowid,
+    });
+
+final class $$FieldSessionTargetsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $FieldSessionTargetsTable,
+          FieldSessionTarget
+        > {
+  $$FieldSessionTargetsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $SessionsTable _sessionIdTable(_$AppDatabase db) =>
+      db.sessions.createAlias(
+        $_aliasNameGenerator(db.fieldSessionTargets.sessionId, db.sessions.id),
+      );
+
+  $$SessionsTableProcessedTableManager get sessionId {
+    final $_column = $_itemColumn<String>('session_id')!;
+
+    final manager = $$SessionsTableTableManager(
+      $_db,
+      $_db.sessions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sessionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $FieldCourseTargetsTable _courseTargetIdTable(_$AppDatabase db) =>
+      db.fieldCourseTargets.createAlias(
+        $_aliasNameGenerator(
+          db.fieldSessionTargets.courseTargetId,
+          db.fieldCourseTargets.id,
+        ),
+      );
+
+  $$FieldCourseTargetsTableProcessedTableManager? get courseTargetId {
+    final $_column = $_itemColumn<String>('course_target_id');
+    if ($_column == null) return null;
+    final manager = $$FieldCourseTargetsTableTableManager(
+      $_db,
+      $_db.fieldCourseTargets,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_courseTargetIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$FieldSessionTargetsTableFilterComposer
+    extends Composer<_$AppDatabase, $FieldSessionTargetsTable> {
+  $$FieldSessionTargetsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get targetNumber => $composableBuilder(
+    column: $table.targetNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalScore => $composableBuilder(
+    column: $table.totalScore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get xCount => $composableBuilder(
+    column: $table.xCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get arrowScores => $composableBuilder(
+    column: $table.arrowScores,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sightMarkUsed => $composableBuilder(
+    column: $table.sightMarkUsed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get station => $composableBuilder(
+    column: $table.station,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get wasHit => $composableBuilder(
+    column: $table.wasHit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$SessionsTableFilterComposer get sessionId {
+    final $$SessionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.sessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SessionsTableFilterComposer(
+            $db: $db,
+            $table: $db.sessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$FieldCourseTargetsTableFilterComposer get courseTargetId {
+    final $$FieldCourseTargetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.courseTargetId,
+      referencedTable: $db.fieldCourseTargets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldCourseTargetsTableFilterComposer(
+            $db: $db,
+            $table: $db.fieldCourseTargets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FieldSessionTargetsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FieldSessionTargetsTable> {
+  $$FieldSessionTargetsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get targetNumber => $composableBuilder(
+    column: $table.targetNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalScore => $composableBuilder(
+    column: $table.totalScore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get xCount => $composableBuilder(
+    column: $table.xCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get arrowScores => $composableBuilder(
+    column: $table.arrowScores,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sightMarkUsed => $composableBuilder(
+    column: $table.sightMarkUsed,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get station => $composableBuilder(
+    column: $table.station,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get wasHit => $composableBuilder(
+    column: $table.wasHit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$SessionsTableOrderingComposer get sessionId {
+    final $$SessionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.sessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SessionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.sessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$FieldCourseTargetsTableOrderingComposer get courseTargetId {
+    final $$FieldCourseTargetsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.courseTargetId,
+      referencedTable: $db.fieldCourseTargets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldCourseTargetsTableOrderingComposer(
+            $db: $db,
+            $table: $db.fieldCourseTargets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FieldSessionTargetsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FieldSessionTargetsTable> {
+  $$FieldSessionTargetsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get targetNumber => $composableBuilder(
+    column: $table.targetNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get totalScore => $composableBuilder(
+    column: $table.totalScore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get xCount =>
+      $composableBuilder(column: $table.xCount, builder: (column) => column);
+
+  GeneratedColumn<String> get arrowScores => $composableBuilder(
+    column: $table.arrowScores,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sightMarkUsed => $composableBuilder(
+    column: $table.sightMarkUsed,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get station =>
+      $composableBuilder(column: $table.station, builder: (column) => column);
+
+  GeneratedColumn<bool> get wasHit =>
+      $composableBuilder(column: $table.wasHit, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => column,
+  );
+
+  $$SessionsTableAnnotationComposer get sessionId {
+    final $$SessionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.sessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SessionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.sessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$FieldCourseTargetsTableAnnotationComposer get courseTargetId {
+    final $$FieldCourseTargetsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.courseTargetId,
+          referencedTable: $db.fieldCourseTargets,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldCourseTargetsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.fieldCourseTargets,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$FieldSessionTargetsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FieldSessionTargetsTable,
+          FieldSessionTarget,
+          $$FieldSessionTargetsTableFilterComposer,
+          $$FieldSessionTargetsTableOrderingComposer,
+          $$FieldSessionTargetsTableAnnotationComposer,
+          $$FieldSessionTargetsTableCreateCompanionBuilder,
+          $$FieldSessionTargetsTableUpdateCompanionBuilder,
+          (FieldSessionTarget, $$FieldSessionTargetsTableReferences),
+          FieldSessionTarget,
+          PrefetchHooks Function({bool sessionId, bool courseTargetId})
+        > {
+  $$FieldSessionTargetsTableTableManager(
+    _$AppDatabase db,
+    $FieldSessionTargetsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FieldSessionTargetsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FieldSessionTargetsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$FieldSessionTargetsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> sessionId = const Value.absent(),
+                Value<String?> courseTargetId = const Value.absent(),
+                Value<int> targetNumber = const Value.absent(),
+                Value<int> totalScore = const Value.absent(),
+                Value<int> xCount = const Value.absent(),
+                Value<String> arrowScores = const Value.absent(),
+                Value<String?> sightMarkUsed = const Value.absent(),
+                Value<int?> station = const Value.absent(),
+                Value<bool?> wasHit = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldSessionTargetsCompanion(
+                id: id,
+                sessionId: sessionId,
+                courseTargetId: courseTargetId,
+                targetNumber: targetNumber,
+                totalScore: totalScore,
+                xCount: xCount,
+                arrowScores: arrowScores,
+                sightMarkUsed: sightMarkUsed,
+                station: station,
+                wasHit: wasHit,
+                completedAt: completedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String sessionId,
+                Value<String?> courseTargetId = const Value.absent(),
+                required int targetNumber,
+                Value<int> totalScore = const Value.absent(),
+                Value<int> xCount = const Value.absent(),
+                required String arrowScores,
+                Value<String?> sightMarkUsed = const Value.absent(),
+                Value<int?> station = const Value.absent(),
+                Value<bool?> wasHit = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldSessionTargetsCompanion.insert(
+                id: id,
+                sessionId: sessionId,
+                courseTargetId: courseTargetId,
+                targetNumber: targetNumber,
+                totalScore: totalScore,
+                xCount: xCount,
+                arrowScores: arrowScores,
+                sightMarkUsed: sightMarkUsed,
+                station: station,
+                wasHit: wasHit,
+                completedAt: completedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$FieldSessionTargetsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({sessionId = false, courseTargetId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (sessionId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.sessionId,
+                                referencedTable:
+                                    $$FieldSessionTargetsTableReferences
+                                        ._sessionIdTable(db),
+                                referencedColumn:
+                                    $$FieldSessionTargetsTableReferences
+                                        ._sessionIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+                    if (courseTargetId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.courseTargetId,
+                                referencedTable:
+                                    $$FieldSessionTargetsTableReferences
+                                        ._courseTargetIdTable(db),
+                                referencedColumn:
+                                    $$FieldSessionTargetsTableReferences
+                                        ._courseTargetIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$FieldSessionTargetsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FieldSessionTargetsTable,
+      FieldSessionTarget,
+      $$FieldSessionTargetsTableFilterComposer,
+      $$FieldSessionTargetsTableOrderingComposer,
+      $$FieldSessionTargetsTableAnnotationComposer,
+      $$FieldSessionTargetsTableCreateCompanionBuilder,
+      $$FieldSessionTargetsTableUpdateCompanionBuilder,
+      (FieldSessionTarget, $$FieldSessionTargetsTableReferences),
+      FieldSessionTarget,
+      PrefetchHooks Function({bool sessionId, bool courseTargetId})
+    >;
+typedef $$FieldSessionMetaTableCreateCompanionBuilder =
+    FieldSessionMetaCompanion Function({
+      required String sessionId,
+      Value<String?> courseId,
+      required String roundType,
+      Value<bool> isNewCourseCreation,
+      Value<int> currentTargetNumber,
+      Value<String> usedPegs,
+      Value<int> rowid,
+    });
+typedef $$FieldSessionMetaTableUpdateCompanionBuilder =
+    FieldSessionMetaCompanion Function({
+      Value<String> sessionId,
+      Value<String?> courseId,
+      Value<String> roundType,
+      Value<bool> isNewCourseCreation,
+      Value<int> currentTargetNumber,
+      Value<String> usedPegs,
+      Value<int> rowid,
+    });
+
+final class $$FieldSessionMetaTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $FieldSessionMetaTable,
+          FieldSessionMetaData
+        > {
+  $$FieldSessionMetaTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $SessionsTable _sessionIdTable(_$AppDatabase db) =>
+      db.sessions.createAlias(
+        $_aliasNameGenerator(db.fieldSessionMeta.sessionId, db.sessions.id),
+      );
+
+  $$SessionsTableProcessedTableManager get sessionId {
+    final $_column = $_itemColumn<String>('session_id')!;
+
+    final manager = $$SessionsTableTableManager(
+      $_db,
+      $_db.sessions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sessionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $FieldCoursesTable _courseIdTable(_$AppDatabase db) =>
+      db.fieldCourses.createAlias(
+        $_aliasNameGenerator(db.fieldSessionMeta.courseId, db.fieldCourses.id),
+      );
+
+  $$FieldCoursesTableProcessedTableManager? get courseId {
+    final $_column = $_itemColumn<String>('course_id');
+    if ($_column == null) return null;
+    final manager = $$FieldCoursesTableTableManager(
+      $_db,
+      $_db.fieldCourses,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_courseIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$FieldSessionMetaTableFilterComposer
+    extends Composer<_$AppDatabase, $FieldSessionMetaTable> {
+  $$FieldSessionMetaTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get roundType => $composableBuilder(
+    column: $table.roundType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isNewCourseCreation => $composableBuilder(
+    column: $table.isNewCourseCreation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get currentTargetNumber => $composableBuilder(
+    column: $table.currentTargetNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get usedPegs => $composableBuilder(
+    column: $table.usedPegs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$SessionsTableFilterComposer get sessionId {
+    final $$SessionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.sessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SessionsTableFilterComposer(
+            $db: $db,
+            $table: $db.sessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$FieldCoursesTableFilterComposer get courseId {
+    final $$FieldCoursesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.courseId,
+      referencedTable: $db.fieldCourses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldCoursesTableFilterComposer(
+            $db: $db,
+            $table: $db.fieldCourses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FieldSessionMetaTableOrderingComposer
+    extends Composer<_$AppDatabase, $FieldSessionMetaTable> {
+  $$FieldSessionMetaTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get roundType => $composableBuilder(
+    column: $table.roundType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isNewCourseCreation => $composableBuilder(
+    column: $table.isNewCourseCreation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get currentTargetNumber => $composableBuilder(
+    column: $table.currentTargetNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get usedPegs => $composableBuilder(
+    column: $table.usedPegs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$SessionsTableOrderingComposer get sessionId {
+    final $$SessionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.sessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SessionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.sessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$FieldCoursesTableOrderingComposer get courseId {
+    final $$FieldCoursesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.courseId,
+      referencedTable: $db.fieldCourses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldCoursesTableOrderingComposer(
+            $db: $db,
+            $table: $db.fieldCourses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FieldSessionMetaTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FieldSessionMetaTable> {
+  $$FieldSessionMetaTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get roundType =>
+      $composableBuilder(column: $table.roundType, builder: (column) => column);
+
+  GeneratedColumn<bool> get isNewCourseCreation => $composableBuilder(
+    column: $table.isNewCourseCreation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get currentTargetNumber => $composableBuilder(
+    column: $table.currentTargetNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get usedPegs =>
+      $composableBuilder(column: $table.usedPegs, builder: (column) => column);
+
+  $$SessionsTableAnnotationComposer get sessionId {
+    final $$SessionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.sessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SessionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.sessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$FieldCoursesTableAnnotationComposer get courseId {
+    final $$FieldCoursesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.courseId,
+      referencedTable: $db.fieldCourses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldCoursesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.fieldCourses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FieldSessionMetaTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FieldSessionMetaTable,
+          FieldSessionMetaData,
+          $$FieldSessionMetaTableFilterComposer,
+          $$FieldSessionMetaTableOrderingComposer,
+          $$FieldSessionMetaTableAnnotationComposer,
+          $$FieldSessionMetaTableCreateCompanionBuilder,
+          $$FieldSessionMetaTableUpdateCompanionBuilder,
+          (FieldSessionMetaData, $$FieldSessionMetaTableReferences),
+          FieldSessionMetaData,
+          PrefetchHooks Function({bool sessionId, bool courseId})
+        > {
+  $$FieldSessionMetaTableTableManager(
+    _$AppDatabase db,
+    $FieldSessionMetaTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FieldSessionMetaTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FieldSessionMetaTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FieldSessionMetaTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> sessionId = const Value.absent(),
+                Value<String?> courseId = const Value.absent(),
+                Value<String> roundType = const Value.absent(),
+                Value<bool> isNewCourseCreation = const Value.absent(),
+                Value<int> currentTargetNumber = const Value.absent(),
+                Value<String> usedPegs = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldSessionMetaCompanion(
+                sessionId: sessionId,
+                courseId: courseId,
+                roundType: roundType,
+                isNewCourseCreation: isNewCourseCreation,
+                currentTargetNumber: currentTargetNumber,
+                usedPegs: usedPegs,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String sessionId,
+                Value<String?> courseId = const Value.absent(),
+                required String roundType,
+                Value<bool> isNewCourseCreation = const Value.absent(),
+                Value<int> currentTargetNumber = const Value.absent(),
+                Value<String> usedPegs = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldSessionMetaCompanion.insert(
+                sessionId: sessionId,
+                courseId: courseId,
+                roundType: roundType,
+                isNewCourseCreation: isNewCourseCreation,
+                currentTargetNumber: currentTargetNumber,
+                usedPegs: usedPegs,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$FieldSessionMetaTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({sessionId = false, courseId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (sessionId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.sessionId,
+                                referencedTable:
+                                    $$FieldSessionMetaTableReferences
+                                        ._sessionIdTable(db),
+                                referencedColumn:
+                                    $$FieldSessionMetaTableReferences
+                                        ._sessionIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+                    if (courseId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.courseId,
+                                referencedTable:
+                                    $$FieldSessionMetaTableReferences
+                                        ._courseIdTable(db),
+                                referencedColumn:
+                                    $$FieldSessionMetaTableReferences
+                                        ._courseIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$FieldSessionMetaTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FieldSessionMetaTable,
+      FieldSessionMetaData,
+      $$FieldSessionMetaTableFilterComposer,
+      $$FieldSessionMetaTableOrderingComposer,
+      $$FieldSessionMetaTableAnnotationComposer,
+      $$FieldSessionMetaTableCreateCompanionBuilder,
+      $$FieldSessionMetaTableUpdateCompanionBuilder,
+      (FieldSessionMetaData, $$FieldSessionMetaTableReferences),
+      FieldSessionMetaData,
+      PrefetchHooks Function({bool sessionId, bool courseId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -44665,4 +50995,14 @@ class $AppDatabaseManager {
       $$SyncQueueTableTableManager(_db, _db.syncQueue);
   $$SyncMetadataTableTableManager get syncMetadata =>
       $$SyncMetadataTableTableManager(_db, _db.syncMetadata);
+  $$FieldCoursesTableTableManager get fieldCourses =>
+      $$FieldCoursesTableTableManager(_db, _db.fieldCourses);
+  $$FieldCourseTargetsTableTableManager get fieldCourseTargets =>
+      $$FieldCourseTargetsTableTableManager(_db, _db.fieldCourseTargets);
+  $$FieldCourseSightMarksTableTableManager get fieldCourseSightMarks =>
+      $$FieldCourseSightMarksTableTableManager(_db, _db.fieldCourseSightMarks);
+  $$FieldSessionTargetsTableTableManager get fieldSessionTargets =>
+      $$FieldSessionTargetsTableTableManager(_db, _db.fieldSessionTargets);
+  $$FieldSessionMetaTableTableManager get fieldSessionMeta =>
+      $$FieldSessionMetaTableTableManager(_db, _db.fieldSessionMeta);
 }

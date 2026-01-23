@@ -184,8 +184,8 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     ),
     _MenuItem(
-      label: 'PROFILE',
-      sublabel: 'Performance radar',
+      label: 'SKILLS PROFILE',
+      sublabel: 'User development',
       pixelIcon: PixelIconType.radar,
       onTap: () => Navigator.push(
         context,
@@ -988,7 +988,7 @@ class _ProfileIconButton extends StatelessWidget {
                           color: AppColors.gold.withValues(alpha: 0.2),
                         ),
                         child: Text(
-                          '${skillsProvider.totalLevel}',
+                          '${skillsProvider.combinedLevel}',
                           style: TextStyle(
                             fontFamily: AppFonts.pixel,
                             fontSize: 10,
@@ -1048,7 +1048,7 @@ class _CollapsedProfileButton extends StatelessWidget {
                       const PixelProfileIcon(size: 16),
                       const SizedBox(height: 1),
                       Text(
-                        '${skillsProvider.totalLevel}',
+                        '${skillsProvider.combinedLevel}',
                         style: TextStyle(
                           fontFamily: AppFonts.pixel,
                           fontSize: 8,

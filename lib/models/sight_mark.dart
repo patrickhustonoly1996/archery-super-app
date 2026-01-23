@@ -104,6 +104,7 @@ class SightMark {
   final int? endNumber;
   final int? shotCount; // Number of arrows shot with this mark
   final double? confidenceScore; // 0.0 to 1.0
+  final bool isIndoor; // Indoor vs outdoor shooting
   final DateTime recordedAt;
   final DateTime? updatedAt;
   final DateTime? deletedAt;
@@ -121,6 +122,7 @@ class SightMark {
     this.endNumber,
     this.shotCount,
     this.confidenceScore,
+    this.isIndoor = false,
     required this.recordedAt,
     this.updatedAt,
     this.deletedAt,
@@ -170,6 +172,7 @@ class SightMark {
     int? endNumber,
     int? shotCount,
     double? confidenceScore,
+    bool? isIndoor,
     DateTime? recordedAt,
     DateTime? updatedAt,
     DateTime? deletedAt,
@@ -187,6 +190,7 @@ class SightMark {
       endNumber: endNumber ?? this.endNumber,
       shotCount: shotCount ?? this.shotCount,
       confidenceScore: confidenceScore ?? this.confidenceScore,
+      isIndoor: isIndoor ?? this.isIndoor,
       recordedAt: recordedAt ?? this.recordedAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -219,6 +223,14 @@ class PredictedSightMark {
   final SightMark? basedOn; // The mark this prediction is based on (if exact)
   final List<SightMark>? interpolatedFrom; // Marks used for interpolation
 
+  // Confidence band (min-max range based on historical variance)
+  final double? minValue;
+  final double? maxValue;
+
+  // Weather adjustment info
+  final double? weatherAdjustment; // Adjustment applied for current conditions
+  final bool hasWeatherData; // Whether sufficient weather data exists
+
   const PredictedSightMark({
     required this.distance,
     required this.unit,
@@ -227,6 +239,10 @@ class PredictedSightMark {
     required this.source,
     this.basedOn,
     this.interpolatedFrom,
+    this.minValue,
+    this.maxValue,
+    this.weatherAdjustment,
+    this.hasWeatherData = false,
   });
 
   String get displayValue => predictedValue.toStringAsFixed(2);
@@ -237,6 +253,32 @@ class PredictedSightMark {
   bool get isInterpolated => source == 'interpolated';
   bool get isExtrapolated => source == 'extrapolated';
   bool get isFromSimilarBow => source == 'similar_bow';
+
+  /// Whether this prediction has a confidence band
+  bool get hasConfidenceBand => minValue != null && maxValue != null;
+
+  /// Format the confidence band for display
+  String get confidenceBandDisplay {
+    if (!hasConfidenceBand) return '';
+    return '${minValue!.toStringAsFixed(2)} - ${maxValue!.toStringAsFixed(2)}';
+  }
+
+  /// Create a copy with weather adjustment applied
+  PredictedSightMark withWeatherAdjustment(double adjustment) {
+    return PredictedSightMark(
+      distance: distance,
+      unit: unit,
+      predictedValue: predictedValue + adjustment,
+      confidence: confidence,
+      source: source,
+      basedOn: basedOn,
+      interpolatedFrom: interpolatedFrom,
+      minValue: minValue != null ? minValue! + adjustment : null,
+      maxValue: maxValue != null ? maxValue! + adjustment : null,
+      weatherAdjustment: adjustment,
+      hasWeatherData: true,
+    );
+  }
 
   @override
   String toString() => 'PredictedSightMark($distanceDisplay: $displayValue [$source])';

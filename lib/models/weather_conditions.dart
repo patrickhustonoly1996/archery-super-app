@@ -121,10 +121,16 @@ class WeatherConditions {
 
   static String _lightQualityDisplayName(String quality) {
     switch (quality) {
+      // Outdoor
       case 'direct_sun': return 'Direct Sun';
       case 'partial_sun': return 'Partial Sun';
       case 'bright_cloudy': return 'Bright Cloudy';
       case 'overcast': return 'Overcast';
+      // Indoor
+      case 'bright': return 'Bright';
+      case 'regular': return 'Regular';
+      case 'dim': return 'Dim';
+      case 'dark': return 'Dark';
       default: return quality;
     }
   }
@@ -191,6 +197,58 @@ class WeatherConditions {
 
   @override
   int get hashCode => Object.hash(temperature, sky, lightQuality, sunPosition, wind, windBeaufort);
+
+  // ===========================================================================
+  // SIGHT MARK ADJUSTMENT CALCULATIONS
+  // ===========================================================================
+
+  /// Calculate sight mark adjustment based on weather difference from baseline.
+  /// Returns adjustment in sight mark units (positive = aim higher).
+  ///
+  /// Weather factors affecting sight marks:
+  /// - Temperature: cold air = slower arrows = aim higher
+  /// - Light: affects perception, not physical trajectory
+  /// - Wind: primarily horizontal, 1/3 vertical component on average
+  ///
+  /// Reference: 15°C is the baseline (indoor/neutral temperature)
+  static double calculateAdjustment({
+    required WeatherConditions? current,
+    required WeatherConditions? baseline,
+    required double distance, // in meters
+  }) {
+    double adjustment = 0.0;
+
+    // Temperature adjustment: ~0.02 per degree C difference per 10m
+    // Cold = slower arrows = need to aim higher (positive adjustment)
+    final currentTemp = current?.temperature ?? 15.0;
+    final baselineTemp = baseline?.temperature ?? 15.0;
+    final tempDiff = baselineTemp - currentTemp;
+    adjustment += tempDiff * 0.002 * (distance / 10);
+
+    // Wind vertical component: ~1/3 of horizontal effect
+    // Strong headwind = aim higher, strong tailwind = aim lower
+    // Using Beaufort scale for calculation
+    final currentWind = current?.windBeaufort ?? 0;
+    final baselineWind = baseline?.windBeaufort ?? 0;
+    final windDiff = (currentWind - baselineWind).abs();
+    // ~0.05 per Beaufort level per 20m distance (vertical component)
+    adjustment += windDiff * 0.05 * (distance / 20) / 3; // 1/3 vertical
+
+    return adjustment;
+  }
+
+  /// Calculate adjustment from a reference (indoor/neutral) baseline
+  double getAdjustmentFromBaseline(double distance) {
+    const baseline = WeatherConditions(
+      temperature: 15.0, // Indoor reference temp
+      windBeaufort: 0,
+    );
+    return calculateAdjustment(
+      current: this,
+      baseline: baseline,
+      distance: distance,
+    );
+  }
 }
 
 /// Sky condition options

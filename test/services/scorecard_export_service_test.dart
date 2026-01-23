@@ -1474,7 +1474,8 @@ void main() {
           ends: ends,
           endArrows: endArrows,
           archerName: 'Plot Archer',
-          plotImage: null,
+          plotImages: null,
+          plotLabels: null,
         );
 
         expect(result.isNotEmpty, isTrue);

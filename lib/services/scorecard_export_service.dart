@@ -23,7 +23,8 @@ class ScorecardExportService {
     String? location,
     Uint8List? archerSignature,
     Uint8List? witnessSignature,
-    Uint8List? plotImage,
+    List<Uint8List>? plotImages,
+    List<String>? plotLabels,
   }) async {
     final pdf = pw.Document();
 
@@ -76,20 +77,53 @@ class ScorecardExportService {
               ),
               pw.SizedBox(height: 20),
 
-              // Plot image (if provided)
-              if (plotImage != null) ...[
+              // Plot images (if provided)
+              if (plotImages != null && plotImages.isNotEmpty) ...[
                 pw.Text(
-                  'Arrow Plot',
+                  'Arrow Plots',
                   style: pw.TextStyle(font: pixelFont, fontSize: 12),
                 ),
                 pw.SizedBox(height: 8),
-                pw.Center(
-                  child: pw.Image(
-                    pw.MemoryImage(plotImage),
-                    width: 200,
-                    height: 200,
+                // Display plots in a grid (2 per row for halves/per-end, single for full)
+                if (plotImages.length == 1)
+                  pw.Center(
+                    child: pw.Column(
+                      children: [
+                        pw.Image(
+                          pw.MemoryImage(plotImages[0]),
+                          width: 180,
+                          height: 180,
+                        ),
+                        if (plotLabels != null && plotLabels.isNotEmpty)
+                          pw.Text(
+                            plotLabels[0],
+                            style: pw.TextStyle(font: bodyFont, fontSize: 9, color: PdfColors.grey600),
+                          ),
+                      ],
+                    ),
+                  )
+                else
+                  pw.Wrap(
+                    spacing: 16,
+                    runSpacing: 12,
+                    alignment: pw.WrapAlignment.center,
+                    children: List.generate(plotImages.length, (i) {
+                      return pw.Column(
+                        children: [
+                          pw.Image(
+                            pw.MemoryImage(plotImages[i]),
+                            width: 120,
+                            height: 120,
+                          ),
+                          if (plotLabels != null && i < plotLabels.length)
+                            pw.Text(
+                              plotLabels[i],
+                              style: pw.TextStyle(font: bodyFont, fontSize: 8, color: PdfColors.grey600),
+                            ),
+                        ],
+                      );
+                    }),
                   ),
-                ),
                 pw.SizedBox(height: 20),
               ],
 
@@ -255,6 +289,14 @@ class ScorecardExportService {
       final end = hasEnd ? ends[i] : null;
       final arrows = hasEnd && i < endArrows.length ? endArrows[i] : <Arrow>[];
 
+      // Sort arrows by score descending (World Archery format: X > 10 > 9 > ...)
+      final sortedArrows = List<Arrow>.from(arrows)
+        ..sort((a, b) {
+          final aScore = a.isX ? 11 : a.score;
+          final bScore = b.isX ? 11 : b.score;
+          return bScore.compareTo(aScore);
+        });
+
       if (hasEnd) {
         runningTotal += end!.endScore;
         cumulativeXs += end.endXs;
@@ -265,8 +307,8 @@ class ScorecardExportService {
         children: [
           _tableCell('${i + 1}', bodyFont),
           ...List.generate(arrowsPerEnd, (j) {
-            if (j < arrows.length) {
-              final arrow = arrows[j];
+            if (j < sortedArrows.length) {
+              final arrow = sortedArrows[j];
               return _tableCell(
                 arrow.isX ? 'X' : arrow.score.toString(),
                 bodyFont,

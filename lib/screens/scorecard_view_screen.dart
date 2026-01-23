@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../db/database.dart';
@@ -125,10 +126,154 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
     }
   }
 
+  /// Prompt user to add missing signatures before export
+  Future<bool> _showSignaturePrompt() async {
+    final missingArcher = _archerSignature == null;
+    final missingWitness = _witnessSignature == null;
+
+    String message;
+    if (missingArcher && missingWitness) {
+      message = 'Archer and witness signatures are missing.';
+    } else if (missingArcher) {
+      message = 'Archer signature is missing.';
+    } else {
+      message = 'Witness signature is missing.';
+    }
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        title: Text(
+          'Missing Signatures',
+          style: TextStyle(
+            fontFamily: AppFonts.pixel,
+            color: AppColors.gold,
+          ),
+        ),
+        content: Text(
+          '$message\n\nWould you like to add signatures now, or export without them?',
+          style: TextStyle(
+            fontFamily: AppFonts.body,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Export Without'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx, false);
+              // Scroll to signature section
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Please add signatures below'),
+                  backgroundColor: AppColors.surfaceLight,
+                ),
+              );
+            },
+            child: const Text('Add Signatures'),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false;
+  }
+
   Future<void> _exportPdf() async {
     if (_session == null || _roundType == null) return;
 
+    // Check if signatures are present, prompt if missing
+    if (_archerSignature == null || _witnessSignature == null) {
+      final proceed = await _showSignaturePrompt();
+      if (!proceed) return;
+    }
+
+    // Show export options dialog
+    final options = await _showExportOptionsDialog();
+    if (options == null) return;
+
     try {
+      // Collect all arrows for plot generation
+      final allArrows = <Arrow>[];
+      for (final arrows in _endArrows) {
+        allArrows.addAll(arrows);
+      }
+
+      // Generate plot images based on options
+      List<Uint8List>? plotImages;
+      List<String>? plotLabels;
+
+      if (options.includePlot) {
+        plotImages = [];
+        plotLabels = [];
+
+        final isTriSpot = (_roundType?.faceCount ?? 1) == 3;
+
+        if (options.plotStyle == PlotStyle.full || options.plotStyle == PlotStyle.triSpotCombined) {
+          // Full session plot (all arrows on one face)
+          final fullPlot = await _generatePlotImage(allArrows, showAsTriSpot: isTriSpot);
+          if (fullPlot != null) {
+            plotImages.add(fullPlot);
+            plotLabels.add('All Arrows');
+          }
+        } else if (options.plotStyle == PlotStyle.triSpotSeparate) {
+          // Triple spot: arrows on their respective faces (1, 2, 3)
+          for (int faceIndex = 0; faceIndex < 3; faceIndex++) {
+            final faceArrows = allArrows.where((a) => a.faceIndex == faceIndex).toList();
+            if (faceArrows.isNotEmpty) {
+              final facePlot = await _generatePlotImage(faceArrows, showAsTriSpot: true);
+              if (facePlot != null) {
+                plotImages.add(facePlot);
+                plotLabels.add('Face ${faceIndex + 1}');
+              }
+            }
+          }
+        } else if (options.plotStyle == PlotStyle.halves) {
+          // First half and second half
+          final halfEndCount = _ends.length ~/ 2;
+          final firstHalfArrows = <Arrow>[];
+          final secondHalfArrows = <Arrow>[];
+
+          for (int i = 0; i < _ends.length; i++) {
+            if (i < _endArrows.length) {
+              if (i < halfEndCount) {
+                firstHalfArrows.addAll(_endArrows[i]);
+              } else {
+                secondHalfArrows.addAll(_endArrows[i]);
+              }
+            }
+          }
+
+          final firstHalf = await _generatePlotImage(firstHalfArrows, showAsTriSpot: isTriSpot);
+          final secondHalf = await _generatePlotImage(secondHalfArrows, showAsTriSpot: isTriSpot);
+          if (firstHalf != null) {
+            plotImages.add(firstHalf);
+            plotLabels.add('First Half');
+          }
+          if (secondHalf != null) {
+            plotImages.add(secondHalf);
+            plotLabels.add('Second Half');
+          }
+        } else if (options.plotStyle == PlotStyle.perEnd) {
+          // Per-end plots
+          for (int i = 0; i < _endArrows.length; i++) {
+            final endPlot = await _generatePlotImage(_endArrows[i], showAsTriSpot: isTriSpot);
+            if (endPlot != null) {
+              plotImages.add(endPlot);
+              plotLabels.add('End ${i + 1}');
+            }
+          }
+        }
+      }
+
       final pdfBytes = await ScorecardExportService.generatePdf(
         session: _session!,
         roundType: _roundType!,
@@ -142,6 +287,8 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
         location: _session!.location,
         archerSignature: _archerSignature,
         witnessSignature: _witnessSignature,
+        plotImages: plotImages,
+        plotLabels: plotLabels,
       );
 
       final date = _session!.completedAt ?? _session!.startedAt;
@@ -158,6 +305,100 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
         );
       }
     }
+  }
+
+  /// Show export options dialog
+  Future<ExportOptions?> _showExportOptionsDialog() async {
+    final isTripleSpot = (_roundType?.faceCount ?? 1) == 3;
+    return showDialog<ExportOptions>(
+      context: context,
+      builder: (ctx) => _ExportOptionsDialog(isTripleSpot: isTripleSpot),
+    );
+  }
+
+  /// Generate a plot image for given arrows
+  /// [showAsTriSpot] - if true, renders as tri-spot (rings 6-10 only, 2x scale)
+  Future<Uint8List?> _generatePlotImage(List<Arrow> arrows, {bool showAsTriSpot = false}) async {
+    if (arrows.isEmpty) return null;
+
+    final isTriSpot = showAsTriSpot;
+
+    // Use canvas-based rendering for plot generation
+    final pictureRecorder = ui.PictureRecorder();
+    final canvas = Canvas(pictureRecorder);
+
+    // Draw a dark background
+    canvas.drawRect(
+      const Rect.fromLTWH(0, 0, 300, 300),
+      Paint()..color = AppColors.backgroundDark,
+    );
+
+    // Create a simple target with arrows representation
+    final center = const Offset(150, 150);
+    final radius = 140.0;
+
+    // Draw rings (simplified)
+    final ringColors = [
+      const Color(0xFFFFD700), // Gold (10, X)
+      const Color(0xFFFFD700), // Gold (9)
+      const Color(0xFFFF5555), // Red (8)
+      const Color(0xFFFF5555), // Red (7)
+      const Color(0xFF5599FF), // Blue (6)
+      const Color(0xFF5599FF), // Blue (5)
+      const Color(0xFF222222), // Black (4)
+      const Color(0xFF222222), // Black (3)
+      const Color(0xFFEEEEEE), // White (2)
+      const Color(0xFFEEEEEE), // White (1)
+    ];
+
+    for (int i = 10; i >= 1; i--) {
+      final ringRadius = radius * (i / 10);
+      canvas.drawCircle(
+        center,
+        ringRadius,
+        Paint()
+          ..color = ringColors[10 - i]
+          ..style = PaintingStyle.fill,
+      );
+      canvas.drawCircle(
+        center,
+        ringRadius,
+        Paint()
+          ..color = Colors.black54
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.5,
+      );
+    }
+
+    // Draw arrows
+    for (final arrow in arrows) {
+      final scale = isTriSpot ? 2.0 : 1.0;
+      final x = center.dx + (arrow.x * scale * radius);
+      final y = center.dy + (arrow.y * scale * radius);
+
+      // Arrow marker
+      canvas.drawCircle(
+        Offset(x, y),
+        4,
+        Paint()
+          ..color = Colors.black
+          ..style = PaintingStyle.fill,
+      );
+      canvas.drawCircle(
+        Offset(x, y),
+        4,
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5,
+      );
+    }
+
+    final picture = pictureRecorder.endRecording();
+    final image = await picture.toImage(300, 300);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+
+    return byteData?.buffer.asUint8List();
   }
 
   @override
@@ -403,6 +644,242 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Plot export style options
+enum PlotStyle {
+  full,
+  halves,
+  perEnd,
+  /// Triple spot: all arrows combined on one face
+  triSpotCombined,
+  /// Triple spot: arrows shown on their respective faces (1, 2, 3)
+  triSpotSeparate,
+}
+
+/// Export options configuration
+class ExportOptions {
+  final bool includePlot;
+  final PlotStyle plotStyle;
+
+  const ExportOptions({
+    required this.includePlot,
+    required this.plotStyle,
+  });
+}
+
+/// Export options dialog
+class _ExportOptionsDialog extends StatefulWidget {
+  final bool isTripleSpot;
+
+  const _ExportOptionsDialog({this.isTripleSpot = false});
+
+  @override
+  State<_ExportOptionsDialog> createState() => _ExportOptionsDialogState();
+}
+
+class _ExportOptionsDialogState extends State<_ExportOptionsDialog> {
+  bool _includePlot = true;
+  late PlotStyle _plotStyle;
+
+  @override
+  void initState() {
+    super.initState();
+    // Default to combined view for triple spot, full for single face
+    _plotStyle = widget.isTripleSpot ? PlotStyle.triSpotCombined : PlotStyle.full;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppColors.surfaceDark,
+      title: Text(
+        'Export Options',
+        style: TextStyle(
+          fontFamily: AppFonts.pixel,
+          color: AppColors.gold,
+        ),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Include plot checkbox
+          CheckboxListTile(
+            title: Text(
+              'Include arrow plot',
+              style: TextStyle(
+                fontFamily: AppFonts.body,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            value: _includePlot,
+            onChanged: (v) => setState(() => _includePlot = v ?? true),
+            activeColor: AppColors.gold,
+            contentPadding: EdgeInsets.zero,
+          ),
+
+          // Plot style options (only if including plot)
+          if (_includePlot) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Plot breakdown:',
+              style: TextStyle(
+                fontFamily: AppFonts.body,
+                fontSize: 12,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+
+            // Triple spot specific options
+            if (widget.isTripleSpot) ...[
+              RadioListTile<PlotStyle>(
+                title: Text(
+                  'Combined (one face)',
+                  style: TextStyle(
+                    fontFamily: AppFonts.body,
+                    color: AppColors.textPrimary,
+                    fontSize: 13,
+                  ),
+                ),
+                subtitle: Text(
+                  'All arrows shown on single target',
+                  style: TextStyle(
+                    fontFamily: AppFonts.body,
+                    color: AppColors.textMuted,
+                    fontSize: 10,
+                  ),
+                ),
+                value: PlotStyle.triSpotCombined,
+                groupValue: _plotStyle,
+                onChanged: (v) => setState(() => _plotStyle = v ?? PlotStyle.triSpotCombined),
+                activeColor: AppColors.gold,
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+              ),
+              RadioListTile<PlotStyle>(
+                title: Text(
+                  'Three faces',
+                  style: TextStyle(
+                    fontFamily: AppFonts.body,
+                    color: AppColors.textPrimary,
+                    fontSize: 13,
+                  ),
+                ),
+                subtitle: Text(
+                  'Arrows on faces 1, 2, 3 as shot',
+                  style: TextStyle(
+                    fontFamily: AppFonts.body,
+                    color: AppColors.textMuted,
+                    fontSize: 10,
+                  ),
+                ),
+                value: PlotStyle.triSpotSeparate,
+                groupValue: _plotStyle,
+                onChanged: (v) => setState(() => _plotStyle = v ?? PlotStyle.triSpotCombined),
+                activeColor: AppColors.gold,
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+              ),
+            ] else ...[
+              // Single face options
+              RadioListTile<PlotStyle>(
+                title: Text(
+                  'Full session',
+                  style: TextStyle(
+                    fontFamily: AppFonts.body,
+                    color: AppColors.textPrimary,
+                    fontSize: 13,
+                  ),
+                ),
+                subtitle: Text(
+                  'All arrows on one target',
+                  style: TextStyle(
+                    fontFamily: AppFonts.body,
+                    color: AppColors.textMuted,
+                    fontSize: 10,
+                  ),
+                ),
+                value: PlotStyle.full,
+                groupValue: _plotStyle,
+                onChanged: (v) => setState(() => _plotStyle = v ?? PlotStyle.full),
+                activeColor: AppColors.gold,
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+              ),
+            ],
+
+            // Common options for both
+            RadioListTile<PlotStyle>(
+              title: Text(
+                'By halves',
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  color: AppColors.textPrimary,
+                  fontSize: 13,
+                ),
+              ),
+              subtitle: Text(
+                'First half & second half separately',
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  color: AppColors.textMuted,
+                  fontSize: 10,
+                ),
+              ),
+              value: PlotStyle.halves,
+              groupValue: _plotStyle,
+              onChanged: (v) => setState(() => _plotStyle = v ?? _plotStyle),
+              activeColor: AppColors.gold,
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+            ),
+            RadioListTile<PlotStyle>(
+              title: Text(
+                'Per end',
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  color: AppColors.textPrimary,
+                  fontSize: 13,
+                ),
+              ),
+              subtitle: Text(
+                'Individual plot for each end',
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  color: AppColors.textMuted,
+                  fontSize: 10,
+                ),
+              ),
+              value: PlotStyle.perEnd,
+              groupValue: _plotStyle,
+              onChanged: (v) => setState(() => _plotStyle = v ?? _plotStyle),
+              activeColor: AppColors.gold,
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+            ),
+          ],
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(
+            context,
+            ExportOptions(
+              includePlot: _includePlot,
+              plotStyle: _plotStyle,
+            ),
+          ),
+          child: const Text('Export PDF'),
+        ),
+      ],
     );
   }
 }

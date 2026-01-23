@@ -21,6 +21,14 @@ class PlottingSettingsSheet extends StatelessWidget {
   final String autoAdvanceOrder;
   final ValueChanged<String> onAutoAdvanceOrderChanged;
 
+  // Timer settings
+  final bool timerEnabled;
+  final ValueChanged<bool> onTimerEnabledChanged;
+  final int timerDuration;
+  final ValueChanged<int> onTimerDurationChanged;
+  final int timerLeadIn;
+  final ValueChanged<int> onTimerLeadInChanged;
+
   const PlottingSettingsSheet({
     super.key,
     required this.supportsTripleSpot,
@@ -40,7 +48,45 @@ class PlottingSettingsSheet extends StatelessWidget {
     required this.onAutoAdvanceChanged,
     required this.autoAdvanceOrder,
     required this.onAutoAdvanceOrderChanged,
+    required this.timerEnabled,
+    required this.onTimerEnabledChanged,
+    required this.timerDuration,
+    required this.onTimerDurationChanged,
+    required this.timerLeadIn,
+    required this.onTimerLeadInChanged,
   });
+
+  // Helper to convert timer duration to selector index
+  static int _durationToIndex(int duration) {
+    switch (duration) {
+      case 90:
+        return 0;
+      case 120:
+        return 1;
+      case 180:
+        return 2;
+      case 240:
+        return 3;
+      default:
+        return 1; // Default to 120s
+    }
+  }
+
+  // Helper to convert selector index to timer duration
+  static int _indexToDuration(int index) {
+    switch (index) {
+      case 0:
+        return 90;
+      case 1:
+        return 120;
+      case 2:
+        return 180;
+      case 3:
+        return 240;
+      default:
+        return 120;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -177,6 +223,41 @@ class PlottingSettingsSheet extends StatelessWidget {
                     ),
                   ),
                 ],
+              ],
+
+              // Timer section divider
+              const SizedBox(height: 16),
+              Container(height: 1, color: AppColors.surfaceLight),
+              const SizedBox(height: 16),
+
+              // Timer settings
+              _SettingsRow(
+                label: 'Timer',
+                child: _SegmentedToggle(
+                  options: const ['Off', 'On'],
+                  selectedIndex: timerEnabled ? 1 : 0,
+                  onChanged: (index) => onTimerEnabledChanged(index == 1),
+                ),
+              ),
+              if (timerEnabled) ...[
+                const SizedBox(height: 12),
+                _SettingsRow(
+                  label: 'Duration',
+                  child: _SegmentedToggle(
+                    options: const ['90s', '120s', '180s', '240s'],
+                    selectedIndex: _durationToIndex(timerDuration),
+                    onChanged: (index) => onTimerDurationChanged(_indexToDuration(index)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _SettingsRow(
+                  label: 'Lead-in',
+                  child: _SegmentedToggle(
+                    options: const ['10s', '15s'],
+                    selectedIndex: timerLeadIn == 15 ? 1 : 0,
+                    onChanged: (index) => onTimerLeadInChanged(index == 0 ? 10 : 15),
+                  ),
+                ),
               ],
 
               const SizedBox(height: 16),

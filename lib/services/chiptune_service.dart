@@ -163,11 +163,13 @@ class ChiptuneService {
     await _playSound(_streak30Sound!);
   }
 
-  /// Play a sound.
+  /// Play a sound and return a Future that completes when playback finishes.
   Future<void> _playSound(BytesSource source) async {
     try {
       await _player!.stop();
       await _player!.play(source);
+      // Wait for playback to complete
+      await _player!.onPlayerComplete.first;
     } catch (e) {
       // Silently fail - sounds are non-critical UX enhancement
     }

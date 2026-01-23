@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Badge Implementation Plan</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0a;
+            color: #E0E0E0;
+            font-family: 'Share Tech Mono', monospace;
+            padding: 32px;
+            line-height: 1.6;
+        }
+        h1 {
+            font-family: 'VT323', monospace;
+            font-size: 48px;
+            color: #FFD700;
+            text-align: center;
+            margin-bottom: 8px;
+            text-shadow: 3px 3px 0 #000;
+        }
+        h2 {
+            font-family: 'VT323', monospace;
+            font-size: 28px;
+            color: #FFD700;
+            margin: 40px 0 16px 0;
+            padding: 8px 16px;
+            background: #1a1a1a;
+            border-left: 4px solid #FFD700;
+        }
+        h3 {
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            color: #00E5FF;
+            margin: 24px 0 12px 0;
+        }
+        .subtitle {
+            text-align: center;
+            color: #8A8A8A;
+            margin-bottom: 48px;
+        }
+        .section {
+            background: #121212;
+            border: 2px solid #2A2A2A;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        pre {
+            background: #1E1E1E;
+            border: 1px solid #333;
+            padding: 16px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 12px 0;
+        }
+        code {
+            color: #4EC9B0;
+        }
+        .keyword { color: #569CD6; }
+        .class { color: #4EC9B0; }
+        .enum { color: #B8D7A3; }
+        .string { color: #CE9178; }
+        .comment { color: #6A9955; }
+        .number { color: #B5CEA8; }
+        .property { color: #9CDCFE; }
+        .function { color: #DCDCAA; }
+        .type { color: #4EC9B0; }
+
+        .file-path {
+            font-family: 'Share Tech Mono', monospace;
+            color: #FFD700;
+            background: #2A2A2A;
+            padding: 4px 8px;
+            display: inline-block;
+            margin: 8px 0;
+        }
+
+        .diagram {
+            background: #1a1a1a;
+            padding: 20px;
+            margin: 16px 0;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            white-space: pre;
+            overflow-x: auto;
+            border: 2px solid #333;
+        }
+
+        .note {
+            background: rgba(255,215,0,0.1);
+            border-left: 3px solid #FFD700;
+            padding: 12px;
+            margin: 12px 0;
+            font-size: 13px;
+        }
+
+        .where-used {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 12px 0;
+        }
+
+        .usage-tag {
+            background: #2A2A2A;
+            border: 1px solid #444;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .usage-tag span {
+            color: #FFD700;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        th, td {
+            border: 1px solid #333;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #1a1a1a;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+        }
+
+        td code {
+            background: #2A2A2A;
+            padding: 2px 6px;
+        }
+    </style>
+</head>
+<body>
+    <h1>BADGE IMPLEMENTATION PLAN</h1>
+    <p class="subtitle">How the new pixel art badges integrate into the Flutter codebase</p>
+
+    <!-- ================================== -->
+    <!-- FILE STRUCTURE                     -->
+    <!-- ================================== -->
+    <h2>1. FILE STRUCTURE</h2>
+    <div class="section">
+        <p>New and modified files for the badge system:</p>
+
+        <div class="diagram">lib/
+├── models/
+│   └── <span style="color:#4CAF50">achievements.dart</span>          # NEW - Badge type enums & data classes
+│
+├── widgets/
+│   └── badges/                        # NEW FOLDER
+│       ├── <span style="color:#4CAF50">streak_arrow_badge.dart</span>   # Flaming arrow streaks
+│       ├── <span style="color:#4CAF50">trophy_badge.dart</span>         # Competition trophies
+│       ├── <span style="color:#4CAF50">crown_badge.dart</span>          # Level milestone crowns
+│       ├── <span style="color:#4CAF50">medal_badge.dart</span>          # Classification medals
+│       ├── <span style="color:#4CAF50">star_badge.dart</span>           # Personal best stars
+│       ├── <span style="color:#4CAF50">gem_badge.dart</span>            # Rare achievement gems
+│       ├── <span style="color:#4CAF50">coin_badge.dart</span>           # XP coins
+│       ├── <span style="color:#4CAF50">chest_badge.dart</span>          # Reward chests
+│       ├── <span style="color:#4CAF50">archery_icon_badge.dart</span>   # Category icons
+│       └── <span style="color:#4CAF50">badge_painter_utils.dart</span>  # Shared CustomPaint helpers
+│
+├── widgets/
+│   ├── <span style="color:#FFA500">xp_badge_celebration.dart</span>   # MODIFY - Use new badges
+│   ├── <span style="color:#FFA500">level_up_celebration.dart</span>   # MODIFY - Use crowns
+│   ├── <span style="color:#FFA500">achievement_shield.dart</span>     # DEPRECATE - Replace with new
+│   └── <span style="color:#FFA500">award_shields.dart</span>          # DEPRECATE - Replace with new
+│
+└── screens/
+    └── <span style="color:#FFA500">skills_panel_screen.dart</span>    # MODIFY - Display new badges</div>
+    </div>
+
+    <!-- ================================== -->
+    <!-- DATA MODEL                         -->
+    <!-- ================================== -->
+    <h2>2. DATA MODEL</h2>
+    <div class="section">
+        <span class="file-path">lib/models/achievements.dart</span>
+
+        <pre><code><span class="comment">/// Badge categories in the app</span>
+<span class="keyword">enum</span> <span class="enum">BadgeCategory</span> {
+  <span class="property">streak</span>,        <span class="comment">// Daily practice streaks</span>
+  <span class="property">trophy</span>,        <span class="comment">// Competition placements</span>
+  <span class="property">crown</span>,         <span class="comment">// Level milestones</span>
+  <span class="property">medal</span>,         <span class="comment">// AGB Classifications</span>
+  <span class="property">star</span>,          <span class="comment">// Personal bests</span>
+  <span class="property">gem</span>,           <span class="comment">// Rare achievements</span>
+  <span class="property">archeryIcon</span>,   <span class="comment">// Skill category icons</span>
+}
+
+<span class="comment">/// Streak badge tiers (flaming arrows)</span>
+<span class="keyword">enum</span> <span class="enum">StreakTier</span> {
+  <span class="property">spark</span>(<span class="number">7</span>, <span class="string">'Spark'</span>, Color(<span class="number">0xFFFF6B35</span>)),
+  <span class="property">blaze</span>(<span class="number">14</span>, <span class="string">'Blaze'</span>, Color(<span class="number">0xFFFF3366</span>)),
+  <span class="property">inferno</span>(<span class="number">30</span>, <span class="string">'Inferno'</span>, Color(<span class="number">0xFF9933FF</span>)),
+  <span class="property">phoenix</span>(<span class="number">60</span>, <span class="string">'Phoenix'</span>, Color(<span class="number">0xFFFFD700</span>)),
+  <span class="property">legendary</span>(<span class="number">90</span>, <span class="string">'Legendary'</span>, Color(<span class="number">0xFF9C27B0</span>));
+
+  <span class="keyword">const</span> StreakTier(<span class="keyword">this</span>.days, <span class="keyword">this</span>.name, <span class="keyword">this</span>.color);
+  <span class="keyword">final int</span> <span class="property">days</span>;
+  <span class="keyword">final</span> String <span class="property">name</span>;
+  <span class="keyword">final</span> Color <span class="property">color</span>;
+
+  <span class="keyword">static</span> StreakTier <span class="function">fromDays</span>(<span class="keyword">int</span> days) {
+    <span class="keyword">if</span> (days >= <span class="number">90</span>) <span class="keyword">return</span> legendary;
+    <span class="keyword">if</span> (days >= <span class="number">60</span>) <span class="keyword">return</span> phoenix;
+    <span class="keyword">if</span> (days >= <span class="number">30</span>) <span class="keyword">return</span> inferno;
+    <span class="keyword">if</span> (days >= <span class="number">14</span>) <span class="keyword">return</span> blaze;
+    <span class="keyword">return</span> spark;
+  }
+}
+
+<span class="comment">/// Trophy tiers for competitions</span>
+<span class="keyword">enum</span> <span class="enum">TrophyTier</span> {
+  <span class="property">bronze</span>(<span class="string">'Bronze'</span>, Color(<span class="number">0xFFCD7F32</span>)),
+  <span class="property">silver</span>(<span class="string">'Silver'</span>, Color(<span class="number">0xFFB0B0B0</span>)),
+  <span class="property">gold</span>(<span class="string">'Gold'</span>, Color(<span class="number">0xFFFFD700</span>)),
+  <span class="property">champion</span>(<span class="string">'Champion'</span>, Color(<span class="number">0xFF9C27B0</span>));
+
+  <span class="keyword">const</span> TrophyTier(<span class="keyword">this</span>.name, <span class="keyword">this</span>.color);
+  <span class="keyword">final</span> String <span class="property">name</span>;
+  <span class="keyword">final</span> Color <span class="property">color</span>;
+}
+
+<span class="comment">/// Crown tiers for level milestones</span>
+<span class="keyword">enum</span> <span class="enum">CrownTier</span> {
+  <span class="property">bronze</span>(<span class="number">10</span>, <span class="string">'Bronze'</span>, Color(<span class="number">0xFFCD7F32</span>)),
+  <span class="property">silver</span>(<span class="number">25</span>, <span class="string">'Silver'</span>, Color(<span class="number">0xFFB0B0B0</span>)),
+  <span class="property">gold</span>(<span class="number">50</span>, <span class="string">'Gold'</span>, Color(<span class="number">0xFFFFD700</span>)),
+  <span class="property">platinum</span>(<span class="number">75</span>, <span class="string">'Platinum'</span>, Color(<span class="number">0xFFE0E0E0</span>)),
+  <span class="property">legendary</span>(<span class="number">99</span>, <span class="string">'Legendary'</span>, Color(<span class="number">0xFF9C27B0</span>));
+
+  <span class="keyword">const</span> CrownTier(<span class="keyword">this</span>.level, <span class="keyword">this</span>.name, <span class="keyword">this</span>.color);
+  <span class="keyword">final int</span> <span class="property">level</span>;
+  <span class="keyword">final</span> String <span class="property">name</span>;
+  <span class="keyword">final</span> Color <span class="property">color</span>;
+
+  <span class="keyword">static</span> CrownTier? <span class="function">fromLevel</span>(<span class="keyword">int</span> level) {
+    <span class="keyword">for</span> (<span class="keyword">final</span> tier <span class="keyword">in</span> values.reversed) {
+      <span class="keyword">if</span> (level >= tier.level) <span class="keyword">return</span> tier;
+    }
+    <span class="keyword">return null</span>;
+  }
+}
+
+<span class="comment">/// Star types for personal bests</span>
+<span class="keyword">enum</span> <span class="enum">StarType</span> {
+  <span class="property">practicePb</span>(<span class="string">'Practice PB'</span>, Color(<span class="number">0xFF00E5FF</span>)),
+  <span class="property">competitionPb</span>(<span class="string">'Competition PB'</span>, Color(<span class="number">0xFFFFD700</span>)),
+  <span class="property">roundRecord</span>(<span class="string">'Round Record'</span>, Color(<span class="number">0xFF9C27B0</span>));
+
+  <span class="keyword">const</span> StarType(<span class="keyword">this</span>.name, <span class="keyword">this</span>.color);
+  <span class="keyword">final</span> String <span class="property">name</span>;
+  <span class="keyword">final</span> Color <span class="property">color</span>;
+}
+
+<span class="comment">/// Gem types for rare achievements</span>
+<span class="keyword">enum</span> <span class="enum">GemType</span> {
+  <span class="property">sapphire</span>(<span class="string">'Sapphire'</span>, <span class="string">'Elite Archer'</span>, Color(<span class="number">0xFF1565C0</span>)),
+  <span class="property">ruby</span>(<span class="string">'Ruby'</span>, <span class="string">'Fierce Competitor'</span>, Color(<span class="number">0xFFC62828</span>)),
+  <span class="property">emerald</span>(<span class="string">'Emerald'</span>, <span class="string">'Perfect Form'</span>, Color(<span class="number">0xFF2E7D32</span>)),
+  <span class="property">diamond</span>(<span class="string">'Diamond'</span>, <span class="string">'Legendary'</span>, Color(<span class="number">0xFFE0E0E0</span>)),
+  <span class="property">amethyst</span>(<span class="string">'Amethyst'</span>, <span class="string">'Master Archer'</span>, Color(<span class="number">0xFF7B1FA2</span>));
+
+  <span class="keyword">const</span> GemType(<span class="keyword">this</span>.name, <span class="keyword">this</span>.title, <span class="keyword">this</span>.color);
+  <span class="keyword">final</span> String <span class="property">name</span>;
+  <span class="keyword">final</span> String <span class="property">title</span>;
+  <span class="keyword">final</span> Color <span class="property">color</span>;
+}
+
+<span class="comment">/// Chest types for XP rewards</span>
+<span class="keyword">enum</span> <span class="enum">ChestType</span> {
+  <span class="property">bronze</span>(<span class="string">'Bronze'</span>, Color(<span class="number">0xFF8D6E63</span>)),
+  <span class="property">gold</span>(<span class="string">'Gold'</span>, Color(<span class="number">0xFFFFD700</span>)),
+  <span class="property">legendary</span>(<span class="string">'Legendary'</span>, Color(<span class="number">0xFF9C27B0</span>));
+
+  <span class="keyword">const</span> ChestType(<span class="keyword">this</span>.name, <span class="keyword">this</span>.color);
+  <span class="keyword">final</span> String <span class="property">name</span>;
+  <span class="keyword">final</span> Color <span class="property">color</span>;
+}</code></pre>
+    </div>
+
+    <!-- ================================== -->
+    <!-- WIDGET STRUCTURE                   -->
+    <!-- ================================== -->
+    <h2>3. WIDGET STRUCTURE</h2>
+    <div class="section">
+        <h3>Base Badge Widget Pattern</h3>
+        <p>Each badge type follows this pattern:</p>
+
+        <span class="file-path">lib/widgets/badges/streak_arrow_badge.dart</span>
+        <pre><code><span class="keyword">class</span> <span class="class">StreakArrowBadge</span> <span class="keyword">extends</span> StatelessWidget {
+  <span class="keyword">final</span> StreakTier <span class="property">tier</span>;
+  <span class="keyword">final double</span> <span class="property">size</span>;
+  <span class="keyword">final bool</span> <span class="property">showDays</span>;
+  <span class="keyword">final bool</span> <span class="property">animate</span>;  <span class="comment">// For celebration screens</span>
+
+  <span class="keyword">const</span> StreakArrowBadge({
+    <span class="keyword">super</span>.key,
+    <span class="keyword">required this</span>.tier,
+    <span class="keyword">this</span>.size = <span class="number">48</span>,
+    <span class="keyword">this</span>.showDays = <span class="keyword">true</span>,
+    <span class="keyword">this</span>.animate = <span class="keyword">false</span>,
+  });
+
+  <span class="comment">/// Factory for creating from streak days</span>
+  <span class="keyword">factory</span> StreakArrowBadge.<span class="function">fromDays</span>(<span class="keyword">int</span> days, {<span class="keyword">double</span> size = <span class="number">48</span>}) {
+    <span class="keyword">return</span> StreakArrowBadge(
+      tier: StreakTier.<span class="function">fromDays</span>(days),
+      size: size,
+    );
+  }
+
+  @override
+  Widget <span class="function">build</span>(BuildContext context) {
+    <span class="keyword">return</span> CustomPaint(
+      size: Size(size, size * <span class="number">1.33</span>),
+      painter: <span class="class">_StreakArrowPainter</span>(
+        tier: tier,
+        showDays: showDays,
+      ),
+    );
+  }
+}
+
+<span class="keyword">class</span> <span class="class">_StreakArrowPainter</span> <span class="keyword">extends</span> CustomPainter {
+  <span class="keyword">final</span> StreakTier <span class="property">tier</span>;
+  <span class="keyword">final bool</span> <span class="property">showDays</span>;
+
+  _StreakArrowPainter({<span class="keyword">required this</span>.tier, <span class="keyword">this</span>.showDays = <span class="keyword">true</span>});
+
+  @override
+  <span class="keyword">void</span> <span class="function">paint</span>(Canvas canvas, Size size) {
+    <span class="keyword">final</span> w = size.width;
+    <span class="keyword">final</span> h = size.height;
+
+    <span class="comment">// Draw arrow shaft</span>
+    _drawArrowShaft(canvas, w, h);
+
+    <span class="comment">// Draw arrowhead</span>
+    _drawArrowHead(canvas, w, h);
+
+    <span class="comment">// Draw fletching in tier color</span>
+    _drawFletching(canvas, w, h, tier.color);
+
+    <span class="comment">// Draw flame based on tier</span>
+    _drawFlame(canvas, w, h, tier);
+
+    <span class="comment">// Draw day count badge</span>
+    <span class="keyword">if</span> (showDays) {
+      _drawDayBadge(canvas, w, h, tier);
+    }
+  }
+
+  <span class="comment">// ... painting methods ...</span>
+}</code></pre>
+
+        <h3>Widget API Summary</h3>
+        <table>
+            <tr>
+                <th>Widget</th>
+                <th>Main Props</th>
+                <th>Factory Methods</th>
+            </tr>
+            <tr>
+                <td><code>StreakArrowBadge</code></td>
+                <td>tier, size, showDays, animate</td>
+                <td><code>.fromDays(int)</code></td>
+            </tr>
+            <tr>
+                <td><code>TrophyBadge</code></td>
+                <td>tier, size, animate</td>
+                <td><code>.bronze()</code>, <code>.silver()</code>, <code>.gold()</code>, <code>.champion()</code></td>
+            </tr>
+            <tr>
+                <td><code>CrownBadge</code></td>
+                <td>tier, size, showLevel</td>
+                <td><code>.fromLevel(int)</code></td>
+            </tr>
+            <tr>
+                <td><code>MedalBadge</code></td>
+                <td>classification, size</td>
+                <td><code>.fromCode(String)</code></td>
+            </tr>
+            <tr>
+                <td><code>StarBadge</code></td>
+                <td>type, size, animate</td>
+                <td><code>.practicePb()</code>, <code>.competitionPb()</code></td>
+            </tr>
+            <tr>
+                <td><code>GemBadge</code></td>
+                <td>type, size</td>
+                <td><code>.sapphire()</code>, <code>.diamond()</code>, etc.</td>
+            </tr>
+            <tr>
+                <td><code>CoinBadge</code></td>
+                <td>xpAmount, size, stacked</td>
+                <td><code>.small()</code>, <code>.medium()</code>, <code>.stack()</code></td>
+            </tr>
+            <tr>
+                <td><code>ChestBadge</code></td>
+                <td>type, size, isOpen</td>
+                <td><code>.bronze()</code>, <code>.gold()</code>, <code>.legendary()</code></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ================================== -->
+    <!-- WHERE BADGES ARE USED              -->
+    <!-- ================================== -->
+    <h2>4. WHERE BADGES ARE USED</h2>
+    <div class="section">
+
+        <h3>XP Badge Celebration</h3>
+        <span class="file-path">lib/widgets/xp_badge_celebration.dart</span>
+        <div class="where-used">
+            <div class="usage-tag"><span>StreakArrowBadge</span> → Streak achievements</div>
+            <div class="usage-tag"><span>StarBadge</span> → Personal bests</div>
+            <div class="usage-tag"><span>CoinBadge</span> → XP award display</div>
+        </div>
+        <pre><code><span class="comment">// In XpBadgeCelebration._buildBadge()</span>
+Widget <span class="function">_buildBadge</span>() {
+  <span class="keyword">switch</span> (widget.event.achievementType) {
+    <span class="keyword">case</span> AchievementType.streak7:
+    <span class="keyword">case</span> AchievementType.streak14:
+    <span class="keyword">case</span> AchievementType.streak30:
+      <span class="keyword">return</span> StreakArrowBadge.<span class="function">fromDays</span>(
+        _getStreakDays(),
+        size: <span class="number">120</span>,
+        animate: <span class="keyword">true</span>,
+      );
+
+    <span class="keyword">case</span> AchievementType.personalBest:
+      <span class="keyword">return</span> StarBadge(
+        type: widget.event.isCompetition
+          ? StarType.competitionPb
+          : StarType.practicePb,
+        size: <span class="number">120</span>,
+        animate: <span class="keyword">true</span>,
+      );
+
+    <span class="keyword">case</span> AchievementType.milestone:
+      <span class="keyword">return</span> CrownBadge.<span class="function">fromLevel</span>(
+        widget.event.newLevel,
+        size: <span class="number">120</span>,
+      );
+
+    <span class="keyword">default</span>:
+      <span class="keyword">return</span> CoinBadge(
+        xpAmount: widget.event.xpAmount,
+        size: <span class="number">80</span>,
+      );
+  }
+}</code></pre>
+
+        <h3>Level Up Celebration</h3>
+        <span class="file-path">lib/widgets/level_up_celebration.dart</span>
+        <div class="where-used">
+            <div class="usage-tag"><span>CrownBadge</span> → Milestone levels only</div>
+            <div class="usage-tag"><span>ChestBadge</span> → Level up reward</div>
+        </div>
+        <pre><code><span class="comment">// Show crown for milestone levels (10, 25, 50, 75, 99)</span>
+Widget <span class="function">_buildLevelUpContent</span>() {
+  <span class="keyword">final</span> crownTier = CrownTier.<span class="function">fromLevel</span>(widget.event.newLevel);
+
+  <span class="keyword">return</span> Column(
+    children: [
+      <span class="keyword">if</span> (crownTier != <span class="keyword">null</span>) ...[
+        CrownBadge(tier: crownTier, size: <span class="number">80</span>),
+        SizedBox(height: <span class="number">16</span>),
+      ],
+      <span class="comment">// Existing scroll banner content...</span>
+      _buildScrollBanner(),
+    ],
+  );
+}</code></pre>
+
+        <h3>Skills Panel Screen</h3>
+        <span class="file-path">lib/screens/skills_panel_screen.dart</span>
+        <div class="where-used">
+            <div class="usage-tag"><span>StreakArrowBadge</span> → Current streak display</div>
+            <div class="usage-tag"><span>MedalBadge</span> → Classification display</div>
+            <div class="usage-tag"><span>StarBadge</span> → Recent PBs</div>
+            <div class="usage-tag"><span>ArcheryIconBadge</span> → Skill category headers</div>
+        </div>
+        <pre><code><span class="comment">// Skills panel badges row</span>
+Widget <span class="function">_buildBadgesRow</span>(SkillsState state) {
+  <span class="keyword">return</span> SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: Row(
+      children: [
+        <span class="comment">// Current streak</span>
+        <span class="keyword">if</span> (state.currentStreak >= <span class="number">7</span>)
+          StreakArrowBadge.<span class="function">fromDays</span>(state.currentStreak, size: <span class="number">48</span>),
+
+        <span class="comment">// Classification badges</span>
+        <span class="keyword">if</span> (state.outdoorClassification != <span class="keyword">null</span>)
+          MedalBadge.<span class="function">fromCode</span>(state.outdoorClassification!, size: <span class="number">40</span>),
+
+        <span class="comment">// Recent PBs (last 30 days)</span>
+        ...state.recentPbs.map((pb) =>
+          StarBadge(
+            type: pb.isCompetition ? StarType.competitionPb : StarType.practicePb,
+            size: <span class="number">40</span>,
+          ),
+        ),
+      ],
+    ),
+  );
+}</code></pre>
+
+        <h3>Session Complete Screen</h3>
+        <span class="file-path">lib/screens/session_complete_screen.dart</span>
+        <div class="where-used">
+            <div class="usage-tag"><span>TrophyBadge</span> → Competition results</div>
+            <div class="usage-tag"><span>StarBadge</span> → New PB indicator</div>
+            <div class="usage-tag"><span>CoinBadge</span> → XP earned summary</div>
+        </div>
+    </div>
+
+    <!-- ================================== -->
+    <!-- ANIMATION SUPPORT                  -->
+    <!-- ================================== -->
+    <h2>5. ANIMATION SUPPORT</h2>
+    <div class="section">
+        <p>Badges support optional animation for celebration screens:</p>
+
+        <pre><code><span class="keyword">class</span> <span class="class">StreakArrowBadge</span> <span class="keyword">extends</span> StatefulWidget {
+  <span class="keyword">final bool</span> <span class="property">animate</span>;
+  <span class="comment">// ...</span>
+}
+
+<span class="keyword">class</span> <span class="class">_StreakArrowBadgeState</span> <span class="keyword">extends</span> State<StreakArrowBadge>
+    <span class="keyword">with</span> SingleTickerProviderStateMixin {
+
+  <span class="keyword">late</span> AnimationController <span class="property">_controller</span>;
+  <span class="keyword">late</span> Animation<<span class="keyword">double</span>> <span class="property">_flameAnimation</span>;
+  <span class="keyword">late</span> Animation<<span class="keyword">double</span>> <span class="property">_sparkleAnimation</span>;
+
+  @override
+  <span class="keyword">void</span> <span class="function">initState</span>() {
+    <span class="keyword">super</span>.<span class="function">initState</span>();
+    <span class="keyword">if</span> (widget.animate) {
+      _controller = AnimationController(
+        vsync: <span class="keyword">this</span>,
+        duration: Duration(milliseconds: <span class="number">1500</span>),
+      )..repeat();
+
+      <span class="comment">// Flame flicker effect</span>
+      _flameAnimation = Tween<<span class="keyword">double</span>>(begin: <span class="number">0.8</span>, end: <span class="number">1.0</span>)
+        .animate(CurvedAnimation(
+          parent: _controller,
+          curve: Curves.easeInOut,
+        ));
+
+      <span class="comment">// Sparkle pulse effect</span>
+      _sparkleAnimation = Tween<<span class="keyword">double</span>>(begin: <span class="number">0.0</span>, end: <span class="number">1.0</span>)
+        .animate(_controller);
+    }
+  }
+}</code></pre>
+
+        <div class="note">
+            <strong>Animation Types:</strong><br>
+            • <strong>Flame flicker</strong> - Subtle scale pulse on flame elements<br>
+            • <strong>Sparkle pulse</strong> - Sparkles fade in/out<br>
+            • <strong>Coin spin</strong> - 3D rotation effect on coins<br>
+            • <strong>Chest bounce</strong> - Elastic bounce on chest open
+        </div>
+    </div>
+
+    <!-- ================================== -->
+    <!-- USAGE MAPPING                      -->
+    <!-- ================================== -->
+    <h2>6. BADGE → ACHIEVEMENT MAPPING</h2>
+    <div class="section">
+        <table>
+            <tr>
+                <th>Achievement</th>
+                <th>Current Badge</th>
+                <th>New Badge</th>
+                <th>Trigger</th>
+            </tr>
+            <tr>
+                <td>7-day streak</td>
+                <td>AchievementShield.streak(7)</td>
+                <td><code>StreakArrowBadge(tier: .spark)</code></td>
+                <td>7 consecutive days</td>
+            </tr>
+            <tr>
+                <td>14-day streak</td>
+                <td>AchievementShield.streak(14)</td>
+                <td><code>StreakArrowBadge(tier: .blaze)</code></td>
+                <td>14 consecutive days</td>
+            </tr>
+            <tr>
+                <td>30-day streak</td>
+                <td>AchievementShield.streak(30)</td>
+                <td><code>StreakArrowBadge(tier: .inferno)</code></td>
+                <td>30 consecutive days</td>
+            </tr>
+            <tr>
+                <td>Practice PB</td>
+                <td>AchievementShield.personalBest()</td>
+                <td><code>StarBadge(type: .practicePb)</code></td>
+                <td>New practice high score</td>
+            </tr>
+            <tr>
+                <td>Competition PB</td>
+                <td>AchievementShield.competitionPb()</td>
+                <td><code>StarBadge(type: .competitionPb)</code></td>
+                <td>New competition high score</td>
+            </tr>
+            <tr>
+                <td>Level 10</td>
+                <td>ShieldPainter (crown pattern)</td>
+                <td><code>CrownBadge(tier: .bronze)</code></td>
+                <td>Reach level 10</td>
+            </tr>
+            <tr>
+                <td>Level 25</td>
+                <td>ShieldPainter (crown pattern)</td>
+                <td><code>CrownBadge(tier: .silver)</code></td>
+                <td>Reach level 25</td>
+            </tr>
+            <tr>
+                <td>Level 50</td>
+                <td>ShieldPainter (crown pattern)</td>
+                <td><code>CrownBadge(tier: .gold)</code></td>
+                <td>Reach level 50</td>
+            </tr>
+            <tr>
+                <td>A3 Classification</td>
+                <td>ClassificationBadge</td>
+                <td><code>MedalBadge.fromCode('A3')</code></td>
+                <td>2 qualifying scores</td>
+            </tr>
+            <tr>
+                <td>GMB Classification</td>
+                <td>ClassificationBadge</td>
+                <td><code>MedalBadge.fromCode('GMB')</code></td>
+                <td>2 qualifying scores</td>
+            </tr>
+            <tr>
+                <td>Competition 1st</td>
+                <td>N/A</td>
+                <td><code>TrophyBadge(tier: .gold)</code></td>
+                <td>1st place finish</td>
+            </tr>
+            <tr>
+                <td>90-day streak</td>
+                <td>N/A</td>
+                <td><code>GemBadge(type: .diamond)</code></td>
+                <td>90 consecutive days</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ================================== -->
+    <!-- MIGRATION PATH                     -->
+    <!-- ================================== -->
+    <h2>7. MIGRATION PATH</h2>
+    <div class="section">
+        <h3>Phase 1: Add New Badge Widgets</h3>
+        <p>Create all new badge widgets in <code>lib/widgets/badges/</code> folder without touching existing code.</p>
+
+        <h3>Phase 2: Update Celebrations</h3>
+        <p>Modify <code>xp_badge_celebration.dart</code> and <code>level_up_celebration.dart</code> to use new badges.</p>
+
+        <h3>Phase 3: Update Screens</h3>
+        <p>Update skills panel, session complete, and other screens to display new badges.</p>
+
+        <h3>Phase 4: Deprecate Old Widgets</h3>
+        <p>Mark old widgets as deprecated, remove unused code.</p>
+
+        <div class="note">
+            <strong>Backwards Compatibility:</strong> Old badge widgets remain functional during migration. New badges are opt-in until fully tested.
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; margin-top: 64px; padding: 24px; border-top: 4px solid #FFD700;">
+        <p style="font-family: VT323; font-size: 24px; color: #FFD700;">Ready to implement?</p>
+        <p style="font-size: 12px; color: #8A8A8A; margin-top: 8px;">This plan shows exactly how the new badges integrate into the existing codebase.</p>
+    </div>
+
+</body>
+</html>

@@ -27,7 +27,6 @@ class SignaturePad extends StatefulWidget {
 
 class _SignaturePadState extends State<SignaturePad> {
   late SignatureController _controller;
-  bool _isEditing = false;
   Uint8List? _currentSignature;
 
   @override
@@ -47,19 +46,6 @@ class _SignaturePadState extends State<SignaturePad> {
     super.dispose();
   }
 
-  Future<void> _saveSignature() async {
-    if (_controller.isNotEmpty) {
-      final signature = await _controller.toPngBytes();
-      setState(() {
-        _currentSignature = signature;
-        _isEditing = false;
-      });
-      widget.onSignatureChanged(signature);
-    } else {
-      setState(() => _isEditing = false);
-    }
-  }
-
   void _clearSignature() {
     _controller.clear();
     setState(() {
@@ -69,8 +55,26 @@ class _SignaturePadState extends State<SignaturePad> {
   }
 
   void _startEditing() {
-    _controller.clear();
-    setState(() => _isEditing = true);
+    // Open full screen signature dialog for detailed signatures
+    _showFullScreenSignature();
+  }
+
+  Future<void> _showFullScreenSignature() async {
+    final result = await showDialog<Uint8List?>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => _FullScreenSignatureDialog(
+        label: widget.label,
+        existingSignature: _currentSignature,
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _currentSignature = result;
+      });
+      widget.onSignatureChanged(result);
+    }
   }
 
   @override
@@ -94,68 +98,13 @@ class _SignaturePadState extends State<SignaturePad> {
           decoration: BoxDecoration(
             color: AppColors.surfaceDark,
             border: Border.all(
-              color: _isEditing ? AppColors.gold : AppColors.surfaceLight,
-              width: _isEditing ? 2 : 1,
+              color: AppColors.surfaceLight,
+              width: 1,
             ),
             borderRadius: BorderRadius.circular(4),
           ),
-          child: _isEditing
-              ? _buildEditingView()
-              : _buildDisplayView(),
+          child: _buildDisplayView(),
         ),
-      ],
-    );
-  }
-
-  Widget _buildEditingView() {
-    return Stack(
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(3),
-          child: Signature(
-            controller: _controller,
-            backgroundColor: AppColors.surfaceDark,
-          ),
-        ),
-        // Action buttons
-        Positioned(
-          right: 4,
-          bottom: 4,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _ActionButton(
-                icon: Icons.close,
-                onTap: () => setState(() => _isEditing = false),
-                color: AppColors.error,
-              ),
-              const SizedBox(width: 4),
-              _ActionButton(
-                icon: Icons.refresh,
-                onTap: () => _controller.clear(),
-                color: AppColors.textMuted,
-              ),
-              const SizedBox(width: 4),
-              _ActionButton(
-                icon: Icons.check,
-                onTap: _saveSignature,
-                color: AppColors.gold,
-              ),
-            ],
-          ),
-        ),
-        // Hint text
-        if (_controller.isEmpty)
-          Center(
-            child: Text(
-              'Sign here',
-              style: TextStyle(
-                fontFamily: AppFonts.body,
-                color: AppColors.textMuted.withValues(alpha: 0.5),
-                fontSize: 12,
-              ),
-            ),
-          ),
       ],
     );
   }
@@ -293,6 +242,144 @@ class SignatureDisplay extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Full screen signature dialog for detailed signature capture.
+class _FullScreenSignatureDialog extends StatefulWidget {
+  final String label;
+  final Uint8List? existingSignature;
+
+  const _FullScreenSignatureDialog({
+    required this.label,
+    this.existingSignature,
+  });
+
+  @override
+  State<_FullScreenSignatureDialog> createState() => _FullScreenSignatureDialogState();
+}
+
+class _FullScreenSignatureDialogState extends State<_FullScreenSignatureDialog> {
+  late SignatureController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = SignatureController(
+      penStrokeWidth: 3,
+      penColor: AppColors.textPrimary,
+      exportBackgroundColor: Colors.transparent,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (_controller.isNotEmpty) {
+      final signature = await _controller.toPngBytes();
+      if (mounted) {
+        Navigator.pop(context, signature);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog.fullscreen(
+      backgroundColor: AppColors.backgroundDark,
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      widget.label,
+                      style: TextStyle(
+                        fontFamily: AppFonts.pixel,
+                        fontSize: 18,
+                        color: AppColors.gold,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: () => _controller.clear(),
+                    tooltip: 'Clear',
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  ElevatedButton.icon(
+                    onPressed: _save,
+                    icon: const Icon(Icons.check, size: 18),
+                    label: const Text('Save'),
+                  ),
+                ],
+              ),
+            ),
+
+            // Signature area - takes most of the screen
+            Expanded(
+              child: Container(
+                margin: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceDark,
+                  border: Border.all(color: AppColors.gold, width: 2),
+                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
+                  child: Stack(
+                    children: [
+                      Signature(
+                        controller: _controller,
+                        backgroundColor: AppColors.surfaceDark,
+                      ),
+                      // Hint text when empty
+                      if (_controller.isEmpty)
+                        Center(
+                          child: Text(
+                            'Sign here',
+                            style: TextStyle(
+                              fontFamily: AppFonts.pixel,
+                              fontSize: 24,
+                              color: AppColors.textMuted.withValues(alpha: 0.3),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Instructions
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Text(
+                'Draw your signature using your finger or stylus',
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  fontSize: 12,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

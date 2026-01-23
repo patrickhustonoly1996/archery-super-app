@@ -75,10 +75,8 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
           ? const Center(child: CircularProgressIndicator(color: AppColors.gold))
           : Consumer2<SightMarksProvider, EquipmentProvider>(
               builder: (context, sightProvider, equipProvider, child) {
-                final marks = sightProvider
-                    .getMarksForBow(widget.bowId)
-                    .where((m) => m.unit == _selectedUnit)
-                    .toList();
+                // Get ALL marks (not filtered by unit - they're the same data!)
+                final allMarks = sightProvider.getMarksForBow(widget.bowId);
 
                 // Check if bow has equipment specs for better predictions
                 final bow = equipProvider.bows.where((b) => b.id == widget.bowId).firstOrNull;
@@ -86,20 +84,30 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
                 final hasDrawLength = bow?.drawLength != null;
                 final needsSpecs = !hasPoundage || !hasDrawLength;
 
-                if (marks.isEmpty) {
+                if (allMarks.isEmpty) {
                   return _buildEmptyState(context, needsSpecs: needsSpecs);
                 }
 
-                // Group by distance
+                // Group by distance in the selected unit
+                // Convert distances to the selected unit for grouping
                 final groupedMarks = <double, List<SightMark>>{};
-                for (final mark in marks) {
-                  groupedMarks.putIfAbsent(mark.distance, () => []).add(mark);
+                for (final mark in allMarks) {
+                  // Convert distance to selected unit
+                  double displayDistance;
+                  if (mark.unit == _selectedUnit) {
+                    displayDistance = mark.distance;
+                  } else {
+                    // Convert from mark's unit to selected unit
+                    displayDistance = mark.unit.convert(mark.distance);
+                  }
+                  // Round to nearest whole number for grouping
+                  final groupKey = displayDistance.roundToDouble();
+                  groupedMarks.putIfAbsent(groupKey, () => []).add(mark);
                 }
 
                 final distances = groupedMarks.keys.toList()..sort();
 
                 // Generate predictions for common distances not yet recorded
-                final allMarks = sightProvider.getMarksForBow(widget.bowId);
                 final predictions = <PredictedSightMark>[];
 
                 // Only show predictions if we have 2+ marks
@@ -150,7 +158,13 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
                       final distanceMarks = groupedMarks[distance]!;
                       distanceMarks.sort((a, b) => b.recordedAt.compareTo(a.recordedAt));
                       final primaryMark = distanceMarks.first;
-                      return _buildMarkTile(context, primaryMark, distanceMarks.length);
+                      return _buildMarkTile(
+                        context,
+                        primaryMark,
+                        distanceMarks.length,
+                        displayDistance: distance,
+                        displayUnit: _selectedUnit,
+                      );
                     }),
 
                     // Predictions section (if we have any)
@@ -332,10 +346,16 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
     );
   }
 
-  Widget _buildMarkTile(BuildContext context, SightMark mark, int historyCount) {
+  Widget _buildMarkTile(
+    BuildContext context,
+    SightMark mark,
+    int historyCount, {
+    required double displayDistance,
+    required DistanceUnit displayUnit,
+  }) {
     // Calculate equivalent in other unit
-    final otherUnit = mark.unit.other;
-    final convertedDistance = mark.unit.convert(mark.distance);
+    final otherUnit = displayUnit.other;
+    final convertedDistance = displayUnit.convert(displayDistance);
 
     return Card(
       color: AppColors.surfaceDark,
@@ -347,7 +367,7 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Row(
             children: [
-              // Distance with conversion
+              // Distance with conversion (shown in selected unit)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -362,7 +382,7 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
                       borderRadius: BorderRadius.circular(AppSpacing.xs),
                     ),
                     child: Text(
-                      mark.distanceDisplay,
+                      '${displayDistance.toStringAsFixed(0)}${displayUnit.abbreviation}',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: AppColors.gold,

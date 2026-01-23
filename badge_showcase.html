@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archery Super App - Badge & Icon Showcase</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #121212;
+            color: #ffffff;
+            font-family: 'Share Tech Mono', monospace;
+            padding: 32px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-family: 'VT323', monospace;
+            font-size: 48px;
+            color: #FFD700;
+            text-align: center;
+            margin-bottom: 16px;
+            letter-spacing: 4px;
+        }
+
+        h2 {
+            font-family: 'VT323', monospace;
+            font-size: 32px;
+            color: #FFD700;
+            margin: 40px 0 24px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #FFD700;
+        }
+
+        h3 {
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            color: #B0B0B0;
+            margin: 24px 0 16px 0;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #8A8A8A;
+            margin-bottom: 48px;
+            font-size: 14px;
+        }
+
+        .section {
+            background: #1E1E1E;
+            border: 1px solid #2A2A2A;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .badge-row {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            margin-bottom: 16px;
+        }
+
+        .badge-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge-label {
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+            color: #8A8A8A;
+            text-transform: uppercase;
+        }
+
+        .description {
+            color: #B0B0B0;
+            font-size: 13px;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        /* Color swatches */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .color-swatch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .swatch-box {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #3A3A3A;
+        }
+
+        .swatch-label {
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+        }
+
+        .swatch-hex {
+            font-size: 11px;
+            color: #8A8A8A;
+        }
+
+        /* SVG Badges */
+        svg {
+            display: block;
+        }
+
+        .badge-svg {
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+        }
+    </style>
+</head>
+<body>
+    <h1>BADGE & ICON SHOWCASE</h1>
+    <p class="subtitle">Archery Super App Design System - All Achievement Badges, Awards & Icons</p>
+
+    <!-- ================================== -->
+    <!-- AWARD TIER COLORS                  -->
+    <!-- ================================== -->
+    <h2>AWARD TIER COLOURS</h2>
+    <div class="section">
+        <p class="description">Traditional archery award progression: White (lowest) -> Black -> Blue -> Red -> Gold -> Purple (highest). Used for classifications, streaks, and skill milestones.</p>
+        <div class="color-grid">
+            <div class="color-swatch">
+                <div class="swatch-box" style="background: #EEEEEE;"></div>
+                <span class="swatch-label" style="color: #EEEEEE;">White</span>
+                <span class="swatch-hex">#EEEEEE</span>
+            </div>
+            <div class="color-swatch">
+                <div class="swatch-box" style="background: #212121;"></div>
+                <span class="swatch-label" style="color: #B0B0B0;">Black</span>
+                <span class="swatch-hex">#212121</span>
+            </div>
+            <div class="color-swatch">
+                <div class="swatch-box" style="background: #42A5F5;"></div>
+                <span class="swatch-label" style="color: #42A5F5;">Blue</span>
+                <span class="swatch-hex">#42A5F5</span>
+            </div>
+            <div class="color-swatch">
+                <div class="swatch-box" style="background: #E53935;"></div>
+                <span class="swatch-label" style="color: #E53935;">Red</span>
+                <span class="swatch-hex">#E53935</span>
+            </div>
+            <div class="color-swatch">
+                <div class="swatch-box" style="background: #FFD700;"></div>
+                <span class="swatch-label" style="color: #FFD700;">Gold</span>
+                <span class="swatch-hex">#FFD700</span>
+            </div>
+            <div class="color-swatch">
+                <div class="swatch-box" style="background: #9C27B0;"></div>
+                <span class="swatch-label" style="color: #9C27B0;">Purple</span>
+                <span class="swatch-hex">#9C27B0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================== -->
+    <!-- CATEGORY AWARD SHIELDS             -->
+    <!-- ================================== -->
+    <h2>CATEGORY AWARD SHIELDS</h2>
+    <p class="description">Five distinct badge designs for different skill categories. Each has a unique visual style suited to its domain, designed to look like collectible pin badges.</p>
+
+    <!-- BREATH AWARD -->
+    <div class="section">
+        <h3>BREATH AWARD BADGE</h3>
+        <p class="description">Flowing, organic, lung-inspired curves. Used for breath training streaks and achievements.</p>
+        <div class="badge-row">
+            <!-- White -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="74" viewBox="0 0 64 74">
+                    <defs>
+                        <clipPath id="breath-clip">
+                            <path d="M32 0 C54 3.7 64 14.8 64 25.9 C64 40.7 54 51.8 32 74 C10 51.8 0 40.7 0 25.9 C0 14.8 10 3.7 32 0 Z"/>
+                        </clipPath>
+                    </defs>
+                    <path d="M32 0 C54 3.7 64 14.8 64 25.9 C64 40.7 54 51.8 32 74 C10 51.8 0 40.7 0 25.9 C0 14.8 10 3.7 32 0 Z" fill="#EEEEEE"/>
+                    <path d="M32 0 C54 3.7 64 14.8 64 25.9 C64 40.7 54 51.8 32 74 C10 51.8 0 40.7 0 25.9 C0 14.8 10 3.7 32 0 Z" fill="none" stroke="#BDBDBD" stroke-width="2.5"/>
+                    <path d="M32 5.9 C48 8.9 56 18.5 56 25.9" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round"/>
+                    <text x="32" y="42" text-anchor="middle" font-family="Material Icons" font-size="22" fill="#121212">&#xe070;</text>
+                </svg>
+                <span class="badge-label">White</span>
+            </div>
+            <!-- Black -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="74" viewBox="0 0 64 74">
+                    <path d="M32 0 C54 3.7 64 14.8 64 25.9 C64 40.7 54 51.8 32 74 C10 51.8 0 40.7 0 25.9 C0 14.8 10 3.7 32 0 Z" fill="#212121"/>
+                    <path d="M32 0 C54 3.7 64 14.8 64 25.9 C64 40.7 54 51.8 32 74 C10 51.8 0 40.7 0 25.9 C0 14.8 10 3.7 32 0 Z" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
+                    <path d="M32 5.9 C48 8.9 56 18.5 56 25.9" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round"/>
+                    <text x="32" y="42" text-anchor="middle" font-family="VT323" font-size="22" fill="#FFFFFF">AIR</text>
+                </svg>
+                <span class="badge-label">Black</span>
+            </div>
+            <!-- Blue -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="74" viewBox="0 0 64 74">
+                    <path d="M32 0 C54 3.7 64 14.8 64 25.9 C64 40.7 54 51.8 32 74 C10 51.8 0 40.7 0 25.9 C0 14.8 10 3.7 32 0 Z" fill="#42A5F5"/>
+                    <path d="M32 0 C54 3.7 64 14.8 64 25.9 C64 40.7 54 51.8 32 74 C10 51.8 0 40.7 0 25.9 C0 14.8 10 3.7 32 0 Z" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
+                    <path d="M32 5.9 C48 8.9 56 18.5 56 25.9" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round"/>
+                    <text x="32" y="42" text-anchor="middle" font-family="VT323" font-size="22" fill="#FFFFFF">AIR</text>
+                </svg>
+                <span class="badge-label">Blue</span>
+            </div>
+            <!-- Red -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="74" viewBox="0 0 64 74">
+                    <path d="M32 0 C54 3.7 64 14.8 64 25.9 C64 40.7 54 51.8 32 74 C10 51.8 0 40.7 0 25.9 C0 14.8 10 3.7 32 0 Z" fill="#E53935"/>
+                    <path d="M32 0 C54 3.7 64 14.8 64 25.9 C64 40.7 54 51.8 32 74 C10 51.8 0 40.7 0 25.9 C0 14.8 10 3.7 32 0 Z" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
+                    <path d="M32 5.9 C48 8.9 56 18.5 56 25.9" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round"/>
+                    <text x="32" y="42" text-anchor="middle" font-family="VT323" font-size="22" fill="#FFFFFF">AIR</text>
+                </svg>
+                <span class="badge-label">Red</span>
+            </div>
+            <!-- Gold -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="74" viewBox="0 0 64 74">
+                    <path d="M32 0 C54 3.7 64 14.8 64 25.9 C64 40.7 54 51.8 32 74 C10 51.8 0 40.7 0 25.9 C0 14.8 10 3.7 32 0 Z" fill="#FFD700"/>
+                    <path d="M32 0 C54 3.7 64 14.8 64 25.9 C64 40.7 54 51.8 32 74 C10 51.8 0 40.7 0 25.9 C0 14.8 10 3.7 32 0 Z" fill="none" stroke="#B8860B" stroke-width="2.5"/>
+                    <path d="M32 5.9 C48 8.9 56 18.5 56 25.9" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round"/>
+                    <text x="32" y="42" text-anchor="middle" font-family="VT323" font-size="22" fill="#121212">AIR</text>
+                </svg>
+                <span class="badge-label">Gold</span>
+            </div>
+            <!-- Purple -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="74" viewBox="0 0 64 74">
+                    <path d="M32 0 C54 3.7 64 14.8 64 25.9 C64 40.7 54 51.8 32 74 C10 51.8 0 40.7 0 25.9 C0 14.8 10 3.7 32 0 Z" fill="#9C27B0"/>
+                    <path d="M32 0 C54 3.7 64 14.8 64 25.9 C64 40.7 54 51.8 32 74 C10 51.8 0 40.7 0 25.9 C0 14.8 10 3.7 32 0 Z" fill="none" stroke="#6A1B9A" stroke-width="2.5"/>
+                    <path d="M32 5.9 C48 8.9 56 18.5 56 25.9" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round"/>
+                    <text x="32" y="42" text-anchor="middle" font-family="VT323" font-size="22" fill="#FFFFFF">AIR</text>
+                </svg>
+                <span class="badge-label">Purple</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOW TRAINING AWARD -->
+    <div class="section">
+        <h3>BOW TRAINING AWARD BADGE</h3>
+        <p class="description">Chunky, masculine, strong angles. Broad shoulders, heavy base. Industrial look with rivets. Used for bow training streaks.</p>
+        <div class="badge-row">
+            <!-- White -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="77" viewBox="0 0 64 77">
+                    <path d="M9.6 0 L54.4 0 L64 9.24 L64 38.5 L32 77 L0 38.5 L0 9.24 L9.6 0 Z" fill="#EEEEEE"/>
+                    <path d="M9.6 0 L54.4 0 L64 9.24 L64 38.5 L32 77 L0 38.5 L0 9.24 L9.6 0 Z" fill="none" stroke="#9E9E9E" stroke-width="3.5"/>
+                    <path d="M12.8 6.16 L51.2 6.16 L58.9 11.55" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="12.8" cy="11.55" r="2.56" fill="#9E9E9E"/>
+                    <circle cx="51.2" cy="11.55" r="2.56" fill="#9E9E9E"/>
+                    <text x="32" y="42" text-anchor="middle" font-family="VT323" font-size="22" fill="#121212">BOW</text>
+                </svg>
+                <span class="badge-label">White</span>
+            </div>
+            <!-- Black -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="77" viewBox="0 0 64 77">
+                    <path d="M9.6 0 L54.4 0 L64 9.24 L64 38.5 L32 77 L0 38.5 L0 9.24 L9.6 0 Z" fill="#212121"/>
+                    <path d="M9.6 0 L54.4 0 L64 9.24 L64 38.5 L32 77 L0 38.5 L0 9.24 L9.6 0 Z" fill="none" stroke="#424242" stroke-width="3.5"/>
+                    <path d="M12.8 6.16 L51.2 6.16 L58.9 11.55" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="12.8" cy="11.55" r="2.56" fill="#424242"/>
+                    <circle cx="51.2" cy="11.55" r="2.56" fill="#424242"/>
+                    <text x="32" y="42" text-anchor="middle" font-family="VT323" font-size="22" fill="#FFFFFF">BOW</text>
+                </svg>
+                <span class="badge-label">Black</span>
+            </div>
+            <!-- Blue -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="77" viewBox="0 0 64 77">
+                    <path d="M9.6 0 L54.4 0 L64 9.24 L64 38.5 L32 77 L0 38.5 L0 9.24 L9.6 0 Z" fill="#42A5F5"/>
+                    <path d="M9.6 0 L54.4 0 L64 9.24 L64 38.5 L32 77 L0 38.5 L0 9.24 L9.6 0 Z" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="3.5"/>
+                    <path d="M12.8 6.16 L51.2 6.16 L58.9 11.55" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="12.8" cy="11.55" r="2.56" fill="rgba(255,255,255,0.6)"/>
+                    <circle cx="51.2" cy="11.55" r="2.56" fill="rgba(255,255,255,0.6)"/>
+                    <text x="32" y="42" text-anchor="middle" font-family="VT323" font-size="22" fill="#FFFFFF">BOW</text>
+                </svg>
+                <span class="badge-label">Blue</span>
+            </div>
+            <!-- Red -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="77" viewBox="0 0 64 77">
+                    <path d="M9.6 0 L54.4 0 L64 9.24 L64 38.5 L32 77 L0 38.5 L0 9.24 L9.6 0 Z" fill="#E53935"/>
+                    <path d="M9.6 0 L54.4 0 L64 9.24 L64 38.5 L32 77 L0 38.5 L0 9.24 L9.6 0 Z" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="3.5"/>
+                    <path d="M12.8 6.16 L51.2 6.16 L58.9 11.55" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="12.8" cy="11.55" r="2.56" fill="rgba(255,255,255,0.6)"/>
+                    <circle cx="51.2" cy="11.55" r="2.56" fill="rgba(255,255,255,0.6)"/>
+                    <text x="32" y="42" text-anchor="middle" font-family="VT323" font-size="22" fill="#FFFFFF">BOW</text>
+                </svg>
+                <span class="badge-label">Red</span>
+            </div>
+            <!-- Gold -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="77" viewBox="0 0 64 77">
+                    <path d="M9.6 0 L54.4 0 L64 9.24 L64 38.5 L32 77 L0 38.5 L0 9.24 L9.6 0 Z" fill="#FFD700"/>
+                    <path d="M9.6 0 L54.4 0 L64 9.24 L64 38.5 L32 77 L0 38.5 L0 9.24 L9.6 0 Z" fill="none" stroke="#B8860B" stroke-width="3.5"/>
+                    <path d="M12.8 6.16 L51.2 6.16 L58.9 11.55" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="12.8" cy="11.55" r="2.56" fill="#B8860B"/>
+                    <circle cx="51.2" cy="11.55" r="2.56" fill="#B8860B"/>
+                    <text x="32" y="42" text-anchor="middle" font-family="VT323" font-size="22" fill="#121212">BOW</text>
+                </svg>
+                <span class="badge-label">Gold</span>
+            </div>
+            <!-- Purple -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="77" viewBox="0 0 64 77">
+                    <path d="M9.6 0 L54.4 0 L64 9.24 L64 38.5 L32 77 L0 38.5 L0 9.24 L9.6 0 Z" fill="#9C27B0"/>
+                    <path d="M9.6 0 L54.4 0 L64 9.24 L64 38.5 L32 77 L0 38.5 L0 9.24 L9.6 0 Z" fill="none" stroke="#6A1B9A" stroke-width="3.5"/>
+                    <path d="M12.8 6.16 L51.2 6.16 L58.9 11.55" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="12.8" cy="11.55" r="2.56" fill="#6A1B9A"/>
+                    <circle cx="51.2" cy="11.55" r="2.56" fill="#6A1B9A"/>
+                    <text x="32" y="42" text-anchor="middle" font-family="VT323" font-size="22" fill="#FFFFFF">BOW</text>
+                </svg>
+                <span class="badge-label">Purple</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDUCATION AWARD -->
+    <div class="section">
+        <h3>EDUCATION AWARD BADGE</h3>
+        <p class="description">Erudite, refined, scholarly. University crest style with decorative curved top. Elegant taper with thin borders. Used for reading coaching guides.</p>
+        <div class="badge-row">
+            <!-- White -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="80" viewBox="0 0 64 80">
+                    <path d="M32 4.8 Q16 0 6.4 6.4 Q0 9.6 0 16 L0 48 Q0 60 12.8 68 Q22.4 73.6 32 80 Q41.6 73.6 51.2 68 Q64 60 64 48 L64 16 Q64 9.6 57.6 6.4 Q48 0 32 4.8 Z" fill="#EEEEEE"/>
+                    <path d="M32 4.8 Q16 0 6.4 6.4 Q0 9.6 0 16 L0 48 Q0 60 12.8 68 Q22.4 73.6 32 80 Q41.6 73.6 51.2 68 Q64 60 64 48 L64 16 Q64 9.6 57.6 6.4 Q48 0 32 4.8 Z" fill="none" stroke="#BDBDBD" stroke-width="2"/>
+                    <path d="M32 11.2 Q19.2 8 11.5 12 Q6.4 14.4 6.4 20" fill="none" stroke="rgba(189,189,189,0.5)" stroke-width="1"/>
+                    <path d="M32 11.2 Q44.8 8 52.5 12 Q57.6 14.4 57.6 20" fill="none" stroke="rgba(189,189,189,0.5)" stroke-width="1"/>
+                    <text x="32" y="46" text-anchor="middle" font-family="VT323" font-size="20" fill="#121212">EDU</text>
+                </svg>
+                <span class="badge-label">White</span>
+            </div>
+            <!-- Black -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="80" viewBox="0 0 64 80">
+                    <path d="M32 4.8 Q16 0 6.4 6.4 Q0 9.6 0 16 L0 48 Q0 60 12.8 68 Q22.4 73.6 32 80 Q41.6 73.6 51.2 68 Q64 60 64 48 L64 16 Q64 9.6 57.6 6.4 Q48 0 32 4.8 Z" fill="#212121"/>
+                    <path d="M32 4.8 Q16 0 6.4 6.4 Q0 9.6 0 16 L0 48 Q0 60 12.8 68 Q22.4 73.6 32 80 Q41.6 73.6 51.2 68 Q64 60 64 48 L64 16 Q64 9.6 57.6 6.4 Q48 0 32 4.8 Z" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+                    <text x="32" y="46" text-anchor="middle" font-family="VT323" font-size="20" fill="#FFFFFF">EDU</text>
+                </svg>
+                <span class="badge-label">Black</span>
+            </div>
+            <!-- Blue -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="80" viewBox="0 0 64 80">
+                    <path d="M32 4.8 Q16 0 6.4 6.4 Q0 9.6 0 16 L0 48 Q0 60 12.8 68 Q22.4 73.6 32 80 Q41.6 73.6 51.2 68 Q64 60 64 48 L64 16 Q64 9.6 57.6 6.4 Q48 0 32 4.8 Z" fill="#42A5F5"/>
+                    <path d="M32 4.8 Q16 0 6.4 6.4 Q0 9.6 0 16 L0 48 Q0 60 12.8 68 Q22.4 73.6 32 80 Q41.6 73.6 51.2 68 Q64 60 64 48 L64 16 Q64 9.6 57.6 6.4 Q48 0 32 4.8 Z" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+                    <text x="32" y="46" text-anchor="middle" font-family="VT323" font-size="20" fill="#FFFFFF">EDU</text>
+                </svg>
+                <span class="badge-label">Blue</span>
+            </div>
+            <!-- Red -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="80" viewBox="0 0 64 80">
+                    <path d="M32 4.8 Q16 0 6.4 6.4 Q0 9.6 0 16 L0 48 Q0 60 12.8 68 Q22.4 73.6 32 80 Q41.6 73.6 51.2 68 Q64 60 64 48 L64 16 Q64 9.6 57.6 6.4 Q48 0 32 4.8 Z" fill="#E53935"/>
+                    <path d="M32 4.8 Q16 0 6.4 6.4 Q0 9.6 0 16 L0 48 Q0 60 12.8 68 Q22.4 73.6 32 80 Q41.6 73.6 51.2 68 Q64 60 64 48 L64 16 Q64 9.6 57.6 6.4 Q48 0 32 4.8 Z" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+                    <text x="32" y="46" text-anchor="middle" font-family="VT323" font-size="20" fill="#FFFFFF">EDU</text>
+                </svg>
+                <span class="badge-label">Red</span>
+            </div>
+            <!-- Gold -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="80" viewBox="0 0 64 80">
+                    <path d="M32 4.8 Q16 0 6.4 6.4 Q0 9.6 0 16 L0 48 Q0 60 12.8 68 Q22.4 73.6 32 80 Q41.6 73.6 51.2 68 Q64 60 64 48 L64 16 Q64 9.6 57.6 6.4 Q48 0 32 4.8 Z" fill="#FFD700"/>
+                    <path d="M32 4.8 Q16 0 6.4 6.4 Q0 9.6 0 16 L0 48 Q0 60 12.8 68 Q22.4 73.6 32 80 Q41.6 73.6 51.2 68 Q64 60 64 48 L64 16 Q64 9.6 57.6 6.4 Q48 0 32 4.8 Z" fill="none" stroke="#D4AF37" stroke-width="2"/>
+                    <text x="32" y="46" text-anchor="middle" font-family="VT323" font-size="20" fill="#121212">EDU</text>
+                </svg>
+                <span class="badge-label">Gold</span>
+            </div>
+            <!-- Purple -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="80" viewBox="0 0 64 80">
+                    <path d="M32 4.8 Q16 0 6.4 6.4 Q0 9.6 0 16 L0 48 Q0 60 12.8 68 Q22.4 73.6 32 80 Q41.6 73.6 51.2 68 Q64 60 64 48 L64 16 Q64 9.6 57.6 6.4 Q48 0 32 4.8 Z" fill="#9C27B0"/>
+                    <path d="M32 4.8 Q16 0 6.4 6.4 Q0 9.6 0 16 L0 48 Q0 60 12.8 68 Q22.4 73.6 32 80 Q41.6 73.6 51.2 68 Q64 60 64 48 L64 16 Q64 9.6 57.6 6.4 Q48 0 32 4.8 Z" fill="none" stroke="#7B1FA2" stroke-width="2"/>
+                    <text x="32" y="46" text-anchor="middle" font-family="VT323" font-size="20" fill="#FFFFFF">EDU</text>
+                </svg>
+                <span class="badge-label">Purple</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANALYSIS AWARD -->
+    <div class="section">
+        <h3>ANALYSIS AWARD BADGE</h3>
+        <p class="description">Precise, angular, technical. Hexagonal influence with sharp edges. Technical grid lines for precision feel. Used for analysis/scoring streaks.</p>
+        <div class="badge-row">
+            <!-- White -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="74" viewBox="0 0 64 74">
+                    <path d="M12.8 0 L51.2 0 L64 11.1 L64 40.7 L44.8 59.2 L32 74 L19.2 59.2 L0 40.7 L0 11.1 L12.8 0 Z" fill="#EEEEEE"/>
+                    <path d="M12.8 0 L51.2 0 L64 11.1 L64 40.7 L44.8 59.2 L32 74 L19.2 59.2 L0 40.7 L0 11.1 L12.8 0 Z" fill="none" stroke="#BDBDBD" stroke-width="2" stroke-linejoin="miter"/>
+                    <line x1="9.6" y1="14.8" x2="54.4" y2="14.8" stroke="rgba(18,18,18,0.15)" stroke-width="0.5"/>
+                    <line x1="9.6" y1="29.6" x2="54.4" y2="29.6" stroke="rgba(18,18,18,0.15)" stroke-width="0.5"/>
+                    <line x1="9.6" y1="44.4" x2="54.4" y2="44.4" stroke="rgba(18,18,18,0.15)" stroke-width="0.5"/>
+                    <text x="32" y="38" text-anchor="middle" font-family="Share Tech Mono" font-size="14" fill="#121212">DATA</text>
+                </svg>
+                <span class="badge-label">White</span>
+            </div>
+            <!-- Black -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="74" viewBox="0 0 64 74">
+                    <path d="M12.8 0 L51.2 0 L64 11.1 L64 40.7 L44.8 59.2 L32 74 L19.2 59.2 L0 40.7 L0 11.1 L12.8 0 Z" fill="#212121"/>
+                    <path d="M12.8 0 L51.2 0 L64 11.1 L64 40.7 L44.8 59.2 L32 74 L19.2 59.2 L0 40.7 L0 11.1 L12.8 0 Z" fill="none" stroke="#616161" stroke-width="2" stroke-linejoin="miter"/>
+                    <line x1="9.6" y1="14.8" x2="54.4" y2="14.8" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
+                    <line x1="9.6" y1="29.6" x2="54.4" y2="29.6" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
+                    <line x1="9.6" y1="44.4" x2="54.4" y2="44.4" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
+                    <text x="32" y="38" text-anchor="middle" font-family="Share Tech Mono" font-size="14" fill="#FFFFFF">DATA</text>
+                </svg>
+                <span class="badge-label">Black</span>
+            </div>
+            <!-- Blue -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="74" viewBox="0 0 64 74">
+                    <path d="M12.8 0 L51.2 0 L64 11.1 L64 40.7 L44.8 59.2 L32 74 L19.2 59.2 L0 40.7 L0 11.1 L12.8 0 Z" fill="#42A5F5"/>
+                    <path d="M12.8 0 L51.2 0 L64 11.1 L64 40.7 L44.8 59.2 L32 74 L19.2 59.2 L0 40.7 L0 11.1 L12.8 0 Z" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linejoin="miter"/>
+                    <line x1="9.6" y1="14.8" x2="54.4" y2="14.8" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
+                    <line x1="9.6" y1="29.6" x2="54.4" y2="29.6" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
+                    <line x1="9.6" y1="44.4" x2="54.4" y2="44.4" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
+                    <text x="32" y="38" text-anchor="middle" font-family="Share Tech Mono" font-size="14" fill="#FFFFFF">DATA</text>
+                </svg>
+                <span class="badge-label">Blue</span>
+            </div>
+            <!-- Red -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="74" viewBox="0 0 64 74">
+                    <path d="M12.8 0 L51.2 0 L64 11.1 L64 40.7 L44.8 59.2 L32 74 L19.2 59.2 L0 40.7 L0 11.1 L12.8 0 Z" fill="#E53935"/>
+                    <path d="M12.8 0 L51.2 0 L64 11.1 L64 40.7 L44.8 59.2 L32 74 L19.2 59.2 L0 40.7 L0 11.1 L12.8 0 Z" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linejoin="miter"/>
+                    <line x1="9.6" y1="14.8" x2="54.4" y2="14.8" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
+                    <line x1="9.6" y1="29.6" x2="54.4" y2="29.6" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
+                    <line x1="9.6" y1="44.4" x2="54.4" y2="44.4" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
+                    <text x="32" y="38" text-anchor="middle" font-family="Share Tech Mono" font-size="14" fill="#FFFFFF">DATA</text>
+                </svg>
+                <span class="badge-label">Red</span>
+            </div>
+            <!-- Gold -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="74" viewBox="0 0 64 74">
+                    <path d="M12.8 0 L51.2 0 L64 11.1 L64 40.7 L44.8 59.2 L32 74 L19.2 59.2 L0 40.7 L0 11.1 L12.8 0 Z" fill="#FFD700"/>
+                    <path d="M12.8 0 L51.2 0 L64 11.1 L64 40.7 L44.8 59.2 L32 74 L19.2 59.2 L0 40.7 L0 11.1 L12.8 0 Z" fill="none" stroke="#B8860B" stroke-width="2" stroke-linejoin="miter"/>
+                    <line x1="9.6" y1="14.8" x2="54.4" y2="14.8" stroke="rgba(18,18,18,0.15)" stroke-width="0.5"/>
+                    <line x1="9.6" y1="29.6" x2="54.4" y2="29.6" stroke="rgba(18,18,18,0.15)" stroke-width="0.5"/>
+                    <line x1="9.6" y1="44.4" x2="54.4" y2="44.4" stroke="rgba(18,18,18,0.15)" stroke-width="0.5"/>
+                    <text x="32" y="38" text-anchor="middle" font-family="Share Tech Mono" font-size="14" fill="#121212">DATA</text>
+                </svg>
+                <span class="badge-label">Gold</span>
+            </div>
+            <!-- Purple -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="74" viewBox="0 0 64 74">
+                    <path d="M12.8 0 L51.2 0 L64 11.1 L64 40.7 L44.8 59.2 L32 74 L19.2 59.2 L0 40.7 L0 11.1 L12.8 0 Z" fill="#9C27B0"/>
+                    <path d="M12.8 0 L51.2 0 L64 11.1 L64 40.7 L44.8 59.2 L32 74 L19.2 59.2 L0 40.7 L0 11.1 L12.8 0 Z" fill="none" stroke="#6A1B9A" stroke-width="2" stroke-linejoin="miter"/>
+                    <line x1="9.6" y1="14.8" x2="54.4" y2="14.8" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
+                    <line x1="9.6" y1="29.6" x2="54.4" y2="29.6" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
+                    <line x1="9.6" y1="44.4" x2="54.4" y2="44.4" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
+                    <text x="32" y="38" text-anchor="middle" font-family="Share Tech Mono" font-size="14" fill="#FFFFFF">DATA</text>
+                </svg>
+                <span class="badge-label">Purple</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLASSIFICATION AWARD -->
+    <div class="section">
+        <h3>CLASSIFICATION AWARD BADGE</h3>
+        <p class="description">Elaborate, fancy, heraldic. Crown-like decorative points at top. Gradient fill and ornate borders. Used for AGB classifications (A3 to GMB).</p>
+        <div class="badge-row">
+            <!-- White / A3 -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="70" height="83" viewBox="0 0 70 83">
+                    <defs>
+                        <linearGradient id="grad-white" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#F5F5F5"/>
+                            <stop offset="40%" style="stop-color:#EEEEEE"/>
+                            <stop offset="100%" style="stop-color:#E0E0E0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M35 0 L24.5 6.64 L17.5 1.66 L10.5 8.3 Q0 9.96 0 18.26 L0 33.2 Q3.5 37.35 0 41.5 L0 53.95 Q0 66.4 17.5 74.7 Q28 78.85 35 83 Q42 78.85 52.5 74.7 Q70 66.4 70 53.95 L70 41.5 Q66.5 37.35 70 33.2 L70 18.26 Q70 9.96 59.5 8.3 L52.5 1.66 L45.5 6.64 L35 0 Z" fill="url(#grad-white)"/>
+                    <path d="M35 0 L24.5 6.64 L17.5 1.66 L10.5 8.3 Q0 9.96 0 18.26 L0 33.2 Q3.5 37.35 0 41.5 L0 53.95 Q0 66.4 17.5 74.7 Q28 78.85 35 83 Q42 78.85 52.5 74.7 Q70 66.4 70 53.95 L70 41.5 Q66.5 37.35 70 33.2 L70 18.26 Q70 9.96 59.5 8.3 L52.5 1.66 L45.5 6.64 L35 0 Z" fill="none" stroke="#BDBDBD" stroke-width="2.5"/>
+                    <text x="35" y="50" text-anchor="middle" font-family="VT323" font-size="24" fill="#121212">A3</text>
+                </svg>
+                <span class="badge-label">White (A3)</span>
+            </div>
+            <!-- Black / A2 -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="70" height="83" viewBox="0 0 70 83">
+                    <defs>
+                        <linearGradient id="grad-black" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#2D2D2D"/>
+                            <stop offset="40%" style="stop-color:#212121"/>
+                            <stop offset="100%" style="stop-color:#1A1A1A"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M35 0 L24.5 6.64 L17.5 1.66 L10.5 8.3 Q0 9.96 0 18.26 L0 33.2 Q3.5 37.35 0 41.5 L0 53.95 Q0 66.4 17.5 74.7 Q28 78.85 35 83 Q42 78.85 52.5 74.7 Q70 66.4 70 53.95 L70 41.5 Q66.5 37.35 70 33.2 L70 18.26 Q70 9.96 59.5 8.3 L52.5 1.66 L45.5 6.64 L35 0 Z" fill="url(#grad-black)"/>
+                    <path d="M35 0 L24.5 6.64 L17.5 1.66 L10.5 8.3 Q0 9.96 0 18.26 L0 33.2 Q3.5 37.35 0 41.5 L0 53.95 Q0 66.4 17.5 74.7 Q28 78.85 35 83 Q42 78.85 52.5 74.7 Q70 66.4 70 53.95 L70 41.5 Q66.5 37.35 70 33.2 L70 18.26 Q70 9.96 59.5 8.3 L52.5 1.66 L45.5 6.64 L35 0 Z" fill="none" stroke="#424242" stroke-width="2.5"/>
+                    <text x="35" y="50" text-anchor="middle" font-family="VT323" font-size="24" fill="#FFFFFF">A2</text>
+                </svg>
+                <span class="badge-label">Black (A2)</span>
+            </div>
+            <!-- Blue / A1 -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="70" height="83" viewBox="0 0 70 83">
+                    <defs>
+                        <linearGradient id="grad-blue" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#64B5F6"/>
+                            <stop offset="40%" style="stop-color:#42A5F5"/>
+                            <stop offset="100%" style="stop-color:#2196F3"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M35 0 L24.5 6.64 L17.5 1.66 L10.5 8.3 Q0 9.96 0 18.26 L0 33.2 Q3.5 37.35 0 41.5 L0 53.95 Q0 66.4 17.5 74.7 Q28 78.85 35 83 Q42 78.85 52.5 74.7 Q70 66.4 70 53.95 L70 41.5 Q66.5 37.35 70 33.2 L70 18.26 Q70 9.96 59.5 8.3 L52.5 1.66 L45.5 6.64 L35 0 Z" fill="url(#grad-blue)"/>
+                    <path d="M35 0 L24.5 6.64 L17.5 1.66 L10.5 8.3 Q0 9.96 0 18.26 L0 33.2 Q3.5 37.35 0 41.5 L0 53.95 Q0 66.4 17.5 74.7 Q28 78.85 35 83 Q42 78.85 52.5 74.7 Q70 66.4 70 53.95 L70 41.5 Q66.5 37.35 70 33.2 L70 18.26 Q70 9.96 59.5 8.3 L52.5 1.66 L45.5 6.64 L35 0 Z" fill="none" stroke="#1565C0" stroke-width="2.5"/>
+                    <text x="35" y="50" text-anchor="middle" font-family="VT323" font-size="24" fill="#FFFFFF">A1</text>
+                </svg>
+                <span class="badge-label">Blue (A1)</span>
+            </div>
+            <!-- Red / B3 -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="70" height="83" viewBox="0 0 70 83">
+                    <defs>
+                        <linearGradient id="grad-red" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#EF5350"/>
+                            <stop offset="40%" style="stop-color:#E53935"/>
+                            <stop offset="100%" style="stop-color:#D32F2F"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M35 0 L24.5 6.64 L17.5 1.66 L10.5 8.3 Q0 9.96 0 18.26 L0 33.2 Q3.5 37.35 0 41.5 L0 53.95 Q0 66.4 17.5 74.7 Q28 78.85 35 83 Q42 78.85 52.5 74.7 Q70 66.4 70 53.95 L70 41.5 Q66.5 37.35 70 33.2 L70 18.26 Q70 9.96 59.5 8.3 L52.5 1.66 L45.5 6.64 L35 0 Z" fill="url(#grad-red)"/>
+                    <path d="M35 0 L24.5 6.64 L17.5 1.66 L10.5 8.3 Q0 9.96 0 18.26 L0 33.2 Q3.5 37.35 0 41.5 L0 53.95 Q0 66.4 17.5 74.7 Q28 78.85 35 83 Q42 78.85 52.5 74.7 Q70 66.4 70 53.95 L70 41.5 Q66.5 37.35 70 33.2 L70 18.26 Q70 9.96 59.5 8.3 L52.5 1.66 L45.5 6.64 L35 0 Z" fill="none" stroke="#B71C1C" stroke-width="2.5"/>
+                    <text x="35" y="50" text-anchor="middle" font-family="VT323" font-size="24" fill="#FFFFFF">B3</text>
+                </svg>
+                <span class="badge-label">Red (B3)</span>
+            </div>
+            <!-- Gold / MB -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="70" height="83" viewBox="0 0 70 83">
+                    <defs>
+                        <linearGradient id="grad-gold" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#FFE066"/>
+                            <stop offset="40%" style="stop-color:#FFD700"/>
+                            <stop offset="100%" style="stop-color:#FFC107"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M35 0 L24.5 6.64 L17.5 1.66 L10.5 8.3 Q0 9.96 0 18.26 L0 33.2 Q3.5 37.35 0 41.5 L0 53.95 Q0 66.4 17.5 74.7 Q28 78.85 35 83 Q42 78.85 52.5 74.7 Q70 66.4 70 53.95 L70 41.5 Q66.5 37.35 70 33.2 L70 18.26 Q70 9.96 59.5 8.3 L52.5 1.66 L45.5 6.64 L35 0 Z" fill="url(#grad-gold)"/>
+                    <path d="M35 0 L24.5 6.64 L17.5 1.66 L10.5 8.3 Q0 9.96 0 18.26 L0 33.2 Q3.5 37.35 0 41.5 L0 53.95 Q0 66.4 17.5 74.7 Q28 78.85 35 83 Q42 78.85 52.5 74.7 Q70 66.4 70 53.95 L70 41.5 Q66.5 37.35 70 33.2 L70 18.26 Q70 9.96 59.5 8.3 L52.5 1.66 L45.5 6.64 L35 0 Z" fill="none" stroke="#B8860B" stroke-width="2.5"/>
+                    <text x="35" y="50" text-anchor="middle" font-family="VT323" font-size="24" fill="#121212">MB</text>
+                </svg>
+                <span class="badge-label">Gold (MB)</span>
+            </div>
+            <!-- Purple / GMB -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="70" height="83" viewBox="0 0 70 83">
+                    <defs>
+                        <linearGradient id="grad-purple" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#AB47BC"/>
+                            <stop offset="40%" style="stop-color:#9C27B0"/>
+                            <stop offset="100%" style="stop-color:#7B1FA2"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M35 0 L24.5 6.64 L17.5 1.66 L10.5 8.3 Q0 9.96 0 18.26 L0 33.2 Q3.5 37.35 0 41.5 L0 53.95 Q0 66.4 17.5 74.7 Q28 78.85 35 83 Q42 78.85 52.5 74.7 Q70 66.4 70 53.95 L70 41.5 Q66.5 37.35 70 33.2 L70 18.26 Q70 9.96 59.5 8.3 L52.5 1.66 L45.5 6.64 L35 0 Z" fill="url(#grad-purple)"/>
+                    <path d="M35 0 L24.5 6.64 L17.5 1.66 L10.5 8.3 Q0 9.96 0 18.26 L0 33.2 Q3.5 37.35 0 41.5 L0 53.95 Q0 66.4 17.5 74.7 Q28 78.85 35 83 Q42 78.85 52.5 74.7 Q70 66.4 70 53.95 L70 41.5 Q66.5 37.35 70 33.2 L70 18.26 Q70 9.96 59.5 8.3 L52.5 1.66 L45.5 6.64 L35 0 Z" fill="none" stroke="#6A1B9A" stroke-width="2.5"/>
+                    <text x="35" y="50" text-anchor="middle" font-family="VT323" font-size="24" fill="#FFFFFF">GMB</text>
+                </svg>
+                <span class="badge-label">Purple (GMB)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================== -->
+    <!-- XP ACHIEVEMENT SHIELDS             -->
+    <!-- ================================== -->
+    <h2>XP ACHIEVEMENT SHIELDS</h2>
+    <p class="description">Pixel art shields shown during XP award celebrations. Each achievement type has a unique accent color and decorative pattern.</p>
+
+    <div class="section">
+        <div class="badge-row">
+            <!-- Standard -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="60" height="72" viewBox="0 0 60 72">
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="#121212"/>
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="none" stroke="#FFD700" stroke-width="2"/>
+                    <path d="M9 7.2 L51 7.2 L54 10.8 L54 36 L30 61.2 L6 36 L6 10.8 L9 7.2 Z" fill="none" stroke="rgba(255,215,0,0.4)" stroke-width="1"/>
+                    <rect x="7" y="6" width="4" height="4" fill="#FFD700"/>
+                    <rect x="49" y="6" width="4" height="4" fill="#FFD700"/>
+                    <text x="30" y="28" text-anchor="middle" font-family="VT323" font-size="16" fill="#FFD700">+50</text>
+                    <text x="30" y="40" text-anchor="middle" font-family="VT323" font-size="10" fill="rgba(255,215,0,0.8)">XP</text>
+                </svg>
+                <span class="badge-label">Standard</span>
+                <span class="swatch-hex">#FFD700</span>
+            </div>
+            <!-- 7 Day Streak -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="60" height="72" viewBox="0 0 60 72">
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="#121212"/>
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="none" stroke="#FF6B35" stroke-width="2"/>
+                    <!-- Flame pattern -->
+                    <path d="M12 61.2 L15 54 L18 61.2" fill="rgba(255,107,53,0.15)"/>
+                    <path d="M21 61.2 L24 51.6 L27 61.2" fill="rgba(255,107,53,0.15)"/>
+                    <path d="M30 61.2 L33 54 L36 61.2" fill="rgba(255,107,53,0.15)"/>
+                    <path d="M39 61.2 L42 51.6 L45 61.2" fill="rgba(255,107,53,0.15)"/>
+                    <path d="M48 61.2 L51 54 L54 61.2" fill="rgba(255,107,53,0.15)"/>
+                    <rect x="7" y="6" width="4" height="4" fill="#FF6B35"/>
+                    <rect x="49" y="6" width="4" height="4" fill="#FF6B35"/>
+                    <rect x="13" y="14" width="6" height="6" fill="rgba(255,107,53,0.2)" stroke="#FF6B35" stroke-width="1.5"/>
+                    <text x="16" y="19" text-anchor="middle" font-family="VT323" font-size="8" fill="#FF6B35">7</text>
+                    <text x="30" y="32" text-anchor="middle" font-family="VT323" font-size="14" fill="#FF6B35">+75</text>
+                    <text x="30" y="42" text-anchor="middle" font-family="VT323" font-size="8" fill="rgba(255,107,53,0.8)">XP</text>
+                    <text x="30" y="52" text-anchor="middle" font-family="VT323" font-size="7" fill="#FF6B35">7 DAY STREAK</text>
+                </svg>
+                <span class="badge-label">7-Day Streak</span>
+                <span class="swatch-hex">#FF6B35</span>
+            </div>
+            <!-- 14 Day Streak -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="60" height="72" viewBox="0 0 60 72">
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="#121212"/>
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="none" stroke="#FF3366" stroke-width="2"/>
+                    <path d="M12 61.2 L15 54 L18 61.2" fill="rgba(255,51,102,0.15)"/>
+                    <path d="M21 61.2 L24 51.6 L27 61.2" fill="rgba(255,51,102,0.15)"/>
+                    <path d="M30 61.2 L33 54 L36 61.2" fill="rgba(255,51,102,0.15)"/>
+                    <path d="M39 61.2 L42 51.6 L45 61.2" fill="rgba(255,51,102,0.15)"/>
+                    <path d="M48 61.2 L51 54 L54 61.2" fill="rgba(255,51,102,0.15)"/>
+                    <rect x="7" y="6" width="4" height="4" fill="#FF3366"/>
+                    <rect x="49" y="6" width="4" height="4" fill="#FF3366"/>
+                    <rect x="11" y="14" width="9" height="6" fill="rgba(255,51,102,0.2)" stroke="#FF3366" stroke-width="1.5"/>
+                    <text x="15.5" y="19" text-anchor="middle" font-family="VT323" font-size="8" fill="#FF3366">14</text>
+                    <text x="30" y="32" text-anchor="middle" font-family="VT323" font-size="14" fill="#FF3366">+100</text>
+                    <text x="30" y="42" text-anchor="middle" font-family="VT323" font-size="8" fill="rgba(255,51,102,0.8)">XP</text>
+                    <text x="30" y="52" text-anchor="middle" font-family="VT323" font-size="7" fill="#FF3366">14 DAY STREAK</text>
+                </svg>
+                <span class="badge-label">14-Day Streak</span>
+                <span class="swatch-hex">#FF3366</span>
+            </div>
+            <!-- 30 Day Streak -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="60" height="72" viewBox="0 0 60 72">
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="#121212"/>
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="none" stroke="#9933FF" stroke-width="2"/>
+                    <path d="M12 61.2 L15 54 L18 61.2" fill="rgba(153,51,255,0.15)"/>
+                    <path d="M21 61.2 L24 51.6 L27 61.2" fill="rgba(153,51,255,0.15)"/>
+                    <path d="M30 61.2 L33 54 L36 61.2" fill="rgba(153,51,255,0.15)"/>
+                    <path d="M39 61.2 L42 51.6 L45 61.2" fill="rgba(153,51,255,0.15)"/>
+                    <path d="M48 61.2 L51 54 L54 61.2" fill="rgba(153,51,255,0.15)"/>
+                    <rect x="7" y="6" width="4" height="4" fill="#9933FF"/>
+                    <rect x="49" y="6" width="4" height="4" fill="#9933FF"/>
+                    <rect x="11" y="14" width="9" height="6" fill="rgba(153,51,255,0.2)" stroke="#9933FF" stroke-width="1.5"/>
+                    <text x="15.5" y="19" text-anchor="middle" font-family="VT323" font-size="8" fill="#9933FF">30</text>
+                    <text x="30" y="32" text-anchor="middle" font-family="VT323" font-size="14" fill="#9933FF">+150</text>
+                    <text x="30" y="42" text-anchor="middle" font-family="VT323" font-size="8" fill="rgba(153,51,255,0.8)">XP</text>
+                    <text x="30" y="52" text-anchor="middle" font-family="VT323" font-size="7" fill="#9933FF">30 DAY STREAK</text>
+                </svg>
+                <span class="badge-label">30-Day Streak</span>
+                <span class="swatch-hex">#9933FF</span>
+            </div>
+            <!-- Personal Best -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="60" height="72" viewBox="0 0 60 72">
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="#121212"/>
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="none" stroke="#00FF88" stroke-width="2"/>
+                    <!-- Star pattern -->
+                    <line x1="30" y1="32.4" x2="30" y2="18" stroke="rgba(0,255,136,0.1)" stroke-width="2"/>
+                    <line x1="30" y1="32.4" x2="44" y2="32.4" stroke="rgba(0,255,136,0.1)" stroke-width="2"/>
+                    <line x1="30" y1="32.4" x2="37" y2="45" stroke="rgba(0,255,136,0.1)" stroke-width="2"/>
+                    <line x1="30" y1="32.4" x2="23" y2="45" stroke="rgba(0,255,136,0.1)" stroke-width="2"/>
+                    <line x1="30" y1="32.4" x2="16" y2="32.4" stroke="rgba(0,255,136,0.1)" stroke-width="2"/>
+                    <rect x="7" y="6" width="4" height="4" fill="#00FF88"/>
+                    <rect x="49" y="6" width="4" height="4" fill="#00FF88"/>
+                    <rect x="12" y="14" width="11" height="6" fill="rgba(0,255,136,0.2)" stroke="#00FF88" stroke-width="1.5"/>
+                    <text x="17.5" y="19" text-anchor="middle" font-family="VT323" font-size="8" fill="#00FF88">PB</text>
+                    <text x="30" y="35" text-anchor="middle" font-family="VT323" font-size="14" fill="#00FF88">+200</text>
+                    <text x="30" y="45" text-anchor="middle" font-family="VT323" font-size="8" fill="rgba(0,255,136,0.8)">XP</text>
+                    <text x="30" y="55" text-anchor="middle" font-family="VT323" font-size="7" fill="#00FF88">PERSONAL BEST!</text>
+                </svg>
+                <span class="badge-label">Personal Best</span>
+                <span class="swatch-hex">#00FF88</span>
+            </div>
+            <!-- Competition -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="60" height="72" viewBox="0 0 60 72">
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="#121212"/>
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="none" stroke="#00BFFF" stroke-width="2"/>
+                    <!-- Diamond pattern -->
+                    <path d="M15 18 L19 22 L15 26 L11 22 Z" fill="rgba(0,191,255,0.1)"/>
+                    <path d="M45 18 L49 22 L45 26 L41 22 Z" fill="rgba(0,191,255,0.1)"/>
+                    <path d="M30 50.4 L34 54.4 L30 58.4 L26 54.4 Z" fill="rgba(0,191,255,0.1)"/>
+                    <rect x="7" y="6" width="4" height="4" fill="#00BFFF"/>
+                    <rect x="49" y="6" width="4" height="4" fill="#00BFFF"/>
+                    <text x="30" y="24" text-anchor="middle" font-family="VT323" font-size="14" fill="#00BFFF">&#9733;</text>
+                    <text x="30" y="38" text-anchor="middle" font-family="VT323" font-size="12" fill="#00BFFF">+100</text>
+                    <text x="30" y="48" text-anchor="middle" font-family="VT323" font-size="7" fill="rgba(0,191,255,0.8)">XP</text>
+                </svg>
+                <span class="badge-label">Competition</span>
+                <span class="swatch-hex">#00BFFF</span>
+            </div>
+            <!-- Milestone -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="60" height="72" viewBox="0 0 60 72">
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="#121212"/>
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="none" stroke="#FFD700" stroke-width="2"/>
+                    <!-- Crown pattern -->
+                    <path d="M18 10.8 L21 5.8 L24 8.6 L30 3.6 L36 8.6 L39 5.8 L42 10.8" fill="none" stroke="rgba(255,215,0,0.15)" stroke-width="2"/>
+                    <rect x="7" y="6" width="4" height="4" fill="#FFD700"/>
+                    <rect x="49" y="6" width="4" height="4" fill="#FFD700"/>
+                    <text x="30" y="24" text-anchor="middle" font-family="VT323" font-size="14" fill="#FFD700">&#9670;</text>
+                    <text x="30" y="38" text-anchor="middle" font-family="VT323" font-size="12" fill="#FFD700">+500</text>
+                    <text x="30" y="48" text-anchor="middle" font-family="VT323" font-size="7" fill="rgba(255,215,0,0.8)">XP</text>
+                    <text x="30" y="56" text-anchor="middle" font-family="VT323" font-size="7" fill="#FFD700">MILESTONE</text>
+                </svg>
+                <span class="badge-label">Milestone</span>
+                <span class="swatch-hex">#FFD700</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================== -->
+    <!-- BREATH HOLD AWARDS                 -->
+    <!-- ================================== -->
+    <h2>BREATH HOLD AWARDS</h2>
+    <p class="description">Flowing, vapor-like badges for breath hold achievements. Organic, wispy edges with ethereal quality. Color progresses based on seconds held.</p>
+
+    <div class="section">
+        <div class="badge-row">
+            <!-- 20 seconds -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="64" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(120,144,156,0.15)" stroke-width="8" style="filter: blur(4px);"/>
+                    <path d="M32 5.12 C48 7.68 56 19.2 54.4 32 C52.5 44.8 41.6 54.4 32 60.8 C22.4 54.4 11.5 44.8 9.6 32 C8 19.2 16 7.68 32 5.12 Z" fill="rgba(120,144,156,0.25)"/>
+                    <path d="M32 5.12 C48 7.68 56 19.2 54.4 32 C52.5 44.8 41.6 54.4 32 60.8 C22.4 54.4 11.5 44.8 9.6 32 C8 19.2 16 7.68 32 5.12 Z" fill="none" stroke="#78909C" stroke-width="2"/>
+                    <!-- Vapor wisps -->
+                    <path d="M32 48 Q29 35 32 25.6 Q33 19.2 31 14" fill="none" stroke="rgba(120,144,156,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M22 45 Q18 32 24 22.4 Q26 18 22 16" fill="none" stroke="rgba(120,144,156,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M42 45 Q46 32 40 22.4 Q38 18 42 16" fill="none" stroke="rgba(120,144,156,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+                    <circle cx="26" cy="29" r="2" fill="rgba(120,144,156,0.5)"/>
+                    <circle cx="38" cy="27" r="1.5" fill="rgba(120,144,156,0.5)"/>
+                    <circle cx="33" cy="21" r="1.5" fill="rgba(120,144,156,0.5)"/>
+                </svg>
+                <span class="badge-label">20s - Novice</span>
+                <span class="swatch-hex">#78909C</span>
+            </div>
+            <!-- 30 seconds -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="64" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(38,166,154,0.15)" stroke-width="8" style="filter: blur(4px);"/>
+                    <path d="M32 5.12 C48 7.68 56 19.2 54.4 32 C52.5 44.8 41.6 54.4 32 60.8 C22.4 54.4 11.5 44.8 9.6 32 C8 19.2 16 7.68 32 5.12 Z" fill="rgba(38,166,154,0.25)"/>
+                    <path d="M32 5.12 C48 7.68 56 19.2 54.4 32 C52.5 44.8 41.6 54.4 32 60.8 C22.4 54.4 11.5 44.8 9.6 32 C8 19.2 16 7.68 32 5.12 Z" fill="none" stroke="#26A69A" stroke-width="2"/>
+                    <path d="M32 48 Q29 35 32 25.6 Q33 19.2 31 14" fill="none" stroke="rgba(38,166,154,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M22 45 Q18 32 24 22.4 Q26 18 22 16" fill="none" stroke="rgba(38,166,154,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M42 45 Q46 32 40 22.4 Q38 18 42 16" fill="none" stroke="rgba(38,166,154,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+                    <circle cx="26" cy="29" r="2" fill="rgba(38,166,154,0.5)"/>
+                    <circle cx="38" cy="27" r="1.5" fill="rgba(38,166,154,0.5)"/>
+                    <circle cx="33" cy="21" r="1.5" fill="rgba(38,166,154,0.5)"/>
+                </svg>
+                <span class="badge-label">30s - Calm Mind</span>
+                <span class="swatch-hex">#26A69A</span>
+            </div>
+            <!-- 40 seconds -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="64" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,215,0,0.15)" stroke-width="8" style="filter: blur(4px);"/>
+                    <path d="M32 5.12 C48 7.68 56 19.2 54.4 32 C52.5 44.8 41.6 54.4 32 60.8 C22.4 54.4 11.5 44.8 9.6 32 C8 19.2 16 7.68 32 5.12 Z" fill="rgba(255,215,0,0.25)"/>
+                    <path d="M32 5.12 C48 7.68 56 19.2 54.4 32 C52.5 44.8 41.6 54.4 32 60.8 C22.4 54.4 11.5 44.8 9.6 32 C8 19.2 16 7.68 32 5.12 Z" fill="none" stroke="#FFD700" stroke-width="2"/>
+                    <path d="M32 48 Q29 35 32 25.6 Q33 19.2 31 14" fill="none" stroke="rgba(255,215,0,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M22 45 Q18 32 24 22.4 Q26 18 22 16" fill="none" stroke="rgba(255,215,0,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M42 45 Q46 32 40 22.4 Q38 18 42 16" fill="none" stroke="rgba(255,215,0,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+                    <circle cx="26" cy="29" r="2" fill="rgba(255,215,0,0.5)"/>
+                    <circle cx="38" cy="27" r="1.5" fill="rgba(255,215,0,0.5)"/>
+                    <circle cx="33" cy="21" r="1.5" fill="rgba(255,215,0,0.5)"/>
+                </svg>
+                <span class="badge-label">40s - Deep Diver</span>
+                <span class="swatch-hex">#FFD700</span>
+            </div>
+            <!-- 50 seconds -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="64" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(170,102,255,0.15)" stroke-width="8" style="filter: blur(4px);"/>
+                    <path d="M32 5.12 C48 7.68 56 19.2 54.4 32 C52.5 44.8 41.6 54.4 32 60.8 C22.4 54.4 11.5 44.8 9.6 32 C8 19.2 16 7.68 32 5.12 Z" fill="rgba(170,102,255,0.25)"/>
+                    <path d="M32 5.12 C48 7.68 56 19.2 54.4 32 C52.5 44.8 41.6 54.4 32 60.8 C22.4 54.4 11.5 44.8 9.6 32 C8 19.2 16 7.68 32 5.12 Z" fill="none" stroke="#AA66FF" stroke-width="2"/>
+                    <path d="M32 48 Q29 35 32 25.6 Q33 19.2 31 14" fill="none" stroke="rgba(170,102,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M22 45 Q18 32 24 22.4 Q26 18 22 16" fill="none" stroke="rgba(170,102,255,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M42 45 Q46 32 40 22.4 Q38 18 42 16" fill="none" stroke="rgba(170,102,255,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+                    <circle cx="26" cy="29" r="2" fill="rgba(170,102,255,0.5)"/>
+                    <circle cx="38" cy="27" r="1.5" fill="rgba(170,102,255,0.5)"/>
+                    <circle cx="33" cy="21" r="1.5" fill="rgba(170,102,255,0.5)"/>
+                </svg>
+                <span class="badge-label">50s - Oxygen Master</span>
+                <span class="swatch-hex">#AA66FF</span>
+            </div>
+            <!-- 60+ seconds -->
+            <div class="badge-item">
+                <svg class="badge-svg" width="64" height="64" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(0,229,255,0.15)" stroke-width="8" style="filter: blur(4px);"/>
+                    <path d="M32 5.12 C48 7.68 56 19.2 54.4 32 C52.5 44.8 41.6 54.4 32 60.8 C22.4 54.4 11.5 44.8 9.6 32 C8 19.2 16 7.68 32 5.12 Z" fill="rgba(0,229,255,0.25)"/>
+                    <path d="M32 5.12 C48 7.68 56 19.2 54.4 32 C52.5 44.8 41.6 54.4 32 60.8 C22.4 54.4 11.5 44.8 9.6 32 C8 19.2 16 7.68 32 5.12 Z" fill="none" stroke="#00E5FF" stroke-width="2"/>
+                    <path d="M32 48 Q29 35 32 25.6 Q33 19.2 31 14" fill="none" stroke="rgba(0,229,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M22 45 Q18 32 24 22.4 Q26 18 22 16" fill="none" stroke="rgba(0,229,255,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M42 45 Q46 32 40 22.4 Q38 18 42 16" fill="none" stroke="rgba(0,229,255,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+                    <circle cx="26" cy="29" r="2" fill="rgba(0,229,255,0.5)"/>
+                    <circle cx="38" cy="27" r="1.5" fill="rgba(0,229,255,0.5)"/>
+                    <circle cx="33" cy="21" r="1.5" fill="rgba(0,229,255,0.5)"/>
+                </svg>
+                <span class="badge-label">60s+ Transcendent</span>
+                <span class="swatch-hex">#00E5FF</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================== -->
+    <!-- LEVEL BADGES                       -->
+    <!-- ================================== -->
+    <h2>LEVEL BADGES</h2>
+    <p class="description">Compact level indicators for menu items and skill displays. Gold box with level number and optional XP progress bar.</p>
+
+    <div class="section">
+        <div class="badge-row">
+            <!-- Compact Level Badge -->
+            <div class="badge-item">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <div style="padding: 2px 6px; background: rgba(255,215,0,0.15); border: 1px solid #FFD700; font-family: VT323; font-size: 12px; color: #FFD700; letter-spacing: 0.5px;">LV12</div>
+                    <div style="width: 40px; height: 4px; background: #2A2A2A; border-radius: 2px; position: relative;">
+                        <div style="width: 60%; height: 100%; background: #FFD700; border-radius: 2px;"></div>
+                    </div>
+                </div>
+                <span class="badge-label">Compact</span>
+            </div>
+            <!-- Large Level Display -->
+            <div class="badge-item">
+                <div style="padding: 12px; background: #1E1E1E; border: 1px solid #2A2A2A; display: flex; gap: 12px; align-items: center;">
+                    <div style="width: 48px; height: 48px; background: rgba(255,215,0,0.15); border: 2px solid #FFD700; display: flex; align-items: center; justify-content: center;">
+                        <span style="font-family: VT323; font-size: 20px; color: #FFD700; font-weight: bold;">25</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span style="font-family: VT323; font-size: 12px; color: #FFFFFF; letter-spacing: 1px;">SCORING</span>
+                        <div style="width: 80px; height: 8px; background: #2A2A2A; border-radius: 4px; position: relative;">
+                            <div style="width: 75%; height: 100%; background: #FFD700; border-radius: 4px;"></div>
+                        </div>
+                        <span style="font-family: 'Share Tech Mono'; font-size: 10px; color: #8A8A8A;">1250 / 1500 XP</span>
+                    </div>
+                </div>
+                <span class="badge-label">Full Display</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================== -->
+    <!-- CLASSIFICATION BADGES              -->
+    <!-- ================================== -->
+    <h2>AGB CLASSIFICATION BADGES</h2>
+    <p class="description">Official classification badges for Archery GB progression system. Compact and full display modes.</p>
+
+    <div class="section">
+        <h3>Compact Badges (Solid Background)</h3>
+        <div class="badge-row">
+            <div class="badge-item">
+                <div style="padding: 4px 8px; background: #EEEEEE; border-radius: 4px; font-family: VT323; font-size: 12px; color: #121212; font-weight: bold;">A3</div>
+                <span class="badge-label">Archer 3rd</span>
+            </div>
+            <div class="badge-item">
+                <div style="padding: 4px 8px; background: #212121; border-radius: 4px; font-family: VT323; font-size: 12px; color: #FFFFFF; font-weight: bold;">A2</div>
+                <span class="badge-label">Archer 2nd</span>
+            </div>
+            <div class="badge-item">
+                <div style="padding: 4px 8px; background: #42A5F5; border-radius: 4px; font-family: VT323; font-size: 12px; color: #FFFFFF; font-weight: bold;">A1</div>
+                <span class="badge-label">Archer 1st</span>
+            </div>
+            <div class="badge-item">
+                <div style="padding: 4px 8px; background: #E53935; border-radius: 4px; font-family: VT323; font-size: 12px; color: #FFFFFF; font-weight: bold;">B3</div>
+                <span class="badge-label">Bowman 3rd</span>
+            </div>
+            <div class="badge-item">
+                <div style="padding: 4px 8px; background: #E53935; border-radius: 4px; font-family: VT323; font-size: 12px; color: #FFFFFF; font-weight: bold;">B2</div>
+                <span class="badge-label">Bowman 2nd</span>
+            </div>
+            <div class="badge-item">
+                <div style="padding: 4px 8px; background: #FFD700; border-radius: 4px; font-family: VT323; font-size: 12px; color: #121212; font-weight: bold;">B1</div>
+                <span class="badge-label">Bowman 1st</span>
+            </div>
+            <div class="badge-item">
+                <div style="padding: 4px 8px; background: #FFD700; border-radius: 4px; font-family: VT323; font-size: 12px; color: #121212; font-weight: bold;">MB</div>
+                <span class="badge-label">Master</span>
+            </div>
+            <div class="badge-item">
+                <div style="padding: 4px 8px; background: #9C27B0; border-radius: 4px; font-family: VT323; font-size: 12px; color: #FFFFFF; font-weight: bold;">GMB</div>
+                <span class="badge-label">Grand Master</span>
+            </div>
+        </div>
+
+        <h3 style="margin-top: 32px;">Full Display (Bordered)</h3>
+        <div class="badge-row">
+            <div class="badge-item">
+                <div style="padding: 8px 12px; background: rgba(66,165,245,0.15); border: 2px solid #42A5F5; border-radius: 4px; text-align: center;">
+                    <div style="font-family: VT323; font-size: 24px; color: #42A5F5; font-weight: bold;">A1</div>
+                    <div style="font-family: 'Share Tech Mono'; font-size: 11px; color: #42A5F5;">Archer 1st Class</div>
+                    <div style="font-family: 'Share Tech Mono'; font-size: 9px; color: rgba(66,165,245,0.7); letter-spacing: 1px; margin-top: 4px;">OUTDOOR</div>
+                </div>
+                <span class="badge-label">Full (Blue)</span>
+            </div>
+            <div class="badge-item">
+                <div style="padding: 8px 12px; background: rgba(255,215,0,0.15); border: 2px solid #FFD700; border-radius: 4px; text-align: center;">
+                    <div style="font-family: VT323; font-size: 24px; color: #FFD700; font-weight: bold;">MB</div>
+                    <div style="font-family: 'Share Tech Mono'; font-size: 11px; color: #FFD700;">Master Bowman</div>
+                    <div style="font-family: 'Share Tech Mono'; font-size: 9px; color: rgba(255,215,0,0.7); letter-spacing: 1px; margin-top: 4px;">INDOOR</div>
+                </div>
+                <span class="badge-label">Full (Gold)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================== -->
+    <!-- LEVEL UP SCROLL                    -->
+    <!-- ================================== -->
+    <h2>LEVEL UP CELEBRATION</h2>
+    <p class="description">Scroll/parchment banner shown during level-up celebrations. Features curly rolled ends, gold borders, and decorative pixel dots.</p>
+
+    <div class="section">
+        <div class="badge-row" style="justify-content: center;">
+            <div class="badge-item">
+                <svg class="badge-svg" width="280" height="220" viewBox="0 0 280 220">
+                    <!-- Background fills -->
+                    <defs>
+                        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.5"/>
+                        </filter>
+                    </defs>
+
+                    <!-- Top roll shadow -->
+                    <path d="M12 26 Q0 26 0 15 Q0 4 12 4 L268 4 Q280 4 280 15 Q280 26 268 26 Z" fill="#0F0A08"/>
+
+                    <!-- Top roll -->
+                    <path d="M12 22 Q0 22 0 11 Q0 0 12 0 L268 0 Q280 0 280 11 Q280 22 268 22 Z" fill="#2A2520"/>
+
+                    <!-- Top roll curl left -->
+                    <ellipse cx="4" cy="11" rx="8" ry="6" fill="#0F0A08"/>
+                    <ellipse cx="5" cy="11" rx="6" ry="4" fill="#2A2520"/>
+
+                    <!-- Top roll curl right -->
+                    <ellipse cx="276" cy="11" rx="8" ry="6" fill="#0F0A08"/>
+                    <ellipse cx="275" cy="11" rx="6" ry="4" fill="#2A2520"/>
+
+                    <!-- Main parchment body -->
+                    <rect x="8" y="22" width="264" height="176" fill="#1A1510"/>
+
+                    <!-- Bottom roll shadow -->
+                    <path d="M12 194 Q0 194 0 205 Q0 216 12 216 L268 216 Q280 216 280 205 Q280 194 268 194 Z" fill="#0F0A08"/>
+
+                    <!-- Bottom roll -->
+                    <path d="M12 198 Q0 198 0 209 Q0 220 12 220 L268 220 Q280 220 280 209 Q280 198 268 198 Z" fill="#2A2520"/>
+
+                    <!-- Bottom roll curl left -->
+                    <ellipse cx="4" cy="209" rx="8" ry="6" fill="#0F0A08"/>
+                    <ellipse cx="5" cy="209" rx="6" ry="4" fill="#2A2520"/>
+
+                    <!-- Bottom roll curl right -->
+                    <ellipse cx="276" cy="209" rx="8" ry="6" fill="#0F0A08"/>
+                    <ellipse cx="275" cy="209" rx="6" ry="4" fill="#2A2520"/>
+
+                    <!-- Gold borders -->
+                    <path d="M12 22 Q0 22 0 11 Q0 0 12 0 L268 0 Q280 0 280 11 Q280 22 268 22" fill="none" stroke="#FFD700" stroke-width="2"/>
+                    <path d="M12 198 Q0 198 0 209 Q0 220 12 220 L268 220 Q280 220 280 209 Q280 198 268 198" fill="none" stroke="#FFD700" stroke-width="2"/>
+                    <line x1="8" y1="22" x2="8" y2="198" stroke="#FFD700" stroke-width="2"/>
+                    <line x1="272" y1="22" x2="272" y2="198" stroke="#FFD700" stroke-width="2"/>
+
+                    <!-- Decorative dots on rolls -->
+                    <rect x="28" y="9" width="4" height="4" fill="rgba(255,215,0,0.5)"/>
+                    <rect x="68" y="9" width="4" height="4" fill="rgba(255,215,0,0.5)"/>
+                    <rect x="108" y="9" width="4" height="4" fill="rgba(255,215,0,0.5)"/>
+                    <rect x="148" y="9" width="4" height="4" fill="rgba(255,215,0,0.5)"/>
+                    <rect x="188" y="9" width="4" height="4" fill="rgba(255,215,0,0.5)"/>
+                    <rect x="228" y="9" width="4" height="4" fill="rgba(255,215,0,0.5)"/>
+
+                    <rect x="28" y="207" width="4" height="4" fill="rgba(255,215,0,0.5)"/>
+                    <rect x="68" y="207" width="4" height="4" fill="rgba(255,215,0,0.5)"/>
+                    <rect x="108" y="207" width="4" height="4" fill="rgba(255,215,0,0.5)"/>
+                    <rect x="148" y="207" width="4" height="4" fill="rgba(255,215,0,0.5)"/>
+                    <rect x="188" y="207" width="4" height="4" fill="rgba(255,215,0,0.5)"/>
+                    <rect x="228" y="207" width="4" height="4" fill="rgba(255,215,0,0.5)"/>
+
+                    <!-- Content -->
+                    <text x="140" y="65" text-anchor="middle" font-family="VT323" font-size="28" fill="#FFD700" style="filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));">LEVEL UP!</text>
+                    <text x="140" y="90" text-anchor="middle" font-family="VT323" font-size="14" fill="#FFFFFF" letter-spacing="1">SCORING</text>
+
+                    <!-- Level boxes -->
+                    <rect x="75" y="105" width="44" height="44" fill="#1E1E1E" stroke="#8A8A8A" stroke-width="1"/>
+                    <text x="97" y="135" text-anchor="middle" font-family="VT323" font-size="22" fill="#8A8A8A">24</text>
+
+                    <text x="140" y="132" text-anchor="middle" font-family="VT323" font-size="24" fill="#FFD700">&#8594;</text>
+
+                    <rect x="161" y="105" width="44" height="44" fill="rgba(255,215,0,0.2)" stroke="#FFD700" stroke-width="2"/>
+                    <text x="183" y="135" text-anchor="middle" font-family="VT323" font-size="22" fill="#FFD700" font-weight="bold">25</text>
+
+                    <text x="140" y="175" text-anchor="middle" font-family="VT323" font-size="10" fill="#8A8A8A" letter-spacing="1">TAP TO CONTINUE</text>
+                </svg>
+                <span class="badge-label">Scroll Banner</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================== -->
+    <!-- SMALL ACHIEVEMENT SHIELDS          -->
+    <!-- ================================== -->
+    <h2>SMALL ACHIEVEMENT SHIELDS</h2>
+    <p class="description">Compact pixel art shields for skills panel display. Two styles: standard and elaborate (for competition PBs).</p>
+
+    <div class="section">
+        <h3>Standard Style</h3>
+        <div class="badge-row">
+            <div class="badge-item">
+                <svg class="badge-svg" width="60" height="72" viewBox="0 0 60 72">
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="#121212"/>
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="none" stroke="#FF6B35" stroke-width="2"/>
+                    <rect x="7" y="6.5" width="4" height="4" fill="#FF6B35"/>
+                    <rect x="49" y="6.5" width="4" height="4" fill="#FF6B35"/>
+                    <text x="30" y="24" text-anchor="middle" font-family="VT323" font-size="17" fill="#FF6B35">7</text>
+                    <text x="30" y="42" text-anchor="middle" font-family="VT323" font-size="9" fill="rgba(255,107,53,0.8)">DAY</text>
+                </svg>
+                <span class="badge-label">7 Day Streak</span>
+            </div>
+            <div class="badge-item">
+                <svg class="badge-svg" width="60" height="72" viewBox="0 0 60 72">
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="#121212"/>
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="none" stroke="#00FF88" stroke-width="2"/>
+                    <rect x="7" y="6.5" width="4" height="4" fill="#00FF88"/>
+                    <rect x="49" y="6.5" width="4" height="4" fill="#00FF88"/>
+                    <text x="30" y="24" text-anchor="middle" font-family="VT323" font-size="17" fill="#00FF88">PB</text>
+                    <text x="30" y="42" text-anchor="middle" font-family="VT323" font-size="9" fill="rgba(0,255,136,0.8)">POR</text>
+                </svg>
+                <span class="badge-label">Personal Best</span>
+            </div>
+            <div class="badge-item">
+                <svg class="badge-svg" width="60" height="72" viewBox="0 0 60 72">
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="#121212"/>
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="none" stroke="#FFD700" stroke-width="2"/>
+                    <rect x="7" y="6.5" width="4" height="4" fill="#FFD700"/>
+                    <rect x="49" y="6.5" width="4" height="4" fill="#FFD700"/>
+                    <text x="30" y="24" text-anchor="middle" font-family="VT323" font-size="17" fill="#FFD700">25</text>
+                    <text x="30" y="42" text-anchor="middle" font-family="VT323" font-size="9" fill="rgba(255,215,0,0.8)">LVL</text>
+                </svg>
+                <span class="badge-label">Milestone</span>
+            </div>
+            <div class="badge-item">
+                <svg class="badge-svg" width="60" height="72" viewBox="0 0 60 72">
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="#121212"/>
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="none" stroke="#00FF88" stroke-width="2"/>
+                    <rect x="7" y="6.5" width="4" height="4" fill="#00FF88"/>
+                    <rect x="49" y="6.5" width="4" height="4" fill="#00FF88"/>
+                    <text x="30" y="24" text-anchor="middle" font-family="VT323" font-size="17" fill="#00FF88">&#10003;</text>
+                    <text x="30" y="42" text-anchor="middle" font-family="VT323" font-size="9" fill="rgba(0,255,136,0.8)">FORM</text>
+                </svg>
+                <span class="badge-label">Excellent Form</span>
+            </div>
+        </div>
+
+        <h3 style="margin-top: 32px;">Elaborate Style (Competition PBs)</h3>
+        <div class="badge-row">
+            <div class="badge-item">
+                <svg class="badge-svg" width="60" height="72" viewBox="0 0 60 72">
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="#121212"/>
+                    <!-- Crown pattern -->
+                    <path d="M15 10.8 L18 5.8 L21 8.6 L30 3.6 L39 8.6 L42 5.8 L45 10.8" fill="none" stroke="rgba(0,191,255,0.2)" stroke-width="1.5"/>
+                    <!-- Diamonds -->
+                    <path d="M12 25.2 L16 29.2 L12 33.2 L8 29.2 Z" fill="rgba(0,191,255,0.2)"/>
+                    <path d="M48 25.2 L52 29.2 L48 33.2 L44 29.2 Z" fill="rgba(0,191,255,0.2)"/>
+                    <path d="M30 54 L34 58 L30 62 L26 58 Z" fill="rgba(0,191,255,0.2)"/>
+                    <!-- Outer border -->
+                    <path d="M6 3.6 L54 3.6 L57 7.2 L57 36 L30 64.8 L3 36 L3 7.2 L6 3.6 Z" fill="none" stroke="#00BFFF" stroke-width="2.5"/>
+                    <!-- Inner border -->
+                    <path d="M9 7.2 L51 7.2 L54 10.8 L54 33.6 L30 58.8 L6 33.6 L6 10.8 L9 7.2 Z" fill="none" stroke="rgba(0,191,255,0.5)" stroke-width="1"/>
+                    <!-- Rivets -->
+                    <rect x="7" y="6.5" width="4" height="4" fill="#00BFFF"/>
+                    <rect x="49" y="6.5" width="4" height="4" fill="#00BFFF"/>
+                    <rect x="4" y="23" width="3" height="3" fill="rgba(0,191,255,0.5)"/>
+                    <rect x="53" y="23" width="3" height="3" fill="rgba(0,191,255,0.5)"/>
+                    <!-- Text -->
+                    <text x="30" y="24" text-anchor="middle" font-family="VT323" font-size="17" fill="#00BFFF">PB</text>
+                    <text x="30" y="42" text-anchor="middle" font-family="VT323" font-size="9" fill="rgba(0,191,255,0.8)">YRK</text>
+                </svg>
+                <span class="badge-label">Competition PB</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; margin-top: 64px; padding: 24px; border-top: 1px solid #2A2A2A;">
+        <p style="font-family: VT323; font-size: 16px; color: #8A8A8A;">ARCHERY SUPER APP</p>
+        <p style="font-size: 12px; color: #8A8A8A; margin-top: 8px;">Badge & Icon Design System v1.0</p>
+    </div>
+
+</body>
+</html>

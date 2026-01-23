@@ -3,18 +3,23 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/sight_marks_provider.dart';
 import '../models/sight_mark.dart';
+import '../models/weather_conditions.dart';
 
 /// Widget displaying the expected sight mark for a given bow and distance
 class ExpectedSightMark extends StatelessWidget {
   final String? bowId;
   final double? distance;
   final DistanceUnit unit;
+  final WeatherConditions? currentWeather;
+  final bool showConfidenceBand;
 
   const ExpectedSightMark({
     super.key,
     required this.bowId,
     required this.distance,
     this.unit = DistanceUnit.meters,
+    this.currentWeather,
+    this.showConfidenceBand = true,
   });
 
   @override
@@ -28,7 +33,21 @@ class ExpectedSightMark extends StatelessWidget {
         // Ensure marks are loaded
         provider.loadMarksForBow(bowId!);
 
-        final prediction = provider.getPredictedMark(
+        // Try weather-adjusted prediction first (requires 3+ marks)
+        PredictedSightMark? prediction;
+        final hasEnoughMarks = provider.hasEnoughMarksForWeatherPrediction(bowId!);
+
+        if (hasEnoughMarks && showConfidenceBand) {
+          prediction = provider.getWeatherAdjustedPrediction(
+            bowId: bowId!,
+            distance: distance!,
+            unit: unit,
+            currentWeather: currentWeather,
+          );
+        }
+
+        // Fall back to basic prediction
+        prediction ??= provider.getPredictedMark(
           bowId: bowId!,
           distance: distance!,
           unit: unit,
@@ -82,6 +101,24 @@ class ExpectedSightMark extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                     ),
+                    // Confidence band (if available)
+                    if (prediction.hasConfidenceBand)
+                      Text(
+                        'Range: ${prediction.confidenceBandDisplay}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textMuted,
+                              fontSize: 10,
+                            ),
+                      ),
+                    // Weather adjustment indicator
+                    if (prediction.weatherAdjustment != null && prediction.weatherAdjustment != 0)
+                      Text(
+                        'Weather adj: ${prediction.weatherAdjustment! > 0 ? '+' : ''}${prediction.weatherAdjustment!.toStringAsFixed(2)}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.neonCyan,
+                              fontSize: 10,
+                            ),
+                      ),
                   ],
                 ),
               ),
@@ -96,24 +133,20 @@ class ExpectedSightMark extends StatelessWidget {
 
   Widget _buildConfidenceIndicator(BuildContext context, PredictedSightMark prediction) {
     Color color;
-    String label;
     IconData icon;
 
     switch (prediction.confidence) {
       case SightMarkConfidence.high:
         color = AppColors.gold;
-        label = 'High';
         icon = Icons.verified;
         break;
       case SightMarkConfidence.medium:
         color = AppColors.textPrimary;
-        label = 'Est.';
         icon = Icons.analytics_outlined;
         break;
       case SightMarkConfidence.low:
       case SightMarkConfidence.unknown:
         color = AppColors.textMuted;
-        label = 'Low';
         icon = Icons.help_outline;
         break;
     }

@@ -107,6 +107,8 @@ class InteractiveTripleSpotTarget extends StatefulWidget {
   final int? selectedFace;
   /// Optional: callback when face selection changes
   final ValueChanged<int>? onFaceChanged;
+  /// Callback for pending arrow position (for fixed zoom window)
+  final Function(double? x, double? y)? onPendingArrowChanged;
 
   const InteractiveTripleSpotTarget({
     super.key,
@@ -120,6 +122,7 @@ class InteractiveTripleSpotTarget extends StatefulWidget {
     this.advanceOrder = 'column',
     this.selectedFace,
     this.onFaceChanged,
+    this.onPendingArrowChanged,
   });
 
   @override
@@ -232,6 +235,7 @@ class _InteractiveTripleSpotTargetState
               onArrowPlotted: (x, y) {
                 _onArrowPlotted(x, y, faceIndex);
               },
+              onPendingArrowChanged: widget.onPendingArrowChanged,
             ),
             // Face number indicator in corner
             Positioned(

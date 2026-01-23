@@ -35,6 +35,7 @@ class SkillsProvider extends ChangeNotifier {
   // Cached skill data
   List<SkillLevel> _skills = [];
   int _totalLevel = 0;
+  int _combinedLevel = 1;
   bool _isLoaded = false;
 
   // Pending level-up events for celebration
@@ -46,6 +47,8 @@ class SkillsProvider extends ChangeNotifier {
   // Getters
   List<SkillLevel> get skills => _skills;
   int get totalLevel => _totalLevel;
+  /// Combined level (1-99) - average of all skill levels, like individual skills
+  int get combinedLevel => _combinedLevel;
   bool get isLoaded => _isLoaded;
   List<LevelUpEvent> get pendingLevelUps => List.unmodifiable(_pendingLevelUps);
   bool get hasPendingLevelUp => _pendingLevelUps.isNotEmpty;
@@ -101,8 +104,15 @@ class SkillsProvider extends ChangeNotifier {
       // Reload after any updates
       _skills = await _db.getAllSkillLevels();
 
-      // Calculate total level
+      // Calculate total level (sum of all skill levels)
       _totalLevel = _skills.fold<int>(0, (sum, skill) => sum + skill.currentLevel);
+
+      // Calculate combined level (average, 1-99 range like individual skills)
+      if (_skills.isNotEmpty) {
+        _combinedLevel = (_totalLevel / _skills.length).round().clamp(1, 99);
+      } else {
+        _combinedLevel = 1;
+      }
 
       _isLoaded = true;
       notifyListeners();

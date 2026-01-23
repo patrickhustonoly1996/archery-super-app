@@ -70,7 +70,7 @@ class SkillsPanelScreen extends StatelessWidget {
                             letterSpacing: 2,
                           ),
                         ),
-                        // Total level
+                        // Combined level (1-99 average)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
@@ -78,7 +78,7 @@ class SkillsPanelScreen extends StatelessWidget {
                             border: Border.all(color: AppColors.gold, width: 1),
                           ),
                           child: Text(
-                            'TOTAL: ${skillsProvider.totalLevel}',
+                            'LEVEL: ${skillsProvider.combinedLevel}',
                             style: TextStyle(
                               fontFamily: AppFonts.pixel,
                               fontSize: 12,

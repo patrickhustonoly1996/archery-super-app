@@ -597,6 +597,7 @@ class SightMarks extends Table {
   IntColumn get shotCount => integer().nullable()(); // Number of arrows shot with this mark
   RealColumn get confidenceScore => real().nullable()(); // 0.0 to 1.0
   TextColumn get venueId => text().nullable()(); // FK to venues table for location memory
+  BoolColumn get isIndoor => boolean().withDefault(const Constant(false))(); // Indoor vs outdoor
   DateTimeColumn get recordedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().nullable()();
   DateTimeColumn get deletedAt => dateTime().nullable()(); // soft delete
@@ -829,6 +830,92 @@ class SyncMetadata extends Table {
 }
 
 // ============================================================================
+// FIELD ARCHERY SYSTEM
+// ============================================================================
+
+/// Field archery courses (like golf courses - persistent definitions)
+class FieldCourses extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get venueId => text().nullable().references(Venues, #id)();
+  TextColumn get roundType => text()(); // field, hunter, expert, animal, marked3dStandard, marked3dHunting
+  IntColumn get targetCount => integer().withDefault(const Constant(28))(); // 14 or 28
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().nullable()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Per-target configurations within a field course
+class FieldCourseTargets extends Table {
+  TextColumn get id => text()();
+  TextColumn get courseId => text().references(FieldCourses, #id)();
+  IntColumn get targetNumber => integer()(); // 1-28
+  TextColumn get pegConfig => text()(); // JSON: peg configuration
+  IntColumn get faceSize => integer()(); // cm
+  RealColumn get primaryDistance => real()();
+  TextColumn get unit => text().withDefault(const Constant('yards'))(); // meters or yards
+  BoolColumn get isWalkUp => boolean().withDefault(const Constant(false))();
+  BoolColumn get isWalkDown => boolean().withDefault(const Constant(false))();
+  IntColumn get arrowsRequired => integer().withDefault(const Constant(4))();
+  TextColumn get notes => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Course-specific sight mark learning (per target, per bow)
+class FieldCourseSightMarks extends Table {
+  TextColumn get id => text()();
+  TextColumn get courseTargetId => text().references(FieldCourseTargets, #id)();
+  TextColumn get bowId => text().references(Bows, #id)();
+  RealColumn get calculatedMark => real()(); // What the standard calculation predicted
+  RealColumn get actualMark => real()(); // What the archer actually used
+  RealColumn get differential => real()(); // actual - calculated
+  RealColumn get confidenceScore => real().nullable()(); // 0-1 based on shot count
+  TextColumn get weatherData => text().nullable()(); // JSON weather snapshot
+  IntColumn get shotCount => integer().withDefault(const Constant(0))();
+  DateTimeColumn get recordedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Per-target scores in a field session
+class FieldSessionTargets extends Table {
+  TextColumn get id => text()();
+  TextColumn get sessionId => text().references(Sessions, #id)();
+  TextColumn get courseTargetId => text().nullable().references(FieldCourseTargets, #id)();
+  IntColumn get targetNumber => integer()();
+  IntColumn get totalScore => integer().withDefault(const Constant(0))();
+  IntColumn get xCount => integer().withDefault(const Constant(0))();
+  TextColumn get arrowScores => text()(); // JSON array of scores
+  TextColumn get sightMarkUsed => text().nullable()();
+  IntColumn get station => integer().nullable()(); // For animal rounds: which station scored
+  BoolColumn get wasHit => boolean().nullable()(); // For animal rounds
+  DateTimeColumn get completedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Field session metadata (extends Sessions table)
+class FieldSessionMeta extends Table {
+  TextColumn get sessionId => text().references(Sessions, #id)();
+  TextColumn get courseId => text().nullable().references(FieldCourses, #id)();
+  TextColumn get roundType => text()(); // field, hunter, expert, animal, etc.
+  BoolColumn get isNewCourseCreation => boolean().withDefault(const Constant(false))();
+  IntColumn get currentTargetNumber => integer().withDefault(const Constant(1))();
+  TextColumn get usedPegs => text().withDefault(const Constant('[]'))(); // JSON array of used peg configs
+
+  @override
+  Set<Column> get primaryKey => {sessionId};
+}
+
+// ============================================================================
 // DATABASE
 // ============================================================================
 
@@ -884,6 +971,12 @@ class SyncMetadata extends Table {
   // Sync System
   SyncQueue,
   SyncMetadata,
+  // Field Archery System
+  FieldCourses,
+  FieldCourseTargets,
+  FieldCourseSightMarks,
+  FieldSessionTargets,
+  FieldSessionMeta,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -892,7 +985,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 27;
+  int get schemaVersion => 29;
 
   @override
   MigrationStrategy get migration {
@@ -1139,6 +1232,18 @@ class AppDatabase extends _$AppDatabase {
             SET scoring_type = 'worcester'
             WHERE id = 'worcester'
           ''');
+        }
+        if (from <= 27) {
+          // Add indoor toggle to sight marks
+          await m.addColumn(sightMarks, sightMarks.isIndoor);
+        }
+        if (from <= 28) {
+          // Field Archery System
+          await m.createTable(fieldCourses);
+          await m.createTable(fieldCourseTargets);
+          await m.createTable(fieldCourseSightMarks);
+          await m.createTable(fieldSessionTargets);
+          await m.createTable(fieldSessionMeta);
         }
       },
     );
@@ -1451,6 +1556,15 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> setDoublePreference(String key, double value) =>
+      setPreference(key, value.toString());
+
+  Future<int> getIntPreference(String key, {int defaultValue = 0}) async {
+    final value = await getPreference(key);
+    if (value == null) return defaultValue;
+    return int.tryParse(value) ?? defaultValue;
+  }
+
+  Future<void> setIntPreference(String key, int value) =>
       setPreference(key, value.toString());
 
   // ===========================================================================
@@ -3124,6 +3238,225 @@ class AppDatabase extends _$AppDatabase {
       ),
     );
   }
+
+  // ===========================================================================
+  // FIELD ARCHERY
+  // ===========================================================================
+
+  /// Get all field courses
+  Future<List<FieldCourse>> getAllFieldCourses() =>
+      (select(fieldCourses)
+            ..where((t) => t.deletedAt.isNull())
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
+  /// Get field courses by venue
+  Future<List<FieldCourse>> getFieldCoursesByVenue(String venueId) =>
+      (select(fieldCourses)
+            ..where((t) =>
+                t.venueId.equals(venueId) & t.deletedAt.isNull())
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
+  /// Get field courses by round type
+  Future<List<FieldCourse>> getFieldCoursesByRoundType(String roundType) =>
+      (select(fieldCourses)
+            ..where((t) =>
+                t.roundType.equals(roundType) & t.deletedAt.isNull())
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
+  /// Get a specific field course
+  Future<FieldCourse?> getFieldCourse(String id) =>
+      (select(fieldCourses)
+            ..where((t) => t.id.equals(id) & t.deletedAt.isNull()))
+          .getSingleOrNull();
+
+  /// Insert a new field course
+  Future<int> insertFieldCourse(FieldCoursesCompanion course) =>
+      into(fieldCourses).insert(course);
+
+  /// Update a field course
+  Future<bool> updateFieldCourse(FieldCoursesCompanion course) =>
+      update(fieldCourses).replace(course);
+
+  /// Soft delete a field course
+  Future<int> softDeleteFieldCourse(String id) =>
+      (update(fieldCourses)..where((t) => t.id.equals(id)))
+          .write(FieldCoursesCompanion(deletedAt: Value(DateTime.now())));
+
+  /// Restore a soft-deleted field course
+  Future<int> restoreFieldCourse(String id) =>
+      (update(fieldCourses)..where((t) => t.id.equals(id)))
+          .write(const FieldCoursesCompanion(deletedAt: Value(null)));
+
+  /// Permanently delete a field course and all its targets
+  Future<void> deleteFieldCourse(String id) async {
+    await transaction(() async {
+      // Get target IDs
+      final targets = await getFieldCourseTargets(id);
+      final targetIds = targets.map((t) => t.id).toList();
+
+      // Delete sight marks for targets
+      if (targetIds.isNotEmpty) {
+        await (delete(fieldCourseSightMarks)
+              ..where((t) => t.courseTargetId.isIn(targetIds)))
+            .go();
+      }
+
+      // Delete targets
+      await (delete(fieldCourseTargets)
+            ..where((t) => t.courseId.equals(id)))
+          .go();
+
+      // Delete course
+      await (delete(fieldCourses)..where((t) => t.id.equals(id))).go();
+    });
+  }
+
+  /// Get targets for a field course
+  Future<List<FieldCourseTarget>> getFieldCourseTargets(String courseId) =>
+      (select(fieldCourseTargets)
+            ..where((t) => t.courseId.equals(courseId))
+            ..orderBy([(t) => OrderingTerm.asc(t.targetNumber)]))
+          .get();
+
+  /// Get a specific target
+  Future<FieldCourseTarget?> getFieldCourseTarget(String id) =>
+      (select(fieldCourseTargets)..where((t) => t.id.equals(id)))
+          .getSingleOrNull();
+
+  /// Insert a field course target
+  Future<int> insertFieldCourseTarget(FieldCourseTargetsCompanion target) =>
+      into(fieldCourseTargets).insert(target);
+
+  /// Update a field course target
+  Future<bool> updateFieldCourseTarget(FieldCourseTargetsCompanion target) =>
+      update(fieldCourseTargets).replace(target);
+
+  /// Delete a field course target
+  Future<int> deleteFieldCourseTarget(String id) async {
+    // Delete sight marks for this target first
+    await (delete(fieldCourseSightMarks)
+          ..where((t) => t.courseTargetId.equals(id)))
+        .go();
+    return (delete(fieldCourseTargets)..where((t) => t.id.equals(id))).go();
+  }
+
+  /// Get sight marks for a course target and bow
+  Future<List<FieldCourseSightMark>> getFieldCourseSightMarks(
+    String courseTargetId,
+    String bowId,
+  ) =>
+      (select(fieldCourseSightMarks)
+            ..where((t) =>
+                t.courseTargetId.equals(courseTargetId) &
+                t.bowId.equals(bowId))
+            ..orderBy([(t) => OrderingTerm.desc(t.recordedAt)]))
+          .get();
+
+  /// Get the most recent sight mark for a course target and bow
+  Future<FieldCourseSightMark?> getLatestFieldCourseSightMark(
+    String courseTargetId,
+    String bowId,
+  ) =>
+      (select(fieldCourseSightMarks)
+            ..where((t) =>
+                t.courseTargetId.equals(courseTargetId) &
+                t.bowId.equals(bowId))
+            ..orderBy([(t) => OrderingTerm.desc(t.recordedAt)])
+            ..limit(1))
+          .getSingleOrNull();
+
+  /// Insert or update a field course sight mark
+  Future<void> upsertFieldCourseSightMark(
+    FieldCourseSightMarksCompanion mark,
+  ) async {
+    await into(fieldCourseSightMarks).insertOnConflictUpdate(mark);
+  }
+
+  /// Insert a field course sight mark
+  Future<int> insertFieldCourseSightMark(
+    FieldCourseSightMarksCompanion mark,
+  ) =>
+      into(fieldCourseSightMarks).insert(mark);
+
+  /// Get all sight marks for a bow across all courses
+  Future<List<FieldCourseSightMark>> getAllFieldCourseSightMarksForBow(
+    String bowId,
+  ) =>
+      (select(fieldCourseSightMarks)
+            ..where((t) => t.bowId.equals(bowId))
+            ..orderBy([(t) => OrderingTerm.desc(t.recordedAt)]))
+          .get();
+
+  /// Get field session targets for a session
+  Future<List<FieldSessionTarget>> getFieldSessionTargets(String sessionId) =>
+      (select(fieldSessionTargets)
+            ..where((t) => t.sessionId.equals(sessionId))
+            ..orderBy([(t) => OrderingTerm.asc(t.targetNumber)]))
+          .get();
+
+  /// Get a specific field session target
+  Future<FieldSessionTarget?> getFieldSessionTarget(String id) =>
+      (select(fieldSessionTargets)..where((t) => t.id.equals(id)))
+          .getSingleOrNull();
+
+  /// Insert a field session target
+  Future<int> insertFieldSessionTarget(FieldSessionTargetsCompanion target) =>
+      into(fieldSessionTargets).insert(target);
+
+  /// Update a field session target
+  Future<bool> updateFieldSessionTarget(FieldSessionTargetsCompanion target) =>
+      update(fieldSessionTargets).replace(target);
+
+  /// Delete field session targets for a session
+  Future<int> deleteFieldSessionTargets(String sessionId) =>
+      (delete(fieldSessionTargets)..where((t) => t.sessionId.equals(sessionId)))
+          .go();
+
+  /// Get field session metadata
+  Future<FieldSessionMetaData?> getFieldSessionMeta(String sessionId) =>
+      (select(fieldSessionMeta)..where((t) => t.sessionId.equals(sessionId)))
+          .getSingleOrNull();
+
+  /// Insert field session metadata
+  Future<int> insertFieldSessionMeta(FieldSessionMetaCompanion meta) =>
+      into(fieldSessionMeta).insert(meta);
+
+  /// Update field session metadata
+  Future<bool> updateFieldSessionMeta(FieldSessionMetaCompanion meta) =>
+      update(fieldSessionMeta).replace(meta);
+
+  /// Delete field session metadata
+  Future<int> deleteFieldSessionMeta(String sessionId) =>
+      (delete(fieldSessionMeta)..where((t) => t.sessionId.equals(sessionId)))
+          .go();
+
+  /// Get all field courses for sync
+  Future<List<FieldCourse>> getAllFieldCoursesForSync() =>
+      (select(fieldCourses)..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
+  /// Get all field course targets for sync
+  Future<List<FieldCourseTarget>> getAllFieldCourseTargetsForSync() =>
+      select(fieldCourseTargets).get();
+
+  /// Get all field course sight marks for sync
+  Future<List<FieldCourseSightMark>> getAllFieldCourseSightMarksForSync() =>
+      select(fieldCourseSightMarks).get();
+
+  /// Get all field session targets for sync
+  Future<List<FieldSessionTarget>> getAllFieldSessionTargetsForSync() =>
+      select(fieldSessionTargets).get();
+
+  /// Get all field session meta for sync
+  Future<List<FieldSessionMetaData>> getAllFieldSessionMetaForSync() =>
+      select(fieldSessionMeta).get();
+
+  // ===========================================================================
+  // SYNC (continued)
+  // ===========================================================================
 
   /// Get all data for sync (including soft-deleted items)
   Future<List<Session>> getAllSessionsForSync() =>

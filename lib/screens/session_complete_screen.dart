@@ -595,51 +595,10 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
 
                   const SizedBox(height: AppSpacing.xl),
 
-                  // End scores summary
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceDark,
-                      borderRadius: BorderRadius.circular(AppSpacing.sm),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'End Scores',
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: provider.ends.map((end) {
-                            return Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: AppColors.surfaceLight,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  end.endScore.toString(),
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: AppSpacing.xl),
-
-                  // View Scorecard button (for signing and export)
+                  // Scorecard & Export button - navigates to full scorecard with signatures
                   SizedBox(
                     width: double.infinity,
-                    child: OutlinedButton.icon(
+                    child: ElevatedButton.icon(
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -655,10 +614,6 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
                       label: const Padding(
                         padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
                         child: Text('View Scorecard & Export'),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.gold,
-                        side: BorderSide(color: AppColors.gold.withValues(alpha: 0.5)),
                       ),
                     ),
                   ),

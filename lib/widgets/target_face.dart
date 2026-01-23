@@ -14,6 +14,7 @@ class TargetFace extends StatelessWidget {
   final bool triSpot; // WA 18 tri-spot shows only 6-10 rings
   final bool compoundScoring; // Compound inner 10 - smaller X ring
   final ColorblindMode colorblindMode; // Colorblind accessibility mode
+  final String scoringType; // '10-zone', '5-zone', 'worcester'
 
   const TargetFace({
     super.key,
@@ -23,6 +24,7 @@ class TargetFace extends StatelessWidget {
     this.triSpot = false,
     this.compoundScoring = false,
     this.colorblindMode = ColorblindMode.none,
+    this.scoringType = '10-zone',
   });
 
   @override
@@ -44,8 +46,10 @@ class TargetFace extends StatelessWidget {
           triSpot: triSpot,
           compoundScoring: compoundScoring,
           colorblindMode: colorblindMode,
+          scoringType: scoringType,
         ),
         child: Stack(
+          clipBehavior: Clip.none,
           children: arrows.map((arrow) {
             // Convert normalized coordinates (-1 to 1) to widget coordinates
             // For tri-spot, scale up arrow positions to match ring scaling
@@ -78,12 +82,14 @@ class _TargetFacePainter extends CustomPainter {
   final bool triSpot;
   final bool compoundScoring;
   final ColorblindMode colorblindMode;
+  final String scoringType;
 
   _TargetFacePainter({
     this.showRingLabels = false,
     this.triSpot = false,
     this.compoundScoring = false,
     this.colorblindMode = ColorblindMode.none,
+    this.scoringType = '10-zone',
   });
 
   // WA compound indoor: X ring is 20mm diameter on 40cm face (2.5% of radius)
@@ -100,6 +106,12 @@ class _TargetFacePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
+
+    // Handle Worcester target separately - it has 5 equal rings
+    if (scoringType == 'worcester') {
+      _paintWorcesterTarget(canvas, center, radius);
+      return;
+    }
 
     // Ring sizes - compound has smaller inner 10/X
     final xSize = compoundScoring ? compoundXRing : TargetRings.x;
@@ -285,12 +297,105 @@ class _TargetFacePainter extends CustomPainter {
     }
   }
 
+  /// Paint Worcester target face - white center, black outer rings
+  void _paintWorcesterTarget(Canvas canvas, Offset center, double radius) {
+    // Worcester has 5 equal-width rings scoring 5 (center) to 1 (outer)
+    // Each ring is 20% of the radius
+    // Ring 5 (center): white
+    // Rings 4, 3, 2, 1: black
+
+    // Draw outer black area first
+    final blackPaint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, radius, blackPaint);
+
+    // Draw white center circle (ring 5)
+    // Ring 5 extends from 0 to 0.2 of radius
+    final whitePaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, radius * 0.2, whitePaint);
+
+    // Draw ring boundary lines (white lines on black, black line on white center)
+    final whiteLine = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    final blackLine = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+
+    // Ring boundaries at 20%, 40%, 60%, 80%, 100% of radius
+    for (int i = 1; i <= 5; i++) {
+      final ringRadius = radius * (i * 0.2);
+      // Use black line for the innermost boundary (between 5 and 4), white for others
+      final linePaint = i == 1 ? blackLine : whiteLine;
+      canvas.drawCircle(center, ringRadius, linePaint);
+    }
+
+    // Draw center cross
+    final crossSize = radius * 0.08;
+    final crossPaint = Paint()
+      ..color = Colors.black
+      ..strokeWidth = 1.0
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(center.dx, center.dy - crossSize),
+      Offset(center.dx, center.dy + crossSize),
+      crossPaint,
+    );
+    canvas.drawLine(
+      Offset(center.dx - crossSize, center.dy),
+      Offset(center.dx + crossSize, center.dy),
+      crossPaint,
+    );
+
+    // Draw ring labels if enabled
+    if (showRingLabels) {
+      _drawWorcesterRingLabels(canvas, center, radius);
+    }
+  }
+
+  /// Draw Worcester ring labels
+  void _drawWorcesterRingLabels(Canvas canvas, Offset center, double radius) {
+    for (int score = 1; score <= 5; score++) {
+      // Position in the middle of each ring
+      final ringMidpoint = radius * ((score - 0.5) * 0.2);
+      final labelX = center.dx + ringMidpoint;
+      final labelY = center.dy;
+
+      // White text on black rings (1-4), black text on white center (5)
+      final textColor = score == 5 ? Colors.black : Colors.white;
+
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: '$score',
+          style: TextStyle(
+            color: textColor,
+            fontSize: radius * 0.08,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'ShareTechMono',
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(labelX - textPainter.width / 2, labelY - textPainter.height / 2),
+      );
+    }
+  }
+
   @override
   bool shouldRepaint(covariant _TargetFacePainter oldDelegate) =>
       triSpot != oldDelegate.triSpot ||
       compoundScoring != oldDelegate.compoundScoring ||
       colorblindMode != oldDelegate.colorblindMode ||
-      showRingLabels != oldDelegate.showRingLabels;
+      showRingLabels != oldDelegate.showRingLabels ||
+      scoringType != oldDelegate.scoringType;
 }
 
 class _ArrowMarker extends StatelessWidget {
@@ -697,6 +802,7 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
               compoundScoring: widget.compoundScoring,
               colorblindMode: widget.colorblindMode,
               showRingLabels: widget.showRingLabels,
+              scoringType: widget.scoringType,
             ),
 
             // Offset line from touch to arrow position
@@ -763,8 +869,13 @@ class FixedZoomWindow extends StatelessWidget {
   /// Normalized Y coordinate (-1 to +1) of where the arrow will be placed
   final double targetY;
 
-  /// Zoom magnification level (e.g., 3.0 = 3x zoom)
-  final double zoomLevel;
+  /// The current zoom level applied to the main target (from InteractiveViewer)
+  /// The zoom window will display at [relativeZoom] times this level.
+  final double currentZoomLevel;
+
+  /// Zoom multiplier relative to the current target zoom level (default 2x)
+  /// Final zoom = currentZoomLevel * relativeZoom
+  final double relativeZoom;
 
   /// Size of the zoom window in pixels
   final double size;
@@ -785,13 +896,17 @@ class FixedZoomWindow extends StatelessWidget {
     super.key,
     required this.targetX,
     required this.targetY,
-    this.zoomLevel = 4.0,
+    this.currentZoomLevel = 1.0,
+    this.relativeZoom = 2.0,
     this.size = 140,
     this.showCrosshair = true,
     this.triSpot = false,
     this.compoundScoring = false,
     this.colorblindMode = ColorblindMode.none,
   });
+
+  /// The effective zoom level for the window (current * relative)
+  double get effectiveZoom => currentZoomLevel * relativeZoom;
 
   @override
   Widget build(BuildContext context) {
@@ -816,7 +931,7 @@ class FixedZoomWindow extends StatelessWidget {
           painter: _FixedZoomWindowPainter(
             targetX: targetX,
             targetY: targetY,
-            zoomLevel: zoomLevel,
+            zoomLevel: effectiveZoom,
             showCrosshair: showCrosshair,
             triSpot: triSpot,
             compoundScoring: compoundScoring,

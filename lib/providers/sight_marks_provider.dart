@@ -63,6 +63,7 @@ class SightMarksProvider extends ChangeNotifier {
     int? endNumber,
     int? shotCount,
     double? confidenceScore,
+    bool isIndoor = false,
   }) async {
     final id = UniqueId.withPrefix('sm');
 
@@ -79,6 +80,7 @@ class SightMarksProvider extends ChangeNotifier {
       endNumber: Value(endNumber),
       shotCount: Value(shotCount),
       confidenceScore: Value(confidenceScore),
+      isIndoor: Value(isIndoor),
     ));
 
     await loadMarksForBow(bowId);
@@ -97,6 +99,7 @@ class SightMarksProvider extends ChangeNotifier {
     double? slopeAngle,
     int? shotCount,
     double? confidenceScore,
+    bool? isIndoor,
   }) async {
     final existing = await _db.getSightMark(id);
     if (existing == null) return;
@@ -114,6 +117,7 @@ class SightMarksProvider extends ChangeNotifier {
       endNumber: Value(existing.endNumber),
       shotCount: Value(shotCount ?? existing.shotCount),
       confidenceScore: Value(confidenceScore ?? existing.confidenceScore),
+      isIndoor: Value(isIndoor ?? existing.isIndoor),
       recordedAt: Value(existing.recordedAt),
       updatedAt: Value(DateTime.now()),
     ));
@@ -179,6 +183,117 @@ class SightMarksProvider extends ChangeNotifier {
       targetDistance: distance,
       unit: unit,
     );
+  }
+
+  /// Get weather-adjusted predicted sight mark with confidence band.
+  /// Requires 3+ marks for meaningful prediction.
+  ///
+  /// [currentWeather] - Current shooting conditions
+  /// Returns prediction with min/max confidence band based on historical variance.
+  model.PredictedSightMark? getWeatherAdjustedPrediction({
+    required String bowId,
+    required double distance,
+    required model.DistanceUnit unit,
+    WeatherConditions? currentWeather,
+  }) {
+    final marks = getMarksForBow(bowId);
+    if (marks.length < 3) return null; // Need 3+ marks for confidence band
+
+    // Get base prediction
+    final basePrediction = SightMarkCalculator.predict(
+      marks: marks,
+      targetDistance: distance,
+      unit: unit,
+    );
+    if (basePrediction == null) return null;
+
+    // Calculate variance from marks at similar distances
+    final distanceInMeters = unit.toMeters(distance);
+    final nearbyMarks = marks.where((m) {
+      final markDist = m.distanceInMeters;
+      return (markDist - distanceInMeters).abs() <= 10; // Within 10m
+    }).toList();
+
+    double variance = 0.0;
+    if (nearbyMarks.length >= 2) {
+      // Calculate standard deviation of nearby marks
+      final values = nearbyMarks.map((m) => m.numericValue).toList();
+      final mean = values.reduce((a, b) => a + b) / values.length;
+      final squaredDiffs = values.map((v) => (v - mean) * (v - mean));
+      variance = squaredDiffs.reduce((a, b) => a + b) / values.length;
+    } else {
+      // Estimate variance based on distance (further = more uncertainty)
+      variance = 0.01 * (distance / 20); // ~0.1 at 20m, ~0.35 at 70m
+    }
+
+    final stdDev = variance > 0 ? (variance * 0.5).clamp(0.05, 0.5) : 0.1;
+    final minValue = basePrediction.predictedValue - stdDev * 2;
+    final maxValue = basePrediction.predictedValue + stdDev * 2;
+
+    // Calculate weather adjustment if conditions provided
+    double weatherAdjustment = 0.0;
+    bool hasWeatherData = false;
+
+    if (currentWeather != null && currentWeather.hasAnyData) {
+      // Find average weather from recorded marks
+      final marksWithWeather = marks.where((m) => m.weather?.hasAnyData ?? false).toList();
+
+      if (marksWithWeather.isNotEmpty) {
+        // Calculate average baseline weather from recorded marks
+        double avgTemp = 15.0;
+        int avgWind = 0;
+        int tempCount = 0;
+        int windCount = 0;
+
+        for (final m in marksWithWeather) {
+          if (m.weather?.temperature != null) {
+            avgTemp = (avgTemp * tempCount + m.weather!.temperature!) / (tempCount + 1);
+            tempCount++;
+          }
+          if (m.weather?.windBeaufort != null) {
+            avgWind = ((avgWind * windCount + m.weather!.windBeaufort!) / (windCount + 1)).round();
+            windCount++;
+          }
+        }
+
+        final baseline = WeatherConditions(
+          temperature: avgTemp,
+          windBeaufort: avgWind,
+        );
+
+        weatherAdjustment = WeatherConditions.calculateAdjustment(
+          current: currentWeather,
+          baseline: baseline,
+          distance: distanceInMeters,
+        );
+        hasWeatherData = tempCount > 0 || windCount > 0;
+      }
+    }
+
+    return model.PredictedSightMark(
+      distance: distance,
+      unit: unit,
+      predictedValue: basePrediction.predictedValue + weatherAdjustment,
+      confidence: basePrediction.confidence,
+      source: basePrediction.source,
+      basedOn: basePrediction.basedOn,
+      interpolatedFrom: basePrediction.interpolatedFrom,
+      minValue: minValue + weatherAdjustment,
+      maxValue: maxValue + weatherAdjustment,
+      weatherAdjustment: weatherAdjustment != 0 ? weatherAdjustment : null,
+      hasWeatherData: hasWeatherData,
+    );
+  }
+
+  /// Check if bow has enough marks for weather-adjusted predictions
+  bool hasEnoughMarksForWeatherPrediction(String bowId) {
+    return getMarksForBow(bowId).length >= 3;
+  }
+
+  /// Check if bow's marks have weather data recorded
+  bool hasWeatherDataForBow(String bowId) {
+    final marks = getMarksForBow(bowId);
+    return marks.any((m) => m.weather?.hasAnyData ?? false);
   }
 
   /// Get curve coefficients for visualization (if 3+ marks available)
@@ -260,6 +375,7 @@ class SightMarksProvider extends ChangeNotifier {
       endNumber: db.endNumber,
       shotCount: db.shotCount,
       confidenceScore: db.confidenceScore,
+      isIndoor: db.isIndoor,
       recordedAt: db.recordedAt,
       updatedAt: db.updatedAt,
       deletedAt: db.deletedAt,

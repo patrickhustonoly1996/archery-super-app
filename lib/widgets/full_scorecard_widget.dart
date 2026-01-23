@@ -190,6 +190,15 @@ class FullScorecardWidget extends StatelessWidget {
     required bool isComplete,
     required bool isDistanceEnd,
   }) {
+    // Sort arrows by score descending (World Archery format: X > 10 > 9 > ...)
+    final sortedArrows = List<Arrow>.from(arrows)
+      ..sort((a, b) {
+        // X counts as higher than 10
+        final aScore = a.isX ? 11 : a.score;
+        final bScore = b.isX ? 11 : b.score;
+        return bScore.compareTo(aScore);
+      });
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
       decoration: BoxDecoration(
@@ -223,10 +232,10 @@ class FullScorecardWidget extends StatelessWidget {
             ),
           ),
 
-          // Arrow scores
+          // Arrow scores - sorted in descending order (World Archery format)
           ...List.generate(arrowsPerEnd, (i) {
-            final hasArrow = i < arrows.length;
-            final arrow = hasArrow ? arrows[i] : null;
+            final hasArrow = i < sortedArrows.length;
+            final arrow = hasArrow ? sortedArrows[i] : null;
 
             return SizedBox(
               width: 24,

@@ -14,6 +14,7 @@ import '../widgets/full_scorecard_widget.dart';
 import 'scorecard_view_screen.dart';
 import '../widgets/shaft_selector_bottom_sheet.dart';
 import '../widgets/offline_indicator.dart';
+import '../widgets/scoring_timer_widget.dart';
 import '../utils/undo_manager.dart';
 import '../db/database.dart';
 import 'session_complete_screen.dart';
@@ -50,6 +51,15 @@ const String kTripleSpotOrderPref = 'triple_spot_order';
 /// Preference key for hiding scores (sensitive athletes)
 const String kHideScoresPref = 'hide_scores_mode';
 
+/// Preference key for scoring timer enabled
+const String kScoringTimerEnabledPref = 'scoring_timer_enabled';
+
+/// Preference key for scoring timer duration (seconds: 90, 120, 180, 240)
+const String kScoringTimerDurationPref = 'scoring_timer_duration';
+
+/// Preference key for scoring timer lead-in (seconds: 10 or 15)
+const String kScoringTimerLeadInPref = 'scoring_timer_lead_in';
+
 class PlottingScreen extends StatefulWidget {
   const PlottingScreen({super.key});
 
@@ -77,6 +87,11 @@ class _PlottingScreenState extends State<PlottingScreen> {
   bool _hideScores = false;
   // Scorecard expanded state
   bool _scorecardExpanded = false;
+
+  // Scoring timer settings
+  bool _timerEnabled = false;
+  int _timerDuration = 120; // seconds (90, 120, 180, 240)
+  int _timerLeadIn = 10; // seconds (10 or 15)
 
   // Pending arrow position for fixed zoom window (normalized -1 to +1)
   // Using ValueNotifier for efficient updates without full widget rebuild
@@ -150,6 +165,9 @@ class _PlottingScreenState extends State<PlottingScreen> {
     final autoAdvance = await db.getBoolPreference(kTripleSpotAutoAdvancePref, defaultValue: true);
     final advanceOrder = await db.getPreference(kTripleSpotOrderPref);
     final hideScores = await db.getBoolPreference(kHideScoresPref, defaultValue: false);
+    final timerEnabled = await db.getBoolPreference(kScoringTimerEnabledPref, defaultValue: false);
+    final timerDuration = await db.getIntPreference(kScoringTimerDurationPref, defaultValue: 120);
+    final timerLeadIn = await db.getIntPreference(kScoringTimerLeadInPref, defaultValue: 10);
     if (mounted) {
       setState(() {
         _useTripleSpotView = tripleSpot;
@@ -160,6 +178,9 @@ class _PlottingScreenState extends State<PlottingScreen> {
         _autoAdvanceEnabled = autoAdvance;
         _autoAdvanceOrder = advanceOrder ?? 'column';
         _hideScores = hideScores;
+        _timerEnabled = timerEnabled;
+        _timerDuration = timerDuration;
+        _timerLeadIn = timerLeadIn;
       });
     }
   }
@@ -214,6 +235,24 @@ class _PlottingScreenState extends State<PlottingScreen> {
     setState(() => _hideScores = !_hideScores);
   }
 
+  Future<void> _setTimerEnabled(bool value) async {
+    final db = context.read<AppDatabase>();
+    await db.setBoolPreference(kScoringTimerEnabledPref, value);
+    setState(() => _timerEnabled = value);
+  }
+
+  Future<void> _setTimerDuration(int value) async {
+    final db = context.read<AppDatabase>();
+    await db.setIntPreference(kScoringTimerDurationPref, value);
+    setState(() => _timerDuration = value);
+  }
+
+  Future<void> _setTimerLeadIn(int value) async {
+    final db = context.read<AppDatabase>();
+    await db.setIntPreference(kScoringTimerLeadInPref, value);
+    setState(() => _timerLeadIn = value);
+  }
+
   void _showSettingsSheet(BuildContext context, SessionProvider provider, bool supportsTripleSpot) {
     showModalBottomSheet(
       context: context,
@@ -261,6 +300,21 @@ class _PlottingScreenState extends State<PlottingScreen> {
             _setAutoAdvanceOrder(value);
             setSheetState(() {});
           },
+          timerEnabled: _timerEnabled,
+          onTimerEnabledChanged: (value) {
+            _setTimerEnabled(value);
+            setSheetState(() {});
+          },
+          timerDuration: _timerDuration,
+          onTimerDurationChanged: (value) {
+            _setTimerDuration(value);
+            setSheetState(() {});
+          },
+          timerLeadIn: _timerLeadIn,
+          onTimerLeadInChanged: (value) {
+            _setTimerLeadIn(value);
+            setSheetState(() {});
+          },
         ),
       ),
     );
@@ -285,8 +339,10 @@ class _PlottingScreenState extends State<PlottingScreen> {
         }
 
         // Check if this is an indoor round that supports triple spot
+        // Only rounds with faceCount == 3 support triple spot (e.g., WA 18m, not Portsmouth)
         final isIndoor = provider.roundType?.isIndoor ?? false;
-        final supportsTripleSpot = isIndoor;
+        final faceCount = provider.roundType?.faceCount ?? 1;
+        final supportsTripleSpot = isIndoor && faceCount == 3;
 
         return Scaffold(
           appBar: AppBar(
@@ -392,27 +448,50 @@ class _PlottingScreenState extends State<PlottingScreen> {
                               if (supportsTripleSpot && _useTripleSpotView) {
                                 if (_useCombinedView) {
                                   // Combined view: all arrows on one tri-spot face
-                                  return CombinedTripleSpotView(
-                                    arrows: displayArrows,
-                                    size: size,
-                                    compoundScoring: _compoundScoring,
+                                  // Wrap in InteractiveViewer for pinch-to-zoom
+                                  return InteractiveViewer(
+                                    transformationController: _zoomController,
+                                    minScale: 1.0,
+                                    maxScale: 4.0,
+                                    panEnabled: true,
+                                    scaleEnabled: true,
+                                    constrained: true,
+                                    child: CombinedTripleSpotView(
+                                      arrows: displayArrows,
+                                      size: size,
+                                      compoundScoring: _compoundScoring,
+                                    ),
                                   );
                                 } else {
                                   // Separate view: 3 interactive faces
-                                  return InteractiveTripleSpotTarget(
-                                    arrows: displayArrows,
-                                    size: size,
-                                    enabled: canPlot,
-                                    compoundScoring: _compoundScoring,
-                                    autoAdvance: _autoAdvanceEnabled,
-                                    advanceOrder: _autoAdvanceOrder,
-                                    selectedFace: _selectedFaceIndex,
-                                    onFaceChanged: (face) => setState(() => _selectedFaceIndex = face),
-                                    onArrowPlotted: (x, y, faceIndex) async {
-                                      await _plotArrowWithFace(
-                                        context, provider, x, y, faceIndex,
-                                      );
-                                    },
+                                  // Wrap in InteractiveViewer for pinch-to-zoom
+                                  return InteractiveViewer(
+                                    transformationController: _zoomController,
+                                    minScale: 1.0,
+                                    maxScale: 4.0,
+                                    panEnabled: true,
+                                    scaleEnabled: true,
+                                    constrained: true,
+                                    child: InteractiveTripleSpotTarget(
+                                      arrows: displayArrows,
+                                      size: size,
+                                      enabled: canPlot,
+                                      compoundScoring: _compoundScoring,
+                                      autoAdvance: _autoAdvanceEnabled,
+                                      advanceOrder: _autoAdvanceOrder,
+                                      selectedFace: _selectedFaceIndex,
+                                      onFaceChanged: (face) => setState(() => _selectedFaceIndex = face),
+                                      onArrowPlotted: (x, y, faceIndex) async {
+                                        await _plotArrowWithFace(
+                                          context, provider, x, y, faceIndex,
+                                        );
+                                      },
+                                      onPendingArrowChanged: (x, y) {
+                                        _pendingArrowNotifier.value = x != null && y != null
+                                            ? (x: x, y: y)
+                                            : null;
+                                      },
+                                    ),
                                   );
                                 }
                               }
@@ -477,7 +556,9 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                     child: FixedZoomWindow(
                                       targetX: pending.x,
                                       targetY: pending.y,
-                                      zoomLevel: 4.0,
+                                      // Get current zoom from the transformation controller
+                                      currentZoomLevel: _zoomController.value.getMaxScaleOnAxis(),
+                                      relativeZoom: 2.0, // Always 2x relative to current zoom
                                       size: 120,
                                       triSpot: (provider.roundType?.faceCount ?? 1) == 3,
                                       compoundScoring: _compoundScoring,
@@ -550,6 +631,17 @@ class _PlottingScreenState extends State<PlottingScreen> {
                             onToggle: () => _setCombinedView(!_useCombinedView),
                           ),
                         ),
+
+                      // Scoring timer widget (bottom right)
+                      Positioned(
+                        bottom: AppSpacing.md,
+                        right: AppSpacing.md,
+                        child: ScoringTimerWidget(
+                          enabled: _timerEnabled,
+                          leadInSeconds: _timerLeadIn,
+                          durationSeconds: _timerDuration,
+                        ),
+                      ),
                     ],
                   ),
                 ),

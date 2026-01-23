@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 import '../theme/app_theme.dart';
 
-/// Light quality options for archery
+/// Light quality options for outdoor archery
 enum LightQuality {
   directSun('direct_sun', 'Direct Sun', 'Full sun, harsh shadows'),
   partialSun('partial_sun', 'Partial Sun', 'Sun through light clouds'),
@@ -44,6 +43,25 @@ enum LightQuality {
       case LightQuality.overcast:
         return 'overcast';
     }
+  }
+}
+
+/// Light quality options for indoor archery
+enum IndoorLightQuality {
+  bright('bright', 'Bright', 'Well-lit venue'),
+  regular('regular', 'Regular', 'Standard indoor lighting'),
+  dim('dim', 'Dim', 'Low lighting'),
+  dark('dark', 'Dark', 'Poorly lit');
+
+  final String value;
+  final String displayName;
+  final String description;
+
+  const IndoorLightQuality(this.value, this.displayName, this.description);
+
+  static IndoorLightQuality? fromString(String? value) {
+    if (value == null) return null;
+    return IndoorLightQuality.values.where((e) => e.value == value).firstOrNull;
   }
 }
 
@@ -450,4 +468,128 @@ String getLightConditionsSummary(LightQuality? light, SunPosition? sun) {
   }
 
   return summary;
+}
+
+/// Indoor light quality selector
+class IndoorLightSelector extends StatelessWidget {
+  final IndoorLightQuality? lightQuality;
+  final ValueChanged<IndoorLightQuality?>? onLightQualityChanged;
+  final bool enabled;
+
+  const IndoorLightSelector({
+    super.key,
+    this.lightQuality,
+    this.onLightQualityChanged,
+    this.enabled = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Light',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+            ),
+            if (lightQuality != null)
+              GestureDetector(
+                onTap: enabled ? () => onLightQualityChanged?.call(null) : null,
+                child: Text(
+                  'Clear',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.gold.withValues(alpha: 0.7),
+                        fontSize: 11,
+                      ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+
+        // Indoor light quality chips
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: IndoorLightQuality.values.map((quality) {
+            final isSelected = lightQuality == quality;
+            return GestureDetector(
+              onTap: enabled
+                  ? () => onLightQualityChanged?.call(isSelected ? null : quality)
+                  : null,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? _getIndoorLightColor(quality).withValues(alpha: 0.2)
+                      : AppColors.surfaceBright,
+                  borderRadius: BorderRadius.circular(AppSpacing.xs),
+                  border: isSelected
+                      ? Border.all(color: _getIndoorLightColor(quality))
+                      : null,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _getIndoorLightIcon(quality),
+                      size: 14,
+                      color: isSelected
+                          ? _getIndoorLightColor(quality)
+                          : AppColors.textMuted,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      quality.displayName,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: isSelected
+                                ? _getIndoorLightColor(quality)
+                                : AppColors.textPrimary,
+                            fontWeight:
+                                isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  IconData _getIndoorLightIcon(IndoorLightQuality quality) {
+    switch (quality) {
+      case IndoorLightQuality.bright:
+        return Icons.lightbulb;
+      case IndoorLightQuality.regular:
+        return Icons.lightbulb_outline;
+      case IndoorLightQuality.dim:
+        return Icons.brightness_low;
+      case IndoorLightQuality.dark:
+        return Icons.brightness_3;
+    }
+  }
+
+  Color _getIndoorLightColor(IndoorLightQuality quality) {
+    switch (quality) {
+      case IndoorLightQuality.bright:
+        return AppColors.gold;
+      case IndoorLightQuality.regular:
+        return AppColors.textPrimary;
+      case IndoorLightQuality.dim:
+        return AppColors.textSecondary;
+      case IndoorLightQuality.dark:
+        return AppColors.textMuted;
+    }
+  }
 }
