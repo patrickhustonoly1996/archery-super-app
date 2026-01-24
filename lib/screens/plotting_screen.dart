@@ -8,6 +8,7 @@ import '../providers/auto_plot_provider.dart';
 import '../providers/accessibility_provider.dart';
 import '../widgets/target_face.dart';
 import '../widgets/triple_spot_target.dart';
+import '../widgets/face_indicator_sidebar.dart';
 import '../widgets/plotting_settings_sheet.dart';
 import '../widgets/group_centre_widget.dart';
 import '../widgets/full_scorecard_widget.dart';
@@ -28,6 +29,24 @@ const String kTripleSpotViewPref = 'indoor_triple_spot_view';
 
 /// Preference key for combined view mode (when viewing triple spot)
 const String kTripleSpotCombinedViewPref = 'indoor_triple_spot_combined';
+
+/// Preference key for face layout mode (single, singleTracked, verticalTriple, triangular)
+const String kFaceLayoutPref = 'face_layout_mode';
+
+/// Preference key for single face tracking enabled (prompts for face order on first use)
+const String kSingleFaceTrackingPref = 'single_face_tracking_enabled';
+
+/// Face layout modes for indoor rounds
+enum FaceLayout {
+  /// True single face (no face tracking, all arrows on same target)
+  single,
+  /// Single face view but tracks which face each arrow is on
+  singleTracked,
+  /// 3 faces stacked vertically (default for triple spot)
+  verticalTriple,
+  /// 3 faces in triangle (1 top, 2 below) - WA 18m only
+  triangular,
+}
 
 /// Preference key for compound scoring mode (smaller inner 10/X ring)
 const String kCompoundScoringPref = 'compound_scoring_mode';
@@ -80,6 +99,10 @@ class _PlottingScreenState extends State<PlottingScreen> {
   bool _useCombinedView = false;
   // Compound scoring mode - smaller inner 10/X ring
   bool _compoundScoring = false;
+  // Face layout mode for indoor rounds
+  FaceLayout _faceLayout = FaceLayout.verticalTriple;
+  // Single face tracking enabled (for singleTracked mode)
+  bool _singleFaceTracking = false;
   // Group centre confidence multiplier (1.0 = 68%, 2.0 = 95%)
   double _confidenceMultiplier = 1.0;
   // Show ring notation on group centre widgets (hidden by default, show on long-press)
@@ -182,6 +205,8 @@ class _PlottingScreenState extends State<PlottingScreen> {
     final timerLeadIn = await db.getIntPreference(kScoringTimerLeadInPref, defaultValue: 10);
     final zoomWindowEnabled = await db.getBoolPreference(kZoomWindowEnabledPref, defaultValue: true);
     final lineCutterEnabled = await db.getBoolPreference(kLineCutterEnabledPref, defaultValue: true);
+    final faceLayoutStr = await db.getPreference(kFaceLayoutPref);
+    final singleFaceTracking = await db.getBoolPreference(kSingleFaceTrackingPref, defaultValue: false);
     if (mounted) {
       setState(() {
         _useTripleSpotView = tripleSpot;
@@ -197,6 +222,11 @@ class _PlottingScreenState extends State<PlottingScreen> {
         _timerLeadIn = timerLeadIn;
         _zoomWindowEnabled = zoomWindowEnabled;
         _lineCutterEnabled = lineCutterEnabled;
+        _faceLayout = FaceLayout.values.firstWhere(
+          (e) => e.name == faceLayoutStr,
+          orElse: () => FaceLayout.verticalTriple,
+        );
+        _singleFaceTracking = singleFaceTracking;
       });
     }
   }
@@ -279,6 +309,18 @@ class _PlottingScreenState extends State<PlottingScreen> {
     final db = context.read<AppDatabase>();
     await db.setBoolPreference(kLineCutterEnabledPref, value);
     setState(() => _lineCutterEnabled = value);
+  }
+
+  Future<void> _setFaceLayout(FaceLayout layout) async {
+    final db = context.read<AppDatabase>();
+    await db.setPreference(kFaceLayoutPref, layout.name);
+    setState(() => _faceLayout = layout);
+  }
+
+  Future<void> _setSingleFaceTracking(bool value) async {
+    final db = context.read<AppDatabase>();
+    await db.setBoolPreference(kSingleFaceTrackingPref, value);
+    setState(() => _singleFaceTracking = value);
   }
 
   void _showSettingsSheet(BuildContext context, SessionProvider provider, bool supportsTripleSpot) {
@@ -377,10 +419,15 @@ class _PlottingScreenState extends State<PlottingScreen> {
         }
 
         // Check if this is an indoor round that supports triple spot
-        // Only rounds with faceCount == 3 support triple spot (e.g., WA 18m, not Portsmouth)
+        // Allow user override for any indoor round with small faces (60cm or less)
         final isIndoor = provider.roundType?.isIndoor ?? false;
         final faceCount = provider.roundType?.faceCount ?? 1;
-        final supportsTripleSpot = isIndoor && faceCount == 3;
+        final faceSize = provider.roundType?.faceSize ?? 122;
+        // Rounds with faceCount == 3 always support triple spot
+        // Indoor rounds with 60cm or smaller faces can also use triple spot
+        final supportsTripleSpot = isIndoor && (faceCount == 3 || faceSize <= 60);
+        // Triangular layout only for WA 18m style (already has faceCount == 3)
+        final supportsTriangular = isIndoor && faceCount == 3;
 
         return Scaffold(
           appBar: AppBar(
@@ -486,7 +533,6 @@ class _PlottingScreenState extends State<PlottingScreen> {
                               if (supportsTripleSpot && _useTripleSpotView) {
                                 if (_useCombinedView) {
                                   // Combined view: all arrows on one tri-spot face
-                                  // Wrap in InteractiveViewer for pinch-to-zoom
                                   return InteractiveViewer(
                                     transformationController: _zoomController,
                                     minScale: 1.0,
@@ -500,9 +546,39 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                       compoundScoring: _compoundScoring,
                                     ),
                                   );
+                                } else if (_faceLayout == FaceLayout.triangular && supportsTriangular) {
+                                  // Triangular view: 1 face on top, 2 below (WA 18m style)
+                                  return InteractiveViewer(
+                                    transformationController: _zoomController,
+                                    minScale: 1.0,
+                                    maxScale: 4.0,
+                                    panEnabled: true,
+                                    scaleEnabled: true,
+                                    constrained: true,
+                                    child: TriangularTripleSpotTarget(
+                                      arrows: displayArrows,
+                                      size: size,
+                                      enabled: canPlot,
+                                      compoundScoring: _compoundScoring,
+                                      autoAdvance: _autoAdvanceEnabled,
+                                      advanceOrder: _autoAdvanceOrder,
+                                      selectedFace: _selectedFaceIndex,
+                                      onFaceChanged: (face) => setState(() => _selectedFaceIndex = face),
+                                      onArrowPlotted: (x, y, faceIndex, {scoreOverride}) async {
+                                        await _plotArrowWithFace(
+                                          context, provider, x, y, faceIndex,
+                                          scoreOverride: scoreOverride,
+                                        );
+                                      },
+                                      onPendingArrowChanged: (x, y) {
+                                        _pendingArrowNotifier.value = x != null && y != null
+                                            ? (x: x, y: y)
+                                            : null;
+                                      },
+                                    ),
+                                  );
                                 } else {
-                                  // Separate view: 3 interactive faces
-                                  // Wrap in InteractiveViewer for pinch-to-zoom
+                                  // Vertical separate view: 3 interactive faces stacked
                                   return InteractiveViewer(
                                     transformationController: _zoomController,
                                     minScale: 1.0,
@@ -556,6 +632,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                       triSpot: isTriSpot,
                                       compoundScoring: _compoundScoring,
                                       lineCutterDialogEnabled: _lineCutterEnabled,
+                                      faceSizeCm: provider.faceSizeCm,
                                       scoringType: provider.roundType?.scoringType ?? '10-zone',
                                       transformController: _zoomController,
                                       colorblindMode: accessibility.colorblindMode,

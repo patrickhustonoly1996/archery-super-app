@@ -14,12 +14,12 @@ class PlottingConstants {
   /// Original location: target_face.dart
   static const double fingerTouchOffset = 60.0;
 
-  /// Threshold for "linecutter" arrow detection (normalized coordinates).
+  /// Threshold for "linecutter" arrow detection in mm.
   /// If an arrow is within this distance of a ring boundary, it's marked
   /// as potentially on the line (pending human judgment).
-  /// Value: 4% of target radius
+  /// Fixed at 1.5mm regardless of face size.
   /// Original location: target_face.dart
-  static const double linecutterThreshold = 0.04;
+  static const double linecutterThresholdMm = 1.5;
 
   /// Minimum tap area for interactive target plotting.
   /// Prevents accidental taps and ensures accessibility.

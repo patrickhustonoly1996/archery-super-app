@@ -481,6 +481,10 @@ class InteractiveTargetFace extends StatefulWidget {
   /// Enable line cutter detection and in/out dialog
   final bool lineCutterDialogEnabled;
 
+  /// Face size in cm (40 for indoor, 122/80/60 for outdoor)
+  /// Used to calculate fixed mm threshold for line cutter
+  final int faceSizeCm;
+
   /// Scoring type: '10-zone' (default), '5-zone' (imperial), 'worcester'
   /// This affects which ring boundaries trigger the linecutter dialog.
   final String scoringType;
@@ -501,6 +505,7 @@ class InteractiveTargetFace extends StatefulWidget {
     this.triSpot = false,
     this.isLeftHanded = false,
     this.lineCutterDialogEnabled = false,
+    this.faceSizeCm = 40,
     this.scoringType = '10-zone',
     this.compoundScoring = false,
     this.colorblindMode = ColorblindMode.none,
@@ -524,9 +529,16 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   static const double _holdOffsetX = 50.0; // Horizontal (sign flipped for lefties)
   static const double _holdOffsetY = 50.0; // Vertical (always upward)
 
-  // Linecutter detection threshold - ~1% of radius = only when touching the line
+  // Line cutter threshold in mm - fixed at 1.5mm regardless of face size
   // Line cutter only activates on the OUTER edge (lower score side) of the line
-  static const double _boundaryProximityThreshold = 0.01;
+  static const double _lineCutterThresholdMm = 1.5;
+
+  /// Calculate the normalized threshold based on face size
+  /// 1.5mm on a 40cm face (200mm radius) = 0.0075 normalized
+  double get _boundaryProximityThreshold {
+    final radiusMm = widget.faceSizeCm * 5.0; // cm to mm, then /2 for radius
+    return _lineCutterThresholdMm / radiusMm;
+  }
 
   /// Convert a gesture position to widget-local coordinates, accounting for any
   /// InteractiveViewer transformation (zoom/pan).
