@@ -17,11 +17,21 @@ Reduce AI token consumption while maintaining quality. Every token costs money a
 
 **NEVER run full suite during development.** With 4000+ tests, this burns tokens reading massive outputs.
 
+### Who Runs Tests
+
+| Test Type | Who | Why |
+|-----------|-----|-----|
+| Targeted tests during dev | Z.ai | Mechanical - just run and report |
+| Full suite pre-merge | Z.ai | Mechanical - long output but cheap |
+| Test is failing, unclear why | Opus | Needs investigation |
+| Writing new test (pattern exists) | Z.ai | Copy existing pattern |
+| Writing new test (no pattern) | Opus | Needs design thinking |
+
 ```bash
-# WRONG - expensive
+# WRONG - expensive on Opus
 flutter test
 
-# RIGHT - targeted
+# RIGHT - Z.ai runs targeted
 flutter test test/services/sync_service_test.dart
 flutter test test/providers/
 ```
@@ -173,12 +183,13 @@ Claude reads CLAUDE.md automatically. Don't repeat what's there.
 |--------|--------|-----|
 | Read small file (<100 lines) | ~200 | Either |
 | Read large file (>500 lines) | ~1500+ | Z.ai if just lookup, Opus if analyzing |
-| Full test suite output | ~5000+ | Z.ai (or skip - see Testing section) |
-| Targeted test output | ~200-500 | Either |
+| Full test suite output | ~5000+ | Z.ai |
+| Targeted test output | ~200-500 | Z.ai |
 | Git operations | ~500-1500 | Z.ai |
 | Build output | ~2000-5000 | Z.ai |
 | Codebase exploration | ~2000+ | Opus (needs understanding) |
 | Debugging mystery bug | varies | Opus |
+| Debugging failing test | varies | Opus (if cause unclear) |
 
 ### Cost Comparison
 
@@ -198,6 +209,7 @@ Z.ai (cheap, fast)              OPUS (expensive, smart)
 ──────────────────              ───────────────────────
 • git status/add/commit/push    • Architecture decisions
 • flutter build                 • Debugging mysteries
+• Run tests (targeted or full)  • "Why is this test failing?"
 • Pattern-following code        • New integrations
 • Rename/refactor mechanical    • "I don't know how"
 • Simple test writing           • Security-sensitive code
