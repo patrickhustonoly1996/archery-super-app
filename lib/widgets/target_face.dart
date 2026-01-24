@@ -165,6 +165,15 @@ class _TargetFacePainter extends CustomPainter {
       canvas.drawCircle(center, ring.$1 * radius * ringScale, linePaint);
     }
 
+    // Draw 10 ring boundary more prominently for recurve
+    if (!compoundScoring) {
+      final ring10PromPaint = Paint()
+        ..color = Colors.black.withValues(alpha: 0.7)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2;
+      canvas.drawCircle(center, ring10Size * radius * ringScale, ring10PromPaint);
+    }
+
     // Draw X ring (innermost)
     if (compoundScoring) {
       // Compound: solid gold fill with clear black border
@@ -179,11 +188,11 @@ class _TargetFacePainter extends CustomPainter {
         ..strokeWidth = 1.5;
       canvas.drawCircle(center, xSize * radius * ringScale, xBorderPaint);
     } else {
-      // Recurve: subtle shadow line only (no fill, just a faint ring outline)
+      // Recurve: very subtle shadow line (less prominent than before)
       final xShadowPaint = Paint()
-        ..color = Colors.black.withValues(alpha: 0.3)
+        ..color = Colors.black.withValues(alpha: 0.15)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.5;
+        ..strokeWidth = 0.3;
       canvas.drawCircle(center, xSize * radius * ringScale, xShadowPaint);
     }
 
@@ -1037,6 +1046,15 @@ class _FixedZoomWindowPainter extends CustomPainter {
       canvas.drawCircle(center, ringRadius, paint);
     }
 
+    // Draw 10 ring more prominently for recurve
+    if (!compoundScoring) {
+      final ring10PromPaint = Paint()
+        ..color = Colors.black.withValues(alpha: 0.7)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5;
+      canvas.drawCircle(center, ring10Size * radius * ringScale, ring10PromPaint);
+    }
+
     // Draw X ring
     if (compoundScoring) {
       // Compound: solid gold fill with clear black border
@@ -1051,11 +1069,11 @@ class _FixedZoomWindowPainter extends CustomPainter {
         ..strokeWidth = 2.0;
       canvas.drawCircle(center, xSize * radius * ringScale, xBorderPaint);
     } else {
-      // Recurve: subtle shadow line only
+      // Recurve: very subtle shadow line (less prominent)
       final xShadowPaint = Paint()
-        ..color = Colors.black.withValues(alpha: 0.3)
+        ..color = Colors.black.withValues(alpha: 0.15)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.0;
+        ..strokeWidth = 0.5;
       canvas.drawCircle(center, xSize * radius * ringScale, xShadowPaint);
     }
   }

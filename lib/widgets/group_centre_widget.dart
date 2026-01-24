@@ -177,6 +177,7 @@ class GroupCentreWidget extends StatelessWidget {
                     zoomFactor: zoomFactor,
                     groupCentreX: avgX,
                     groupCentreY: avgY,
+                    arrows: arrows,
                   )
                 else
                   // Empty state - show target centred normally
@@ -219,12 +220,14 @@ class _ZoomedTargetView extends StatelessWidget {
   final double zoomFactor;
   final double groupCentreX;
   final double groupCentreY;
+  final List<Arrow>? arrows;
 
   const _ZoomedTargetView({
     required this.size,
     required this.zoomFactor,
     required this.groupCentreX,
     required this.groupCentreY,
+    this.arrows,
   });
 
   @override
@@ -256,15 +259,19 @@ class _ZoomedTargetView extends StatelessWidget {
         ),
         child: CustomPaint(
           size: Size(targetSize, targetSize),
-          painter: _MiniTargetPainter(),
+          painter: _MiniTargetPainter(arrows: arrows),
         ),
       ),
     );
   }
 }
 
-/// Paints a simplified target face
+/// Paints a simplified target face with optional arrows
 class _MiniTargetPainter extends CustomPainter {
+  final List<Arrow>? arrows;
+
+  _MiniTargetPainter({this.arrows});
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
@@ -288,7 +295,7 @@ class _MiniTargetPainter extends CustomPainter {
       canvas.drawCircle(center, ringRadius, paint);
     }
 
-    // Draw ring lines
+    // Draw ring lines - subtle for most rings
     final linePaint = Paint()
       ..color = Colors.black.withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke
@@ -321,10 +328,70 @@ class _MiniTargetPainter extends CustomPainter {
     for (final boundary in allBoundaries) {
       canvas.drawCircle(center, boundary * radius, thinLinePaint);
     }
+
+    // Draw 10 ring boundary more prominently (recurve 10 ring)
+    final ring10Paint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.7)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    canvas.drawCircle(center, TargetRings.ring10 * radius, ring10Paint);
+
+    // Draw X ring very subtly (less prominent)
+    final xRingPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.12)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.3;
+    canvas.drawCircle(center, TargetRings.x * radius, xRingPaint);
+
+    // Draw arrows if provided
+    if (arrows != null) {
+      final arrowPaint = Paint()
+        ..style = PaintingStyle.fill;
+      final arrowBorderPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.5;
+
+      // Calculate arrow marker size - small for mini view
+      final markerRadius = (radius * 0.015).clamp(1.0, 3.0);
+
+      for (final arrow in arrows!) {
+        // Convert normalized coordinates to pixel position
+        final arrowX = center.dx + arrow.x * radius;
+        final arrowY = center.dy + arrow.y * radius;
+
+        // Choose contrasting color based on ring
+        Color markerColor;
+        Color borderColor;
+        if (arrow.score >= 9) {
+          markerColor = Colors.black;
+          borderColor = Colors.white;
+        } else if (arrow.score >= 7) {
+          markerColor = Colors.white;
+          borderColor = Colors.black;
+        } else if (arrow.score >= 5) {
+          markerColor = Colors.white;
+          borderColor = Colors.black;
+        } else if (arrow.score >= 3) {
+          markerColor = Colors.white;
+          borderColor = Colors.black;
+        } else {
+          markerColor = Colors.black;
+          borderColor = Colors.white;
+        }
+
+        arrowPaint.color = markerColor;
+        arrowBorderPaint.color = borderColor;
+
+        canvas.drawCircle(Offset(arrowX, arrowY), markerRadius, arrowPaint);
+        canvas.drawCircle(Offset(arrowX, arrowY), markerRadius, arrowBorderPaint);
+      }
+    }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _MiniTargetPainter oldDelegate) {
+    return arrows != oldDelegate.arrows;
+  }
 }
 
 /// Paints a translucent confidence ellipse showing group spread
@@ -354,14 +421,14 @@ class _ConfidenceEllipsePainter extends CustomPainter {
     // Don't draw if ellipse is too small
     if (pixelAxisX < 2 || pixelAxisY < 2) return;
 
-    // Translucent magenta fill
+    // Translucent green fill
     final fillPaint = Paint()
-      ..color = const Color(0xFFFF00FF).withValues(alpha: 0.15)
+      ..color = const Color(0xFF00FF00).withValues(alpha: 0.15)
       ..style = PaintingStyle.fill;
 
-    // Magenta outline
+    // Green outline
     final strokePaint = Paint()
-      ..color = const Color(0xFFFF00FF).withValues(alpha: 0.6)
+      ..color = const Color(0xFF00FF00).withValues(alpha: 0.6)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
 
