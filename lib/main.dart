@@ -317,7 +317,7 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
   }
 
   /// Verify auth state in background after showing home screen
-  /// Updates local flag if Firebase says user is actually logged out
+  /// Uses auth state listener instead of one-time check to handle async session restore
   void _verifyAuthInBackground(SharedPreferences prefs) {
     Future.microtask(() async {
       try {
@@ -327,23 +327,54 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
             throw TimeoutException('Firebase init timed out during verification');
           },
         );
-        final user = FirebaseAuth.instance.currentUser;
+
+        _firebaseReady = true;
+
+        // Listen to auth state changes instead of checking currentUser once
+        // Firebase Auth may need time to restore session from keychain/storage
+        // We give it up to 5 seconds to emit an authenticated state
+        final completer = Completer<User?>();
+        StreamSubscription<User?>? subscription;
+
+        subscription = FirebaseAuth.instance.authStateChanges().listen((user) {
+          if (!completer.isCompleted) {
+            completer.complete(user);
+            subscription?.cancel();
+          }
+        });
+
+        // Also check currentUser immediately in case it's already available
+        final immediateUser = FirebaseAuth.instance.currentUser;
+        if (immediateUser != null && !completer.isCompleted) {
+          completer.complete(immediateUser);
+          subscription.cancel();
+        }
+
+        // Wait for auth state with timeout
+        final user = await completer.future.timeout(
+          const Duration(seconds: 5),
+          onTimeout: () {
+            subscription?.cancel();
+            // Timeout means Firebase couldn't confirm auth state
+            // Keep local flag - user is likely offline or session is still restoring
+            debugPrint('Auth state listener timed out - keeping local flag');
+            return null;
+          },
+        );
 
         if (user != null) {
-          // User is still logged in - trigger sync
+          // User is confirmed logged in - trigger sync
           _cachedUser = user;
-          _firebaseReady = true;
           _triggerBackgroundSync();
+          debugPrint('Auth verified: user ${user.uid} is logged in');
         } else {
-          // Firebase says not logged in - user probably logged out elsewhere
-          // Only clear flag if Firebase initialized successfully (not network error)
-          // This prevents incorrectly signing out offline users
-          if (await _isOnline()) {
-            await prefs.setBool(_wasLoggedInKey, false);
-            debugPrint('Auth state mismatch: local=true, firebase=false - clearing flag');
-          } else {
-            debugPrint('Auth state mismatch but offline - keeping local flag');
-          }
+          // No user after waiting - but DON'T clear flag automatically
+          // The user could be offline, or Firebase could be having issues
+          // Only clear flag if user explicitly logs out (via AuthService.signOut)
+          debugPrint('Auth verification: no user found, but keeping local flag for resilience');
+          // Note: We used to clear the flag here, but this caused users to be
+          // signed out unexpectedly when Firebase was slow to restore sessions.
+          // Now we only clear the flag on explicit logout.
         }
       } on TimeoutException {
         // Firebase timed out - don't clear flag, user might just be offline
@@ -353,16 +384,6 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
         debugPrint('Background auth verification failed: $e - keeping local flag');
       }
     });
-  }
-
-  /// Simple online check - tries to reach Firebase
-  Future<bool> _isOnline() async {
-    try {
-      // If Firebase is ready and we got here, we're likely online
-      return _firebaseReady;
-    } catch (e) {
-      return false;
-    }
   }
 
   /// Trigger bidirectional sync with cloud
