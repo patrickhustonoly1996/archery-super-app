@@ -221,44 +221,42 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
 
   /// Sync on app lifecycle changes for robust data persistence
   ///
-  /// - resumed: User switches back to app - sync to get latest from cloud
-  /// - paused: App going to background - sync to save pending data
-  /// - inactive: Phone call, control center, etc - trigger quick sync
-  /// - hidden: App hidden but running - sync to preserve data
+  /// Only sync when going to background (paused/inactive) to save pending data.
+  /// Don't sync on resume - that's wasteful. Data-driven sync happens in
+  /// providers when data is actually created/modified.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!_wasLoggedIn) return;
 
     switch (state) {
       case AppLifecycleState.resumed:
-        // Coming back to foreground - sync to get latest data
-        debugPrint('Lifecycle: resumed - triggering sync');
-        _triggerBackgroundSync();
+        // Coming back to foreground - no sync needed
+        // Data-driven sync happens when data is created/modified
+        debugPrint('Lifecycle: resumed');
         break;
 
       case AppLifecycleState.paused:
         // Going to background - CRITICAL: sync to save any pending data
         // This protects against OS killing the app while backgrounded
-        debugPrint('Lifecycle: paused - triggering sync to save pending data');
+        debugPrint('Lifecycle: paused - syncing pending data');
         _triggerBackgroundSync(urgent: true);
         break;
 
       case AppLifecycleState.inactive:
-        // Phone call, control center, etc - trigger sync
-        // App might be killed after this, so save data now
-        debugPrint('Lifecycle: inactive - triggering sync');
+        // Phone call, control center, etc
+        // App might be killed after this, so save pending data now
+        debugPrint('Lifecycle: inactive - syncing pending data');
         _triggerBackgroundSync(urgent: true);
         break;
 
       case AppLifecycleState.hidden:
-        // App hidden but still running (desktop/web)
-        debugPrint('Lifecycle: hidden - triggering sync');
-        _triggerBackgroundSync();
+        // App hidden but still running (desktop/web) - no sync needed
+        debugPrint('Lifecycle: hidden');
         break;
 
       case AppLifecycleState.detached:
         // Engine detaching - too late to sync
-        debugPrint('Lifecycle: detached - cannot sync');
+        debugPrint('Lifecycle: detached');
         break;
     }
   }
