@@ -365,7 +365,7 @@ void main() {
             body: InteractiveTargetFace(
               arrows: const [],
               size: 300,
-              onArrowPlotted: (x, y) {},
+              onArrowPlotted: (x, y, {scoreOverride}) {},
             ),
           ),
         ),
@@ -384,7 +384,7 @@ void main() {
             body: InteractiveTargetFace(
               arrows: const [],
               size: 300,
-              onArrowPlotted: (x, y) {
+              onArrowPlotted: (x, y, {scoreOverride}) {
                 plottedPosition = Offset(x, y);
               },
             ),
@@ -416,7 +416,7 @@ void main() {
               child: InteractiveTargetFace(
                 arrows: const [],
                 size: 300,
-                onArrowPlotted: (x, y) {
+                onArrowPlotted: (x, y, {scoreOverride}) {
                   wasPlotted = true;
                 },
               ),
@@ -452,7 +452,7 @@ void main() {
               child: InteractiveTargetFace(
                 arrows: const [],
                 size: 300,
-                onArrowPlotted: (x, y) {
+                onArrowPlotted: (x, y, {scoreOverride}) {
                   wasPlotted = true;
                   plottedPosition = Offset(x, y);
                 },
@@ -489,7 +489,7 @@ void main() {
               arrows: const [],
               size: 300,
               enabled: false,
-              onArrowPlotted: (x, y) {
+              onArrowPlotted: (x, y, {scoreOverride}) {
                 wasPlotted = true;
               },
             ),
@@ -515,7 +515,7 @@ void main() {
               arrows: const [],
               size: 300,
               triSpot: true,
-              onArrowPlotted: (x, y) {},
+              onArrowPlotted: (x, y, {scoreOverride}) {},
             ),
           ),
         ),
@@ -531,7 +531,7 @@ void main() {
             body: InteractiveTargetFace(
               arrows: const [],
               size: 300,
-              onArrowPlotted: (x, y) {},
+              onArrowPlotted: (x, y, {scoreOverride}) {},
             ),
           ),
         ),
@@ -553,7 +553,7 @@ void main() {
             body: InteractiveTargetFace(
               arrows: existingArrows,
               size: 300,
-              onArrowPlotted: (x, y) {},
+              onArrowPlotted: (x, y, {scoreOverride}) {},
             ),
           ),
         ),

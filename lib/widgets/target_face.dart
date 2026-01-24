@@ -468,7 +468,8 @@ class _ArrowMarker extends StatelessWidget {
 class InteractiveTargetFace extends StatefulWidget {
   final List<Arrow> arrows;
   final double size;
-  final Function(double x, double y) onArrowPlotted;
+  /// Callback when arrow is plotted. Optional scoreOverride for line cutter.
+  final Function(double x, double y, {({int score, bool isX})? scoreOverride}) onArrowPlotted;
   final bool enabled;
   final bool isIndoor;
   final bool triSpot;
@@ -523,9 +524,9 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   static const double _holdOffsetX = 50.0; // Horizontal (sign flipped for lefties)
   static const double _holdOffsetY = 50.0; // Vertical (always upward)
 
-  // Linecutter detection threshold - ~4% of radius gives a reasonable "near the line" zone
-  // Each ring is 10% of radius, so 4% covers roughly the inner/outer 40% of each ring
-  static const double _boundaryProximityThreshold = 0.04;
+  // Linecutter detection threshold - ~1% of radius = only when touching the line
+  // Line cutter only activates on the OUTER edge (lower score side) of the line
+  static const double _boundaryProximityThreshold = 0.01;
 
   /// Convert a gesture position to widget-local coordinates, accounting for any
   /// InteractiveViewer transformation (zoom/pan).
@@ -575,10 +576,9 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
     );
   }
 
-  /// Check if normalized position is near a ring boundary
-  /// Returns the ring number where IN = that score, OUT = score - 1
-  /// Special cases: ring 11 = X ring boundary (IN=X, OUT=10)
-  ///                ring 1 = outer edge (IN=1, OUT=Miss)
+  /// Check if normalized position is on the OUTER edge of a ring boundary.
+  /// Only triggers when arrow is just outside the line (lower score side).
+  /// Returns the ring number of the higher score (the ring the arrow just missed).
   ///
   /// For 5-zone scoring (imperial rounds), only checks color boundaries:
   /// - Gold/Red at ring 9 (0.20) - score 9→7
@@ -592,21 +592,17 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
     // Get boundaries based on scoring type
     final ringBoundaries = _getBoundariesForScoringType();
 
-    double minDistance = double.infinity;
-    int? nearestRing;
-
+    // Check each boundary - only trigger if on OUTER edge (just past the line)
     for (final (boundary, ringNumber) in ringBoundaries) {
-      final dist = (distanceFromCenter - boundary).abs();
-      if (dist < minDistance) {
-        minDistance = dist;
-        nearestRing = ringNumber;
+      // Arrow must be just outside the line (distance > boundary)
+      // and within the threshold of the line
+      final distFromLine = distanceFromCenter - boundary;
+      if (distFromLine > 0 && distFromLine <= _boundaryProximityThreshold) {
+        return (isNear: true, ring: ringNumber);
       }
     }
 
-    return (
-      isNear: minDistance <= _boundaryProximityThreshold,
-      ring: minDistance <= _boundaryProximityThreshold ? nearestRing : null,
-    );
+    return (isNear: false, ring: null);
   }
 
   /// Get ring boundaries to check based on scoring type.
@@ -641,11 +637,21 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
     ];
   }
 
-  void _onPanStart(DragStartDetails details) {
+  // Track if we're in a pinch-to-zoom gesture (should not plot)
+  bool _isPinching = false;
+
+  void _onScaleStart(ScaleStartDetails details) {
     if (!widget.enabled) return;
 
+    // If more than one pointer, this is a pinch gesture - let InteractiveViewer handle it
+    if (details.pointerCount > 1) {
+      _isPinching = true;
+      return;
+    }
+    _isPinching = false;
+
     // Transform gesture position to widget-local coordinates (accounting for zoom)
-    final localPos = _gestureToWidgetLocal(details.localPosition);
+    final localPos = _gestureToWidgetLocal(details.localFocalPoint);
     final arrowPos = _calculateArrowPosition(localPos);
 
     setState(() {
@@ -659,11 +665,26 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
     widget.onPendingArrowChanged?.call(normX, normY);
   }
 
-  void _onPanUpdate(DragUpdateDetails details) {
+  void _onScaleUpdate(ScaleUpdateDetails details) {
+    // If pinching or scaling, don't update arrow position
+    if (_isPinching || details.pointerCount > 1 || details.scale != 1.0) {
+      // Cancel any pending arrow if we start pinching mid-gesture
+      if (_isHolding) {
+        setState(() {
+          _isHolding = false;
+          _touchPosition = null;
+          _arrowPosition = null;
+        });
+        widget.onPendingArrowChanged?.call(null, null);
+      }
+      _isPinching = true;
+      return;
+    }
+
     if (!widget.enabled || !_isHolding) return;
 
     // Transform gesture position to widget-local coordinates (accounting for zoom)
-    final localPos = _gestureToWidgetLocal(details.localPosition);
+    final localPos = _gestureToWidgetLocal(details.localFocalPoint);
     final arrowPos = _calculateArrowPosition(localPos);
 
     setState(() {
@@ -676,7 +697,13 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
     widget.onPendingArrowChanged?.call(normX, normY);
   }
 
-  void _onPanEnd(DragEndDetails details) {
+  void _onScaleEnd(ScaleEndDetails details) {
+    // If we were pinching, just reset state and don't plot
+    if (_isPinching) {
+      _isPinching = false;
+      return;
+    }
+
     if (!widget.enabled || !_isHolding || _arrowPosition == null) return;
 
     final finalArrowPosition = _arrowPosition!;
@@ -724,17 +751,25 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   Future<void> _handleLineCutter(double x, double y, int nearRing) async {
     final higherScore = await _showLineCutterDialog(nearRing);
 
-    if (higherScore != null) {
-      final adjustmentFactor = higherScore ? -0.015 : 0.015;
-      final currentDist = math.sqrt(x * x + y * y);
-      if (currentDist > 0) {
-        final scale = (currentDist + adjustmentFactor) / currentDist;
-        x *= scale;
-        y *= scale;
-      }
+    if (higherScore == null) {
+      // Dialog dismissed - still plot with no override
+      widget.onArrowPlotted(x, y);
+      return;
     }
 
-    widget.onArrowPlotted(x, y);
+    // Determine the score based on user choice
+    // nearRing is the ring the arrow just missed (higher score)
+    // If higherScore=true (IN), give them that ring's score
+    // If higherScore=false (OUT), calculate from position (already done automatically)
+    if (higherScore) {
+      // User says IN - override with the higher score
+      final score = nearRing == 11 ? 10 : nearRing;
+      final isX = nearRing == 11;
+      widget.onArrowPlotted(x, y, scoreOverride: (score: score, isX: isX));
+    } else {
+      // User says OUT - no override, use calculated score from position
+      widget.onArrowPlotted(x, y);
+    }
   }
 
   Future<bool?> _showLineCutterDialog(int nearRing) async {
@@ -797,9 +832,11 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
       height: widget.size,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onPanStart: _onPanStart,
-        onPanUpdate: _onPanUpdate,
-        onPanEnd: _onPanEnd,
+        // Use scale gestures to allow pinch-to-zoom to pass through to InteractiveViewer
+        // Single-finger drag still works for plotting arrows
+        onScaleStart: _onScaleStart,
+        onScaleUpdate: _onScaleUpdate,
+        onScaleEnd: _onScaleEnd,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
@@ -977,6 +1014,17 @@ class _FixedZoomWindowPainter extends CustomPainter {
     return AccessibleColors.getRingColor(score, colorblindMode);
   }
 
+  /// Get the score at the crosshair position for color determination
+  int _getScoreAtPosition() {
+    // For triSpot, coordinates are already scaled by ring6 (0.5)
+    // So we need to scale back to get the true distance from center
+    final ringScale = triSpot ? (1.0 / TargetRings.ring6) : 1.0;
+    final adjustedX = targetX * ringScale;
+    final adjustedY = targetY * ringScale;
+    final distance = math.sqrt(adjustedX * adjustedX + adjustedY * adjustedY);
+    return TargetRings.getScore(distance);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
@@ -985,13 +1033,18 @@ class _FixedZoomWindowPainter extends CustomPainter {
     // The effective target radius when zoomed
     final effectiveTargetRadius = viewRadius * zoomLevel;
 
+    // For triSpot, coordinates are already scaled by ring6 (0.5)
+    // We need to apply the same ringScale to the offset calculation
+    // so the crosshair aligns with the correct ring position
+    final ringScale = triSpot ? (1.0 / TargetRings.ring6) : 1.0;
+
     // Save canvas state
     canvas.save();
 
     // Translate so the target position (targetX, targetY) is at center of view
-    // targetX/targetY are normalized -1 to 1
-    final offsetX = -targetX * effectiveTargetRadius;
-    final offsetY = -targetY * effectiveTargetRadius;
+    // Apply ringScale to account for triSpot coordinate pre-scaling
+    final offsetX = -targetX * ringScale * effectiveTargetRadius;
+    final offsetY = -targetY * ringScale * effectiveTargetRadius;
 
     canvas.translate(center.dx + offsetX, center.dy + offsetY);
 
@@ -1101,8 +1154,14 @@ class _FixedZoomWindowPainter extends CustomPainter {
   }
 
   void _drawCrosshair(Canvas canvas, Offset center, Size size) {
+    // Determine crosshair color based on ring under the crosshair
+    // Black by default, but yellow (gold) when hovering over black rings (3-4)
+    final score = _getScoreAtPosition();
+    final isOnBlackRing = score == 3 || score == 4;
+    final crosshairColor = isOnBlackRing ? AppColors.gold : Colors.black;
+
     final crosshairPaint = Paint()
-      ..color = AppColors.gold
+      ..color = crosshairColor
       ..strokeWidth = 1.5;
 
     // Horizontal line
@@ -1121,7 +1180,7 @@ class _FixedZoomWindowPainter extends CustomPainter {
 
     // Center dot
     final dotPaint = Paint()
-      ..color = AppColors.gold
+      ..color = crosshairColor
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, 3, dotPaint);
   }
