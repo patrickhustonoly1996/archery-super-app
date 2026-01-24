@@ -66,13 +66,14 @@ void main() {
       expect(TimerPhase.values, contains(TimerPhase.idle));
       expect(TimerPhase.values, contains(TimerPhase.prep));
       expect(TimerPhase.values, contains(TimerPhase.hold));
+      expect(TimerPhase.values, contains(TimerPhase.halfDraw));
       expect(TimerPhase.values, contains(TimerPhase.rest));
       expect(TimerPhase.values, contains(TimerPhase.exerciseBreak));
       expect(TimerPhase.values, contains(TimerPhase.complete));
     });
 
-    test('has 6 phases total', () {
-      expect(TimerPhase.values.length, equals(6));
+    test('has 7 phases total', () {
+      expect(TimerPhase.values.length, equals(7));
     });
   });
 
@@ -248,6 +249,110 @@ void main() {
           CustomSessionConfig.defaultWarmUp.displayName,
           equals('5min @ 30:30'),
         );
+      });
+    });
+  });
+
+  group('SevenTwoConfig', () {
+    group('defaults', () {
+      test('has correct default values', () {
+        const config = SevenTwoConfig();
+        expect(config.fullDrawSeconds, equals(7));
+        expect(config.halfDrawSeconds, equals(2));
+        expect(config.restSeconds, equals(45));
+        expect(config.repsPerBlock, equals(4));
+        expect(config.numBlocks, equals(3));
+      });
+
+      test('calculates correct totalReps', () {
+        const config = SevenTwoConfig();
+        // 4 reps x 3 blocks = 12 total
+        expect(config.totalReps, equals(12));
+      });
+
+      test('calculates correct displayName', () {
+        const config = SevenTwoConfig();
+        expect(config.displayName, equals('7-2s Drill (3x4)'));
+      });
+
+      test('estimates duration correctly', () {
+        const config = SevenTwoConfig();
+        // Prep: 5s
+        // Block work: 4 * (7 + 2) = 36s per block
+        // Total work: 36 * 3 = 108s
+        // Rest: 45s * 2 (between blocks) = 90s
+        // Total: 5 + 108 + 90 = 203s
+        expect(config.estimatedDurationSeconds, equals(203));
+      });
+    });
+
+    group('custom configuration', () {
+      test('respects custom rest time', () {
+        const config = SevenTwoConfig(restSeconds: 60);
+        expect(config.restSeconds, equals(60));
+      });
+
+      test('respects custom reps per block', () {
+        const config = SevenTwoConfig(repsPerBlock: 6);
+        expect(config.repsPerBlock, equals(6));
+        expect(config.totalReps, equals(18)); // 6 * 3
+      });
+
+      test('respects custom number of blocks', () {
+        const config = SevenTwoConfig(numBlocks: 5);
+        expect(config.numBlocks, equals(5));
+        expect(config.totalReps, equals(20)); // 4 * 5
+      });
+
+      test('single block has no rest in duration', () {
+        const config = SevenTwoConfig(numBlocks: 1);
+        // Prep: 5s
+        // Block work: 4 * (7 + 2) = 36s
+        // Rest: 0 (no rest after last block)
+        // Total: 5 + 36 = 41s
+        expect(config.estimatedDurationSeconds, equals(41));
+      });
+    });
+
+    group('serialization', () {
+      test('toJson produces correct map', () {
+        const config = SevenTwoConfig(
+          restSeconds: 60,
+          repsPerBlock: 5,
+          numBlocks: 4,
+        );
+        final json = config.toJson();
+        expect(json['fullDrawSeconds'], equals(7));
+        expect(json['halfDrawSeconds'], equals(2));
+        expect(json['restSeconds'], equals(60));
+        expect(json['repsPerBlock'], equals(5));
+        expect(json['numBlocks'], equals(4));
+      });
+
+      test('fromJson recreates config correctly', () {
+        final json = {
+          'fullDrawSeconds': 7,
+          'halfDrawSeconds': 2,
+          'restSeconds': 60,
+          'repsPerBlock': 5,
+          'numBlocks': 4,
+        };
+        final config = SevenTwoConfig.fromJson(json);
+        expect(config.fullDrawSeconds, equals(7));
+        expect(config.halfDrawSeconds, equals(2));
+        expect(config.restSeconds, equals(60));
+        expect(config.repsPerBlock, equals(5));
+        expect(config.numBlocks, equals(4));
+      });
+
+      test('fromJson uses defaults for missing values', () {
+        final json = <String, dynamic>{};
+        final config = SevenTwoConfig.fromJson(json);
+        expect(config.fullDrawSeconds, equals(7));
+        expect(config.halfDrawSeconds, equals(2));
+        expect(config.restSeconds, equals(45));
+        expect(config.repsPerBlock, equals(4));
+        expect(config.numBlocks, equals(3));
       });
     });
   });
