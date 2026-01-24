@@ -6,6 +6,7 @@ import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../widgets/world_archery_scorecard.dart';
 import '../widgets/signature_pad.dart';
+import '../widgets/target_face.dart';
 import '../services/signature_service.dart';
 import '../services/scorecard_export_service.dart';
 
@@ -44,6 +45,11 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
   // Editing state
   bool _isEditingName = false;
   final _nameController = TextEditingController();
+
+  // Plot view state
+  PlotViewMode _plotViewMode = PlotViewMode.full;
+  int _selectedEndIndex = 0; // For per-end view
+  bool _triSpotCombined = true; // Combined vs separate for triple spot
 
   @override
   void initState() {
@@ -459,6 +465,11 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
 
             const SizedBox(height: AppSpacing.lg),
 
+            // Arrow plot preview section
+            _buildArrowPlotSection(),
+
+            const SizedBox(height: AppSpacing.lg),
+
             // Archer name edit section (tap to edit)
             _buildArcherNameEdit(),
 
@@ -484,6 +495,396 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
             const SizedBox(height: AppSpacing.lg),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Build the arrow plot preview section with view mode selector
+  Widget _buildArrowPlotSection() {
+    final isTripleSpot = (_roundType?.faceCount ?? 1) == 3;
+    final allArrows = _endArrows.expand((e) => e).toList();
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark,
+        borderRadius: BorderRadius.circular(AppSpacing.sm),
+        border: Border.all(color: AppColors.surfaceLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Text(
+                'ARROW PLOTS',
+                style: TextStyle(
+                  fontFamily: AppFonts.pixel,
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const Spacer(),
+              // Triple spot toggle (only for triple spot rounds)
+              if (isTripleSpot) ...[
+                Text(
+                  'View:',
+                  style: TextStyle(
+                    fontFamily: AppFonts.body,
+                    fontSize: 10,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                _buildToggleChip(
+                  label: 'Combined',
+                  selected: _triSpotCombined,
+                  onTap: () => setState(() => _triSpotCombined = true),
+                ),
+                const SizedBox(width: 4),
+                _buildToggleChip(
+                  label: 'Separate',
+                  selected: !_triSpotCombined,
+                  onTap: () => setState(() => _triSpotCombined = false),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+
+          // View mode selector
+          _buildViewModeSelector(),
+          const SizedBox(height: AppSpacing.md),
+
+          // End selector (only for per-end view)
+          if (_plotViewMode == PlotViewMode.perEnd) ...[
+            _buildEndSelector(),
+            const SizedBox(height: AppSpacing.md),
+          ],
+
+          // Arrow plot(s)
+          _buildPlotDisplay(allArrows, isTripleSpot),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToggleChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.gold.withValues(alpha: 0.2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: selected ? AppColors.gold : AppColors.surfaceLight,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: AppFonts.body,
+            fontSize: 10,
+            color: selected ? AppColors.gold : AppColors.textMuted,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildViewModeSelector() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _buildViewModeButton(PlotViewMode.full, 'Full Round'),
+          const SizedBox(width: 8),
+          _buildViewModeButton(PlotViewMode.firstHalf, 'First Half'),
+          const SizedBox(width: 8),
+          _buildViewModeButton(PlotViewMode.secondHalf, 'Second Half'),
+          const SizedBox(width: 8),
+          _buildViewModeButton(PlotViewMode.perEnd, 'Per End'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildViewModeButton(PlotViewMode mode, String label) {
+    final isSelected = _plotViewMode == mode;
+    return GestureDetector(
+      onTap: () => setState(() {
+        _plotViewMode = mode;
+        if (mode == PlotViewMode.perEnd) {
+          _selectedEndIndex = 0;
+        }
+      }),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.gold : AppColors.surfaceLight,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: AppFonts.body,
+            fontSize: 12,
+            color: isSelected ? AppColors.backgroundDark : AppColors.textSecondary,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEndSelector() {
+    return SizedBox(
+      height: 36,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _ends.length,
+        itemBuilder: (context, index) {
+          final isSelected = _selectedEndIndex == index;
+          final end = _ends[index];
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedEndIndex = index),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.gold.withValues(alpha: 0.2) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color: isSelected ? AppColors.gold : AppColors.surfaceLight,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'End ${index + 1}',
+                      style: TextStyle(
+                        fontFamily: AppFonts.body,
+                        fontSize: 11,
+                        color: isSelected ? AppColors.gold : AppColors.textSecondary,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '(${end.endScore})',
+                      style: TextStyle(
+                        fontFamily: AppFonts.body,
+                        fontSize: 10,
+                        color: isSelected ? AppColors.gold.withValues(alpha: 0.7) : AppColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPlotDisplay(List<Arrow> allArrows, bool isTripleSpot) {
+    // Get arrows based on view mode
+    final List<Arrow> displayArrows;
+    String label;
+
+    switch (_plotViewMode) {
+      case PlotViewMode.full:
+        displayArrows = allArrows;
+        label = 'Full Round (${allArrows.length} arrows)';
+        break;
+      case PlotViewMode.firstHalf:
+        final halfEndCount = _ends.length ~/ 2;
+        displayArrows = [];
+        for (int i = 0; i < halfEndCount && i < _endArrows.length; i++) {
+          displayArrows.addAll(_endArrows[i]);
+        }
+        label = 'First Half - Ends 1-$halfEndCount (${displayArrows.length} arrows)';
+        break;
+      case PlotViewMode.secondHalf:
+        final halfEndCount = _ends.length ~/ 2;
+        displayArrows = [];
+        for (int i = halfEndCount; i < _endArrows.length; i++) {
+          displayArrows.addAll(_endArrows[i]);
+        }
+        label = 'Second Half - Ends ${halfEndCount + 1}-${_ends.length} (${displayArrows.length} arrows)';
+        break;
+      case PlotViewMode.perEnd:
+        if (_selectedEndIndex < _endArrows.length) {
+          displayArrows = _endArrows[_selectedEndIndex];
+        } else {
+          displayArrows = [];
+        }
+        final endScore = _selectedEndIndex < _ends.length ? _ends[_selectedEndIndex].endScore : 0;
+        label = 'End ${_selectedEndIndex + 1} - Score: $endScore (${displayArrows.length} arrows)';
+        break;
+    }
+
+    // Show label
+    final labelWidget = Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontFamily: AppFonts.body,
+          fontSize: 11,
+          color: AppColors.textMuted,
+        ),
+      ),
+    );
+
+    if (displayArrows.isEmpty) {
+      return Column(
+        children: [
+          labelWidget,
+          Container(
+            height: 200,
+            alignment: Alignment.center,
+            child: Text(
+              'No arrows',
+              style: TextStyle(
+                fontFamily: AppFonts.body,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Triple spot with separate view - show 3 faces
+    if (isTripleSpot && !_triSpotCombined) {
+      return Column(
+        children: [
+          labelWidget,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: List.generate(3, (faceIndex) {
+              final faceArrows = displayArrows.where((a) => a.faceIndex == faceIndex).toList();
+              final faceScore = faceArrows.fold(0, (sum, a) => sum + a.score);
+              return Column(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.surfaceLight),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: TargetFace(
+                      arrows: faceArrows,
+                      size: 100,
+                      triSpot: true,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Face ${faceIndex + 1}',
+                    style: TextStyle(
+                      fontFamily: AppFonts.body,
+                      fontSize: 10,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  Text(
+                    '$faceScore (${faceArrows.length})',
+                    style: TextStyle(
+                      fontFamily: AppFonts.body,
+                      fontSize: 9,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                ],
+              );
+            }),
+          ),
+        ],
+      );
+    }
+
+    // Single face or combined triple spot - show one face
+    return Column(
+      children: [
+        labelWidget,
+        Center(
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.surfaceLight),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: TargetFace(
+              arrows: displayArrows,
+              size: 250,
+              triSpot: isTripleSpot,
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        // Stats row
+        _buildPlotStats(displayArrows),
+      ],
+    );
+  }
+
+  Widget _buildPlotStats(List<Arrow> arrows) {
+    final totalScore = arrows.fold(0, (sum, a) => sum + a.score);
+    final xCount = arrows.where((a) => a.isX).length;
+    final tenCount = arrows.where((a) => a.score == 10).length;
+    final avgScore = arrows.isNotEmpty ? (totalScore / arrows.length) : 0.0;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildStatChip('Score', totalScore.toString()),
+        const SizedBox(width: 12),
+        _buildStatChip('Avg', avgScore.toStringAsFixed(1)),
+        const SizedBox(width: 12),
+        _buildStatChip('10s', tenCount.toString()),
+        const SizedBox(width: 12),
+        _buildStatChip('Xs', xCount.toString()),
+      ],
+    );
+  }
+
+  Widget _buildStatChip(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLight.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontFamily: AppFonts.body,
+              fontSize: 10,
+              color: AppColors.textMuted,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontFamily: AppFonts.body,
+              fontSize: 11,
+              color: AppColors.gold,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -646,6 +1047,14 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
       ),
     );
   }
+}
+
+/// In-app plot view mode options
+enum PlotViewMode {
+  full,
+  firstHalf,
+  secondHalf,
+  perEnd,
 }
 
 /// Plot export style options
