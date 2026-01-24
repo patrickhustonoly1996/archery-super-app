@@ -95,7 +95,8 @@ class TripleSpotTarget extends StatelessWidget {
 class InteractiveTripleSpotTarget extends StatefulWidget {
   final List<Arrow> arrows;
   final double size;
-  final Function(double x, double y, int faceIndex) onArrowPlotted;
+  /// Callback when arrow is plotted. Optional scoreOverride for line cutter.
+  final Function(double x, double y, int faceIndex, {({int score, bool isX})? scoreOverride}) onArrowPlotted;
   final bool enabled;
   final bool isLeftHanded;
   final bool compoundScoring;
@@ -159,8 +160,8 @@ class _InteractiveTripleSpotTargetState
     return (current + 1) % 3;
   }
 
-  void _onArrowPlotted(double x, double y, int faceIndex) {
-    widget.onArrowPlotted(x, y, faceIndex);
+  void _onArrowPlotted(double x, double y, int faceIndex, {({int score, bool isX})? scoreOverride}) {
+    widget.onArrowPlotted(x, y, faceIndex, scoreOverride: scoreOverride);
     if (widget.autoAdvance) {
       _setSelectedFace(_getNextFace(faceIndex));
     }
@@ -232,8 +233,8 @@ class _InteractiveTripleSpotTargetState
               triSpot: true,
               isLeftHanded: widget.isLeftHanded,
               compoundScoring: widget.compoundScoring,
-              onArrowPlotted: (x, y) {
-                _onArrowPlotted(x, y, faceIndex);
+              onArrowPlotted: (x, y, {scoreOverride}) {
+                _onArrowPlotted(x, y, faceIndex, scoreOverride: scoreOverride);
               },
               onPendingArrowChanged: widget.onPendingArrowChanged,
             ),

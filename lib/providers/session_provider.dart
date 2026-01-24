@@ -318,18 +318,26 @@ class SessionProvider extends ChangeNotifier {
     int? shaftNumber,
     String? nockRotation,
     int rating = 5,
+    ({int score, bool isX})? scoreOverride,
   }) async {
     if (_activeEnd == null || isEndComplete) return;
 
-    // Use mm-based scoring with epsilon tolerance
-    // Pass scoringType to use correct scoring system (10-zone or 5-zone)
-    // Pass compoundScoring for correct X ring size (compound X is smaller)
-    final result = TargetRingsMm.scoreAndX(
-      coord.distanceMm,
-      faceSizeCm,
-      scoringType: scoringType,
-      compoundScoring: isCompoundBow,
-    );
+    // Use score override if provided (from line cutter dialog)
+    // Otherwise calculate from position using mm-based scoring
+    final ({int score, bool isX}) result;
+    if (scoreOverride != null) {
+      result = scoreOverride;
+    } else {
+      // Use mm-based scoring with epsilon tolerance
+      // Pass scoringType to use correct scoring system (10-zone or 5-zone)
+      // Pass compoundScoring for correct X ring size (compound X is smaller)
+      result = TargetRingsMm.scoreAndX(
+        coord.distanceMm,
+        faceSizeCm,
+        scoringType: scoringType,
+        compoundScoring: isCompoundBow,
+      );
+    }
 
     final arrowId =
         '${_activeEnd!.id}_arrow_${_currentEndArrows.length + 1}';
@@ -376,6 +384,7 @@ class SessionProvider extends ChangeNotifier {
   /// Plot an arrow at the given normalized position (-1 to +1)
   /// [faceIndex] specifies which face (0, 1, or 2) for triple spot mode
   /// [rating] defaults to 5 (good shot), lower values (e.g. 3) exclude from analysis.
+  /// [scoreOverride] allows overriding the calculated score (for line cutter dialog).
   Future<void> plotArrow({
     required double x,
     required double y,
@@ -383,6 +392,7 @@ class SessionProvider extends ChangeNotifier {
     int? shaftNumber,
     String? nockRotation,
     int rating = 5,
+    ({int score, bool isX})? scoreOverride,
   }) async {
     // Convert normalized to ArrowCoordinate and use the mm method
     final coord = ArrowCoordinate.fromNormalized(
@@ -396,6 +406,7 @@ class SessionProvider extends ChangeNotifier {
       shaftNumber: shaftNumber,
       nockRotation: nockRotation,
       rating: rating,
+      scoreOverride: scoreOverride,
     );
   }
 

@@ -60,6 +60,9 @@ const String kScoringTimerDurationPref = 'scoring_timer_duration';
 /// Preference key for scoring timer lead-in (seconds: 10 or 15)
 const String kScoringTimerLeadInPref = 'scoring_timer_lead_in';
 
+/// Preference key for zoom window enabled
+const String kZoomWindowEnabledPref = 'zoom_window_enabled';
+
 class PlottingScreen extends StatefulWidget {
   const PlottingScreen({super.key});
 
@@ -92,6 +95,9 @@ class _PlottingScreenState extends State<PlottingScreen> {
   bool _timerEnabled = false;
   int _timerDuration = 120; // seconds (90, 120, 180, 240)
   int _timerLeadIn = 10; // seconds (10 or 15)
+
+  // Zoom window enabled (shows magnified view during plotting)
+  bool _zoomWindowEnabled = true;
 
   // Pending arrow position for fixed zoom window (normalized -1 to +1)
   // Using ValueNotifier for efficient updates without full widget rebuild
@@ -168,6 +174,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
     final timerEnabled = await db.getBoolPreference(kScoringTimerEnabledPref, defaultValue: false);
     final timerDuration = await db.getIntPreference(kScoringTimerDurationPref, defaultValue: 120);
     final timerLeadIn = await db.getIntPreference(kScoringTimerLeadInPref, defaultValue: 10);
+    final zoomWindowEnabled = await db.getBoolPreference(kZoomWindowEnabledPref, defaultValue: true);
     if (mounted) {
       setState(() {
         _useTripleSpotView = tripleSpot;
@@ -181,6 +188,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
         _timerEnabled = timerEnabled;
         _timerDuration = timerDuration;
         _timerLeadIn = timerLeadIn;
+        _zoomWindowEnabled = zoomWindowEnabled;
       });
     }
   }
@@ -253,6 +261,12 @@ class _PlottingScreenState extends State<PlottingScreen> {
     setState(() => _timerLeadIn = value);
   }
 
+  Future<void> _setZoomWindowEnabled(bool value) async {
+    final db = context.read<AppDatabase>();
+    await db.setBoolPreference(kZoomWindowEnabledPref, value);
+    setState(() => _zoomWindowEnabled = value);
+  }
+
   void _showSettingsSheet(BuildContext context, SessionProvider provider, bool supportsTripleSpot) {
     showModalBottomSheet(
       context: context,
@@ -313,6 +327,11 @@ class _PlottingScreenState extends State<PlottingScreen> {
           timerLeadIn: _timerLeadIn,
           onTimerLeadInChanged: (value) {
             _setTimerLeadIn(value);
+            setSheetState(() {});
+          },
+          zoomWindowEnabled: _zoomWindowEnabled,
+          onZoomWindowEnabledChanged: (value) {
+            _setZoomWindowEnabled(value);
             setSheetState(() {});
           },
         ),
@@ -481,9 +500,10 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                       advanceOrder: _autoAdvanceOrder,
                                       selectedFace: _selectedFaceIndex,
                                       onFaceChanged: (face) => setState(() => _selectedFaceIndex = face),
-                                      onArrowPlotted: (x, y, faceIndex) async {
+                                      onArrowPlotted: (x, y, faceIndex, {scoreOverride}) async {
                                         await _plotArrowWithFace(
                                           context, provider, x, y, faceIndex,
+                                          scoreOverride: scoreOverride,
                                         );
                                       },
                                       onPendingArrowChanged: (x, y) {
@@ -521,8 +541,8 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                       transformController: _zoomController,
                                       colorblindMode: accessibility.colorblindMode,
                                       showRingLabels: accessibility.showRingLabels,
-                                      onArrowPlotted: (x, y) async {
-                                        await _plotArrowWithFace(context, provider, x, y, 0);
+                                      onArrowPlotted: (x, y, {scoreOverride}) async {
+                                        await _plotArrowWithFace(context, provider, x, y, 0, scoreOverride: scoreOverride);
                                       },
                                       onPendingArrowChanged: (x, y) {
                                         // Use ValueNotifier for efficient updates without full rebuild
@@ -539,38 +559,56 @@ class _PlottingScreenState extends State<PlottingScreen> {
                         ),
                       ),
 
-                      // Fixed zoom window at 12 o'clock (top center)
-                      // Uses ValueListenableBuilder for efficient updates during touch
-                      Consumer<AccessibilityProvider>(
-                        builder: (context, accessibility, _) {
-                          return ValueListenableBuilder<({double x, double y})?>(
-                            valueListenable: _pendingArrowNotifier,
-                            builder: (context, pending, _) {
-                              if (pending == null) return const SizedBox.shrink();
-                              return Positioned(
-                                top: AppSpacing.md,
-                                left: 0,
-                                right: 0,
-                                child: Center(
-                                  child: RepaintBoundary(
-                                    child: FixedZoomWindow(
-                                      targetX: pending.x,
-                                      targetY: pending.y,
-                                      // Get current zoom from the transformation controller
-                                      currentZoomLevel: _zoomController.value.getMaxScaleOnAxis(),
-                                      relativeZoom: 2.0, // Always 2x relative to current zoom
-                                      size: 120,
-                                      triSpot: (provider.roundType?.faceCount ?? 1) == 3,
-                                      compoundScoring: _compoundScoring,
-                                      colorblindMode: accessibility.colorblindMode,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
+                      // Fixed zoom window - position depends on view mode
+                      // For triple spot: right side to avoid covering top face
+                      // For single face: top center
+                      if (_zoomWindowEnabled)
+                        Consumer<AccessibilityProvider>(
+                          builder: (context, accessibility, _) {
+                            return ValueListenableBuilder<({double x, double y})?>(
+                              valueListenable: _pendingArrowNotifier,
+                              builder: (context, pending, _) {
+                                if (pending == null) return const SizedBox.shrink();
+
+                                // Position to the right for triple spot view to avoid covering top face
+                                final useTripleSpotPosition = supportsTripleSpot && _useTripleSpotView && !_useCombinedView;
+
+                                return Positioned(
+                                  top: AppSpacing.md,
+                                  right: useTripleSpotPosition ? AppSpacing.md : null,
+                                  left: useTripleSpotPosition ? null : 0,
+                                  child: useTripleSpotPosition
+                                      ? RepaintBoundary(
+                                          child: FixedZoomWindow(
+                                            targetX: pending.x,
+                                            targetY: pending.y,
+                                            currentZoomLevel: _zoomController.value.getMaxScaleOnAxis(),
+                                            relativeZoom: 2.0,
+                                            size: 100, // Slightly smaller for side position
+                                            triSpot: true,
+                                            compoundScoring: _compoundScoring,
+                                            colorblindMode: accessibility.colorblindMode,
+                                          ),
+                                        )
+                                      : Center(
+                                          child: RepaintBoundary(
+                                            child: FixedZoomWindow(
+                                              targetX: pending.x,
+                                              targetY: pending.y,
+                                              currentZoomLevel: _zoomController.value.getMaxScaleOnAxis(),
+                                              relativeZoom: 2.0,
+                                              size: 120,
+                                              triSpot: (provider.roundType?.faceCount ?? 1) == 3,
+                                              compoundScoring: _compoundScoring,
+                                              colorblindMode: accessibility.colorblindMode,
+                                            ),
+                                          ),
+                                        ),
+                                );
+                              },
+                            );
+                          },
+                        ),
 
                       // Rolling 12-arrow group centre (top-left)
                       Positioned(
@@ -680,13 +718,15 @@ class _PlottingScreenState extends State<PlottingScreen> {
   }
 
   /// Plot an arrow with face index support (for triple spot)
+  /// [scoreOverride] allows overriding the calculated score (from line cutter dialog)
   Future<void> _plotArrowWithFace(
     BuildContext context,
     SessionProvider provider,
     double x,
     double y,
-    int faceIndex,
-  ) async {
+    int faceIndex, {
+    ({int score, bool isX})? scoreOverride,
+  }) async {
     // Check if shaft tagging is enabled
     if (provider.shaftTaggingEnabled && provider.selectedQuiverId != null) {
       // Show shaft selector bottom sheet
@@ -718,19 +758,20 @@ class _PlottingScreenState extends State<PlottingScreen> {
           shaftNumber: result.shaftNumber,
           nockRotation: result.nockRotation,
           rating: result.rating,
+          scoreOverride: scoreOverride,
         );
       } else if (result != null && result.dontAskAgain) {
         // User chose "Don't ask again" - disable shaft tagging for session
         await provider.setShaftTagging(false);
         // Plot without shaft tracking
-        await provider.plotArrow(x: x, y: y, faceIndex: faceIndex);
+        await provider.plotArrow(x: x, y: y, faceIndex: faceIndex, scoreOverride: scoreOverride);
       } else {
         // User skipped or dismissed - plot without shaft tracking
-        await provider.plotArrow(x: x, y: y, faceIndex: faceIndex);
+        await provider.plotArrow(x: x, y: y, faceIndex: faceIndex, scoreOverride: scoreOverride);
       }
     } else {
       // No shaft tagging - plot directly
-      await provider.plotArrow(x: x, y: y, faceIndex: faceIndex);
+      await provider.plotArrow(x: x, y: y, faceIndex: faceIndex, scoreOverride: scoreOverride);
     }
   }
 
@@ -930,18 +971,6 @@ class _ActionButtons extends StatelessWidget {
     final targetType = _getTargetTypeFromRound(roundType);
     final isTripleSpot = roundType.faceCount == 3;
 
-    // Check connectivity (Auto-Plot requires network)
-    final connectivity = context.read<ConnectivityProvider>();
-    if (connectivity.isOffline) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Auto-Plot requires internet connection'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-      return;
-    }
-
     // Initialize auto-plot provider
     final autoPlotProvider = context.read<AutoPlotProvider>();
 
@@ -1050,9 +1079,9 @@ class _ActionButtons extends StatelessWidget {
                 icon: Icon(
                   Icons.auto_awesome,
                   color: isEnabled ? AppColors.gold : AppColors.textSecondary,
-                  semanticLabel: 'Auto-Plot',
+                  semanticLabel: isEnabled ? 'Auto-Plot' : 'Auto-Plot unavailable offline',
                 ),
-                tooltip: 'Auto-Plot',
+                tooltip: isEnabled ? 'Auto-Plot' : 'Auto-Plot (offline)',
                 style: IconButton.styleFrom(
                   backgroundColor: AppColors.surfaceDark,
                   padding: const EdgeInsets.all(AppSpacing.md),
