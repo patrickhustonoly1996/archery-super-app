@@ -466,7 +466,7 @@ class _ArrowMarker extends StatelessWidget {
         boxShadow: isHighlighted
             ? [
                 BoxShadow(
-                  color: const Color(0xFF4CAF50).withOpacity(0.7),
+                  color: const Color(0xFF4CAF50).withValues(alpha: 0.7),
                   blurRadius: 6,
                   spreadRadius: 2,
                 ),

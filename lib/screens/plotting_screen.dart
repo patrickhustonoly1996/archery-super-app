@@ -149,9 +149,6 @@ class _PlottingScreenState extends State<PlottingScreen>
   Timer? _autoCommitTimer;
   static const _autoCommitDelay = Duration(seconds: 45);
 
-  // Track if we need to check for halfway checkpoint after commit
-  bool _checkHalfwayAfterCommit = false;
-
   @override
   void initState() {
     super.initState();
@@ -362,6 +359,7 @@ class _PlottingScreenState extends State<PlottingScreen>
                     color: AppColors.textMuted,
                   ),
                 ),
+                activeTrackColor: AppColors.gold.withValues(alpha: 0.5),
                 activeColor: AppColors.gold,
                 contentPadding: EdgeInsets.zero,
               ),

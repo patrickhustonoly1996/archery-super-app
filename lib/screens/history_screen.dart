@@ -26,6 +26,7 @@ class UnifiedScore {
   final bool isIndoor;
   final bool isCompetition;
   final bool isPlotted;
+  final String? title; // Session title (e.g., "Morning Practice")
   final String? location;
   final Session? session;
   final RoundType? roundType;
@@ -41,6 +42,7 @@ class UnifiedScore {
     required this.isIndoor,
     required this.isCompetition,
     required this.isPlotted,
+    this.title,
     this.location,
     this.session,
     this.roundType,
@@ -119,7 +121,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
         isIndoor: isIndoor,
         isCompetition: isCompetition,
         isPlotted: true,
-        location: session.location,
+        title: session.title,
+        location: session.locationName ?? session.location,
         session: session,
         roundType: roundType,
       ));
@@ -767,11 +770,25 @@ class _UnifiedScoreTileState extends State<_UnifiedScoreTile>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            // Round name
-                            Text(
-                              widget.score.roundName,
-                              style: Theme.of(context).textTheme.labelLarge,
-                            ),
+                            // Title (if available) or Round name
+                            if (widget.score.title != null) ...[
+                              Text(
+                                widget.score.title!,
+                                style: Theme.of(context).textTheme.labelLarge,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                widget.score.roundName,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppColors.textMuted,
+                                    ),
+                              ),
+                            ] else ...[
+                              Text(
+                                widget.score.roundName,
+                                style: Theme.of(context).textTheme.labelLarge,
+                              ),
+                            ],
                             const SizedBox(height: 2),
                             // Date and location
                             Row(

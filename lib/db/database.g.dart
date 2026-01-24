@@ -2591,6 +2591,26 @@ class $SessionsTable extends Sessions with TableInfo<$SessionsTable, Session> {
     requiredDuringInsert: false,
     defaultValue: const Constant('practice'),
   );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _locationNameMeta = const VerificationMeta(
+    'locationName',
+  );
+  @override
+  late final GeneratedColumn<String> locationName = GeneratedColumn<String>(
+    'location_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _locationMeta = const VerificationMeta(
     'location',
   );
@@ -2600,6 +2620,28 @@ class $SessionsTable extends Sessions with TableInfo<$SessionsTable, Session> {
     aliasedName,
     true,
     type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _latitudeMeta = const VerificationMeta(
+    'latitude',
+  );
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+    'latitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _longitudeMeta = const VerificationMeta(
+    'longitude',
+  );
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+    'longitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
@@ -2714,7 +2756,11 @@ class $SessionsTable extends Sessions with TableInfo<$SessionsTable, Session> {
     id,
     roundTypeId,
     sessionType,
+    title,
+    locationName,
     location,
+    latitude,
+    longitude,
     notes,
     startedAt,
     completedAt,
@@ -2762,10 +2808,37 @@ class $SessionsTable extends Sessions with TableInfo<$SessionsTable, Session> {
         ),
       );
     }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    }
+    if (data.containsKey('location_name')) {
+      context.handle(
+        _locationNameMeta,
+        locationName.isAcceptableOrUnknown(
+          data['location_name']!,
+          _locationNameMeta,
+        ),
+      );
+    }
     if (data.containsKey('location')) {
       context.handle(
         _locationMeta,
         location.isAcceptableOrUnknown(data['location']!, _locationMeta),
+      );
+    }
+    if (data.containsKey('latitude')) {
+      context.handle(
+        _latitudeMeta,
+        latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta),
+      );
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(
+        _longitudeMeta,
+        longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta),
       );
     }
     if (data.containsKey('notes')) {
@@ -2849,9 +2922,25 @@ class $SessionsTable extends Sessions with TableInfo<$SessionsTable, Session> {
         DriftSqlType.string,
         data['${effectivePrefix}session_type'],
       )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      ),
+      locationName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}location_name'],
+      ),
       location: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}location'],
+      ),
+      latitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}latitude'],
+      ),
+      longitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}longitude'],
       ),
       notes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -2902,7 +2991,11 @@ class Session extends DataClass implements Insertable<Session> {
   final String id;
   final String roundTypeId;
   final String sessionType;
+  final String? title;
+  final String? locationName;
   final String? location;
+  final double? latitude;
+  final double? longitude;
   final String? notes;
   final DateTime startedAt;
   final DateTime? completedAt;
@@ -2916,7 +3009,11 @@ class Session extends DataClass implements Insertable<Session> {
     required this.id,
     required this.roundTypeId,
     required this.sessionType,
+    this.title,
+    this.locationName,
     this.location,
+    this.latitude,
+    this.longitude,
     this.notes,
     required this.startedAt,
     this.completedAt,
@@ -2933,8 +3030,20 @@ class Session extends DataClass implements Insertable<Session> {
     map['id'] = Variable<String>(id);
     map['round_type_id'] = Variable<String>(roundTypeId);
     map['session_type'] = Variable<String>(sessionType);
+    if (!nullToAbsent || title != null) {
+      map['title'] = Variable<String>(title);
+    }
+    if (!nullToAbsent || locationName != null) {
+      map['location_name'] = Variable<String>(locationName);
+    }
     if (!nullToAbsent || location != null) {
       map['location'] = Variable<String>(location);
+    }
+    if (!nullToAbsent || latitude != null) {
+      map['latitude'] = Variable<double>(latitude);
+    }
+    if (!nullToAbsent || longitude != null) {
+      map['longitude'] = Variable<double>(longitude);
     }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
@@ -2963,9 +3072,21 @@ class Session extends DataClass implements Insertable<Session> {
       id: Value(id),
       roundTypeId: Value(roundTypeId),
       sessionType: Value(sessionType),
+      title: title == null && nullToAbsent
+          ? const Value.absent()
+          : Value(title),
+      locationName: locationName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(locationName),
       location: location == null && nullToAbsent
           ? const Value.absent()
           : Value(location),
+      latitude: latitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(latitude),
+      longitude: longitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(longitude),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
@@ -2997,7 +3118,11 @@ class Session extends DataClass implements Insertable<Session> {
       id: serializer.fromJson<String>(json['id']),
       roundTypeId: serializer.fromJson<String>(json['roundTypeId']),
       sessionType: serializer.fromJson<String>(json['sessionType']),
+      title: serializer.fromJson<String?>(json['title']),
+      locationName: serializer.fromJson<String?>(json['locationName']),
       location: serializer.fromJson<String?>(json['location']),
+      latitude: serializer.fromJson<double?>(json['latitude']),
+      longitude: serializer.fromJson<double?>(json['longitude']),
       notes: serializer.fromJson<String?>(json['notes']),
       startedAt: serializer.fromJson<DateTime>(json['startedAt']),
       completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
@@ -3018,7 +3143,11 @@ class Session extends DataClass implements Insertable<Session> {
       'id': serializer.toJson<String>(id),
       'roundTypeId': serializer.toJson<String>(roundTypeId),
       'sessionType': serializer.toJson<String>(sessionType),
+      'title': serializer.toJson<String?>(title),
+      'locationName': serializer.toJson<String?>(locationName),
       'location': serializer.toJson<String?>(location),
+      'latitude': serializer.toJson<double?>(latitude),
+      'longitude': serializer.toJson<double?>(longitude),
       'notes': serializer.toJson<String?>(notes),
       'startedAt': serializer.toJson<DateTime>(startedAt),
       'completedAt': serializer.toJson<DateTime?>(completedAt),
@@ -3035,7 +3164,11 @@ class Session extends DataClass implements Insertable<Session> {
     String? id,
     String? roundTypeId,
     String? sessionType,
+    Value<String?> title = const Value.absent(),
+    Value<String?> locationName = const Value.absent(),
     Value<String?> location = const Value.absent(),
+    Value<double?> latitude = const Value.absent(),
+    Value<double?> longitude = const Value.absent(),
     Value<String?> notes = const Value.absent(),
     DateTime? startedAt,
     Value<DateTime?> completedAt = const Value.absent(),
@@ -3049,7 +3182,11 @@ class Session extends DataClass implements Insertable<Session> {
     id: id ?? this.id,
     roundTypeId: roundTypeId ?? this.roundTypeId,
     sessionType: sessionType ?? this.sessionType,
+    title: title.present ? title.value : this.title,
+    locationName: locationName.present ? locationName.value : this.locationName,
     location: location.present ? location.value : this.location,
+    latitude: latitude.present ? latitude.value : this.latitude,
+    longitude: longitude.present ? longitude.value : this.longitude,
     notes: notes.present ? notes.value : this.notes,
     startedAt: startedAt ?? this.startedAt,
     completedAt: completedAt.present ? completedAt.value : this.completedAt,
@@ -3069,7 +3206,13 @@ class Session extends DataClass implements Insertable<Session> {
       sessionType: data.sessionType.present
           ? data.sessionType.value
           : this.sessionType,
+      title: data.title.present ? data.title.value : this.title,
+      locationName: data.locationName.present
+          ? data.locationName.value
+          : this.locationName,
       location: data.location.present ? data.location.value : this.location,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
       notes: data.notes.present ? data.notes.value : this.notes,
       startedAt: data.startedAt.present ? data.startedAt.value : this.startedAt,
       completedAt: data.completedAt.present
@@ -3094,7 +3237,11 @@ class Session extends DataClass implements Insertable<Session> {
           ..write('id: $id, ')
           ..write('roundTypeId: $roundTypeId, ')
           ..write('sessionType: $sessionType, ')
+          ..write('title: $title, ')
+          ..write('locationName: $locationName, ')
           ..write('location: $location, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
           ..write('notes: $notes, ')
           ..write('startedAt: $startedAt, ')
           ..write('completedAt: $completedAt, ')
@@ -3113,7 +3260,11 @@ class Session extends DataClass implements Insertable<Session> {
     id,
     roundTypeId,
     sessionType,
+    title,
+    locationName,
     location,
+    latitude,
+    longitude,
     notes,
     startedAt,
     completedAt,
@@ -3131,7 +3282,11 @@ class Session extends DataClass implements Insertable<Session> {
           other.id == this.id &&
           other.roundTypeId == this.roundTypeId &&
           other.sessionType == this.sessionType &&
+          other.title == this.title &&
+          other.locationName == this.locationName &&
           other.location == this.location &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
           other.notes == this.notes &&
           other.startedAt == this.startedAt &&
           other.completedAt == this.completedAt &&
@@ -3147,7 +3302,11 @@ class SessionsCompanion extends UpdateCompanion<Session> {
   final Value<String> id;
   final Value<String> roundTypeId;
   final Value<String> sessionType;
+  final Value<String?> title;
+  final Value<String?> locationName;
   final Value<String?> location;
+  final Value<double?> latitude;
+  final Value<double?> longitude;
   final Value<String?> notes;
   final Value<DateTime> startedAt;
   final Value<DateTime?> completedAt;
@@ -3162,7 +3321,11 @@ class SessionsCompanion extends UpdateCompanion<Session> {
     this.id = const Value.absent(),
     this.roundTypeId = const Value.absent(),
     this.sessionType = const Value.absent(),
+    this.title = const Value.absent(),
+    this.locationName = const Value.absent(),
     this.location = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
     this.notes = const Value.absent(),
     this.startedAt = const Value.absent(),
     this.completedAt = const Value.absent(),
@@ -3178,7 +3341,11 @@ class SessionsCompanion extends UpdateCompanion<Session> {
     required String id,
     required String roundTypeId,
     this.sessionType = const Value.absent(),
+    this.title = const Value.absent(),
+    this.locationName = const Value.absent(),
     this.location = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
     this.notes = const Value.absent(),
     this.startedAt = const Value.absent(),
     this.completedAt = const Value.absent(),
@@ -3195,7 +3362,11 @@ class SessionsCompanion extends UpdateCompanion<Session> {
     Expression<String>? id,
     Expression<String>? roundTypeId,
     Expression<String>? sessionType,
+    Expression<String>? title,
+    Expression<String>? locationName,
     Expression<String>? location,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
     Expression<String>? notes,
     Expression<DateTime>? startedAt,
     Expression<DateTime>? completedAt,
@@ -3211,7 +3382,11 @@ class SessionsCompanion extends UpdateCompanion<Session> {
       if (id != null) 'id': id,
       if (roundTypeId != null) 'round_type_id': roundTypeId,
       if (sessionType != null) 'session_type': sessionType,
+      if (title != null) 'title': title,
+      if (locationName != null) 'location_name': locationName,
       if (location != null) 'location': location,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
       if (notes != null) 'notes': notes,
       if (startedAt != null) 'started_at': startedAt,
       if (completedAt != null) 'completed_at': completedAt,
@@ -3230,7 +3405,11 @@ class SessionsCompanion extends UpdateCompanion<Session> {
     Value<String>? id,
     Value<String>? roundTypeId,
     Value<String>? sessionType,
+    Value<String?>? title,
+    Value<String?>? locationName,
     Value<String?>? location,
+    Value<double?>? latitude,
+    Value<double?>? longitude,
     Value<String?>? notes,
     Value<DateTime>? startedAt,
     Value<DateTime?>? completedAt,
@@ -3246,7 +3425,11 @@ class SessionsCompanion extends UpdateCompanion<Session> {
       id: id ?? this.id,
       roundTypeId: roundTypeId ?? this.roundTypeId,
       sessionType: sessionType ?? this.sessionType,
+      title: title ?? this.title,
+      locationName: locationName ?? this.locationName,
       location: location ?? this.location,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
       notes: notes ?? this.notes,
       startedAt: startedAt ?? this.startedAt,
       completedAt: completedAt ?? this.completedAt,
@@ -3272,8 +3455,20 @@ class SessionsCompanion extends UpdateCompanion<Session> {
     if (sessionType.present) {
       map['session_type'] = Variable<String>(sessionType.value);
     }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (locationName.present) {
+      map['location_name'] = Variable<String>(locationName.value);
+    }
     if (location.present) {
       map['location'] = Variable<String>(location.value);
+    }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
     }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
@@ -3314,7 +3509,11 @@ class SessionsCompanion extends UpdateCompanion<Session> {
           ..write('id: $id, ')
           ..write('roundTypeId: $roundTypeId, ')
           ..write('sessionType: $sessionType, ')
+          ..write('title: $title, ')
+          ..write('locationName: $locationName, ')
           ..write('location: $location, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
           ..write('notes: $notes, ')
           ..write('startedAt: $startedAt, ')
           ..write('completedAt: $completedAt, ')
@@ -32928,7 +33127,11 @@ typedef $$SessionsTableCreateCompanionBuilder =
       required String id,
       required String roundTypeId,
       Value<String> sessionType,
+      Value<String?> title,
+      Value<String?> locationName,
       Value<String?> location,
+      Value<double?> latitude,
+      Value<double?> longitude,
       Value<String?> notes,
       Value<DateTime> startedAt,
       Value<DateTime?> completedAt,
@@ -32945,7 +33148,11 @@ typedef $$SessionsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> roundTypeId,
       Value<String> sessionType,
+      Value<String?> title,
+      Value<String?> locationName,
       Value<String?> location,
+      Value<double?> latitude,
+      Value<double?> longitude,
       Value<String?> notes,
       Value<DateTime> startedAt,
       Value<DateTime?> completedAt,
@@ -33104,8 +33311,28 @@ class $$SessionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get locationName => $composableBuilder(
+    column: $table.locationName,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get location => $composableBuilder(
     column: $table.location,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+    column: $table.longitude,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -33308,8 +33535,28 @@ class $$SessionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get locationName => $composableBuilder(
+    column: $table.locationName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get location => $composableBuilder(
     column: $table.location,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+    column: $table.longitude,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -33435,8 +33682,22 @@ class $$SessionsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get locationName => $composableBuilder(
+    column: $table.locationName,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get location =>
       $composableBuilder(column: $table.location, builder: (column) => column);
+
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
@@ -33649,7 +33910,11 @@ class $$SessionsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> roundTypeId = const Value.absent(),
                 Value<String> sessionType = const Value.absent(),
+                Value<String?> title = const Value.absent(),
+                Value<String?> locationName = const Value.absent(),
                 Value<String?> location = const Value.absent(),
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> startedAt = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
@@ -33664,7 +33929,11 @@ class $$SessionsTableTableManager
                 id: id,
                 roundTypeId: roundTypeId,
                 sessionType: sessionType,
+                title: title,
+                locationName: locationName,
                 location: location,
+                latitude: latitude,
+                longitude: longitude,
                 notes: notes,
                 startedAt: startedAt,
                 completedAt: completedAt,
@@ -33681,7 +33950,11 @@ class $$SessionsTableTableManager
                 required String id,
                 required String roundTypeId,
                 Value<String> sessionType = const Value.absent(),
+                Value<String?> title = const Value.absent(),
+                Value<String?> locationName = const Value.absent(),
                 Value<String?> location = const Value.absent(),
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> startedAt = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
@@ -33696,7 +33969,11 @@ class $$SessionsTableTableManager
                 id: id,
                 roundTypeId: roundTypeId,
                 sessionType: sessionType,
+                title: title,
+                locationName: locationName,
                 location: location,
+                latitude: latitude,
+                longitude: longitude,
                 notes: notes,
                 startedAt: startedAt,
                 completedAt: completedAt,

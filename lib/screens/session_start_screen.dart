@@ -19,6 +19,10 @@ class _SessionStartScreenState extends State<SessionStartScreen> {
   String _sessionType = 'practice';
   bool _isLoading = true;
 
+  // Search
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
   // Free practice selection
   int _freePracticeArrowsPerEnd = 3;
 
@@ -26,6 +30,24 @@ class _SessionStartScreenState extends State<SessionStartScreen> {
   void initState() {
     super.initState();
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  /// Filter rounds by search query
+  List<RoundType> get _filteredRounds {
+    if (_searchQuery.isEmpty) return _roundTypes;
+    final query = _searchQuery.toLowerCase();
+    return _roundTypes.where((rt) {
+      return rt.name.toLowerCase().contains(query) ||
+          rt.category.toLowerCase().contains(query) ||
+          '${rt.distance}m'.contains(query) ||
+          '${rt.distance}'.contains(query);
+    }).toList();
   }
 
   Future<void> _loadData() async {
@@ -155,14 +177,50 @@ class _SessionStartScreenState extends State<SessionStartScreen> {
                     const SizedBox(height: AppSpacing.xl),
                   ],
 
-                  // Round selection
-                  Text(
-                    'Select Round',
-                    style: Theme.of(context).textTheme.labelLarge,
+                  // Round selection header with search
+                  Row(
+                    children: [
+                      Text(
+                        'Select Round',
+                        style: Theme.of(context).textTheme.labelLarge,
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${_filteredRounds.length} rounds',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+
+                  // Search field
+                  TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search rounds...',
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 18),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                            )
+                          : null,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                      isDense: true,
+                    ),
+                    onChanged: (value) => setState(() => _searchQuery = value),
                   ),
                   const SizedBox(height: AppSpacing.md),
 
-                  // Group rounds by category
+                  // Group rounds by category (or flat list if searching)
                   ..._buildRoundGroups(),
 
                   const SizedBox(height: AppSpacing.xl),
@@ -173,9 +231,28 @@ class _SessionStartScreenState extends State<SessionStartScreen> {
   }
 
   List<Widget> _buildRoundGroups() {
+    final rounds = _filteredRounds;
+
+    // Show "no results" if search has no matches
+    if (rounds.isEmpty && _searchQuery.isNotEmpty) {
+      return [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+          child: Center(
+            child: Text(
+              'No rounds match "$_searchQuery"',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+            ),
+          ),
+        ),
+      ];
+    }
+
     final groups = <String, List<RoundType>>{};
 
-    for (final rt in _roundTypes) {
+    for (final rt in rounds) {
       groups.putIfAbsent(rt.category, () => []);
       groups[rt.category]!.add(rt);
     }

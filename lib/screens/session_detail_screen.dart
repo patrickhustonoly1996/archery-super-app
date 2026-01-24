@@ -114,24 +114,41 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                       padding: const EdgeInsets.all(AppSpacing.lg),
                       child: Column(
                         children: [
+                          // Session title (if available)
+                          if (widget.session.title != null) ...[
+                            Text(
+                              widget.session.title!,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineSmall
+                                  ?.copyWith(
+                                    color: AppColors.gold,
+                                  ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                          ],
                           Text(
                             roundName,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(
-                                  color: AppColors.gold,
-                                ),
+                            style: widget.session.title != null
+                                ? Theme.of(context).textTheme.bodyMedium
+                                : Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
+                                    ?.copyWith(color: AppColors.gold),
                           ),
                           const SizedBox(height: AppSpacing.sm),
                           Text(
                             dateStr,
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
-                          if (widget.session.location != null) ...[
+                          // Location name (preferred) or legacy location
+                          if (widget.session.locationName != null ||
+                              widget.session.location != null) ...[
                             const SizedBox(height: 4),
                             Text(
-                              widget.session.location!,
+                              widget.session.locationName ??
+                                  widget.session.location!,
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall

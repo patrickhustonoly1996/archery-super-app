@@ -200,7 +200,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         await tester.pumpWidget(buildPlottingTestApp(
           db: db,
@@ -230,7 +230,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         await tester.pumpWidget(buildPlottingTestApp(
           db: db,
@@ -266,7 +266,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         await tester.pumpWidget(buildPlottingTestApp(
           db: db,
@@ -297,7 +297,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         // Plot only 1 arrow (less than arrowsPerEnd)
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
@@ -323,7 +323,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: testRound.id);
+        await sessionProvider.startSession(roundTypeId: testRound.id, title: 'Test Session');
         final totalEnds = sessionProvider.totalEnds;
 
         // Complete all ends
@@ -353,7 +353,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: testRound.id);
+        await sessionProvider.startSession(roundTypeId: testRound.id, title: 'Test Session');
         final totalEnds = sessionProvider.totalEnds;
 
         // Complete all ends with known scores
@@ -424,7 +424,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         await tester.pumpWidget(buildPlottingTestApp(
           db: db,
@@ -456,7 +456,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         await tester.pumpWidget(buildPlottingTestApp(
           db: db,
@@ -481,7 +481,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         // Plot arrows
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
@@ -504,7 +504,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         // Complete first end with 3 arrows
         await sessionProvider.plotArrow(x: 0.0, y: 0.0); // X
@@ -549,7 +549,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         await tester.pumpWidget(buildPlottingTestApp(
           db: db,
@@ -589,7 +589,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
         final sessionId = sessionProvider.currentSession!.id;
 
         // Plot some arrows
@@ -618,7 +618,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         await tester.pumpWidget(buildPlottingTestApp(
           db: db,
@@ -655,7 +655,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         // Plot arrows
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
@@ -681,7 +681,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         // Complete one end
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
@@ -714,7 +714,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         // Complete first end
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
@@ -741,7 +741,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         // Plot arrows at center (X ring)
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
@@ -764,7 +764,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         // Plot an arrow
         await sessionProvider.plotArrow(x: 0.2, y: -0.1);
@@ -790,7 +790,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         await tester.pumpWidget(buildPlottingTestApp(
           db: db,
@@ -815,7 +815,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         // Plot arrow outside target (score 0)
         await sessionProvider.plotArrow(x: 1.5, y: 1.5);
@@ -834,7 +834,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
         // Rapid fire plotting
         for (int i = 0; i < 6; i++) {
@@ -854,7 +854,7 @@ void main() {
           orElse: () => roundTypes.first,
         );
 
-        await sessionProvider.startSession(roundTypeId: wa18m.id);
+        await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
 
         final sessionId = sessionProvider.currentSession!.id;
