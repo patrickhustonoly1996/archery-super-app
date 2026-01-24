@@ -76,3 +76,11 @@ Full guide: `docs/AI_TOOL_ROUTING.md`
 **Claude Opus (expensive):** Architecture, debugging mysteries, new integrations, security, "I don't know how"
 
 If task is "follow existing pattern" → Z.ai. If task is "figure out what to do" → Opus.
+
+## Token Efficiency
+
+Full guide: `docs/TOKEN_OPTIMIZATION.md`
+
+- Targeted tests only (never full suite during dev)
+- Clear commit messages (type: description)
+- Minimal file reads, specific actions
