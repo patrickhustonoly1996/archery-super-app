@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -110,13 +111,31 @@ class SyncService {
   // ============================================================================
 
   /// Sync all data bidirectionally with mutex protection
-  /// Returns immediately if a sync is already in progress
+  /// Returns immediately if a sync is already in progress or device is offline
   Future<SyncResult> syncAll() async {
     if (_db == null) {
       return SyncResult(success: false, message: 'Database not initialized');
     }
     if (!isAuthenticated) {
       return SyncResult(success: false, message: 'Not authenticated');
+    }
+
+    // Check connectivity before attempting network operations (offline-first)
+    try {
+      final connectivity = await Connectivity().checkConnectivity();
+      final isOnline = connectivity.any((result) =>
+        result == ConnectivityResult.wifi ||
+        result == ConnectivityResult.mobile ||
+        result == ConnectivityResult.ethernet
+      );
+      if (!isOnline) {
+        debugPrint('Device offline, skipping sync (data saved locally)');
+        return SyncResult(success: true, message: 'Offline - will sync when connected');
+      }
+    } catch (e) {
+      debugPrint('Could not check connectivity: $e');
+      // If we can't check, assume offline to avoid system prompts
+      return SyncResult(success: true, message: 'Connectivity check failed - skipping sync');
     }
 
     // Use mutex to prevent concurrent syncs (Bug #6)
