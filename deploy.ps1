@@ -13,7 +13,7 @@ $version.build = $version.build + 1
 # Generate new version string with timestamp
 $timestamp = Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ"
 $version.timestamp = $timestamp
-$version.version = "1.0.$($version.build)"
+$version.version = "1.7.$($version.build)"
 
 # Write updated version
 $version | ConvertTo-Json | Set-Content $versionFile
