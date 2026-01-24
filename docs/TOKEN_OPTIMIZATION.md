@@ -21,11 +21,24 @@ Reduce AI token consumption while maintaining quality. Every token costs money a
 
 | Test Type | Who | Why |
 |-----------|-----|-----|
-| Targeted tests during dev | Z.ai | Mechanical - just run and report |
-| Full suite pre-merge | Z.ai | Mechanical - long output but cheap |
-| Test is failing, unclear why | Opus | Needs investigation |
+| Run targeted tests during dev | Z.ai | Mechanical - just run and report |
+| Run full suite pre-merge | Z.ai | Mechanical - long output but cheap |
 | Writing new test (pattern exists) | Z.ai | Copy existing pattern |
 | Writing new test (no pattern) | Opus | Needs design thinking |
+
+### When Tests Fail
+
+| Situation | Who | Why |
+|-----------|-----|-----|
+| Test fails because code changed intentionally | Z.ai | Update expectation - mechanical |
+| Test fails, error message is clear | Z.ai | Fix is obvious |
+| Test fails, don't know why | Opus | Needs investigation |
+| Multiple tests fail after refactor | Z.ai | Bulk update expectations |
+| Flaky test (sometimes passes) | Opus | Needs root cause analysis |
+
+**Most test failures after code changes = Z.ai job.** You changed the behavior, now update the test to match. That's mechanical.
+
+Opus only steps in when the failure is unexpected or the cause is unclear.
 
 ```bash
 # WRONG - expensive on Opus
