@@ -69,44 +69,23 @@ flutter test --reporter expanded test/services/failing_test.dart
 
 ---
 
-## Git: Should Claude Do It?
+## Git: Z.ai Does It
 
-### The Honest Answer
+### The Right Split
 
-**Most git operations are wasteful through Claude.** Here's why:
+Git operations are mechanical - perfect for Z.ai (cheap), wasteful on Opus (expensive).
 
-| Operation | Token Cost | Value Added by Claude |
-|-----------|------------|----------------------|
-| `git status` | ~100-300 | Low - you can read this yourself |
-| `git diff` | ~500-3000 | Low - unless Claude needs context |
-| `git add/commit/push` | ~50 each | Medium - commit message help |
-| `git log` | ~200-500 | Low - history browsing |
-
-**Estimated waste per session:** 500-2000 tokens on git housekeeping = ~£0.01-0.05
-
-### What Claude SHOULD Do
-
-1. **Write commit messages** - Claude sees what changed, writes good descriptions
-2. **Check status ONLY when needed for coding context** - e.g., "what files did I just change?"
-3. **Branch management during complex merges** - where understanding is needed
-
-### What YOU Should Do (Save Tokens)
-
-```bash
-# You run these yourself - no AI needed:
-git status
-git add .
-git push
-
-# You type this, Claude already knows what changed:
-git commit -m "Add multi-distance round support"
-```
-
-**As you get comfortable with git, do more yourself.** Claude's value is in the code, not typing `git push`.
+| Operation | Who | Why |
+|-----------|-----|-----|
+| `git status` | Z.ai | Mechanical check |
+| `git add/commit/push` | Z.ai | No thinking required |
+| `git log` | Z.ai | History lookup |
+| Complex merge conflicts | Opus | Needs understanding |
+| "Why did this break after merge?" | Opus | Investigation |
 
 ### Commit Message Format
 
-When Claude does commit, or when you write them:
+Z.ai or Opus - same format:
 
 ```
 Type: Short description
@@ -119,47 +98,40 @@ Examples:
 - `Fix: York round line-cutter display`
 - `Update: scorecard export with handicap`
 
-Good messages save future tokens - Claude can read `git log` and understand without reading diffs.
+Good messages save future tokens - any AI can read `git log` and understand without reading full diffs.
 
 ---
 
-## Deployment: Don't Use Claude
+## Deployment: Z.ai Does It
 
-### Why Deployment Wastes Tokens
+### Builds Are Mechanical
 
-Build commands are:
-- **Long-running** (minutes) - Claude sits idle, session stays open
-- **Verbose output** (thousands of lines) - Claude reads it all
-- **Mechanical** - no intelligence needed
-
-**Estimated waste:** 2000-5000 tokens per build = ~£0.05-0.15
-
-### Do Deployment Yourself
+Build commands don't need Opus-level thinking:
 
 ```bash
-# Run in your terminal, not through Claude:
 flutter build web --release
 flutter build ios --release
 flutter build appbundle --release
 ```
 
-### When to Involve Claude
+Z.ai can run these. The output is verbose but Z.ai handles it cheaply.
 
-Only if:
-- Build fails with unclear error → debugging (Opus task)
-- Need to change build config → code change
-- Setting up CI/CD for first time → architecture
+### When to Escalate to Opus
 
-### Deployment Checklist (For You)
+- Build fails with **unclear error** → Opus for debugging
+- Need to **change build config** → Opus for code changes
+- Setting up **CI/CD first time** → Opus for architecture
+
+### Deployment Checklist
 
 ```
-PRE-DEPLOY
-□ Tests pass (you ran: flutter test)
+PRE-DEPLOY (Z.ai can verify)
+□ Tests pass
 □ No WIP commits
 □ Version bumped in pubspec.yaml
 
-DEPLOY
-□ Build locally first
+DEPLOY (Z.ai runs)
+□ Build locally
 □ Deploy to staging
 □ Smoke test
 □ Deploy to production
@@ -195,60 +167,58 @@ Claude reads CLAUDE.md automatically. Don't repeat what's there.
 
 ---
 
-## Token Costs & Waste Summary
+## Token Costs: Z.ai vs Opus
 
-| Action | Token Cost | Who Should Do It |
-|--------|------------|------------------|
-| Read small file (<100 lines) | ~200 | Claude ✓ |
-| Read large file (>500 lines) | ~1500+ | Claude (if needed) |
-| Full test suite output | ~5000+ | **You** - never through Claude |
-| Targeted test output | ~200-500 | Claude ✓ |
-| Git status/diff/log | ~500-1500 | **You** (unless Claude needs context) |
-| Git add/commit/push | ~50-100 | **You** |
-| Build output | ~2000-5000 | **You** - never through Claude |
-| Codebase exploration | ~2000+ | Claude (use Explore agent) |
+| Action | Tokens | Who |
+|--------|--------|-----|
+| Read small file (<100 lines) | ~200 | Either |
+| Read large file (>500 lines) | ~1500+ | Z.ai if just lookup, Opus if analyzing |
+| Full test suite output | ~5000+ | Z.ai (or skip - see Testing section) |
+| Targeted test output | ~200-500 | Either |
+| Git operations | ~500-1500 | Z.ai |
+| Build output | ~2000-5000 | Z.ai |
+| Codebase exploration | ~2000+ | Opus (needs understanding) |
+| Debugging mystery bug | varies | Opus |
 
-### Estimated Savings
+### Cost Comparison
 
-If you do git + deployment yourself instead of through Claude:
+| 10 mechanical tasks via... | Cost |
+|---------------------------|------|
+| Z.ai | ~£0.10 |
+| Opus | ~£2-5 |
 
-| Per Session | Tokens Saved | Cost Saved |
-|-------------|--------------|------------|
-| Git housekeeping | 500-1500 | ~£0.02-0.05 |
-| Build/deploy | 2000-5000 | ~£0.05-0.15 |
-| **Total** | 2500-6500 | **~£0.07-0.20** |
-
-Over 100 sessions = **£7-20 saved** just on mechanical tasks.
+**Route mechanical work to Z.ai. Save Opus budget for thinking.**
 
 ---
 
 ## Quick Reference
 
 ```
-CLAUDE DOES (valuable)          YOU DO (saves tokens)
-─────────────────────           ─────────────────────
-• Write/edit code               • git status
-• Write commit messages         • git add / git push
-• Debug failures                • flutter build
-• Run targeted tests            • flutter test (full suite)
-• Explain code                  • Deploy to production
-• Architecture decisions        • Version bumps
+Z.ai (cheap, fast)              OPUS (expensive, smart)
+──────────────────              ───────────────────────
+• git status/add/commit/push    • Architecture decisions
+• flutter build                 • Debugging mysteries
+• Pattern-following code        • New integrations
+• Rename/refactor mechanical    • "I don't know how"
+• Simple test writing           • Security-sensitive code
+• Cosmetic changes              • Complex multi-file bugs
 ```
 
-### Session Flow
+### Typical Session Flow
 
 ```
-YOU: git status (clean? tell Claude)
-     ↓
-CLAUDE: Does the coding work
-        Runs targeted tests
-        Writes commit message
-     ↓
-YOU: git add . && git commit -m "[Claude's message]" && git push
-     ↓
-YOU: flutter build (if deploying)
+Z.ai: git status, check what's clean
+      ↓
+OPUS: Does the complex coding work
+      Runs targeted tests
+      ↓
+Z.ai: git add && git commit && git push
+      ↓
+Z.ai: flutter build (if deploying)
 ```
+
+Or for simple tasks, Z.ai does the whole thing.
 
 ---
 
-*Bottom line: Claude's value is thinking, not typing terminal commands. The more mechanical tasks you do yourself, the more budget you have for actual development work.*
+*Bottom line: Opus thinks, Z.ai types. Route accordingly.*
