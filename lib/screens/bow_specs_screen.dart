@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
+import '../providers/skills_provider.dart';
 import '../db/database.dart';
 import '../models/bow_specifications.dart';
 
@@ -215,6 +216,13 @@ class _BowSpecsScreenState extends State<BowSpecsScreen> {
             id: widget.bow.id,
             settings: newSpecs.toJson(),
           );
+
+      // Award XP for updating bow specifications
+      if (mounted) {
+        await context.read<SkillsProvider>().awardEquipmentXp(
+              reason: 'Updated bow specs: ${widget.bow.name}',
+            );
+      }
 
       if (mounted) {
         Navigator.pop(context);

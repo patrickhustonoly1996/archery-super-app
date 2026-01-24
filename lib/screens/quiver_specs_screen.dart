@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/equipment_provider.dart';
+import '../providers/skills_provider.dart';
 import '../db/database.dart';
 import '../models/arrow_specifications.dart';
 import '../models/bow_specifications.dart';
@@ -233,6 +234,13 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
             settings: newSpecs.toJson(),
           );
 
+      // Award XP for updating arrow specifications
+      if (mounted) {
+        await context.read<SkillsProvider>().awardEquipmentXp(
+              reason: 'Updated arrow specs: ${widget.quiver.name}',
+            );
+      }
+
       if (mounted) {
         Navigator.pop(context);
       }
@@ -404,12 +412,6 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
               label: 'Nock Size',
               hint: 'e.g., S, M, L or specific size',
             ),
-            _buildTextField(
-              controller: _nockColorController,
-              label: 'Nock Color',
-              hint: 'e.g., Red, Clear, Orange',
-            ),
-
             const SizedBox(height: AppSpacing.xl),
 
             // Fletching Section
@@ -445,11 +447,6 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
               suffix: '°',
               hint: 'e.g., 3, 5',
               helperText: 'Helical offset in degrees',
-            ),
-            _buildTextField(
-              controller: _fletchColorController,
-              label: 'Fletching Color',
-              hint: 'e.g., Yellow, White/Red',
             ),
             _buildDropdownField(
               value: _fletchCountController.text.isEmpty ? '3' : _fletchCountController.text,
@@ -492,12 +489,30 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
                 label: 'Wrap Model',
                 hint: 'e.g., Arrow Wraps, Custom',
               ),
-              _buildTextField(
-                controller: _wrapColorController,
-                label: 'Wrap Color/Design',
-                hint: 'e.g., Gold, Custom pattern',
-              ),
             ],
+
+            const SizedBox(height: AppSpacing.xl),
+
+            // Appearance Section (for Auto-Plot)
+            _buildSectionHeader('APPEARANCE', isPrimary: true),
+            const SizedBox(height: AppSpacing.md),
+            _buildAutoPlotInfoCard(),
+            const SizedBox(height: AppSpacing.md),
+            _buildTextField(
+              controller: _nockColorController,
+              label: 'Nock Color',
+              hint: 'e.g., Red, Clear, Orange',
+            ),
+            _buildTextField(
+              controller: _fletchColorController,
+              label: 'Fletching Color',
+              hint: 'e.g., Yellow, White/Red',
+            ),
+            _buildTextField(
+              controller: _wrapColorController,
+              label: 'Wrap Color',
+              hint: 'e.g., Gold, Custom pattern',
+            ),
 
             const SizedBox(height: AppSpacing.xl),
 
@@ -537,6 +552,47 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
               fontWeight: FontWeight.bold,
               letterSpacing: 1.2,
             ),
+      ),
+    );
+  }
+
+  Widget _buildAutoPlotInfoCard() {
+    return Card(
+      color: AppColors.gold.withValues(alpha: 0.1),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(
+              Icons.camera_alt,
+              color: AppColors.gold,
+              size: 20,
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Helps Auto-Plot identify your arrows',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.gold,
+                        ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    'Enter your arrow colors so Auto-Plot can distinguish your arrows from others on shared targets.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
