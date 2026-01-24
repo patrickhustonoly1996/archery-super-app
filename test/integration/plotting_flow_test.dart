@@ -281,9 +281,10 @@ void main() {
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
         await sessionProvider.plotArrow(x: 0.05, y: 0.0);
         await sessionProvider.plotArrow(x: 0.1, y: 0.0);
+        await sessionProvider.commitEnd();
         await tester.pumpAndSettle();
 
-        // End should have auto-committed
+        // End should be committed
         expect(sessionProvider.currentEndNumber, equals(2));
         expect(sessionProvider.ends.length, equals(1)); // 1 completed end
         expect(sessionProvider.arrowsInCurrentEnd, equals(0)); // New end started
@@ -331,11 +332,8 @@ void main() {
           for (int arrow = 0; arrow < sessionProvider.arrowsPerEnd; arrow++) {
             await sessionProvider.plotArrow(x: 0.05 * arrow, y: 0.0);
           }
-          // End auto-commits when full, but if not, manually commit
-          if (sessionProvider.currentEndNumber <= totalEnds &&
-              !sessionProvider.isSessionComplete) {
-            // Auto-commit happens when arrowsPerEnd is reached
-          }
+          // Commit the end
+          await sessionProvider.commitEnd();
         }
 
         // Session should be marked complete
@@ -361,6 +359,7 @@ void main() {
           for (int arrow = 0; arrow < sessionProvider.arrowsPerEnd; arrow++) {
             await sessionProvider.plotArrow(x: 0.0, y: 0.0); // Center shots
           }
+          await sessionProvider.commitEnd();
         }
 
         expect(sessionProvider.isSessionComplete, isTrue);
@@ -687,6 +686,7 @@ void main() {
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
         await sessionProvider.plotArrow(x: 0.05, y: 0.0);
         await sessionProvider.plotArrow(x: 0.1, y: 0.0);
+        await sessionProvider.commitEnd();
 
         final endScore = sessionProvider.ends.first.endScore;
         final endsCount = sessionProvider.ends.length;
@@ -720,12 +720,14 @@ void main() {
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
+        await sessionProvider.commitEnd();
         final firstEndTotal = sessionProvider.totalScore;
 
         // Complete second end
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
+        await sessionProvider.commitEnd();
         final secondEndTotal = sessionProvider.totalScore;
 
         // Total should be sum of both ends
@@ -747,6 +749,7 @@ void main() {
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
         await sessionProvider.plotArrow(x: 0.0, y: 0.0);
+        await sessionProvider.commitEnd();
 
         // All center shots should be Xs
         expect(sessionProvider.totalXs, greaterThan(0));
@@ -836,9 +839,12 @@ void main() {
 
         await sessionProvider.startSession(roundTypeId: wa18m.id, title: 'Test Session');
 
-        // Rapid fire plotting
-        for (int i = 0; i < 6; i++) {
-          await sessionProvider.plotArrow(x: 0.05 * i, y: 0.0);
+        // Rapid fire plotting - 2 complete ends
+        for (int end = 0; end < 2; end++) {
+          for (int arrow = 0; arrow < 3; arrow++) {
+            await sessionProvider.plotArrow(x: 0.05 * arrow, y: 0.0);
+          }
+          await sessionProvider.commitEnd();
         }
 
         // Should have completed 2 ends (3 arrows each)
