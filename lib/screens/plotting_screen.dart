@@ -63,6 +63,9 @@ const String kScoringTimerLeadInPref = 'scoring_timer_lead_in';
 /// Preference key for zoom window enabled
 const String kZoomWindowEnabledPref = 'zoom_window_enabled';
 
+/// Preference key for line cutter prompt enabled
+const String kLineCutterEnabledPref = 'line_cutter_enabled';
+
 class PlottingScreen extends StatefulWidget {
   const PlottingScreen({super.key});
 
@@ -98,6 +101,9 @@ class _PlottingScreenState extends State<PlottingScreen> {
 
   // Zoom window enabled (shows magnified view during plotting)
   bool _zoomWindowEnabled = true;
+
+  // Line cutter prompt enabled (asks IN/OUT when on ring boundary)
+  bool _lineCutterEnabled = true;
 
   // Pending arrow position for fixed zoom window (normalized -1 to +1)
   // Using ValueNotifier for efficient updates without full widget rebuild
@@ -175,6 +181,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
     final timerDuration = await db.getIntPreference(kScoringTimerDurationPref, defaultValue: 120);
     final timerLeadIn = await db.getIntPreference(kScoringTimerLeadInPref, defaultValue: 10);
     final zoomWindowEnabled = await db.getBoolPreference(kZoomWindowEnabledPref, defaultValue: true);
+    final lineCutterEnabled = await db.getBoolPreference(kLineCutterEnabledPref, defaultValue: true);
     if (mounted) {
       setState(() {
         _useTripleSpotView = tripleSpot;
@@ -189,6 +196,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
         _timerDuration = timerDuration;
         _timerLeadIn = timerLeadIn;
         _zoomWindowEnabled = zoomWindowEnabled;
+        _lineCutterEnabled = lineCutterEnabled;
       });
     }
   }
@@ -267,6 +275,12 @@ class _PlottingScreenState extends State<PlottingScreen> {
     setState(() => _zoomWindowEnabled = value);
   }
 
+  Future<void> _setLineCutterEnabled(bool value) async {
+    final db = context.read<AppDatabase>();
+    await db.setBoolPreference(kLineCutterEnabledPref, value);
+    setState(() => _lineCutterEnabled = value);
+  }
+
   void _showSettingsSheet(BuildContext context, SessionProvider provider, bool supportsTripleSpot) {
     showModalBottomSheet(
       context: context,
@@ -332,6 +346,11 @@ class _PlottingScreenState extends State<PlottingScreen> {
           zoomWindowEnabled: _zoomWindowEnabled,
           onZoomWindowEnabledChanged: (value) {
             _setZoomWindowEnabled(value);
+            setSheetState(() {});
+          },
+          lineCutterEnabled: _lineCutterEnabled,
+          onLineCutterEnabledChanged: (value) {
+            _setLineCutterEnabled(value);
             setSheetState(() {});
           },
         ),
@@ -536,7 +555,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                       isIndoor: provider.roundType?.isIndoor ?? false,
                                       triSpot: isTriSpot,
                                       compoundScoring: _compoundScoring,
-                                      lineCutterDialogEnabled: true,
+                                      lineCutterDialogEnabled: _lineCutterEnabled,
                                       scoringType: provider.roundType?.scoringType ?? '10-zone',
                                       transformController: _zoomController,
                                       colorblindMode: accessibility.colorblindMode,

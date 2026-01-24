@@ -29,6 +29,14 @@ class PlottingSettingsSheet extends StatelessWidget {
   final int timerLeadIn;
   final ValueChanged<int> onTimerLeadInChanged;
 
+  // Zoom window settings
+  final bool zoomWindowEnabled;
+  final ValueChanged<bool> onZoomWindowEnabledChanged;
+
+  // Line cutter prompt settings
+  final bool lineCutterEnabled;
+  final ValueChanged<bool> onLineCutterEnabledChanged;
+
   const PlottingSettingsSheet({
     super.key,
     required this.supportsTripleSpot,
@@ -54,6 +62,10 @@ class PlottingSettingsSheet extends StatelessWidget {
     required this.onTimerDurationChanged,
     required this.timerLeadIn,
     required this.onTimerLeadInChanged,
+    required this.zoomWindowEnabled,
+    required this.onZoomWindowEnabledChanged,
+    required this.lineCutterEnabled,
+    required this.onLineCutterEnabledChanged,
   });
 
   // Helper to convert timer duration to selector index
@@ -196,6 +208,28 @@ class PlottingSettingsSheet extends StatelessWidget {
                   options: const ['Hide', 'Show'],
                   selectedIndex: showRingNotation ? 1 : 0,
                   onChanged: (_) => onToggleRingNotation(),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Zoom Window
+              _SettingsRow(
+                label: 'Zoom Window',
+                child: _SegmentedToggle(
+                  options: const ['Off', 'On'],
+                  selectedIndex: zoomWindowEnabled ? 1 : 0,
+                  onChanged: (index) => onZoomWindowEnabledChanged(index == 1),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Line Cutter Prompt
+              _SettingsRow(
+                label: 'Line Cutter',
+                child: _SegmentedToggle(
+                  options: const ['Off', 'On'],
+                  selectedIndex: lineCutterEnabled ? 1 : 0,
+                  onChanged: (index) => onLineCutterEnabledChanged(index == 1),
                 ),
               ),
 
