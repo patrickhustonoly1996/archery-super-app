@@ -41,7 +41,11 @@ class Sessions extends Table {
   TextColumn get roundTypeId => text().references(RoundTypes, #id)();
   TextColumn get sessionType =>
       text().withDefault(const Constant('practice'))(); // practice, competition
-  TextColumn get location => text().nullable()();
+  TextColumn get title => text().nullable()(); // User-provided session title
+  TextColumn get locationName => text().nullable()(); // Venue name (e.g., "Evesham Archery Club")
+  TextColumn get location => text().nullable()(); // Legacy location field
+  RealColumn get latitude => real().nullable()(); // GPS latitude
+  RealColumn get longitude => real().nullable()(); // GPS longitude
   TextColumn get notes => text().nullable()();
   DateTimeColumn get startedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get completedAt => dateTime().nullable()();
@@ -985,7 +989,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 29;
+  int get schemaVersion => 30;
 
   @override
   MigrationStrategy get migration {
@@ -1244,6 +1248,13 @@ class AppDatabase extends _$AppDatabase {
           await m.createTable(fieldCourseSightMarks);
           await m.createTable(fieldSessionTargets);
           await m.createTable(fieldSessionMeta);
+        }
+        if (from <= 29) {
+          // Session title and location improvements
+          await m.addColumn(sessions, sessions.title);
+          await m.addColumn(sessions, sessions.locationName);
+          await m.addColumn(sessions, sessions.latitude);
+          await m.addColumn(sessions, sessions.longitude);
         }
       },
     );

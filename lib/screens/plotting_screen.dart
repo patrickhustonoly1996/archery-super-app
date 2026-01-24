@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
@@ -92,7 +93,8 @@ class PlottingScreen extends StatefulWidget {
   State<PlottingScreen> createState() => _PlottingScreenState();
 }
 
-class _PlottingScreenState extends State<PlottingScreen> {
+class _PlottingScreenState extends State<PlottingScreen>
+    with WidgetsBindingObserver {
   // Default to triple spot for indoor rounds
   bool _useTripleSpotView = true;
   // Default to separate view (3 targets)
@@ -143,22 +145,255 @@ class _PlottingScreenState extends State<PlottingScreen> {
   // Prevent duplicate navigation to session complete screen
   bool _navigatingToComplete = false;
 
+  // Auto-commit timer (45 seconds after last arrow)
+  Timer? _autoCommitTimer;
+  static const _autoCommitDelay = Duration(seconds: 45);
+
+  // Track if we need to check for halfway checkpoint after commit
+  bool _checkHalfwayAfterCommit = false;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadPreferences();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _autoCommitTimer?.cancel();
     _pendingArrowNotifier.dispose();
     _zoomController.dispose();
     super.dispose();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Auto-commit when app is backgrounded (paused or inactive)
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      final provider = context.read<SessionProvider>();
+      if (provider.isEndReadyToCommit) {
+        _autoCommitTimer?.cancel();
+        _commitEndWithHalfwayCheck(provider);
+      }
+    }
+  }
+
+  /// Start the 45-second auto-commit timer
+  void _startAutoCommitTimer(SessionProvider provider) {
+    _autoCommitTimer?.cancel();
+    _autoCommitTimer = Timer(_autoCommitDelay, () {
+      if (mounted && provider.isEndReadyToCommit) {
+        _commitEndWithHalfwayCheck(provider);
+      }
+    });
+  }
+
+  /// Cancel the auto-commit timer (called on undo or manual commit)
+  void _cancelAutoCommitTimer() {
+    _autoCommitTimer?.cancel();
+    _autoCommitTimer = null;
+  }
+
+  /// Commit end and check for halfway checkpoint
+  Future<void> _commitEndWithHalfwayCheck(SessionProvider provider) async {
+    _cancelAutoCommitTimer();
+    // Check if we'll be at halfway point after this commit
+    final willBeAtHalfway = provider.isAtHalfwayPoint ||
+        (provider.currentEndNumber == (provider.totalEnds / 2).ceil());
+
+    await provider.commitEnd();
+    _resetZoom();
+
+    // Show halfway checkpoint if we just crossed the halfway point
+    if (mounted && willBeAtHalfway && provider.isAtHalfwayPoint) {
+      _showHalfwayCheckpoint(provider);
+    }
+  }
+
   /// Reset zoom to 1x when starting new end
   void _resetZoom() {
     _zoomController.value = Matrix4.identity();
+  }
+
+  /// Get the set of arrow IDs to highlight (current or selected end)
+  Set<String> _getHighlightedArrowIds(SessionProvider provider) {
+    if (_viewingEndIndex != null && _viewingEndArrows != null) {
+      // Viewing history - highlight that end's arrows
+      return _viewingEndArrows!.map((a) => a.id).toSet();
+    }
+    // Current end - highlight current end arrows
+    return provider.currentEndArrows.map((a) => a.id).toSet();
+  }
+
+  /// Show the halfway checkpoint dialog
+  Future<void> _showHalfwayCheckpoint(SessionProvider provider) async {
+    provider.markHalfwayCheckpointShown();
+
+    String? sightMarkAdjustment;
+    String? halfwayNotes;
+    bool clearPlotFace = false;
+
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceDark,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Padding(
+          padding: EdgeInsets.only(
+            left: AppSpacing.lg,
+            right: AppSpacing.lg,
+            top: AppSpacing.lg,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + AppSpacing.lg,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                children: [
+                  Icon(Icons.flag, color: AppColors.gold, size: 24),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    'HALFWAY CHECKPOINT',
+                    style: TextStyle(
+                      fontFamily: AppFonts.pixel,
+                      fontSize: 18,
+                      color: AppColors.gold,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'End ${(provider.totalEnds / 2).ceil()} of ${provider.totalEnds} complete',
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+
+              // Sight mark adjustment field
+              Text(
+                'Sight mark adjustment (optional)',
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  fontSize: 12,
+                  color: AppColors.textMuted,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              TextField(
+                style: TextStyle(fontFamily: AppFonts.body, color: AppColors.textPrimary),
+                decoration: InputDecoration(
+                  hintText: 'e.g., +2 clicks, lowered 1mm',
+                  hintStyle: TextStyle(color: AppColors.textMuted),
+                  filled: true,
+                  fillColor: AppColors.surfaceLight,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                ),
+                onChanged: (value) => sightMarkAdjustment = value,
+              ),
+              const SizedBox(height: AppSpacing.md),
+
+              // Notes field
+              Text(
+                'First half notes (optional)',
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  fontSize: 12,
+                  color: AppColors.textMuted,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              TextField(
+                style: TextStyle(fontFamily: AppFonts.body, color: AppColors.textPrimary),
+                maxLines: 2,
+                decoration: InputDecoration(
+                  hintText: 'Shot execution, timing, conditions...',
+                  hintStyle: TextStyle(color: AppColors.textMuted),
+                  filled: true,
+                  fillColor: AppColors.surfaceLight,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                ),
+                onChanged: (value) => halfwayNotes = value,
+              ),
+              const SizedBox(height: AppSpacing.md),
+
+              // Clear plot face toggle
+              SwitchListTile(
+                value: clearPlotFace,
+                onChanged: (value) => setSheetState(() => clearPlotFace = value),
+                title: Text(
+                  'Clear plot face',
+                  style: TextStyle(
+                    fontFamily: AppFonts.body,
+                    fontSize: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                subtitle: Text(
+                  'Hide first half arrows (data preserved)',
+                  style: TextStyle(
+                    fontFamily: AppFonts.body,
+                    fontSize: 12,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+                activeColor: AppColors.gold,
+                contentPadding: EdgeInsets.zero,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+
+              // Continue button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Continue'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // Apply settings after dialog closes
+    if (clearPlotFace) {
+      provider.setArrowsHiddenBeforeEnd(provider.currentEndNumber);
+    }
+
+    // Save notes to session if provided (would need session notes feature)
+    // For now, just log that adjustment/notes were recorded
+    if (sightMarkAdjustment != null && sightMarkAdjustment!.isNotEmpty) {
+      debugPrint('Halfway sight adjustment: $sightMarkAdjustment');
+    }
+    if (halfwayNotes != null && halfwayNotes!.isNotEmpty) {
+      debugPrint('Halfway notes: $halfwayNotes');
+    }
   }
 
   /// View arrows from a past end
@@ -321,6 +556,135 @@ class _PlottingScreenState extends State<PlottingScreen> {
     final db = context.read<AppDatabase>();
     await db.setBoolPreference(kSingleFaceTrackingPref, value);
     setState(() => _singleFaceTracking = value);
+  }
+
+  /// Show face setup dialog when switching to single face view for indoor rounds
+  /// Asks if user wants true single face or single view with face tracking
+  Future<void> _showFaceSetupDialog() async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        title: Text(
+          'FACE CONFIGURATION',
+          style: TextStyle(
+            fontFamily: AppFonts.pixel,
+            fontSize: 16,
+            color: AppColors.gold,
+            letterSpacing: 2,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'How are you shooting?',
+              style: TextStyle(
+                fontFamily: AppFonts.body,
+                fontSize: 14,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _FaceSetupOption(
+              title: 'Single face',
+              subtitle: 'All arrows on one target',
+              icon: Icons.crop_square,
+              onTap: () => Navigator.pop(ctx, 'single'),
+            ),
+            const SizedBox(height: 8),
+            _FaceSetupOption(
+              title: 'Triple spot (single view)',
+              subtitle: 'Track which face each arrow is on',
+              icon: Icons.view_agenda_outlined,
+              onTap: () => Navigator.pop(ctx, 'tracked'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.textMuted),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (result == null) return;
+
+    if (result == 'single') {
+      // True single face - no tracking
+      await _setSingleFaceTracking(false);
+      await _setTripleSpotView(false);
+    } else if (result == 'tracked') {
+      // Single view with face tracking - ask for order
+      final order = await _showFaceOrderDialog();
+      if (order != null) {
+        await _setAutoAdvanceOrder(order);
+        await _setSingleFaceTracking(true);
+        await _setTripleSpotView(false);
+      }
+    }
+  }
+
+  /// Show dialog to select face shooting order
+  Future<String?> _showFaceOrderDialog() async {
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        title: Text(
+          'SHOOTING ORDER',
+          style: TextStyle(
+            fontFamily: AppFonts.pixel,
+            fontSize: 16,
+            color: AppColors.gold,
+            letterSpacing: 2,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'What order do you shoot?',
+              style: TextStyle(
+                fontFamily: AppFonts.body,
+                fontSize: 14,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _FaceSetupOption(
+              title: 'Top \u2192 Middle \u2192 Bottom',
+              subtitle: '1 \u2192 2 \u2192 3',
+              icon: Icons.arrow_downward,
+              onTap: () => Navigator.pop(ctx, 'column'),
+            ),
+            const SizedBox(height: 8),
+            _FaceSetupOption(
+              title: 'Top \u2192 Bottom \u2192 Middle',
+              subtitle: '1 \u2192 3 \u2192 2',
+              icon: Icons.swap_vert,
+              onTap: () => Navigator.pop(ctx, 'triangular'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.textMuted),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showSettingsSheet(BuildContext context, SessionProvider provider, bool supportsTripleSpot) {
@@ -526,8 +890,9 @@ class _PlottingScreenState extends State<PlottingScreen> {
                               final isViewingHistory = _viewingEndIndex != null;
                               final displayArrows = isViewingHistory
                                   ? (_viewingEndArrows ?? [])
-                                  : provider.allSessionArrows;
+                                  : provider.displayArrows;
                               final canPlot = !provider.isEndComplete && !isViewingHistory;
+                              final highlightedIds = _getHighlightedArrowIds(provider);
 
                               // Use triple spot view for indoor rounds when enabled
                               if (supportsTripleSpot && _useTripleSpotView) {
@@ -544,6 +909,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                       arrows: displayArrows,
                                       size: size,
                                       compoundScoring: _compoundScoring,
+                                      highlightedArrowIds: highlightedIds,
                                     ),
                                   );
                                 } else if (_faceLayout == FaceLayout.triangular && supportsTriangular) {
@@ -563,6 +929,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                       autoAdvance: _autoAdvanceEnabled,
                                       advanceOrder: _autoAdvanceOrder,
                                       selectedFace: _selectedFaceIndex,
+                                      highlightedArrowIds: highlightedIds,
                                       onFaceChanged: (face) => setState(() => _selectedFaceIndex = face),
                                       onArrowPlotted: (x, y, faceIndex, {scoreOverride}) async {
                                         await _plotArrowWithFace(
@@ -594,6 +961,7 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                       autoAdvance: _autoAdvanceEnabled,
                                       advanceOrder: _autoAdvanceOrder,
                                       selectedFace: _selectedFaceIndex,
+                                      highlightedArrowIds: highlightedIds,
                                       onFaceChanged: (face) => setState(() => _selectedFaceIndex = face),
                                       onArrowPlotted: (x, y, faceIndex, {scoreOverride}) async {
                                         await _plotArrowWithFace(
@@ -612,6 +980,8 @@ class _PlottingScreenState extends State<PlottingScreen> {
                               }
 
                               // Single face view (outdoor or user preference)
+                              // When single face tracking is enabled, arrows are assigned to faces
+                              // and auto-advance cycles through faces
                               final isTriSpot = (provider.roundType?.faceCount ?? 1) == 3;
                               // Wrap in InteractiveViewer for pinch-to-zoom
                               // Single-finger gestures pass through for plotting
@@ -637,8 +1007,25 @@ class _PlottingScreenState extends State<PlottingScreen> {
                                       transformController: _zoomController,
                                       colorblindMode: accessibility.colorblindMode,
                                       showRingLabels: accessibility.showRingLabels,
+                                      highlightedArrowIds: highlightedIds,
                                       onArrowPlotted: (x, y, {scoreOverride}) async {
-                                        await _plotArrowWithFace(context, provider, x, y, 0, scoreOverride: scoreOverride);
+                                        // Use current face index when tracking enabled, else face 0
+                                        final faceIndex = _singleFaceTracking ? _selectedFaceIndex : 0;
+                                        await _plotArrowWithFace(context, provider, x, y, faceIndex, scoreOverride: scoreOverride);
+
+                                        // Auto-advance to next face when tracking enabled
+                                        if (_singleFaceTracking && _autoAdvanceEnabled) {
+                                          setState(() {
+                                            if (_autoAdvanceOrder == 'triangular') {
+                                              // 0→2, 1→0, 2→1
+                                              const order = [2, 0, 1];
+                                              _selectedFaceIndex = order[_selectedFaceIndex];
+                                            } else {
+                                              // Column: 0→1→2→0
+                                              _selectedFaceIndex = (_selectedFaceIndex + 1) % 3;
+                                            }
+                                          });
+                                        }
                                       },
                                       onPendingArrowChanged: (x, y) {
                                         // Use ValueNotifier for efficient updates without full rebuild
@@ -754,8 +1141,55 @@ class _PlottingScreenState extends State<PlottingScreen> {
                         ),
                       ),
 
-                      // Quick toggle for triple spot view mode (stacked vs combined)
-                      // Positioned at bottom left to avoid overlapping with triple spot target
+                      // Face layout toggle buttons (left side)
+                      // Shows view mode options when triple spot is supported
+                      if (supportsTripleSpot && _useTripleSpotView)
+                        Positioned(
+                          left: AppSpacing.md,
+                          top: 100, // Below the group centre widget
+                          child: FaceLayoutToggle(
+                            currentLayout: _useCombinedView
+                                ? 'combined'
+                                : (_faceLayout == FaceLayout.triangular ? 'triangular' : 'vertical'),
+                            triangularSupported: supportsTriangular,
+                            onLayoutChanged: (layout) {
+                              if (layout == 'combined') {
+                                _setCombinedView(true);
+                              } else if (layout == 'triangular') {
+                                _setCombinedView(false);
+                                _setFaceLayout(FaceLayout.triangular);
+                              } else if (layout == 'single') {
+                                // Show face setup dialog to ask about tracking
+                                _showFaceSetupDialog();
+                              } else {
+                                // vertical
+                                _setCombinedView(false);
+                                _setFaceLayout(FaceLayout.verticalTriple);
+                              }
+                            },
+                          ),
+                        ),
+
+                      // Face indicator sidebar (when using single face tracking mode)
+                      // Shows which face is currently active for arrow assignment
+                      if (supportsTripleSpot && _singleFaceTracking && !_useTripleSpotView)
+                        Positioned(
+                          left: AppSpacing.md,
+                          top: 100,
+                          child: FaceIndicatorSidebar(
+                            currentFace: _selectedFaceIndex,
+                            arrowCounts: [
+                              provider.currentEndArrows.where((a) => a.faceIndex == 0).length,
+                              provider.currentEndArrows.where((a) => a.faceIndex == 1).length,
+                              provider.currentEndArrows.where((a) => a.faceIndex == 2).length,
+                            ],
+                            layoutStyle: _autoAdvanceOrder,
+                            onFaceSelected: (face) => setState(() => _selectedFaceIndex = face),
+                          ),
+                        ),
+
+                      // Quick toggle for triple spot view mode (legacy bottom-left position)
+                      // Kept for easy access - switches between stacked and combined views
                       if (supportsTripleSpot && _useTripleSpotView)
                         Positioned(
                           bottom: AppSpacing.md,
@@ -801,7 +1235,8 @@ class _PlottingScreenState extends State<PlottingScreen> {
                 // Action buttons
                 _ActionButtons(
                   provider: provider,
-                  onEndCommit: _resetZoom,
+                  onEndCommit: () => _commitEndWithHalfwayCheck(provider),
+                  onUndo: _cancelAutoCommitTimer,
                 ),
 
                 const SizedBox(height: AppSpacing.md),
@@ -868,6 +1303,11 @@ class _PlottingScreenState extends State<PlottingScreen> {
     } else {
       // No shaft tagging - plot directly
       await provider.plotArrow(x: x, y: y, faceIndex: faceIndex, scoreOverride: scoreOverride);
+    }
+
+    // Start auto-commit timer if end is now ready to commit
+    if (provider.isEndReadyToCommit) {
+      _startAutoCommitTimer(provider);
     }
   }
 
@@ -1053,10 +1493,12 @@ class _PlottingScreenState extends State<PlottingScreen> {
 class _ActionButtons extends StatelessWidget {
   final SessionProvider provider;
   final VoidCallback? onEndCommit;
+  final VoidCallback? onUndo;
 
   const _ActionButtons({
     required this.provider,
     this.onEndCommit,
+    this.onUndo,
   });
 
   void _launchAutoPlot(BuildContext context) async {
@@ -1152,8 +1594,12 @@ class _ActionButtons extends StatelessWidget {
           // Undo button
           Expanded(
             child: OutlinedButton.icon(
-              onPressed:
-                  provider.totalArrowsInSession > 0 ? provider.undoLastArrow : null,
+              onPressed: provider.totalArrowsInSession > 0
+                  ? () {
+                      onUndo?.call();
+                      provider.undoLastArrow();
+                    }
+                  : null,
               icon: const Icon(Icons.undo, semanticLabel: 'Undo'),
               label: const Text('Undo'),
               style: OutlinedButton.styleFrom(
@@ -1193,10 +1639,7 @@ class _ActionButtons extends StatelessWidget {
             flex: 2,
             child: ElevatedButton(
               onPressed: provider.arrowsInCurrentEnd > 0 && !provider.isCommittingEnd
-                  ? () async {
-                      await provider.commitEnd();
-                      onEndCommit?.call();
-                    }
+                  ? () => onEndCommit?.call()
                   : null,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
@@ -1673,6 +2116,85 @@ class _CurrentEndRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Option button for face setup dialogs
+class _FaceSetupOption extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _FaceSetupOption({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.surfaceLight),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  color: AppColors.gold,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontFamily: AppFonts.body,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontFamily: AppFonts.body,
+                        fontSize: 12,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: AppColors.textMuted,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

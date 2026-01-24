@@ -15,6 +15,8 @@ class TargetFace extends StatelessWidget {
   final bool compoundScoring; // Compound inner 10 - smaller X ring
   final ColorblindMode colorblindMode; // Colorblind accessibility mode
   final String scoringType; // '10-zone', '5-zone', 'worcester'
+  /// Arrow IDs to highlight with a green halo (current/selected end arrows)
+  final Set<String>? highlightedArrowIds;
 
   const TargetFace({
     super.key,
@@ -25,6 +27,7 @@ class TargetFace extends StatelessWidget {
     this.compoundScoring = false,
     this.colorblindMode = ColorblindMode.none,
     this.scoringType = '10-zone',
+    this.highlightedArrowIds,
   });
 
   @override
@@ -68,6 +71,7 @@ class TargetFace extends StatelessWidget {
                 isX: arrow.isX,
                 shaftNumber: arrow.shaftNumber,
                 targetSize: size,
+                isHighlighted: highlightedArrowIds?.contains(arrow.id) ?? false,
               ),
             );
           }).toList(),
@@ -412,6 +416,8 @@ class _ArrowMarker extends StatelessWidget {
   final bool isX;
   final int? shaftNumber;
   final double targetSize;
+  /// Whether this arrow should be highlighted (current/selected end)
+  final bool isHighlighted;
 
   /// Arrow marker size as fraction of target diameter
   /// 7mm on 122cm target = 0.00574, but scaled up for visibility
@@ -422,6 +428,7 @@ class _ArrowMarker extends StatelessWidget {
     required this.isX,
     required this.targetSize,
     this.shaftNumber,
+    this.isHighlighted = false,
   });
 
   @override
@@ -455,6 +462,16 @@ class _ArrowMarker extends StatelessWidget {
           color: markerColor == Colors.black ? Colors.white : Colors.black,
           width: borderWidth,
         ),
+        // Green halo for highlighted (current/selected end) arrows
+        boxShadow: isHighlighted
+            ? [
+                BoxShadow(
+                  color: const Color(0xFF4CAF50).withOpacity(0.7),
+                  blurRadius: 6,
+                  spreadRadius: 2,
+                ),
+              ]
+            : null,
       ),
     );
   }
@@ -495,6 +512,9 @@ class InteractiveTargetFace extends StatefulWidget {
   /// Optional transform controller for coordinate adjustment when zoomed
   final TransformationController? transformController;
 
+  /// Arrow IDs to highlight with a green halo (current/selected end arrows)
+  final Set<String>? highlightedArrowIds;
+
   const InteractiveTargetFace({
     super.key,
     required this.arrows,
@@ -512,6 +532,7 @@ class InteractiveTargetFace extends StatefulWidget {
     this.showRingLabels = false,
     this.onPendingArrowChanged,
     this.transformController,
+    this.highlightedArrowIds,
   });
 
   @override
@@ -861,6 +882,7 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
               colorblindMode: widget.colorblindMode,
               showRingLabels: widget.showRingLabels,
               scoringType: widget.scoringType,
+              highlightedArrowIds: widget.highlightedArrowIds,
             ),
 
             // Offset line from touch to arrow position
@@ -904,7 +926,7 @@ class _OffsetLinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.gold.withValues(alpha: 0.6)
+      ..color = Colors.black.withValues(alpha: 0.7)
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
 

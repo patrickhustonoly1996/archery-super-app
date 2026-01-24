@@ -1,5 +1,6 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:signature/signature.dart';
 import '../theme/app_theme.dart';
 import '../db/database.dart';
 import '../models/distance_leg.dart';
@@ -789,7 +790,7 @@ class WorldArcheryScorecardWidget extends StatelessWidget {
   }
 }
 
-/// Signature box with display and optional edit capability
+/// Signature box with display and tap-to-sign capability
 class _SignatureBox extends StatelessWidget {
   final String label;
   final Uint8List? signature;
@@ -801,9 +802,27 @@ class _SignatureBox extends StatelessWidget {
     this.onSignatureChanged,
   });
 
+  void _showSignatureDialog(BuildContext context) async {
+    if (onSignatureChanged == null) return;
+
+    final result = await showDialog<Uint8List?>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => _LandscapeSignatureDialog(
+        label: label,
+        existingSignature: signature,
+      ),
+    );
+
+    if (result != null) {
+      onSignatureChanged!(result);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasSignature = signature != null && signature!.isNotEmpty;
+    final canEdit = onSignatureChanged != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -817,37 +836,267 @@ class _SignatureBox extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Container(
-          height: 50,
-          decoration: BoxDecoration(
-            color: AppColors.surfaceDark,
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(
-              color: hasSignature
-                  ? AppColors.gold.withValues(alpha: 0.3)
-                  : AppColors.surfaceLight,
+        GestureDetector(
+          onTap: canEdit ? () => _showSignatureDialog(context) : null,
+          child: Container(
+            height: 50,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceDark,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: hasSignature
+                    ? AppColors.gold.withValues(alpha: 0.3)
+                    : AppColors.surfaceLight,
+              ),
             ),
-          ),
-          child: hasSignature
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
-                  child: Image.memory(
-                    signature!,
-                    fit: BoxFit.contain,
-                  ),
-                )
-              : Center(
-                  child: Text(
-                    'Tap to sign',
-                    style: TextStyle(
-                      fontFamily: AppFonts.body,
-                      fontSize: 9,
-                      color: AppColors.textMuted,
+            child: hasSignature
+                ? Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(3),
+                        child: Center(
+                          child: Image.memory(
+                            signature!,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      if (canEdit)
+                        Positioned(
+                          right: 4,
+                          top: 4,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceLight,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                            child: Icon(
+                              Icons.edit,
+                              size: 12,
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                        ),
+                    ],
+                  )
+                : Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.draw_outlined,
+                          size: 14,
+                          color: canEdit ? AppColors.gold : AppColors.textMuted,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          canEdit ? 'Tap to sign' : 'No signature',
+                          style: TextStyle(
+                            fontFamily: AppFonts.body,
+                            fontSize: 9,
+                            color: canEdit ? AppColors.gold : AppColors.textMuted,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
+          ),
         ),
       ],
+    );
+  }
+}
+
+/// Landscape-oriented signature dialog for easier signing
+class _LandscapeSignatureDialog extends StatefulWidget {
+  final String label;
+  final Uint8List? existingSignature;
+
+  const _LandscapeSignatureDialog({
+    required this.label,
+    this.existingSignature,
+  });
+
+  @override
+  State<_LandscapeSignatureDialog> createState() => _LandscapeSignatureDialogState();
+}
+
+class _LandscapeSignatureDialogState extends State<_LandscapeSignatureDialog> {
+  late SignatureController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = SignatureController(
+      penStrokeWidth: 3,
+      penColor: AppColors.textPrimary,
+      exportBackgroundColor: Colors.transparent,
+    );
+    // Force landscape orientation for better signature space
+    _lockToLandscape();
+  }
+
+  Future<void> _lockToLandscape() async {
+    // Lock to landscape only for easier signing
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  }
+
+  Future<void> _restoreOrientation() async {
+    // Restore all orientations
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _restoreOrientation();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (_controller.isNotEmpty) {
+      final signature = await _controller.toPngBytes();
+      await _restoreOrientation();
+      if (mounted) {
+        Navigator.pop(context, signature);
+      }
+    }
+  }
+
+  void _cancel() async {
+    await _restoreOrientation();
+    if (mounted) {
+      Navigator.pop(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog.fullscreen(
+      backgroundColor: AppColors.backgroundDark,
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: _cancel,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      'Sign: ${widget.label}',
+                      style: TextStyle(
+                        fontFamily: AppFonts.pixel,
+                        fontSize: 16,
+                        color: AppColors.gold,
+                      ),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => _controller.clear(),
+                    icon: Icon(Icons.refresh, size: 18, color: AppColors.textMuted),
+                    label: Text(
+                      'Clear',
+                      style: TextStyle(color: AppColors.textMuted),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  ElevatedButton.icon(
+                    onPressed: _save,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.gold,
+                      foregroundColor: AppColors.backgroundDark,
+                    ),
+                    icon: const Icon(Icons.check, size: 18),
+                    label: const Text('Save'),
+                  ),
+                ],
+              ),
+            ),
+
+            // Signature area - takes most of the screen in landscape
+            Expanded(
+              child: Container(
+                margin: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceDark,
+                  border: Border.all(color: AppColors.gold, width: 2),
+                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
+                  child: Stack(
+                    children: [
+                      Signature(
+                        controller: _controller,
+                        backgroundColor: AppColors.surfaceDark,
+                      ),
+                      // Hint line at bottom to guide signature placement
+                      Positioned(
+                        left: AppSpacing.lg,
+                        right: AppSpacing.lg,
+                        bottom: 30,
+                        child: Container(
+                          height: 1,
+                          color: AppColors.textMuted.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      // Centered hint text when empty
+                      Center(
+                        child: AnimatedBuilder(
+                          animation: _controller,
+                          builder: (context, child) {
+                            if (_controller.isNotEmpty) return const SizedBox.shrink();
+                            return Text(
+                              'Sign here',
+                              style: TextStyle(
+                                fontFamily: AppFonts.pixel,
+                                fontSize: 28,
+                                color: AppColors.textMuted.withValues(alpha: 0.2),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Instructions
+            Padding(
+              padding: const EdgeInsets.only(
+                left: AppSpacing.md,
+                right: AppSpacing.md,
+                bottom: AppSpacing.sm,
+              ),
+              child: Text(
+                'Use your finger or stylus to sign',
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  fontSize: 12,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

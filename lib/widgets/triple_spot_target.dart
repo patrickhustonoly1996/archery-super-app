@@ -25,6 +25,7 @@ class TripleSpotTarget extends StatelessWidget {
   final ValueChanged<int>? onFaceSelected;
   final bool showFaceLabels;
   final bool compoundScoring;
+  final Set<String>? highlightedArrowIds;
 
   const TripleSpotTarget({
     super.key,
@@ -34,6 +35,7 @@ class TripleSpotTarget extends StatelessWidget {
     this.onFaceSelected,
     this.showFaceLabels = true,
     this.compoundScoring = false,
+    this.highlightedArrowIds,
   });
 
   @override
@@ -79,6 +81,7 @@ class TripleSpotTarget extends StatelessWidget {
           size: faceSize,
           triSpot: true, // Always tri-spot mode (rings 6-10 only)
           compoundScoring: compoundScoring,
+          highlightedArrowIds: highlightedArrowIds,
         ),
       ),
     );
@@ -110,6 +113,8 @@ class InteractiveTripleSpotTarget extends StatefulWidget {
   final ValueChanged<int>? onFaceChanged;
   /// Callback for pending arrow position (for fixed zoom window)
   final Function(double? x, double? y)? onPendingArrowChanged;
+  /// Arrow IDs to highlight with green halo
+  final Set<String>? highlightedArrowIds;
 
   const InteractiveTripleSpotTarget({
     super.key,
@@ -124,6 +129,7 @@ class InteractiveTripleSpotTarget extends StatefulWidget {
     this.selectedFace,
     this.onFaceChanged,
     this.onPendingArrowChanged,
+    this.highlightedArrowIds,
   });
 
   @override
@@ -190,10 +196,10 @@ class _InteractiveTripleSpotTargetState
     );
   }
 
-  /// Build an interactive face that shows all arrows and allows plotting
+  /// Build an interactive face that shows only its own arrows
   Widget _buildInteractiveFace(int faceIndex, double faceSize) {
-    // Show ALL arrows on every face for visual grouping
-    // (arrows retain their faceIndex internally for scoring)
+    // Filter arrows to show only this face's arrows
+    final faceArrows = widget.arrows.where((a) => a.faceIndex == faceIndex).toList();
     final isSelected = _selectedFace == faceIndex;
 
     // Calculate the inner target size (face - border on each side)
@@ -225,14 +231,16 @@ class _InteractiveTripleSpotTargetState
         child: Stack(
           children: [
             // The target face - interactive only when selected
+            // Shows only arrows for this specific face
             InteractiveTargetFace(
-              arrows: widget.arrows,
+              arrows: faceArrows,
               size: innerSize,
               enabled: widget.enabled && isSelected,
               isIndoor: true,
               triSpot: true,
               isLeftHanded: widget.isLeftHanded,
               compoundScoring: widget.compoundScoring,
+              highlightedArrowIds: widget.highlightedArrowIds,
               onArrowPlotted: (x, y, {scoreOverride}) {
                 _onArrowPlotted(x, y, faceIndex, scoreOverride: scoreOverride);
               },
@@ -350,17 +358,210 @@ class TripleSpotToggle extends StatelessWidget {
   }
 }
 
+/// Triangular triple spot target (1 face on top, 2 below) for WA 18m.
+/// Each face filters arrows by faceIndex for correct display.
+class TriangularTripleSpotTarget extends StatefulWidget {
+  final List<Arrow> arrows;
+  final double size;
+  /// Callback when arrow is plotted. Optional scoreOverride for line cutter.
+  final Function(double x, double y, int faceIndex, {({int score, bool isX})? scoreOverride}) onArrowPlotted;
+  final bool enabled;
+  final bool isLeftHanded;
+  final bool compoundScoring;
+  /// Enable auto-advance to next face after plotting
+  final bool autoAdvance;
+  /// Advance order: 'column' (0→1→2→0) or 'triangular' (0→2→1→0)
+  final String advanceOrder;
+  /// Optional: controlled face selection (survives parent rebuilds)
+  final int? selectedFace;
+  /// Optional: callback when face selection changes
+  final ValueChanged<int>? onFaceChanged;
+  /// Callback for pending arrow position (for fixed zoom window)
+  final Function(double? x, double? y)? onPendingArrowChanged;
+  /// Arrow IDs to highlight with green halo
+  final Set<String>? highlightedArrowIds;
+
+  const TriangularTripleSpotTarget({
+    super.key,
+    required this.arrows,
+    required this.onArrowPlotted,
+    this.size = 300,
+    this.enabled = true,
+    this.isLeftHanded = false,
+    this.compoundScoring = false,
+    this.autoAdvance = false,
+    this.advanceOrder = 'column',
+    this.selectedFace,
+    this.onFaceChanged,
+    this.onPendingArrowChanged,
+    this.highlightedArrowIds,
+  });
+
+  @override
+  State<TriangularTripleSpotTarget> createState() =>
+      _TriangularTripleSpotTargetState();
+}
+
+class _TriangularTripleSpotTargetState
+    extends State<TriangularTripleSpotTarget> {
+  int _internalSelectedFace = 0;
+
+  /// Get current selected face (controlled or internal)
+  int get _selectedFace => widget.selectedFace ?? _internalSelectedFace;
+
+  /// Update face selection
+  void _setSelectedFace(int face) {
+    if (widget.selectedFace != null) {
+      widget.onFaceChanged?.call(face);
+    } else {
+      setState(() => _internalSelectedFace = face);
+    }
+  }
+
+  /// Calculate next face based on advance order
+  int _getNextFace(int current) {
+    if (widget.advanceOrder == 'triangular') {
+      // Triangular: 0→2, 1→0, 2→1 (top, bottom-right, bottom-left)
+      const order = [2, 0, 1];
+      return order[current];
+    }
+    // Column: 0→1→2→0 (top to bottom-left to bottom-right)
+    return (current + 1) % 3;
+  }
+
+  void _onArrowPlotted(double x, double y, int faceIndex, {({int score, bool isX})? scoreOverride}) {
+    widget.onArrowPlotted(x, y, faceIndex, scoreOverride: scoreOverride);
+    if (widget.autoAdvance) {
+      _setSelectedFace(_getNextFace(faceIndex));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Layout: 1 face centered on top, 2 faces below side-by-side
+    // Total height = 2 rows of faces + 1 gap (8px)
+    // Each face = (size - 8) / 2 in height
+    final faceSize = (widget.size - 8) / 2;
+
+    return SizedBox(
+      width: widget.size,
+      height: widget.size,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Top row: single face centered
+          Center(
+            child: _buildInteractiveFace(0, faceSize),
+          ),
+          const SizedBox(height: 8),
+          // Bottom row: 2 faces side by side
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildInteractiveFace(1, faceSize),
+              const SizedBox(width: 8),
+              _buildInteractiveFace(2, faceSize),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInteractiveFace(int faceIndex, double faceSize) {
+    // Filter arrows for this specific face
+    final faceArrows = widget.arrows.where((a) => a.faceIndex == faceIndex).toList();
+    final isSelected = _selectedFace == faceIndex;
+
+    final borderWidth = isSelected ? 2.0 : 1.0;
+    final innerSize = faceSize - borderWidth * 2;
+
+    return GestureDetector(
+      onTap: !isSelected ? () => _setSelectedFace(faceIndex) : null,
+      child: Container(
+        width: faceSize,
+        height: faceSize,
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected ? AppColors.gold : AppColors.surfaceLight,
+            width: borderWidth,
+          ),
+          borderRadius: BorderRadius.circular(4),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.gold.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ]
+              : null,
+        ),
+        child: Stack(
+          children: [
+            InteractiveTargetFace(
+              arrows: faceArrows,
+              size: innerSize,
+              enabled: widget.enabled && isSelected,
+              isIndoor: true,
+              triSpot: true,
+              isLeftHanded: widget.isLeftHanded,
+              compoundScoring: widget.compoundScoring,
+              highlightedArrowIds: widget.highlightedArrowIds,
+              onArrowPlotted: (x, y, {scoreOverride}) {
+                _onArrowPlotted(x, y, faceIndex, scoreOverride: scoreOverride);
+              },
+              onPendingArrowChanged: widget.onPendingArrowChanged,
+            ),
+            // Face number indicator in corner
+            Positioned(
+              left: 4,
+              top: 4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.gold
+                      : AppColors.surfaceDark.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '${faceIndex + 1}',
+                  style: TextStyle(
+                    fontFamily: AppFonts.pixel,
+                    fontSize: 12,
+                    color: isSelected ? AppColors.surfaceDark : AppColors.textMuted,
+                  ),
+                ),
+              ),
+            ),
+            // Overlay to capture taps when not selected
+            if (!isSelected)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.transparent,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Combined view showing all arrows from 3 faces on a single target
 class CombinedTripleSpotView extends StatelessWidget {
   final List<Arrow> arrows;
   final double size;
   final bool compoundScoring;
+  final Set<String>? highlightedArrowIds;
 
   const CombinedTripleSpotView({
     super.key,
     required this.arrows,
     this.size = 300,
     this.compoundScoring = false,
+    this.highlightedArrowIds,
   });
 
   @override
@@ -374,6 +575,7 @@ class CombinedTripleSpotView extends StatelessWidget {
           size: size,
           triSpot: true,
           compoundScoring: compoundScoring,
+          highlightedArrowIds: highlightedArrowIds,
         ),
         const SizedBox(height: 8),
         // Show face breakdown

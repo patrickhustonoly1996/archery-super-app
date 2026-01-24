@@ -37,6 +37,10 @@ class SessionProvider extends ChangeNotifier {
   // Prevent concurrent end commits (race condition guard)
   bool _isCommittingEnd = false;
 
+  // Halfway checkpoint state
+  int? _arrowsHiddenBeforeEndNumber;
+  bool _halfwayCheckpointShown = false;
+
   // Getters
   Session? get currentSession => _currentSession;
   RoundType? get roundType => _currentRoundType;
@@ -154,6 +158,10 @@ class SessionProvider extends ChangeNotifier {
   int get arrowsInCurrentEnd => _currentEndArrows.length;
   bool get isEndComplete => arrowsInCurrentEnd >= arrowsPerEnd;
 
+  /// Whether the current end has all arrows and is ready to commit
+  /// Used by plotting screen to manage delayed auto-commit
+  bool get isEndReadyToCommit => _currentEndArrows.length >= arrowsPerEnd;
+
   /// Total arrows in session (completed ends + current end)
   int get totalArrowsInSession =>
       _completedEndArrows.length + _currentEndArrows.length;
@@ -181,6 +189,38 @@ class SessionProvider extends ChangeNotifier {
       if (arrow.isX) xs++;
     }
     return xs;
+  }
+
+  // ============================================================================
+  // HALFWAY CHECKPOINT SUPPORT
+  // ============================================================================
+
+  /// Set which end number arrows should be hidden before (for clear plot face)
+  /// Pass null to show all arrows
+  void setArrowsHiddenBeforeEnd(int? endNumber) {
+    _arrowsHiddenBeforeEndNumber = endNumber;
+    notifyListeners();
+  }
+
+  /// Get arrows for display on target face, respecting hidden before setting
+  List<Arrow> get displayArrows {
+    if (_arrowsHiddenBeforeEndNumber == null) return allSessionArrows;
+    return allSessionArrows.where((arrow) {
+      final endIndex = _ends.indexWhere((e) => e.id == arrow.endId);
+      if (endIndex == -1) return true; // current end - always show
+      return (endIndex + 1) >= _arrowsHiddenBeforeEndNumber!;
+    }).toList();
+  }
+
+  /// Check if we're at the halfway point and should show checkpoint
+  bool get isAtHalfwayPoint {
+    final halfPoint = (totalEnds / 2).ceil();
+    return currentEndNumber == halfPoint + 1 && !_halfwayCheckpointShown;
+  }
+
+  /// Mark that the halfway checkpoint has been shown this session
+  void markHalfwayCheckpointShown() {
+    _halfwayCheckpointShown = true;
   }
 
   /// Current end score
@@ -245,7 +285,11 @@ class SessionProvider extends ChangeNotifier {
   /// Start a new session
   Future<void> startSession({
     required String roundTypeId,
-    String? location,
+    required String title,
+    String? locationName,
+    double? latitude,
+    double? longitude,
+    String? location, // Legacy
     String sessionType = 'practice',
     String? bowId,
     String? quiverId,
@@ -263,6 +307,10 @@ class SessionProvider extends ChangeNotifier {
       id: sessionId,
       roundTypeId: roundTypeId,
       sessionType: Value(sessionType),
+      title: Value(title),
+      locationName: Value(locationName),
+      latitude: Value(latitude),
+      longitude: Value(longitude),
       location: Value(location),
       bowId: Value(bowId),
       quiverId: Value(quiverId),
@@ -374,11 +422,7 @@ class SessionProvider extends ChangeNotifier {
     _vibration.light();
 
     notifyListeners();
-
-    // Auto-commit when end is complete
-    if (_currentEndArrows.length >= arrowsPerEnd) {
-      await commitEnd();
-    }
+    // Note: Auto-commit removed - plotting_screen handles commit via timer or manual action
   }
 
   /// Plot an arrow at the given normalized position (-1 to +1)
@@ -504,8 +548,9 @@ class SessionProvider extends ChangeNotifier {
     final endScore = currentEndScore;
     final endXs = currentEndXs;
 
-    // Add current end arrows to completed cache before clearing
+    // Add current end arrows to completed cache and clear current
     _completedEndArrows = [..._completedEndArrows, ..._currentEndArrows];
+    _currentEndArrows = [];
 
     // Commit the end
     await _db.commitEnd(_activeEnd!.id, endScore, endXs);

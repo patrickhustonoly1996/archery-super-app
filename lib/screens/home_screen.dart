@@ -13,6 +13,7 @@ import '../widgets/pixel_bow_icon.dart';
 import '../widgets/pixel_profile_icon.dart';
 import '../widgets/level_badge.dart';
 import '../widgets/accessible_touch_target.dart';
+import '../widgets/session_setup_sheet.dart';
 import 'session_start_screen.dart';
 import 'plotting_screen.dart';
 import 'history_screen.dart';
@@ -582,29 +583,19 @@ class _QuickStartSheetState extends State<_QuickStartSheet> {
   Future<void> _startSession() async {
     if (_selectedRoundType == null) return;
 
-    final sessionProvider = context.read<SessionProvider>();
-    final equipmentProvider = context.read<EquipmentProvider>();
+    // Close this sheet first
+    Navigator.pop(context);
 
-    // Get default equipment
-    final defaultBow = equipmentProvider.defaultBow;
-    final defaultQuiver = equipmentProvider.defaultQuiver;
-
-    // Only enable shaft tagging if quiver has active (non-retired) shafts
-    final hasActiveShafts = defaultQuiver != null &&
-        equipmentProvider.getShaftsForQuiver(defaultQuiver.id).isNotEmpty;
-
-    await sessionProvider.startSession(
-      roundTypeId: _selectedRoundType!.id,
+    // Show the session setup sheet
+    final started = await SessionSetupSheet.show(
+      context: context,
+      roundType: _selectedRoundType!,
       sessionType: 'practice',
-      bowId: defaultBow?.id,
-      quiverId: defaultQuiver?.id,
-      shaftTaggingEnabled: hasActiveShafts,
-      arrowsPerEndOverride: _arrowsPerEnd != _selectedRoundType!.arrowsPerEnd
-          ? _arrowsPerEnd
-          : null,
     );
 
-    widget.onSessionStarted();
+    if (started) {
+      widget.onSessionStarted();
+    }
   }
 
   @override
