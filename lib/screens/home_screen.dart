@@ -31,6 +31,7 @@ import 'settings_screen.dart';
 import 'chiptune_test_screen.dart'; // TODO: Remove after testing sounds
 import 'sight_marks_hub_screen.dart';
 import 'field_session_start_screen.dart';
+import 'shaft_comparison_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -133,6 +134,15 @@ class _HomeScreenState extends State<HomeScreen>
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const StatisticsScreen()),
+      ),
+    ),
+    _MenuItem(
+      label: 'ANALYZE',
+      sublabel: 'Shaft comparison',
+      pixelIcon: PixelIconType.radar,
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ShaftComparisonScreen()),
       ),
     ),
     _MenuItem(
