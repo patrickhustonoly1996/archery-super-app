@@ -23,6 +23,11 @@ enum SyncEntityType {
   sightMark,
   userProfile,
   federation,
+  fieldCourse,
+  fieldCourseTarget,
+  fieldCourseSightMark,
+  fieldSessionTarget,
+  fieldSessionMeta,
 }
 
 /// Operation types for sync queue
@@ -218,6 +223,16 @@ class SyncService {
         return _userDoc.collection('sight_marks').doc(entityId);
       case 'federation':
         return _userDoc.collection('federations').doc(entityId);
+      case 'fieldCourse':
+        return _userDoc.collection('field_courses').doc(entityId);
+      case 'fieldCourseTarget':
+        return _userDoc.collection('field_course_targets').doc(entityId);
+      case 'fieldCourseSightMark':
+        return _userDoc.collection('field_course_sight_marks').doc(entityId);
+      case 'fieldSessionTarget':
+        return _userDoc.collection('field_session_targets').doc(entityId);
+      case 'fieldSessionMeta':
+        return _userDoc.collection('field_session_meta').doc(entityId);
       default:
         return _userDoc.collection('data').doc(entityId);
     }
@@ -270,10 +285,30 @@ class SyncService {
       downloaded += result.downloaded;
       uploaded += result.uploaded;
 
+      result = await _syncFieldCourses();
+      downloaded += result.downloaded;
+      uploaded += result.uploaded;
+
+      result = await _syncFieldCourseTargets();
+      downloaded += result.downloaded;
+      uploaded += result.uploaded;
+
+      result = await _syncFieldCourseSightMarks();
+      downloaded += result.downloaded;
+      uploaded += result.uploaded;
+
+      result = await _syncFieldSessionTargets();
+      downloaded += result.downloaded;
+      uploaded += result.uploaded;
+
+      result = await _syncFieldSessionMeta();
+      downloaded += result.downloaded;
+      uploaded += result.uploaded;
+
       // Update last sync timestamp
       await _userDoc.collection('metadata').doc('sync').set({
         'lastSync': FieldValue.serverTimestamp(),
-        'schemaVersion': 23,
+        'schemaVersion': 29,
       }, SetOptions(merge: true));
 
       debugPrint('Sync complete: downloaded=$downloaded, uploaded=$uploaded');
@@ -1453,6 +1488,434 @@ class SyncService {
       debugPrint('User profile: downloaded=$downloaded, uploaded=$uploaded');
     } catch (e) {
       debugPrint('Error syncing user profile: $e');
+    }
+
+    return _MergeResult(downloaded, uploaded);
+  }
+
+  // ============================================================================
+  // FIELD ARCHERY SYNC
+  // ============================================================================
+
+  /// Sync field courses
+  Future<_MergeResult> _syncFieldCourses() async {
+    int downloaded = 0;
+    int uploaded = 0;
+    final uploads = <_BatchOperation>[];
+
+    try {
+      final localCourses = await _db!.getAllFieldCoursesForSync();
+      final localMap = {for (var c in localCourses) c.id: c};
+
+      final cloudSnapshot = await _userDoc.collection('field_courses').get();
+      final cloudMap = {for (var d in cloudSnapshot.docs) d.id: d.data()};
+
+      final allIds = {...localMap.keys, ...cloudMap.keys};
+
+      for (final id in allIds) {
+        final local = localMap[id];
+        final cloud = cloudMap[id];
+
+        final decision = _resolveConflict(
+          localUpdatedAt: local?.updatedAt,
+          cloudUpdatedAt: cloud?['updatedAt'] != null
+              ? DateTime.parse(cloud!['updatedAt'] as String)
+              : (cloud?['createdAt'] != null ? DateTime.parse(cloud!['createdAt'] as String) : null),
+          localDeletedAt: local?.deletedAt,
+          cloudDeletedAt: cloud?['deletedAt'] != null
+              ? DateTime.parse(cloud!['deletedAt'] as String)
+              : null,
+          existsLocal: local != null,
+          existsCloud: cloud != null,
+        );
+
+        switch (decision) {
+          case MergeDecision.uploadLocal:
+            if (local != null) {
+              uploads.add(_BatchOperation(
+                _userDoc.collection('field_courses').doc(id),
+                {
+                  'id': local.id,
+                  'name': local.name,
+                  'venueId': local.venueId,
+                  'roundType': local.roundType,
+                  'targetCount': local.targetCount,
+                  'notes': local.notes,
+                  'createdAt': local.createdAt.toIso8601String(),
+                  'updatedAt': local.updatedAt?.toIso8601String(),
+                  'deletedAt': local.deletedAt?.toIso8601String(),
+                },
+              ));
+              uploaded++;
+            }
+            break;
+
+          case MergeDecision.downloadCloud:
+            if (cloud != null && cloud['deletedAt'] == null) {
+              try {
+                await _db!.insertFieldCourse(FieldCoursesCompanion.insert(
+                  id: cloud['id'] as String,
+                  name: cloud['name'] as String,
+                  venueId: Value(cloud['venueId'] as String?),
+                  roundType: cloud['roundType'] as String,
+                  targetCount: Value(cloud['targetCount'] as int? ?? 28),
+                  notes: Value(cloud['notes'] as String?),
+                ));
+                downloaded++;
+              } catch (e) {
+                debugPrint('Error downloading field course $id: $e');
+              }
+            }
+            break;
+
+          case MergeDecision.skip:
+            break;
+        }
+      }
+
+      await _commitBatchedWrites(uploads);
+      debugPrint('Field courses: downloaded=$downloaded, uploaded=$uploaded');
+    } catch (e) {
+      debugPrint('Error syncing field courses: $e');
+    }
+
+    return _MergeResult(downloaded, uploaded);
+  }
+
+  /// Sync field course targets
+  Future<_MergeResult> _syncFieldCourseTargets() async {
+    int downloaded = 0;
+    int uploaded = 0;
+    final uploads = <_BatchOperation>[];
+
+    try {
+      final localTargets = await _db!.getAllFieldCourseTargetsForSync();
+      final localMap = {for (var t in localTargets) t.id: t};
+
+      final cloudSnapshot = await _userDoc.collection('field_course_targets').get();
+      final cloudMap = {for (var d in cloudSnapshot.docs) d.id: d.data()};
+
+      final allIds = {...localMap.keys, ...cloudMap.keys};
+
+      for (final id in allIds) {
+        final local = localMap[id];
+        final cloud = cloudMap[id];
+
+        // Field course targets don't have updatedAt/deletedAt, use createdAt for comparison
+        final decision = _resolveConflict(
+          localUpdatedAt: null,
+          cloudUpdatedAt: cloud?['createdAt'] != null
+              ? DateTime.parse(cloud!['createdAt'] as String)
+              : null,
+          existsLocal: local != null,
+          existsCloud: cloud != null,
+        );
+
+        switch (decision) {
+          case MergeDecision.uploadLocal:
+            if (local != null) {
+              uploads.add(_BatchOperation(
+                _userDoc.collection('field_course_targets').doc(id),
+                {
+                  'id': local.id,
+                  'courseId': local.courseId,
+                  'targetNumber': local.targetNumber,
+                  'pegConfig': local.pegConfig,
+                  'faceSize': local.faceSize,
+                  'primaryDistance': local.primaryDistance,
+                  'unit': local.unit,
+                  'isWalkUp': local.isWalkUp,
+                  'isWalkDown': local.isWalkDown,
+                  'arrowsRequired': local.arrowsRequired,
+                  'notes': local.notes,
+                },
+              ));
+              uploaded++;
+            }
+            break;
+
+          case MergeDecision.downloadCloud:
+            if (cloud != null) {
+              try {
+                await _db!.insertFieldCourseTarget(FieldCourseTargetsCompanion.insert(
+                  id: cloud['id'] as String,
+                  courseId: cloud['courseId'] as String,
+                  targetNumber: cloud['targetNumber'] as int,
+                  pegConfig: cloud['pegConfig'] as String,
+                  faceSize: cloud['faceSize'] as int,
+                  primaryDistance: cloud['primaryDistance'] as double,
+                  unit: Value(cloud['unit'] as String? ?? 'yards'),
+                  isWalkUp: Value(cloud['isWalkUp'] as bool? ?? false),
+                  isWalkDown: Value(cloud['isWalkDown'] as bool? ?? false),
+                  arrowsRequired: Value(cloud['arrowsRequired'] as int? ?? 4),
+                  notes: Value(cloud['notes'] as String?),
+                ));
+                downloaded++;
+              } catch (e) {
+                debugPrint('Error downloading field course target $id: $e');
+              }
+            }
+            break;
+
+          case MergeDecision.skip:
+            break;
+        }
+      }
+
+      await _commitBatchedWrites(uploads);
+      debugPrint('Field course targets: downloaded=$downloaded, uploaded=$uploaded');
+    } catch (e) {
+      debugPrint('Error syncing field course targets: $e');
+    }
+
+    return _MergeResult(downloaded, uploaded);
+  }
+
+  /// Sync field course sight marks
+  Future<_MergeResult> _syncFieldCourseSightMarks() async {
+    int downloaded = 0;
+    int uploaded = 0;
+    final uploads = <_BatchOperation>[];
+
+    try {
+      final localMarks = await _db!.getAllFieldCourseSightMarksForSync();
+      final localMap = {for (var m in localMarks) m.id: m};
+
+      final cloudSnapshot = await _userDoc.collection('field_course_sight_marks').get();
+      final cloudMap = {for (var d in cloudSnapshot.docs) d.id: d.data()};
+
+      final allIds = {...localMap.keys, ...cloudMap.keys};
+
+      for (final id in allIds) {
+        final local = localMap[id];
+        final cloud = cloudMap[id];
+
+        final decision = _resolveConflict(
+          localUpdatedAt: local?.recordedAt,
+          cloudUpdatedAt: cloud?['recordedAt'] != null
+              ? DateTime.parse(cloud!['recordedAt'] as String)
+              : null,
+          existsLocal: local != null,
+          existsCloud: cloud != null,
+        );
+
+        switch (decision) {
+          case MergeDecision.uploadLocal:
+            if (local != null) {
+              uploads.add(_BatchOperation(
+                _userDoc.collection('field_course_sight_marks').doc(id),
+                {
+                  'id': local.id,
+                  'courseTargetId': local.courseTargetId,
+                  'bowId': local.bowId,
+                  'calculatedMark': local.calculatedMark,
+                  'actualMark': local.actualMark,
+                  'differential': local.differential,
+                  'confidenceScore': local.confidenceScore,
+                  'weatherData': local.weatherData,
+                  'shotCount': local.shotCount,
+                  'recordedAt': local.recordedAt.toIso8601String(),
+                },
+              ));
+              uploaded++;
+            }
+            break;
+
+          case MergeDecision.downloadCloud:
+            if (cloud != null) {
+              try {
+                await _db!.insertFieldCourseSightMark(FieldCourseSightMarksCompanion.insert(
+                  id: cloud['id'] as String,
+                  courseTargetId: cloud['courseTargetId'] as String,
+                  bowId: cloud['bowId'] as String,
+                  calculatedMark: cloud['calculatedMark'] as double,
+                  actualMark: cloud['actualMark'] as double,
+                  differential: cloud['differential'] as double,
+                  confidenceScore: Value(cloud['confidenceScore'] as double?),
+                  weatherData: Value(cloud['weatherData'] as String?),
+                  shotCount: Value(cloud['shotCount'] as int? ?? 0),
+                ));
+                downloaded++;
+              } catch (e) {
+                debugPrint('Error downloading field course sight mark $id: $e');
+              }
+            }
+            break;
+
+          case MergeDecision.skip:
+            break;
+        }
+      }
+
+      await _commitBatchedWrites(uploads);
+      debugPrint('Field course sight marks: downloaded=$downloaded, uploaded=$uploaded');
+    } catch (e) {
+      debugPrint('Error syncing field course sight marks: $e');
+    }
+
+    return _MergeResult(downloaded, uploaded);
+  }
+
+  /// Sync field session targets
+  Future<_MergeResult> _syncFieldSessionTargets() async {
+    int downloaded = 0;
+    int uploaded = 0;
+    final uploads = <_BatchOperation>[];
+
+    try {
+      final localTargets = await _db!.getAllFieldSessionTargetsForSync();
+      final localMap = {for (var t in localTargets) t.id: t};
+
+      final cloudSnapshot = await _userDoc.collection('field_session_targets').get();
+      final cloudMap = {for (var d in cloudSnapshot.docs) d.id: d.data()};
+
+      final allIds = {...localMap.keys, ...cloudMap.keys};
+
+      for (final id in allIds) {
+        final local = localMap[id];
+        final cloud = cloudMap[id];
+
+        final decision = _resolveConflict(
+          localUpdatedAt: local?.completedAt,
+          cloudUpdatedAt: cloud?['completedAt'] != null
+              ? DateTime.parse(cloud!['completedAt'] as String)
+              : null,
+          existsLocal: local != null,
+          existsCloud: cloud != null,
+        );
+
+        switch (decision) {
+          case MergeDecision.uploadLocal:
+            if (local != null) {
+              uploads.add(_BatchOperation(
+                _userDoc.collection('field_session_targets').doc(id),
+                {
+                  'id': local.id,
+                  'sessionId': local.sessionId,
+                  'courseTargetId': local.courseTargetId,
+                  'targetNumber': local.targetNumber,
+                  'totalScore': local.totalScore,
+                  'xCount': local.xCount,
+                  'arrowScores': local.arrowScores,
+                  'sightMarkUsed': local.sightMarkUsed,
+                  'station': local.station,
+                  'wasHit': local.wasHit,
+                  'completedAt': local.completedAt?.toIso8601String(),
+                },
+              ));
+              uploaded++;
+            }
+            break;
+
+          case MergeDecision.downloadCloud:
+            if (cloud != null) {
+              try {
+                await _db!.insertFieldSessionTarget(FieldSessionTargetsCompanion.insert(
+                  id: cloud['id'] as String,
+                  sessionId: cloud['sessionId'] as String,
+                  courseTargetId: Value(cloud['courseTargetId'] as String?),
+                  targetNumber: cloud['targetNumber'] as int,
+                  totalScore: Value(cloud['totalScore'] as int? ?? 0),
+                  xCount: Value(cloud['xCount'] as int? ?? 0),
+                  arrowScores: cloud['arrowScores'] as String,
+                  sightMarkUsed: Value(cloud['sightMarkUsed'] as String?),
+                  station: Value(cloud['station'] as int?),
+                  wasHit: Value(cloud['wasHit'] as bool?),
+                  completedAt: Value(cloud['completedAt'] != null
+                      ? DateTime.parse(cloud['completedAt'] as String)
+                      : null),
+                ));
+                downloaded++;
+              } catch (e) {
+                debugPrint('Error downloading field session target $id: $e');
+              }
+            }
+            break;
+
+          case MergeDecision.skip:
+            break;
+        }
+      }
+
+      await _commitBatchedWrites(uploads);
+      debugPrint('Field session targets: downloaded=$downloaded, uploaded=$uploaded');
+    } catch (e) {
+      debugPrint('Error syncing field session targets: $e');
+    }
+
+    return _MergeResult(downloaded, uploaded);
+  }
+
+  /// Sync field session metadata
+  Future<_MergeResult> _syncFieldSessionMeta() async {
+    int downloaded = 0;
+    int uploaded = 0;
+    final uploads = <_BatchOperation>[];
+
+    try {
+      final localMeta = await _db!.getAllFieldSessionMetaForSync();
+      final localMap = {for (var m in localMeta) m.sessionId: m};
+
+      final cloudSnapshot = await _userDoc.collection('field_session_meta').get();
+      final cloudMap = {for (var d in cloudSnapshot.docs) d.id: d.data()};
+
+      final allIds = {...localMap.keys, ...cloudMap.keys};
+
+      for (final id in allIds) {
+        final local = localMap[id];
+        final cloud = cloudMap[id];
+
+        // Field session meta doesn't have timestamps, use existence check
+        final decision = _resolveConflict(
+          existsLocal: local != null,
+          existsCloud: cloud != null,
+        );
+
+        switch (decision) {
+          case MergeDecision.uploadLocal:
+            if (local != null) {
+              uploads.add(_BatchOperation(
+                _userDoc.collection('field_session_meta').doc(id),
+                {
+                  'sessionId': local.sessionId,
+                  'courseId': local.courseId,
+                  'roundType': local.roundType,
+                  'isNewCourseCreation': local.isNewCourseCreation,
+                  'currentTargetNumber': local.currentTargetNumber,
+                  'usedPegs': local.usedPegs,
+                },
+              ));
+              uploaded++;
+            }
+            break;
+
+          case MergeDecision.downloadCloud:
+            if (cloud != null) {
+              try {
+                await _db!.insertFieldSessionMeta(FieldSessionMetaCompanion.insert(
+                  sessionId: cloud['sessionId'] as String,
+                  courseId: Value(cloud['courseId'] as String?),
+                  roundType: cloud['roundType'] as String,
+                  isNewCourseCreation: Value(cloud['isNewCourseCreation'] as bool? ?? false),
+                  currentTargetNumber: Value(cloud['currentTargetNumber'] as int? ?? 1),
+                  usedPegs: Value(cloud['usedPegs'] as String? ?? '[]'),
+                ));
+                downloaded++;
+              } catch (e) {
+                debugPrint('Error downloading field session meta $id: $e');
+              }
+            }
+            break;
+
+          case MergeDecision.skip:
+            break;
+        }
+      }
+
+      await _commitBatchedWrites(uploads);
+      debugPrint('Field session meta: downloaded=$downloaded, uploaded=$uploaded');
+    } catch (e) {
+      debugPrint('Error syncing field session meta: $e');
     }
 
     return _MergeResult(downloaded, uploaded);
