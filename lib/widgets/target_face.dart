@@ -545,6 +545,10 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   Offset? _arrowPosition; // Where arrow will be placed (offset from touch)
   bool _isHolding = false;
 
+  // Track active pointers to detect pinch vs single-finger drag
+  final Set<int> _activePointers = {};
+  int? _primaryPointer; // The first finger that touched - used for plotting
+
   // Finger offset constants (in widget pixels)
   // Offset from touch point so user can see where arrow lands
   static const double _holdOffsetX = 50.0; // Horizontal (sign flipped for lefties)
@@ -670,21 +674,34 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
     ];
   }
 
-  // Track if we're in a pinch-to-zoom gesture (should not plot)
-  bool _isPinching = false;
+  // Pointer event handlers for pinch-to-zoom support
+  // We use Listener instead of GestureDetector to allow multi-finger gestures
+  // to pass through to the parent InteractiveViewer for zoom handling
 
-  void _onScaleStart(ScaleStartDetails details) {
-    if (!widget.enabled) return;
+  void _onPointerDown(PointerDownEvent event) {
+    _activePointers.add(event.pointer);
 
-    // If more than one pointer, this is a pinch gesture - let InteractiveViewer handle it
-    if (details.pointerCount > 1) {
-      _isPinching = true;
+    // If this is a second+ finger, cancel any in-progress plotting and let
+    // InteractiveViewer handle the pinch gesture
+    if (_activePointers.length > 1) {
+      if (_isHolding) {
+        setState(() {
+          _isHolding = false;
+          _touchPosition = null;
+          _arrowPosition = null;
+        });
+        widget.onPendingArrowChanged?.call(null, null);
+      }
+      _primaryPointer = null;
       return;
     }
-    _isPinching = false;
+
+    // First finger - start plotting if enabled
+    if (!widget.enabled) return;
+    _primaryPointer = event.pointer;
 
     // Transform gesture position to widget-local coordinates (accounting for zoom)
-    final localPos = _gestureToWidgetLocal(details.localFocalPoint);
+    final localPos = _gestureToWidgetLocal(event.localPosition);
     final arrowPos = _calculateArrowPosition(localPos);
 
     setState(() {
@@ -698,26 +715,17 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
     widget.onPendingArrowChanged?.call(normX, normY);
   }
 
-  void _onScaleUpdate(ScaleUpdateDetails details) {
-    // If pinching or scaling, don't update arrow position
-    if (_isPinching || details.pointerCount > 1 || details.scale != 1.0) {
-      // Cancel any pending arrow if we start pinching mid-gesture
-      if (_isHolding) {
-        setState(() {
-          _isHolding = false;
-          _touchPosition = null;
-          _arrowPosition = null;
-        });
-        widget.onPendingArrowChanged?.call(null, null);
-      }
-      _isPinching = true;
-      return;
-    }
+  void _onPointerMove(PointerMoveEvent event) {
+    // Only track the primary pointer for plotting
+    if (event.pointer != _primaryPointer) return;
+
+    // If multiple pointers are active, don't plot (pinch gesture)
+    if (_activePointers.length > 1) return;
 
     if (!widget.enabled || !_isHolding) return;
 
     // Transform gesture position to widget-local coordinates (accounting for zoom)
-    final localPos = _gestureToWidgetLocal(details.localFocalPoint);
+    final localPos = _gestureToWidgetLocal(event.localPosition);
     final arrowPos = _calculateArrowPosition(localPos);
 
     setState(() {
@@ -730,14 +738,28 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
     widget.onPendingArrowChanged?.call(normX, normY);
   }
 
-  void _onScaleEnd(ScaleEndDetails details) {
-    // If we were pinching, just reset state and don't plot
-    if (_isPinching) {
-      _isPinching = false;
+  void _onPointerUp(PointerUpEvent event) {
+    _activePointers.remove(event.pointer);
+
+    // Only finalize if this was the primary pointer and we were plotting
+    if (event.pointer != _primaryPointer) return;
+
+    // If other pointers are still down, this was part of a pinch - don't plot
+    if (_activePointers.isNotEmpty) {
+      _primaryPointer = null;
       return;
     }
 
-    if (!widget.enabled || !_isHolding || _arrowPosition == null) return;
+    _primaryPointer = null;
+
+    if (!widget.enabled || !_isHolding || _arrowPosition == null) {
+      setState(() {
+        _isHolding = false;
+        _touchPosition = null;
+        _arrowPosition = null;
+      });
+      return;
+    }
 
     final finalArrowPosition = _arrowPosition!;
     final (normalizedX, normalizedY) = _widgetToNormalized(finalArrowPosition);
@@ -779,6 +801,22 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
       _arrowPosition = null;
       _isHolding = false;
     });
+  }
+
+  void _onPointerCancel(PointerCancelEvent event) {
+    _activePointers.remove(event.pointer);
+
+    if (event.pointer == _primaryPointer) {
+      _primaryPointer = null;
+      if (_isHolding) {
+        setState(() {
+          _isHolding = false;
+          _touchPosition = null;
+          _arrowPosition = null;
+        });
+        widget.onPendingArrowChanged?.call(null, null);
+      }
+    }
   }
 
   Future<void> _handleLineCutter(double x, double y, int nearRing) async {
@@ -863,13 +901,15 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
     return SizedBox(
       width: widget.size,
       height: widget.size,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        // Use scale gestures to allow pinch-to-zoom to pass through to InteractiveViewer
-        // Single-finger drag still works for plotting arrows
-        onScaleStart: _onScaleStart,
-        onScaleUpdate: _onScaleUpdate,
-        onScaleEnd: _onScaleEnd,
+      // Use Listener instead of GestureDetector to allow multi-finger gestures
+      // to pass through to parent InteractiveViewer for pinch-to-zoom.
+      // Single-finger drag is handled here for arrow plotting.
+      child: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: _onPointerDown,
+        onPointerMove: _onPointerMove,
+        onPointerUp: _onPointerUp,
+        onPointerCancel: _onPointerCancel,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
