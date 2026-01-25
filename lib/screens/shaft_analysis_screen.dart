@@ -435,12 +435,16 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
 
   Widget _buildBestArrowsCard() {
     final rankedShafts = _getRankedShafts();
+    final maxShafts = widget.quiver.shaftCount;
+
+    // Clamp selection to available shafts
+    final effectiveCount = _bestArrowsCount.clamp(1, maxShafts);
 
     if (rankedShafts.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    final bestShafts = rankedShafts.take(_bestArrowsCount).toList();
+    final bestShafts = rankedShafts.take(effectiveCount).toList();
     final shaftNumbers = bestShafts.map((r) => r.shaft.number).toList()..sort();
 
     // Calculate combined stats for best shafts
@@ -463,29 +467,49 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
                 Icon(Icons.emoji_events, color: AppColors.gold, size: 20),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
-                  'Best Arrows',
+                  'Best',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         color: AppColors.gold,
                       ),
                 ),
-                const Spacer(),
-                // Count selector
-                SegmentedButton<int>(
-                  segments: const [
-                    ButtonSegment(value: 6, label: Text('6')),
-                    ButtonSegment(value: 8, label: Text('8')),
-                    ButtonSegment(value: 12, label: Text('12')),
-                  ],
-                  selected: {_bestArrowsCount},
-                  onSelectionChanged: (selection) {
-                    setState(() => _bestArrowsCount = selection.first);
-                  },
-                  style: ButtonStyle(
-                    visualDensity: VisualDensity.compact,
-                    textStyle: WidgetStateProperty.all(
-                      const TextStyle(fontSize: 12),
-                    ),
+                const SizedBox(width: AppSpacing.sm),
+                // Number picker dropdown
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: AppColors.gold.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(AppSpacing.xs),
+                    border: Border.all(color: AppColors.gold),
                   ),
+                  child: DropdownButton<int>(
+                    value: _bestArrowsCount.clamp(1, rankedShafts.length > 0 ? rankedShafts.length : 12),
+                    underline: const SizedBox.shrink(),
+                    isDense: true,
+                    dropdownColor: AppColors.surfaceDark,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: AppColors.gold,
+                          fontWeight: FontWeight.bold,
+                        ),
+                    items: List.generate(
+                      widget.quiver.shaftCount,
+                      (i) => DropdownMenuItem(
+                        value: i + 1,
+                        child: Text('${i + 1}'),
+                      ),
+                    ),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => _bestArrowsCount = value);
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  'Arrows',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: AppColors.gold,
+                      ),
                 ),
               ],
             ),
@@ -566,7 +590,7 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
             ),
 
             // Note about minimum data
-            if (rankedShafts.length < _bestArrowsCount) ...[
+            if (rankedShafts.length < effectiveCount) ...[
               const SizedBox(height: AppSpacing.sm),
               Text(
                 'Only ${rankedShafts.length} shafts have enough data (3+ arrows)',
