@@ -90,6 +90,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
               builder: (_) => ShaftAnalysisScreen(
                 quiver: quiver,
                 arrows: arrows,
+                sessionId: widget.session.id,
               ),
             ),
           );

@@ -5,14 +5,39 @@ import '../providers/equipment_provider.dart';
 import '../db/database.dart';
 import '../utils/shaft_analysis.dart';
 
+/// Filter options for arrow data set
+enum ArrowSetFilter {
+  allTime,
+  thisSession,
+  last30Days,
+  last90Days,
+}
+
+extension ArrowSetFilterExtension on ArrowSetFilter {
+  String get label {
+    switch (this) {
+      case ArrowSetFilter.allTime:
+        return 'All Time';
+      case ArrowSetFilter.thisSession:
+        return 'This Session';
+      case ArrowSetFilter.last30Days:
+        return 'Last 30 Days';
+      case ArrowSetFilter.last90Days:
+        return 'Last 90 Days';
+    }
+  }
+}
+
 class ShaftAnalysisScreen extends StatefulWidget {
   final Quiver quiver;
-  final List<Arrow> arrows; // All arrows shot with this quiver
+  final List<Arrow>? arrows; // Optional - if null, loads all arrows for quiver
+  final String? sessionId; // Optional - highlights "This Session" filter
 
   const ShaftAnalysisScreen({
     super.key,
     required this.quiver,
-    required this.arrows,
+    this.arrows,
+    this.sessionId,
   });
 
   @override
@@ -21,23 +46,133 @@ class ShaftAnalysisScreen extends StatefulWidget {
 
 class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
   List<ShaftAnalysisResult>? _results;
+  List<Arrow> _filteredArrows = [];
   bool _loading = true;
+
+  // Filter state
+  ArrowSetFilter _arrowSetFilter = ArrowSetFilter.allTime;
+  String? _selectedRoundTypeId; // null = all round types
+  List<RoundType> _availableRoundTypes = [];
+  Map<String, int> _roundTypeArrowCounts = {};
+
+  // All arrows for this quiver (cached)
+  List<Arrow> _allQuiverArrows = [];
+  List<Session> _quiverSessions = [];
 
   @override
   void initState() {
     super.initState();
-    _loadAnalysis();
+    // If arrows passed in with sessionId, default to "This Session" filter
+    if (widget.arrows != null && widget.sessionId != null) {
+      _arrowSetFilter = ArrowSetFilter.thisSession;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
-  Future<void> _loadAnalysis() async {
+  Future<void> _loadData() async {
     setState(() => _loading = true);
 
+    final db = context.read<AppDatabase>();
+
+    // Load all arrows for this quiver
+    _allQuiverArrows = await db.getArrowsForQuiver(widget.quiver.id);
+
+    // Load sessions that used this quiver
+    final allSessions = await db.getAllSessions();
+    _quiverSessions = allSessions
+        .where((s) => s.quiverId == widget.quiver.id && s.shaftTaggingEnabled)
+        .toList();
+
+    // Get unique round types from sessions
+    final roundTypeIds = _quiverSessions.map((s) => s.roundTypeId).toSet();
+    _availableRoundTypes = [];
+    _roundTypeArrowCounts = {};
+
+    for (final id in roundTypeIds) {
+      final roundType = await db.getRoundType(id);
+      if (roundType != null) {
+        _availableRoundTypes.add(roundType);
+        // Count arrows for this round type
+        final sessionsForRound = _quiverSessions.where((s) => s.roundTypeId == id);
+        int arrowCount = 0;
+        for (final session in sessionsForRound) {
+          final sessionArrows = await db.getArrowsForSession(session.id);
+          arrowCount += sessionArrows.where((a) => a.shaftId != null).length;
+        }
+        _roundTypeArrowCounts[id] = arrowCount;
+      }
+    }
+
+    // Sort round types by arrow count (most used first)
+    _availableRoundTypes.sort((a, b) =>
+        (_roundTypeArrowCounts[b.id] ?? 0).compareTo(_roundTypeArrowCounts[a.id] ?? 0));
+
+    await _applyFilters();
+  }
+
+  Future<void> _applyFilters() async {
+    setState(() => _loading = true);
+
+    final db = context.read<AppDatabase>();
+    List<Arrow> arrows;
+
+    // Apply arrow set filter
+    switch (_arrowSetFilter) {
+      case ArrowSetFilter.thisSession:
+        if (widget.arrows != null) {
+          arrows = widget.arrows!;
+        } else if (widget.sessionId != null) {
+          arrows = await db.getArrowsForSession(widget.sessionId!);
+        } else {
+          arrows = _allQuiverArrows;
+        }
+        break;
+
+      case ArrowSetFilter.last30Days:
+        final cutoff = DateTime.now().subtract(const Duration(days: 30));
+        arrows = _allQuiverArrows.where((a) => a.createdAt.isAfter(cutoff)).toList();
+        break;
+
+      case ArrowSetFilter.last90Days:
+        final cutoff = DateTime.now().subtract(const Duration(days: 90));
+        arrows = _allQuiverArrows.where((a) => a.createdAt.isAfter(cutoff)).toList();
+        break;
+
+      case ArrowSetFilter.allTime:
+      default:
+        arrows = _allQuiverArrows;
+    }
+
+    // Apply round type filter
+    if (_selectedRoundTypeId != null) {
+      // Get sessions for this round type
+      final sessionsForRound = _quiverSessions
+          .where((s) => s.roundTypeId == _selectedRoundTypeId)
+          .map((s) => s.id)
+          .toSet();
+
+      // Get ends for these sessions
+      final endIds = <String>{};
+      for (final sessionId in sessionsForRound) {
+        final ends = await db.getEndsForSession(sessionId);
+        endIds.addAll(ends.map((e) => e.id));
+      }
+
+      // Filter arrows to only those from these ends
+      arrows = arrows.where((a) => endIds.contains(a.endId)).toList();
+    }
+
+    _filteredArrows = arrows;
+
+    // Run analysis
     final equipmentProvider = context.read<EquipmentProvider>();
     final shafts = equipmentProvider.getShaftsForQuiver(widget.quiver.id);
 
     final results = await ShaftAnalysis.analyzeQuiver(
       shafts: shafts,
-      allArrows: widget.arrows,
+      allArrows: _filteredArrows,
     );
 
     setState(() {
@@ -52,9 +187,148 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
       appBar: AppBar(
         title: Text('${widget.quiver.name} Analysis'),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _buildAnalysisContent(),
+      body: Column(
+        children: [
+          // Filters
+          _buildFilters(),
+
+          // Content
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator(color: AppColors.gold))
+                : _buildAnalysisContent(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilters() {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark,
+        border: Border(
+          bottom: BorderSide(color: AppColors.surfaceBright),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Arrow Set Filter
+          Text(
+            'ARROW SET',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: AppColors.textMuted,
+                  letterSpacing: 1.2,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: ArrowSetFilter.values.map((filter) {
+                // Hide "This Session" if no session context
+                if (filter == ArrowSetFilter.thisSession &&
+                    widget.arrows == null &&
+                    widget.sessionId == null) {
+                  return const SizedBox.shrink();
+                }
+
+                final isSelected = _arrowSetFilter == filter;
+                return Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.sm),
+                  child: FilterChip(
+                    label: Text(filter.label),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      if (selected) {
+                        setState(() => _arrowSetFilter = filter);
+                        _applyFilters();
+                      }
+                    },
+                    selectedColor: AppColors.gold.withValues(alpha: 0.2),
+                    checkmarkColor: AppColors.gold,
+                    labelStyle: TextStyle(
+                      color: isSelected ? AppColors.gold : AppColors.textSecondary,
+                      fontFamily: AppFonts.body,
+                      fontSize: 12,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+
+          // Round Type Filter (only if multiple round types available)
+          if (_availableRoundTypes.length > 1) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'ROUND TYPE',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: AppColors.textMuted,
+                    letterSpacing: 1.2,
+                  ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  // "All" option
+                  Padding(
+                    padding: const EdgeInsets.only(right: AppSpacing.sm),
+                    child: FilterChip(
+                      label: Text('All (${_allQuiverArrows.where((a) => a.shaftId != null).length})'),
+                      selected: _selectedRoundTypeId == null,
+                      onSelected: (selected) {
+                        if (selected) {
+                          setState(() => _selectedRoundTypeId = null);
+                          _applyFilters();
+                        }
+                      },
+                      selectedColor: AppColors.gold.withValues(alpha: 0.2),
+                      checkmarkColor: AppColors.gold,
+                      labelStyle: TextStyle(
+                        color: _selectedRoundTypeId == null
+                            ? AppColors.gold
+                            : AppColors.textSecondary,
+                        fontFamily: AppFonts.body,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  // Round type options
+                  ..._availableRoundTypes.map((roundType) {
+                    final isSelected = _selectedRoundTypeId == roundType.id;
+                    final arrowCount = _roundTypeArrowCounts[roundType.id] ?? 0;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.sm),
+                      child: FilterChip(
+                        label: Text('${roundType.name} ($arrowCount)'),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) {
+                            setState(() => _selectedRoundTypeId = roundType.id);
+                            _applyFilters();
+                          }
+                        },
+                        selectedColor: AppColors.gold.withValues(alpha: 0.2),
+                        checkmarkColor: AppColors.gold,
+                        labelStyle: TextStyle(
+                          color: isSelected ? AppColors.gold : AppColors.textSecondary,
+                          fontFamily: AppFonts.body,
+                          fontSize: 12,
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -125,11 +399,12 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
   }
 
   Widget _buildSummaryCard() {
-    final totalArrows = widget.arrows.length;
+    final totalArrows = _filteredArrows.length;
     final trackedArrows = _results!.fold<int>(0, (sum, r) => sum + r.arrowCount);
-    final avgScore = widget.arrows.isEmpty
+    final avgScore = _filteredArrows.isEmpty
         ? 0.0
-        : widget.arrows.map((a) => a.score).reduce((a, b) => a + b) / widget.arrows.length;
+        : _filteredArrows.map((a) => a.score).reduce((a, b) => a + b) /
+            _filteredArrows.length;
 
     return Card(
       child: Padding(
@@ -145,7 +420,8 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
             _buildStatRow('Total arrows', totalArrows.toString()),
             _buildStatRow('Tracked with shaft IDs', trackedArrows.toString()),
             _buildStatRow('Average score', avgScore.toStringAsFixed(2)),
-            _buildStatRow('Active shafts', '${_results!.where((r) => r.arrowCount > 0).length}'),
+            _buildStatRow(
+                'Active shafts', '${_results!.where((r) => r.arrowCount > 0).length}'),
           ],
         ),
       ),
@@ -229,95 +505,92 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-            children: [
-              // Shaft number
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: indicatorColor.withValues(alpha: 0.2),
-                  border: Border.all(color: indicatorColor, width: 2),
-                  borderRadius: BorderRadius.circular(AppSpacing.sm),
-                ),
-                child: Center(
-                  child: Text(
-                    result.shaft.number.toString(),
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: indicatorColor,
-                          fontWeight: FontWeight.bold,
-                        ),
+              children: [
+                // Shaft number
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: indicatorColor.withValues(alpha: 0.2),
+                    border: Border.all(color: indicatorColor, width: 2),
+                    borderRadius: BorderRadius.circular(AppSpacing.sm),
+                  ),
+                  child: Center(
+                    child: Text(
+                      result.shaft.number.toString(),
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            color: indicatorColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.md),
+                const SizedBox(width: AppSpacing.md),
 
-              // Stats
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${result.arrowCount} arrows',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    Text(
-                      'Avg score: ${result.avgScore.toStringAsFixed(2)}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    Text(
-                      'Group spread: ${result.groupSpreadMm.toStringAsFixed(1)}mm',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
+                // Stats
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${result.arrowCount} arrows',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      Text(
+                        'Avg score: ${result.avgScore.toStringAsFixed(2)}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      Text(
+                        'Group spread: ${result.groupSpreadMm.toStringAsFixed(1)}mm',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-              // Performance indicator
-              Icon(
-                result.shouldRetire
-                    ? Icons.warning
-                    : Icons.check_circle_outline,
-                color: indicatorColor,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: AppSpacing.sm),
-          const Divider(),
-          const SizedBox(height: AppSpacing.sm),
-
-          // Recommendation
-          Text(
-            result.recommendation,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
-                  fontStyle: FontStyle.italic,
+                // Performance indicator
+                Icon(
+                  result.shouldRetire ? Icons.warning : Icons.check_circle_outline,
+                  color: indicatorColor,
                 ),
-          ),
-
-          // Score distribution
-          if (result.scoreDistribution.isNotEmpty) ...[
+              ],
+            ),
             const SizedBox(height: AppSpacing.sm),
+            const Divider(),
+            const SizedBox(height: AppSpacing.sm),
+
+            // Recommendation
             Text(
-              'Score distribution:',
+              result.recommendation,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textMuted,
+                    color: AppColors.textSecondary,
+                    fontStyle: FontStyle.italic,
                   ),
             ),
-            const SizedBox(height: AppSpacing.xs),
-            Wrap(
-              spacing: AppSpacing.sm,
-              children: result.scoreDistribution.entries.map((entry) {
-                return Chip(
-                  label: Text(
-                    '${entry.key}: ${entry.value}',
-                    style: const TextStyle(fontSize: 10),
-                  ),
-                  visualDensity: VisualDensity.compact,
-                  backgroundColor: AppColors.surfaceLight,
-                );
-              }).toList(),
-            ),
+
+            // Score distribution
+            if (result.scoreDistribution.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'Score distribution:',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textMuted,
+                    ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Wrap(
+                spacing: AppSpacing.sm,
+                children: result.scoreDistribution.entries.map((entry) {
+                  return Chip(
+                    label: Text(
+                      '${entry.key}: ${entry.value}',
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                    visualDensity: VisualDensity.compact,
+                    backgroundColor: AppColors.surfaceLight,
+                  );
+                }).toList(),
+              ),
             ],
           ],
         ),

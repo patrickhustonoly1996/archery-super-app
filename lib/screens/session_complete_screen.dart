@@ -512,6 +512,7 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
                   builder: (_) => ShaftAnalysisScreen(
                     quiver: quiver,
                     arrows: arrows,
+                    sessionId: session.id,
                   ),
                 ),
               );
