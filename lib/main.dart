@@ -25,6 +25,8 @@ import 'providers/entitlement_provider.dart';
 import 'providers/classification_provider.dart';
 import 'providers/accessibility_provider.dart';
 import 'providers/locale_provider.dart';
+import 'providers/field_course_provider.dart';
+import 'providers/field_session_provider.dart';
 import 'services/vision_api_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
@@ -146,6 +148,12 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
           ),
           ChangeNotifierProvider(
             create: (context) => LocaleProvider()..initialize(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => FieldCourseProvider(context.read<AppDatabase>()),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => FieldSessionProvider(context.read<AppDatabase>()),
           ),
         ],
         child: Consumer2<AccessibilityProvider, LocaleProvider>(
