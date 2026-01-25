@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="400" fill="#0D0D0D"/>
+
+  <!-- Shield/badge shape -->
+  <path d="M200,40 L340,100 L340,240 L200,360 L60,240 L60,100 Z" fill="none" stroke="#FFD700" stroke-width="8"/>
+
+  <!-- Inner target -->
+  <circle cx="200" cy="180" r="80" fill="none" stroke="#333333" stroke-width="6"/>
+  <circle cx="200" cy="180" r="50" fill="none" stroke="#444444" stroke-width="6"/>
+  <circle cx="200" cy="180" r="20" fill="#FFD700"/>
+
+  <!-- Arrow hitting bullseye, angled dynamically -->
+  <line x1="280" y1="100" x2="208" y2="172" stroke="#FFD700" stroke-width="8" stroke-linecap="round"/>
+  <polygon points="280,100 260,90 270,110" fill="#FFD700"/>
+
+  <!-- Level bars at bottom of shield -->
+  <rect x="100" y="280" width="40" height="12" fill="#444444"/>
+  <rect x="150" y="280" width="40" height="12" fill="#666666"/>
+  <rect x="200" y="280" width="40" height="12" fill="#888888"/>
+  <rect x="250" y="280" width="40" height="12" fill="#FFD700"/>
+
+  <!-- Up arrow indicator -->
+  <polygon points="270,260 290,275 280,275 280,295 260,295 260,275 250,275" fill="#FFD700"/>
+
+  <!-- Text below -->
+  <text x="200" y="385" font-family="monospace" font-size="22" font-weight="bold" fill="#FFD700" text-anchor="middle" letter-spacing="2">LEVEL UP</text>
+</svg>

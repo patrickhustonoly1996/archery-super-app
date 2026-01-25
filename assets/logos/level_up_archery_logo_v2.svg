@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="400" fill="#0D0D0D"/>
+
+  <!-- Pixel art bow - left side -->
+  <path d="M80,80 L80,320 Q40,200 80,80" fill="none" stroke="#FFD700" stroke-width="12" stroke-linecap="square"/>
+
+  <!-- Bowstring -->
+  <line x1="80" y1="80" x2="80" y2="320" stroke="#888888" stroke-width="3"/>
+
+  <!-- Three arrows going up - progress/level indicators -->
+  <!-- Arrow 1 (shortest) -->
+  <rect x="140" y="240" width="12" height="80" fill="#666666"/>
+  <polygon points="146,240 126,280 166,280" fill="#666666"/>
+
+  <!-- Arrow 2 (medium) -->
+  <rect x="194" y="180" width="12" height="140" fill="#999999"/>
+  <polygon points="200,180 180,220 220,220" fill="#999999"/>
+
+  <!-- Arrow 3 (tallest - gold, current level) -->
+  <rect x="248" y="100" width="12" height="220" fill="#FFD700"/>
+  <polygon points="254,100 234,140 274,140" fill="#FFD700"/>
+
+  <!-- Pixel progress bar base -->
+  <rect x="120" y="340" width="180" height="20" fill="#333333"/>
+  <rect x="120" y="340" width="140" height="20" fill="#FFD700"/>
+
+  <!-- Text -->
+  <text x="200" y="390" font-family="monospace" font-size="24" font-weight="bold" fill="#FFD700" text-anchor="middle" letter-spacing="2">LEVEL UP</text>
+</svg>
