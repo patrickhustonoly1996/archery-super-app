@@ -1790,6 +1790,17 @@ class AppDatabase extends _$AppDatabase {
       (update(shafts)..where((t) => t.id.equals(shaftId)))
           .write(const ShaftsCompanion(retiredAt: Value(null)));
 
+  /// Get all arrows shot with shafts from a specific quiver
+  Future<List<Arrow>> getArrowsForQuiver(String quiverId) async {
+    final quiverShafts = await getAllShaftsForQuiver(quiverId);
+    if (quiverShafts.isEmpty) return [];
+    final shaftIds = quiverShafts.map((s) => s.id).toList();
+    return (select(arrows)
+          ..where((t) => t.shaftId.isIn(shaftIds))
+          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+        .get();
+  }
+
   // ===========================================================================
   // VOLUME ENTRIES
   // ===========================================================================

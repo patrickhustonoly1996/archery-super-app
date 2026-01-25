@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../widgets/stat_box.dart';
+import '../providers/equipment_provider.dart';
+import 'shaft_analysis_screen.dart';
 
 class SessionDetailScreen extends StatefulWidget {
   final Session session;
@@ -59,6 +61,46 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
         });
       }
     }
+  }
+
+  Widget _buildShaftAnalysisButton(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () async {
+          final equipmentProvider = context.read<EquipmentProvider>();
+          final db = context.read<AppDatabase>();
+          final quiver = equipmentProvider.quivers
+              .where((q) => q.id == widget.session.quiverId)
+              .firstOrNull;
+
+          if (quiver == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Quiver not found')),
+            );
+            return;
+          }
+
+          // Get all arrows from this session
+          final arrows = await db.getArrowsForSession(widget.session.id);
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ShaftAnalysisScreen(
+                quiver: quiver,
+                arrows: arrows,
+              ),
+            ),
+          );
+        },
+        icon: const Icon(Icons.analytics_outlined),
+        label: const Padding(
+          padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+          child: Text('View Shaft Analysis'),
+        ),
+      ),
+    );
   }
 
   @override
@@ -213,6 +255,13 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
+
+                  // Shaft Analysis button - only if shaft tagging was enabled
+                  if (widget.session.shaftTaggingEnabled &&
+                      widget.session.quiverId != null) ...[
+                    _buildShaftAnalysisButton(context),
                     const SizedBox(height: AppSpacing.lg),
                   ],
 
