@@ -51,7 +51,7 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
 
   // Filter state
   ArrowSetFilter _arrowSetFilter = ArrowSetFilter.allTime;
-  String? _selectedRoundTypeId; // null = all round types
+  Set<String> _selectedRoundTypeIds = {}; // empty = all round types
   List<RoundType> _availableRoundTypes = [];
   Map<String, int> _roundTypeArrowCounts = {};
 
@@ -148,17 +148,17 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
         arrows = _allQuiverArrows;
     }
 
-    // Apply round type filter
-    if (_selectedRoundTypeId != null) {
-      // Get sessions for this round type
-      final sessionsForRound = _quiverSessions
-          .where((s) => s.roundTypeId == _selectedRoundTypeId)
+    // Apply round type filter (if specific rounds selected)
+    if (_selectedRoundTypeIds.isNotEmpty) {
+      // Get sessions for selected round types
+      final sessionsForRounds = _quiverSessions
+          .where((s) => _selectedRoundTypeIds.contains(s.roundTypeId))
           .map((s) => s.id)
           .toSet();
 
       // Get ends for these sessions
       final endIds = <String>{};
-      for (final sessionId in sessionsForRound) {
+      for (final sessionId in sessionsForRounds) {
         final ends = await db.getEndsForSession(sessionId);
         endIds.addAll(ends.map((e) => e.id));
       }
@@ -264,69 +264,90 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
           ),
 
           // Round Type Filter (only if multiple round types available)
-          if (_availableRoundTypes.length > 1) ...[
+          if (_availableRoundTypes.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
-            Text(
-              'ROUND TYPE',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppColors.textMuted,
-                    letterSpacing: 1.2,
+            Row(
+              children: [
+                Text(
+                  'ROUND TYPES',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppColors.textMuted,
+                        letterSpacing: 1.2,
+                      ),
+                ),
+                const Spacer(),
+                // Quick actions
+                if (_selectedRoundTypeIds.isNotEmpty)
+                  GestureDetector(
+                    onTap: () {
+                      setState(() => _selectedRoundTypeIds.clear());
+                      _applyFilters();
+                    },
+                    child: Text(
+                      'Clear',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.gold,
+                          ),
+                    ),
                   ),
+                if (_selectedRoundTypeIds.isEmpty && _availableRoundTypes.length > 1)
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedRoundTypeIds = _availableRoundTypes.map((r) => r.id).toSet();
+                      });
+                      _applyFilters();
+                    },
+                    child: Text(
+                      'Select All',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.gold,
+                          ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: AppSpacing.xs),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: [
-                  // "All" option
-                  Padding(
+                children: _availableRoundTypes.map((roundType) {
+                  final isSelected = _selectedRoundTypeIds.isEmpty ||
+                      _selectedRoundTypeIds.contains(roundType.id);
+                  final arrowCount = _roundTypeArrowCounts[roundType.id] ?? 0;
+                  return Padding(
                     padding: const EdgeInsets.only(right: AppSpacing.sm),
                     child: FilterChip(
-                      label: Text('All (${_allQuiverArrows.where((a) => a.shaftId != null).length})'),
-                      selected: _selectedRoundTypeId == null,
+                      label: Text('${roundType.name} ($arrowCount)'),
+                      selected: isSelected,
+                      showCheckmark: _selectedRoundTypeIds.isNotEmpty,
                       onSelected: (selected) {
-                        if (selected) {
-                          setState(() => _selectedRoundTypeId = null);
-                          _applyFilters();
-                        }
+                        setState(() {
+                          if (_selectedRoundTypeIds.isEmpty) {
+                            // First selection - select only this one
+                            _selectedRoundTypeIds = {roundType.id};
+                          } else if (selected) {
+                            _selectedRoundTypeIds.add(roundType.id);
+                          } else {
+                            _selectedRoundTypeIds.remove(roundType.id);
+                            // If all deselected, show all
+                            if (_selectedRoundTypeIds.isEmpty) {
+                              // Keep empty to show all
+                            }
+                          }
+                        });
+                        _applyFilters();
                       },
                       selectedColor: AppColors.gold.withValues(alpha: 0.2),
                       checkmarkColor: AppColors.gold,
                       labelStyle: TextStyle(
-                        color: _selectedRoundTypeId == null
-                            ? AppColors.gold
-                            : AppColors.textSecondary,
+                        color: isSelected ? AppColors.gold : AppColors.textSecondary,
                         fontFamily: AppFonts.body,
                         fontSize: 12,
                       ),
                     ),
-                  ),
-                  // Round type options
-                  ..._availableRoundTypes.map((roundType) {
-                    final isSelected = _selectedRoundTypeId == roundType.id;
-                    final arrowCount = _roundTypeArrowCounts[roundType.id] ?? 0;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: AppSpacing.sm),
-                      child: FilterChip(
-                        label: Text('${roundType.name} ($arrowCount)'),
-                        selected: isSelected,
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() => _selectedRoundTypeId = roundType.id);
-                            _applyFilters();
-                          }
-                        },
-                        selectedColor: AppColors.gold.withValues(alpha: 0.2),
-                        checkmarkColor: AppColors.gold,
-                        labelStyle: TextStyle(
-                          color: isSelected ? AppColors.gold : AppColors.textSecondary,
-                          fontFamily: AppFonts.body,
-                          fontSize: 12,
-                        ),
-                      ),
-                    );
-                  }),
-                ],
+                  );
+                }).toList(),
               ),
             ),
           ],
