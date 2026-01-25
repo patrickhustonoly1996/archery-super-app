@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -16,8 +17,9 @@ class TrainingSessionService {
     _isSessionActive = true;
     try {
       await WakelockPlus.enable();
-    } on PlatformException {
+    } on PlatformException catch (e) {
       // Wakelock not available (e.g., in tests or unsupported platforms)
+      debugPrint('WakelockPlus.enable failed: $e');
     }
   }
 
@@ -27,8 +29,9 @@ class TrainingSessionService {
     _isSessionActive = false;
     try {
       await WakelockPlus.disable();
-    } on PlatformException {
+    } on PlatformException catch (e) {
       // Wakelock not available (e.g., in tests or unsupported platforms)
+      debugPrint('WakelockPlus.disable failed: $e');
     }
   }
 
