@@ -560,6 +560,7 @@ class SkillLevels extends Table {
   TextColumn get description => text().nullable()(); // What this skill tracks
   IntColumn get currentLevel => integer().withDefault(const Constant(1))();
   IntColumn get currentXp => integer().withDefault(const Constant(0))();
+  IntColumn get lastCelebratedLevel => integer().withDefault(const Constant(1))(); // Last level we showed celebration for
   DateTimeColumn get lastLevelUpAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
@@ -989,7 +990,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 30;
+  int get schemaVersion => 31;
 
   @override
   MigrationStrategy get migration {
@@ -1255,6 +1256,16 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(sessions, sessions.locationName);
           await m.addColumn(sessions, sessions.latitude);
           await m.addColumn(sessions, sessions.longitude);
+        }
+        if (from <= 30) {
+          // Track last celebrated level for level-up celebrations
+          await m.addColumn(skillLevels, skillLevels.lastCelebratedLevel);
+          // Set existing skills' lastCelebratedLevel to their current level
+          // (to avoid bombarding users with old level-ups on upgrade)
+          await customStatement('''
+            UPDATE skill_levels
+            SET last_celebrated_level = current_level
+          ''');
         }
       },
     );
@@ -2467,11 +2478,12 @@ class AppDatabase extends _$AppDatabase {
   Future<int> insertSkillLevel(SkillLevelsCompanion skill) =>
       into(skillLevels).insert(skill, mode: InsertMode.insertOrIgnore);
 
-  Future<int> updateSkillLevel(String id, {int? currentXp, int? currentLevel, DateTime? lastLevelUpAt}) =>
+  Future<int> updateSkillLevel(String id, {int? currentXp, int? currentLevel, int? lastCelebratedLevel, DateTime? lastLevelUpAt}) =>
       (update(skillLevels)..where((t) => t.id.equals(id))).write(
         SkillLevelsCompanion(
           currentXp: currentXp != null ? Value(currentXp) : const Value.absent(),
           currentLevel: currentLevel != null ? Value(currentLevel) : const Value.absent(),
+          lastCelebratedLevel: lastCelebratedLevel != null ? Value(lastCelebratedLevel) : const Value.absent(),
           lastLevelUpAt: lastLevelUpAt != null ? Value(lastLevelUpAt) : const Value.absent(),
           updatedAt: Value(DateTime.now()),
         ),

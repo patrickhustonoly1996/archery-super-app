@@ -37,6 +37,7 @@ class SkillsProvider extends ChangeNotifier {
   int _totalLevel = 0;
   int _combinedLevel = 1;
   bool _isLoaded = false;
+  bool _hasCheckedUncelebratedLevelUps = false;
 
   // Pending level-up events for celebration
   final List<LevelUpEvent> _pendingLevelUps = [];
@@ -81,6 +82,9 @@ class SkillsProvider extends ChangeNotifier {
     return XpCalculationService.progressToNextLevel(skill.currentXp);
   }
 
+  /// Maximum level-up celebrations to show per app open
+  static const int maxCelebrationsPerAppOpen = 3;
+
   /// Load skill data from database
   Future<void> loadSkills() async {
     try {
@@ -114,11 +118,50 @@ class SkillsProvider extends ChangeNotifier {
         _combinedLevel = 1;
       }
 
+      // Queue uncelebrated level-ups only on first load (max 3 per app open)
+      // This prevents re-queuing when loadSkills is called after awardXp
+      if (!_hasCheckedUncelebratedLevelUps) {
+        _hasCheckedUncelebratedLevelUps = true;
+        _queueUncelebratedLevelUps();
+      }
+
       _isLoaded = true;
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading skills: $e');
     }
+  }
+
+  /// Check for and queue any uncelebrated level-ups (limited to maxCelebrationsPerAppOpen)
+  void _queueUncelebratedLevelUps() {
+    // Collect all uncelebrated level-ups across all skills
+    final List<LevelUpEvent> uncelebratedEvents = [];
+
+    for (final skill in _skills) {
+      // If current level > last celebrated level, we have uncelebrated level-ups
+      if (skill.currentLevel > skill.lastCelebratedLevel) {
+        // Queue events for each level gap (most recent first for priority)
+        // We'll show oldest first, so add in reverse order
+        for (int level = skill.lastCelebratedLevel + 1;
+            level <= skill.currentLevel;
+            level++) {
+          uncelebratedEvents.add(LevelUpEvent(
+            skillId: skill.id,
+            skillName: skill.name,
+            oldLevel: level - 1,
+            newLevel: level,
+            timestamp: skill.lastLevelUpAt ?? DateTime.now(),
+          ));
+        }
+      }
+    }
+
+    // Sort by timestamp (oldest first) to show them in order
+    uncelebratedEvents.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    // Only queue up to max per app open (avoid overwhelming user)
+    final eventsToQueue = uncelebratedEvents.take(maxCelebrationsPerAppOpen);
+    _pendingLevelUps.addAll(eventsToQueue);
   }
 
   /// Award XP to a skill
@@ -164,14 +207,17 @@ class SkillsProvider extends ChangeNotifier {
           lastLevelUpAt: DateTime.now(),
         );
 
-        // Queue level-up celebration
-        _pendingLevelUps.add(LevelUpEvent(
-          skillId: skillId,
-          skillName: skill.name,
-          oldLevel: oldLevel,
-          newLevel: newLevel,
-          timestamp: DateTime.now(),
-        ));
+        // Queue level-up celebrations for each level gained
+        // (user might gain multiple levels at once with large XP awards)
+        for (int level = oldLevel + 1; level <= newLevel; level++) {
+          _pendingLevelUps.add(LevelUpEvent(
+            skillId: skillId,
+            skillName: skill.name,
+            oldLevel: level - 1,
+            newLevel: level,
+            timestamp: DateTime.now(),
+          ));
+        }
 
         // Haptic feedback for level-up
         _vibration.heavy();
@@ -191,15 +237,33 @@ class SkillsProvider extends ChangeNotifier {
   }
 
   /// Clear the next pending level-up (after celebration is shown)
+  /// Also marks the level as celebrated in the database
   LevelUpEvent? consumeNextLevelUp() {
     if (_pendingLevelUps.isEmpty) return null;
     final event = _pendingLevelUps.removeAt(0);
+
+    // Mark this level as celebrated in the database (fire and forget)
+    _markLevelCelebrated(event.skillId, event.newLevel);
+
     notifyListeners();
     return event;
   }
 
-  /// Clear all pending level-ups
+  /// Mark a specific level as celebrated in the database
+  Future<void> _markLevelCelebrated(String skillId, int celebratedLevel) async {
+    try {
+      await _db.updateSkillLevel(skillId, lastCelebratedLevel: celebratedLevel);
+    } catch (e) {
+      debugPrint('Error marking level as celebrated: $e');
+    }
+  }
+
+  /// Clear all pending level-ups (also marks all as celebrated)
   void clearPendingLevelUps() {
+    // Mark all pending as celebrated before clearing
+    for (final event in _pendingLevelUps) {
+      _markLevelCelebrated(event.skillId, event.newLevel);
+    }
     _pendingLevelUps.clear();
     notifyListeners();
   }
