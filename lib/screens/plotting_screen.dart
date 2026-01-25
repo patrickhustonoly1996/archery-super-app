@@ -1054,10 +1054,13 @@ class _PlottingScreenState extends State<PlottingScreen>
                                 // Position to the right for triple spot view to avoid covering top face
                                 final useTripleSpotPosition = supportsTripleSpot && _useTripleSpotView && !_useCombinedView;
 
+                                // For single face: position below the Last 12 widget (80px + spacing)
+                                final singleFaceTop = AppSpacing.md + 80 + AppSpacing.sm;
+
                                 return Positioned(
-                                  top: AppSpacing.md,
+                                  top: useTripleSpotPosition ? AppSpacing.md : singleFaceTop,
                                   right: useTripleSpotPosition ? AppSpacing.md : null,
-                                  left: useTripleSpotPosition ? null : 0,
+                                  left: useTripleSpotPosition ? null : AppSpacing.md,
                                   child: useTripleSpotPosition
                                       ? RepaintBoundary(
                                           child: FixedZoomWindow(
@@ -1071,18 +1074,16 @@ class _PlottingScreenState extends State<PlottingScreen>
                                             colorblindMode: accessibility.colorblindMode,
                                           ),
                                         )
-                                      : Center(
-                                          child: RepaintBoundary(
-                                            child: FixedZoomWindow(
-                                              targetX: pending.x,
-                                              targetY: pending.y,
-                                              currentZoomLevel: _zoomController.value.getMaxScaleOnAxis(),
-                                              relativeZoom: 2.0,
-                                              size: 120,
-                                              triSpot: (provider.roundType?.faceCount ?? 1) == 3,
-                                              compoundScoring: _compoundScoring,
-                                              colorblindMode: accessibility.colorblindMode,
-                                            ),
+                                      : RepaintBoundary(
+                                          child: FixedZoomWindow(
+                                            targetX: pending.x,
+                                            targetY: pending.y,
+                                            currentZoomLevel: _zoomController.value.getMaxScaleOnAxis(),
+                                            relativeZoom: 2.0,
+                                            size: 120,
+                                            triSpot: (provider.roundType?.faceCount ?? 1) == 3,
+                                            compoundScoring: _compoundScoring,
+                                            colorblindMode: accessibility.colorblindMode,
                                           ),
                                         ),
                                 );
