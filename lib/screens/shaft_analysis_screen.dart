@@ -55,6 +55,9 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
   List<RoundType> _availableRoundTypes = [];
   Map<String, int> _roundTypeArrowCounts = {};
 
+  // Best arrows selection
+  int _bestArrowsCount = 8; // Default to 8 for competition
+
   // All arrows for this quiver (cached)
   List<Arrow> _allQuiverArrows = [];
   List<Session> _quiverSessions = [];
@@ -375,6 +378,10 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
         // Summary
         _buildSummaryCard(),
 
+        // Best Arrows recommendation
+        const SizedBox(height: AppSpacing.md),
+        _buildBestArrowsCard(),
+
         if (overlapWarning != null) ...[
           const SizedBox(height: AppSpacing.md),
           _buildWarningCard(overlapWarning),
@@ -395,6 +402,183 @@ class _ShaftAnalysisScreenState extends State<ShaftAnalysisScreen> {
         // Individual shaft results
         ..._results!.where((r) => r.arrowCount > 0).map(_buildShaftCard),
       ],
+    );
+  }
+
+  /// Get shafts ranked by performance score
+  /// Score = avgScore * 10 - (groupSpreadMm / 10) - (outlierCount * 2)
+  /// Higher is better
+  List<ShaftAnalysisResult> _getRankedShafts() {
+    final validResults = _results!.where((r) => r.arrowCount >= 3).toList();
+
+    // Calculate performance score for each shaft
+    validResults.sort((a, b) {
+      final scoreA = _calculatePerformanceScore(a);
+      final scoreB = _calculatePerformanceScore(b);
+      return scoreB.compareTo(scoreA); // Descending
+    });
+
+    return validResults;
+  }
+
+  double _calculatePerformanceScore(ShaftAnalysisResult result) {
+    // Weight factors:
+    // - Average score is most important (x10)
+    // - Tight grouping is good (subtract spread penalty)
+    // - Fewer outliers is better (subtract outlier penalty)
+    final avgScoreWeight = result.avgScore * 10;
+    final spreadPenalty = result.groupSpreadMm / 10;
+    final outlierPenalty = result.outlierCount * 2;
+
+    return avgScoreWeight - spreadPenalty - outlierPenalty;
+  }
+
+  Widget _buildBestArrowsCard() {
+    final rankedShafts = _getRankedShafts();
+
+    if (rankedShafts.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final bestShafts = rankedShafts.take(_bestArrowsCount).toList();
+    final shaftNumbers = bestShafts.map((r) => r.shaft.number).toList()..sort();
+
+    // Calculate combined stats for best shafts
+    final bestArrowCount = bestShafts.fold<int>(0, (sum, r) => sum + r.arrowCount);
+    final bestAvgScore = bestShafts.isEmpty
+        ? 0.0
+        : bestShafts.map((r) => r.avgScore * r.arrowCount).reduce((a, b) => a + b) /
+            bestArrowCount;
+
+    return Card(
+      color: AppColors.gold.withValues(alpha: 0.1),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with count selector
+            Row(
+              children: [
+                Icon(Icons.emoji_events, color: AppColors.gold, size: 20),
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  'Best Arrows',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: AppColors.gold,
+                      ),
+                ),
+                const Spacer(),
+                // Count selector
+                SegmentedButton<int>(
+                  segments: const [
+                    ButtonSegment(value: 6, label: Text('6')),
+                    ButtonSegment(value: 8, label: Text('8')),
+                    ButtonSegment(value: 12, label: Text('12')),
+                  ],
+                  selected: {_bestArrowsCount},
+                  onSelectionChanged: (selection) {
+                    setState(() => _bestArrowsCount = selection.first);
+                  },
+                  style: ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    textStyle: WidgetStateProperty.all(
+                      const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: AppSpacing.md),
+
+            // Best shaft numbers display
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: shaftNumbers.map((num) {
+                return Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.gold.withValues(alpha: 0.2),
+                    border: Border.all(color: AppColors.gold, width: 2),
+                    borderRadius: BorderRadius.circular(AppSpacing.sm),
+                  ),
+                  child: Center(
+                    child: Text(
+                      num.toString(),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: AppColors.gold,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+
+            const SizedBox(height: AppSpacing.md),
+
+            // Stats for best set
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Avg Score',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                      ),
+                      Text(
+                        bestAvgScore.toStringAsFixed(2),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: AppColors.gold,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Data Points',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                      ),
+                      Text(
+                        '$bestArrowCount arrows',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            // Note about minimum data
+            if (rankedShafts.length < _bestArrowsCount) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'Only ${rankedShafts.length} shafts have enough data (3+ arrows)',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textMuted,
+                      fontStyle: FontStyle.italic,
+                    ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
