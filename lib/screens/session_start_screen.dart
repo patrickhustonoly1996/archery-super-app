@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../providers/connectivity_provider.dart';
 import '../widgets/offline_indicator.dart';
 import '../widgets/session_setup_sheet.dart';
+import 'plotting_screen.dart';
 
 class SessionStartScreen extends StatefulWidget {
   const SessionStartScreen({super.key});
@@ -70,9 +71,12 @@ class _SessionStartScreenState extends State<SessionStartScreen> {
       sessionType: _sessionType,
     );
 
-    // If session was started, close this screen
+    // If session was started, navigate to plotting screen
     if (started && mounted) {
-      Navigator.pop(context);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const PlottingScreen()),
+      );
     }
   }
 

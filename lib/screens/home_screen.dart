@@ -522,15 +522,17 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _showQuickStartSheet(BuildContext context) {
+    // Capture home screen context for navigation after sheet closes
+    final homeContext = context;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => _QuickStartSheet(
+      builder: (sheetContext) => _QuickStartSheet(
         onSessionStarted: () {
-          Navigator.pop(context);
+          // Sheet is already closed by _startSession, navigate using home context
           Navigator.push(
-            context,
+            homeContext,
             MaterialPageRoute(builder: (_) => const PlottingScreen()),
           ).then((_) => _refreshSessions());
         },
