@@ -585,17 +585,16 @@ class _QuickStartSheetState extends State<_QuickStartSheet> {
   Future<void> _startSession() async {
     if (_selectedRoundType == null) return;
 
-    // Close this sheet first
-    Navigator.pop(context);
-
-    // Show the session setup sheet
+    // Show session setup sheet on top of this one (context still valid)
     final started = await SessionSetupSheet.show(
       context: context,
       roundType: _selectedRoundType!,
       sessionType: 'practice',
     );
 
-    if (started) {
+    if (started && mounted) {
+      // Close QuickStartSheet and navigate
+      Navigator.pop(context);
       widget.onSessionStarted();
     }
   }
