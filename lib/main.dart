@@ -475,9 +475,9 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
           // Don't show error snackbar for routine sync failures
           // The user can retry by reopening the app
         } finally {
-          if (mounted) {
-            connectivityProvider.setSyncing(false);
-          }
+          // Always reset syncing state - the provider is global and persists
+          // even if this widget unmounts during sync
+          connectivityProvider.setSyncing(false);
         }
       } catch (e) {
         // Firebase not initialized (tests) or other initialization error
