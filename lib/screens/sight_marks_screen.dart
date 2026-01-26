@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../db/database.dart' show Bow;
 import '../providers/sight_marks_provider.dart';
 import '../providers/equipment_provider.dart';
 import '../models/sight_mark.dart';
+import '../models/user_profile.dart';
 import '../utils/sight_mark_calculator.dart';
+import '../utils/angle_sight_mark_calculator.dart';
 import '../widgets/sight_mark_entry_form.dart';
+import '../widgets/angle_table.dart';
 import 'bow_detail_screen.dart';
+import 'angle_calculator_screen.dart';
 
 /// Screen displaying all sight marks for a bow
 class SightMarksScreen extends StatefulWidget {
@@ -25,6 +30,7 @@ class SightMarksScreen extends StatefulWidget {
 
 class _SightMarksScreenState extends State<SightMarksScreen> {
   DistanceUnit _selectedUnit = DistanceUnit.meters;
+  SightMarkIncrement _increment = SightMarkIncrement.ten;
   bool _isLoading = true;
 
   @override
@@ -79,10 +85,10 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
                 final allMarks = sightProvider.getMarksForBow(widget.bowId);
 
                 // Check if bow has equipment specs for better predictions
+                // Only poundage is required - draw length is optional bonus
                 final bow = equipProvider.bows.where((b) => b.id == widget.bowId).firstOrNull;
                 final hasPoundage = bow?.poundage != null;
-                final hasDrawLength = bow?.drawLength != null;
-                final needsSpecs = !hasPoundage || !hasDrawLength;
+                final needsSpecs = !hasPoundage;
 
                 if (allMarks.isEmpty) {
                   return _buildEmptyState(context, needsSpecs: needsSpecs);
@@ -107,30 +113,68 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
 
                 final distances = groupedMarks.keys.toList()..sort();
 
-                // Generate predictions for common distances not yet recorded
-                final predictions = <PredictedSightMark>[];
+                // Generate predictions for BOTH metres and yards
+                final meterPredictions = <PredictedSightMark>[];
+                final yardPredictions = <PredictedSightMark>[];
 
                 // Only show predictions if we have 2+ marks
                 if (allMarks.length >= 2) {
-                  for (final commonDist in _selectedUnit.commonDistances) {
-                    if (!distances.contains(commonDist)) {
+                  final specs = bow != null
+                      ? EquipmentSpecs(
+                          poundage: bow.poundage,
+                          drawLength: bow.drawLength,
+                        )
+                      : null;
+
+                  // Get recorded distances in each unit for filtering
+                  final recordedMeters = allMarks
+                      .map((m) => m.unit == DistanceUnit.meters
+                          ? m.distance
+                          : m.unit.convert(m.distance))
+                      .map((d) => d.roundToDouble())
+                      .toSet();
+                  final recordedYards = allMarks
+                      .map((m) => m.unit == DistanceUnit.yards
+                          ? m.distance
+                          : m.unit.convert(m.distance))
+                      .map((d) => d.roundToDouble())
+                      .toSet();
+
+                  // Generate meter predictions
+                  for (final dist in DistanceUnit.meters.distancesAtIncrement(_increment)) {
+                    if (!recordedMeters.contains(dist)) {
                       final prediction = SightMarkCalculator.predict(
                         marks: allMarks,
-                        targetDistance: commonDist,
-                        unit: _selectedUnit,
-                        specs: bow != null
-                            ? EquipmentSpecs(
-                                poundage: bow.poundage,
-                                drawLength: bow.drawLength,
-                              )
-                            : null,
+                        targetDistance: dist,
+                        unit: DistanceUnit.meters,
+                        specs: specs,
                       );
                       if (prediction != null) {
-                        predictions.add(prediction);
+                        meterPredictions.add(prediction);
+                      }
+                    }
+                  }
+
+                  // Generate yard predictions
+                  for (final dist in DistanceUnit.yards.distancesAtIncrement(_increment)) {
+                    if (!recordedYards.contains(dist)) {
+                      final prediction = SightMarkCalculator.predict(
+                        marks: allMarks,
+                        targetDistance: dist,
+                        unit: DistanceUnit.yards,
+                        specs: specs,
+                      );
+                      if (prediction != null) {
+                        yardPredictions.add(prediction);
                       }
                     }
                   }
                 }
+
+                // Use the predictions for the selected unit
+                final predictions = _selectedUnit == DistanceUnit.meters
+                    ? meterPredictions
+                    : yardPredictions;
 
                 return ListView(
                   padding: const EdgeInsets.all(AppSpacing.md),
@@ -167,33 +211,100 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
                       );
                     }),
 
-                    // Predictions section (if we have any)
-                    if (predictions.isNotEmpty) ...[
+                    // Predictions section (if we have 2+ marks for generation)
+                    if (allMarks.length >= 2) ...[
                       const SizedBox(height: AppSpacing.lg),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                        child: Row(
-                          children: [
-                            Icon(Icons.auto_fix_high, size: 16, color: AppColors.textMuted),
-                            const SizedBox(width: AppSpacing.xs),
-                            Text(
-                              'Estimated Marks',
-                              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                    color: AppColors.textMuted,
-                                  ),
+
+                      // Estimated marks header with increment selector
+                      Row(
+                        children: [
+                          Icon(Icons.auto_fix_high, size: 16, color: AppColors.textMuted),
+                          const SizedBox(width: AppSpacing.xs),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Estimated Marks',
+                                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                        color: AppColors.textMuted,
+                                      ),
+                                ),
+                                Text(
+                                  _getConfidenceDescription(distances.length),
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: AppColors.textMuted,
+                                        fontSize: 10,
+                                      ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Text(
-                              '(tap to record actual)',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+
+                      // Increment selector
+                      Wrap(
+                        spacing: AppSpacing.sm,
+                        children: SightMarkIncrement.values.map((inc) {
+                          final isSelected = _increment == inc;
+                          return GestureDetector(
+                            onTap: () => setState(() => _increment = inc),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.sm,
+                                vertical: AppSpacing.xs,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? AppColors.gold.withValues(alpha: 0.2)
+                                    : AppColors.surfaceBright,
+                                borderRadius: BorderRadius.circular(AppSpacing.xs),
+                                border: isSelected
+                                    ? Border.all(color: AppColors.gold)
+                                    : null,
+                              ),
+                              child: Text(
+                                inc == SightMarkIncrement.one
+                                    ? 'Every 1'
+                                    : 'Every ${inc.label}',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: isSelected
+                                          ? AppColors.gold
+                                          : AppColors.textPrimary,
+                                      fontWeight:
+                                          isSelected ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+
+                      // Predictions list
+                      if (predictions.isNotEmpty)
+                        ...predictions.map((prediction) =>
+                            _buildPredictionTile(context, prediction, distances.length)),
+                      if (predictions.isEmpty)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppSpacing.md),
+                            child: Text(
+                              'All distances have recorded marks',
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: AppColors.textMuted,
-                                    fontSize: 10,
                                   ),
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                      ...predictions.map((prediction) => _buildPredictionTile(context, prediction)),
+                    ],
+
+                    // Angle calculator section (if we have marks)
+                    if (allMarks.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.lg),
+                      _buildAngleCalculatorSection(context, bow, allMarks.first),
                     ],
 
                     // Written record reminder
@@ -279,7 +390,7 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Add poundage and draw length to your bow for more accurate sight mark calculations.',
+                    'Add poundage to your bow for more accurate sight mark predictions.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.textSecondary,
                         ),
@@ -340,6 +451,119 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAngleCalculatorSection(BuildContext context, Bow? bow, SightMark referenceMark) {
+    // Estimate arrow speed from bow if available
+    double arrowSpeed = 220.0; // Default medium speed
+    if (bow != null && bow.poundage != null) {
+      arrowSpeed = AngleSightMarkCalculator.estimateArrowSpeed(
+        bowType: BowType.fromString(bow.bowType),
+        poundage: bow.poundage!,
+        drawLength: bow.drawLength,
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark,
+        borderRadius: BorderRadius.circular(AppSpacing.sm),
+        border: Border.all(color: AppColors.surfaceBright),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Icon(Icons.terrain, size: 16, color: AppColors.textMuted),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Angle Calculator',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: AppColors.textPrimary,
+                          ),
+                    ),
+                    Text(
+                      '~${arrowSpeed.toStringAsFixed(0)} fps (${AngleSightMarkCalculator.getSpeedDescription(arrowSpeed)})',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textMuted,
+                            fontSize: 10,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AngleCalculatorScreen(
+                        bowId: widget.bowId,
+                        defaultSightMark: referenceMark.numericValue,
+                        defaultDistance: referenceMark.distance,
+                        defaultUnit: referenceMark.unit,
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.gold.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Full Calculator',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.gold,
+                              fontSize: 10,
+                            ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(Icons.open_in_new, size: 12, color: AppColors.gold),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // Compact angle table for reference mark
+          AngleTable(
+            flatSightMark: referenceMark.numericValue,
+            arrowSpeedFps: arrowSpeed,
+            distance: referenceMark.distance,
+            distanceUnit: referenceMark.unit.abbreviation,
+            compact: true,
+            onAngleTap: (angle, mark) {
+              // Navigate to full calculator with this angle
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AngleCalculatorScreen(
+                    bowId: widget.bowId,
+                    defaultSightMark: referenceMark.numericValue,
+                    defaultDistance: referenceMark.distance,
+                    defaultUnit: referenceMark.unit,
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -434,10 +658,24 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
     );
   }
 
-  Widget _buildPredictionTile(BuildContext context, PredictedSightMark prediction) {
+  Widget _buildPredictionTile(BuildContext context, PredictedSightMark prediction, int uniqueDistanceCount) {
     // Calculate equivalent in other unit
     final otherUnit = prediction.unit.other;
     final convertedDistance = prediction.unit.convert(prediction.distance);
+
+    // Confidence increases with more unique distances confirmed
+    // More points = better curve fit = more accurate predictions
+    // 2 distances = basic interpolation, lower confidence
+    // 3 distances = good curve fit, medium confidence
+    // 4+ distances = excellent curve fit, high confidence
+    final curveConfidence = uniqueDistanceCount >= 4
+        ? SightMarkConfidence.high
+        : uniqueDistanceCount >= 3
+            ? SightMarkConfidence.medium
+            : SightMarkConfidence.low;
+
+    // Use the curve confidence for display
+    final displayConfidence = curveConfidence;
 
     return Card(
       color: AppColors.surfaceDark.withValues(alpha: 0.5),
@@ -497,12 +735,33 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '~${prediction.displayValue}',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: AppColors.textMuted,
-                            fontStyle: FontStyle.italic,
+                    Row(
+                      children: [
+                        Text(
+                          '~${prediction.displayValue}',
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: AppColors.textMuted,
+                                fontStyle: FontStyle.italic,
+                              ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        // Estimated badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceBright,
+                            borderRadius: BorderRadius.circular(2),
                           ),
+                          child: Text(
+                            'EST',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.textMuted,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ),
+                      ],
                     ),
                     Text(
                       prediction.source,
@@ -514,8 +773,8 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
                   ],
                 ),
               ),
-              // Confidence indicator
-              _buildConfidenceIndicator(context, prediction.confidence),
+              // Confidence indicator - enhanced based on mark count
+              _buildConfidenceIndicator(context, displayConfidence),
               const SizedBox(width: AppSpacing.sm),
               const Icon(Icons.add_circle_outline, color: AppColors.textMuted, size: 20),
             ],
@@ -523,6 +782,16 @@ class _SightMarksScreenState extends State<SightMarksScreen> {
         ),
       ),
     );
+  }
+
+  String _getConfidenceDescription(int uniqueDistances) {
+    if (uniqueDistances >= 4) {
+      return '$uniqueDistances distances confirmed • Excellent curve fit';
+    } else if (uniqueDistances == 3) {
+      return '$uniqueDistances distances confirmed • Good curve fit';
+    } else {
+      return '$uniqueDistances distances confirmed • Basic interpolation';
+    }
   }
 
   Widget _buildConfidenceIndicator(BuildContext context, SightMarkConfidence confidence) {
