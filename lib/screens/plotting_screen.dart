@@ -246,7 +246,7 @@ class _PlottingScreenState extends State<PlottingScreen>
     // Get the distance for the NEXT leg (what they're about to shoot)
     // For distance change: use the next distance leg
     // For halfway: use the current round's distance
-    final nextDistance = nextDistanceLeg?.distance ?? provider.roundType?.distance?.toDouble();
+    final double? nextDistance = (nextDistanceLeg?.distance ?? provider.roundType?.distance)?.toDouble();
     final distanceUnit = nextDistanceLeg?.unit ?? 'm';
 
     // Build title and description based on break type

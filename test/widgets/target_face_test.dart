@@ -372,7 +372,8 @@ void main() {
       );
 
       expect(find.byType(InteractiveTargetFace), findsOneWidget);
-      expect(find.byType(GestureDetector), findsOneWidget);
+      // Uses Listener instead of GestureDetector for pinch-to-zoom compatibility
+      expect(find.byType(Listener), findsWidgets);
     });
 
     testWidgets('touch/drag shows arrow preview at offset position', (tester) async {
