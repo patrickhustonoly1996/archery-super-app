@@ -69,6 +69,9 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
   bool _isSaving = false;
   bool _showSavedMessage = false;
 
+  // Fallback timer for devices without image streaming
+  Timer? _fallbackTimer;
+
   @override
   void initState() {
     super.initState();
@@ -80,6 +83,7 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _fallbackTimer?.cancel();
     _stopImageStream();
     _cameraController?.dispose();
     super.dispose();
@@ -182,7 +186,7 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
     }
   }
 
-  void _startImageStream() async {
+  Future<void> _startImageStream() async {
     if (_cameraController == null ||
         !_cameraController!.value.isInitialized ||
         _isStreaming) {
@@ -199,7 +203,11 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
     }
   }
 
-  void _stopImageStream() async {
+  Future<void> _stopImageStream() async {
+    // Cancel fallback timer if running
+    _fallbackTimer?.cancel();
+    _fallbackTimer = null;
+
     if (_cameraController != null &&
         _cameraController!.value.isInitialized &&
         _isStreaming) {
@@ -210,7 +218,14 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
     }
   }
 
-  void _onImageAvailable(CameraImage image) async {
+  // Callback for camera image stream - must be void for camera API compatibility
+  // Async work is handled internally with proper error handling
+  void _onImageAvailable(CameraImage image) {
+    // Process frame asynchronously with error handling
+    _processFrame(image);
+  }
+
+  Future<void> _processFrame(CameraImage image) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     // Throttle to target frame rate and prevent pile-up
@@ -266,7 +281,8 @@ class _NativeCameraScreenState extends State<_NativeCameraScreen>
 
   // Fallback for devices that don't support image streaming
   void _startFallbackCapture() {
-    Timer.periodic(
+    _fallbackTimer?.cancel();
+    _fallbackTimer = Timer.periodic(
       const Duration(milliseconds: 100), // 10fps fallback
       (_) => _captureFallbackFrame(),
     );
