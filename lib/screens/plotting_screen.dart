@@ -581,24 +581,6 @@ class _PlottingScreenState extends State<PlottingScreen>
     setState(() => _autoAdvanceOrder = value);
   }
 
-  /// Toggle between column (1→2→3) and triangular (1→3→2) shooting order
-  Future<void> _toggleShootingOrder() async {
-    final newOrder = _autoAdvanceOrder == 'column' ? 'triangular' : 'column';
-    await _setAutoAdvanceOrder(newOrder);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            newOrder == 'column' ? 'Order: Face 1 → 2 → 3' : 'Order: Face 1 → 3 → 2',
-            style: TextStyle(fontFamily: AppFonts.body),
-          ),
-          duration: const Duration(seconds: 1),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
-
   Future<void> _toggleHideScores() async {
     final db = context.read<AppDatabase>();
     await db.setBoolPreference(kHideScoresPref, !_hideScores);
@@ -726,15 +708,14 @@ class _PlottingScreenState extends State<PlottingScreen>
     }
   }
 
-  /// Show dialog to select face shooting order for single view mode
-  /// Single view = shooting triple spot but plotting on one target
+  /// Show dialog to select face shooting order
   Future<String?> _showFaceOrderDialog() async {
     return showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surfaceDark,
         title: Text(
-          'SINGLE VIEW',
+          'SHOOTING ORDER',
           style: TextStyle(
             fontFamily: AppFonts.pixel,
             fontSize: 16,
@@ -747,32 +728,23 @@ class _PlottingScreenState extends State<PlottingScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Shooting triple spot but plotting on one target?',
+              'What order do you shoot the faces?',
               style: TextStyle(
                 fontFamily: AppFonts.body,
                 fontSize: 14,
                 color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Select your shooting order:',
-              style: TextStyle(
-                fontFamily: AppFonts.body,
-                fontSize: 12,
-                color: AppColors.textMuted,
-              ),
-            ),
             const SizedBox(height: 16),
             _FaceSetupOption(
-              title: 'Face 1 \u2192 2 \u2192 3',
-              subtitle: 'Top to bottom',
+              title: '1 \u2192 2 \u2192 3',
+              subtitle: 'Column (top to bottom)',
               icon: Icons.arrow_downward,
               onTap: () => Navigator.pop(ctx, 'column'),
             ),
             const SizedBox(height: 8),
             _FaceSetupOption(
-              title: 'Face 1 \u2192 3 \u2192 2',
+              title: '1 \u2192 3 \u2192 2',
               subtitle: 'Triangle pattern',
               icon: Icons.change_history,
               onTap: () => Navigator.pop(ctx, 'triangular'),
@@ -1267,28 +1239,26 @@ class _PlottingScreenState extends State<PlottingScreen>
 
                       // Face indicator sidebar (single mode - always tracks faces)
                       // Shows which face (1, 2, 3) is currently active
-                      // Long-press to toggle shooting order (1→2→3 or 1→3→2)
                       if (supportsTripleSpot && !_useTripleSpotView)
                         Positioned(
                           left: AppSpacing.md,
                           top: 100,
-                          child: GestureDetector(
-                            onLongPress: _toggleShootingOrder,
-                            child: FaceIndicatorSidebar(
-                              currentFace: _selectedFaceIndex,
-                              arrowCounts: [
-                                provider.currentEndArrows.where((a) => a.faceIndex == 0).length,
-                                provider.currentEndArrows.where((a) => a.faceIndex == 1).length,
-                                provider.currentEndArrows.where((a) => a.faceIndex == 2).length,
-                              ],
-                              layoutStyle: _autoAdvanceOrder,
-                              onFaceSelected: (face) => setState(() => _selectedFaceIndex = face),
-                            ),
+                          child: FaceIndicatorSidebar(
+                            currentFace: _selectedFaceIndex,
+                            arrowCounts: [
+                              provider.currentEndArrows.where((a) => a.faceIndex == 0).length,
+                              provider.currentEndArrows.where((a) => a.faceIndex == 1).length,
+                              provider.currentEndArrows.where((a) => a.faceIndex == 2).length,
+                            ],
+                            layoutStyle: _autoAdvanceOrder,
+                            onFaceSelected: (face) => setState(() => _selectedFaceIndex = face),
                           ),
                         ),
 
                       // Face layout toggle (bottom left, above scorecard)
-                      // Quick switch between single (1 target) / triple (3 targets)
+                      // Single = 1 target with face tracking
+                      // Vertical = 3 targets stacked
+                      // Triangle = 3 targets in △
                       if (supportsTripleSpot)
                         Positioned(
                           bottom: AppSpacing.md,
@@ -1299,8 +1269,13 @@ class _PlottingScreenState extends State<PlottingScreen>
                                 : (_faceLayout == FaceLayout.triangular ? 'triangular' : 'vertical'),
                             triangularSupported: supportsTriangular,
                             onLayoutChanged: (layout) async {
+                              // Ask for shooting order, then apply layout
+                              final order = await _showFaceOrderDialog();
+                              if (order == null) return; // Cancelled
+
+                              await _setAutoAdvanceOrder(order);
+
                               if (layout == 'single') {
-                                // Switch directly to single view (long-press sidebar to change order)
                                 await _setSingleFaceTracking(true);
                                 await _setTripleSpotView(false);
                               } else if (layout == 'triangular') {
