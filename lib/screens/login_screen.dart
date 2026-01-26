@@ -5,7 +5,6 @@ import '../theme/app_theme.dart';
 import '../widgets/asa_logo.dart';
 import '../widgets/loading_button.dart';
 import '../mixins/form_validation_mixin.dart';
-import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -51,12 +50,8 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
           password: _passwordController.text,
         );
       }
-
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      }
+      // Navigation handled by AuthGate's StreamBuilder listening to auth state
+      // No manual navigation needed - it would be redundant and could race
     } on FirebaseAuthException catch (e) {
       setState(() {
         _errorMessage = _getErrorMessage(e.code);

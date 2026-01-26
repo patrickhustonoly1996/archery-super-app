@@ -25,6 +25,8 @@ import 'providers/entitlement_provider.dart';
 import 'providers/classification_provider.dart';
 import 'providers/accessibility_provider.dart';
 import 'providers/locale_provider.dart';
+import 'providers/field_course_provider.dart';
+import 'providers/field_session_provider.dart';
 import 'services/vision_api_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
@@ -147,6 +149,12 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
           ChangeNotifierProvider(
             create: (context) => LocaleProvider()..initialize(),
           ),
+          ChangeNotifierProvider(
+            create: (context) => FieldCourseProvider(context.read<AppDatabase>()),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => FieldSessionProvider(context.read<AppDatabase>()),
+          ),
         ],
         child: Consumer2<AccessibilityProvider, LocaleProvider>(
           builder: (context, accessibility, localeProvider, child) {
@@ -198,12 +206,16 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
   static const String _wasLoggedInKey = 'was_logged_in';
   static const Duration _syncDebounce = Duration(seconds: 30); // Don't sync more often than this
 
-  bool _timedOut = false;
-  bool _hasReceivedData = false;
+  // Auth state - starts unknown, determined by _checkAuthState
+  bool _isInitializing = true; // Show splash until auth state is determined
+  bool _wasLoggedIn = false; // Local flag for offline resilience
   User? _cachedUser;
   bool _firebaseReady = false;
-  bool _wasLoggedIn = false; // Local flag for offline resilience
+
+  // Navigation state
   bool _homeScreenShown = false; // Once true, never show splash again this session
+
+  // Sync state
   DateTime? _lastSyncAttempt;
 
   @override
@@ -262,55 +274,56 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
   }
 
   Future<void> _checkAuthState() async {
-    // Load local "was logged in" flag first (instant, works offline)
+    // FAST PATH: Load local flag first - this is instant and works offline
     final prefs = await SharedPreferences.getInstance();
     _wasLoggedIn = prefs.getBool(_wasLoggedInKey) ?? false;
 
     // If user was previously logged in, go straight to home - no Firebase wait
-    // Firebase will verify in background and update the flag if needed
+    // This is the key to instant startup for returning users
     if (_wasLoggedIn) {
+      _isInitializing = false;
       if (mounted) setState(() {});
       _verifyAuthInBackground(prefs);
       return;
     }
 
-    // User wasn't logged in - need to wait for Firebase to authenticate
+    // User wasn't logged in before - check Firebase (with short timeout)
     try {
       await firebaseInitFuture.timeout(
-        const Duration(milliseconds: 500),
-        onTimeout: () {
-          throw TimeoutException('Firebase init timed out');
-        },
+        const Duration(milliseconds: 300), // Reduced from 500ms
+        onTimeout: () => throw TimeoutException('Firebase init timed out'),
       );
-      _cachedUser = FirebaseAuth.instance.currentUser;
       _firebaseReady = true;
+      _cachedUser = FirebaseAuth.instance.currentUser;
 
-      // If logged in now, update flag and go to home
+      // If Firebase has a cached session, use it
       if (_cachedUser != null) {
         await prefs.setBool(_wasLoggedInKey, true);
         _wasLoggedIn = true;
         _triggerBackgroundSync();
-        if (mounted) setState(() {});
-        return;
       }
     } catch (e) {
-      // Firebase didn't initialize in time (likely offline or slow network)
-      debugPrint('Firebase init failed/timed out: $e');
+      // Firebase slow/offline - that's fine, show login
+      debugPrint('Firebase init timed out: $e');
       _firebaseReady = false;
     }
 
-    // No cached user and Firebase isn't ready - show login
-    if (!_firebaseReady) {
-      if (mounted) setState(() => _timedOut = true);
-      return;
-    }
+    // Done initializing - show appropriate screen
+    _isInitializing = false;
+    if (mounted) setState(() {});
+  }
 
-    // Firebase is ready but no cached user - wait briefly for auth stream
-    // (handles fresh login completion)
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (mounted && !_hasReceivedData) {
-        setState(() => _timedOut = true);
-      }
+  /// Persist "was logged in" flag to SharedPreferences
+  /// Called when user successfully authenticates via StreamBuilder
+  /// This ensures they don't have to re-login when Firebase is slow on restart
+  void _persistLoginFlag() {
+    if (_wasLoggedIn) return; // Already set, skip
+    _wasLoggedIn = true;
+
+    // Persist asynchronously - don't block UI
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setBool(_wasLoggedInKey, true);
+      debugPrint('Login flag persisted - user will stay logged in');
     });
   }
 
@@ -465,60 +478,47 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    // Once home screen has been shown, never show splash again this session
-    // This prevents splash from appearing on navigation
+    // PHASE 1: Show splash while determining auth state
+    // This prevents any visual jumping - one clean transition
+    if (_isInitializing) {
+      return const SplashBranding();
+    }
+
+    // PHASE 2: Once home shown, stay there (prevents splash on navigation)
     if (_homeScreenShown) {
-      // Check if user logged out
+      // Unless user explicitly logged out
       if (_cachedUser == null && !_wasLoggedIn) {
-        _homeScreenShown = false; // Reset so splash can show again on next login
+        _homeScreenShown = false;
         return const LoginScreen();
       }
       return const HomeScreen();
     }
 
-    // If we have a cached user from Firebase, go straight to home
-    if (_cachedUser != null) {
+    // PHASE 3: Returning user - instant home screen
+    if (_wasLoggedIn || _cachedUser != null) {
       _homeScreenShown = true;
       return const HomeScreen();
     }
 
-    // Offline mode: Firebase isn't ready but user was previously logged in
-    // Trust local flag and show home screen
-    if (!_firebaseReady && _wasLoggedIn) {
-      _homeScreenShown = true;
-      return const HomeScreen();
+    // PHASE 4: New user or fresh login - use StreamBuilder for auth changes
+    if (_firebaseReady) {
+      return StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            // User just logged in
+            _persistLoginFlag();
+            _triggerBackgroundSync();
+            _homeScreenShown = true;
+            return const HomeScreen();
+          }
+          // Not logged in yet
+          return const LoginScreen();
+        },
+      );
     }
 
-    // If Firebase isn't ready or timed out, show login
-    if (!_firebaseReady || _timedOut) {
-      return const LoginScreen();
-    }
-
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        // Track if we've received any data from the stream
-        if (snapshot.connectionState == ConnectionState.active ||
-            snapshot.connectionState == ConnectionState.done) {
-          _hasReceivedData = true;
-        }
-
-        // Show branded splash while checking auth state (with timeout)
-        if (!_hasReceivedData && !_timedOut) {
-          return const SplashBranding();
-        }
-
-        // User is logged in (stream confirmed)
-        if (snapshot.hasData) {
-          // Trigger restore/backup when user logs in
-          _triggerBackgroundSync();
-          _homeScreenShown = true;
-          return const HomeScreen();
-        }
-
-        // User is not logged in (or timed out with no cached user)
-        return const LoginScreen();
-      },
-    );
+    // PHASE 5: Firebase not ready, no cached login - show login
+    return const LoginScreen();
   }
 }
