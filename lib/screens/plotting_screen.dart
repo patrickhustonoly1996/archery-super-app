@@ -581,6 +581,24 @@ class _PlottingScreenState extends State<PlottingScreen>
     setState(() => _autoAdvanceOrder = value);
   }
 
+  /// Toggle between column (1→2→3) and triangular (1→3→2) shooting order
+  Future<void> _toggleShootingOrder() async {
+    final newOrder = _autoAdvanceOrder == 'column' ? 'triangular' : 'column';
+    await _setAutoAdvanceOrder(newOrder);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            newOrder == 'column' ? 'Order: Face 1 → 2 → 3' : 'Order: Face 1 → 3 → 2',
+            style: TextStyle(fontFamily: AppFonts.body),
+          ),
+          duration: const Duration(seconds: 1),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   Future<void> _toggleHideScores() async {
     final db = context.read<AppDatabase>();
     await db.setBoolPreference(kHideScoresPref, !_hideScores);
@@ -879,11 +897,14 @@ class _PlottingScreenState extends State<PlottingScreen>
         final isIndoor = provider.roundType?.isIndoor ?? false;
         final faceCount = provider.roundType?.faceCount ?? 1;
         final faceSize = provider.roundType?.faceSize ?? 122;
-        // Rounds with faceCount == 3 always support triple spot
+        // Barebow, longbow, and traditional typically shoot full single faces
+        final bowType = provider.selectedBow?.bowType ?? '';
+        final isNonSightedBow = bowType == 'barebow' || bowType == 'longbow' || bowType == 'traditional';
+        // Rounds with faceCount == 3 always support triple spot (unless barebow/longbow)
         // Indoor rounds with 60cm or smaller faces can also use triple spot
-        final supportsTripleSpot = isIndoor && (faceCount == 3 || faceSize <= 60);
+        final supportsTripleSpot = !isNonSightedBow && isIndoor && (faceCount == 3 || faceSize <= 60);
         // Triangular layout only for WA 18m style (already has faceCount == 3)
-        final supportsTriangular = isIndoor && faceCount == 3;
+        final supportsTriangular = !isNonSightedBow && isIndoor && faceCount == 3;
 
         return Scaffold(
           appBar: AppBar(
@@ -1245,20 +1266,24 @@ class _PlottingScreenState extends State<PlottingScreen>
                       ),
 
                       // Face indicator sidebar (single mode - always tracks faces)
-                      // Shows which face (1, 2, 3) is currently active for arrow assignment
+                      // Shows which face (1, 2, 3) is currently active
+                      // Long-press to toggle shooting order (1→2→3 or 1→3→2)
                       if (supportsTripleSpot && !_useTripleSpotView)
                         Positioned(
                           left: AppSpacing.md,
                           top: 100,
-                          child: FaceIndicatorSidebar(
-                            currentFace: _selectedFaceIndex,
-                            arrowCounts: [
-                              provider.currentEndArrows.where((a) => a.faceIndex == 0).length,
-                              provider.currentEndArrows.where((a) => a.faceIndex == 1).length,
-                              provider.currentEndArrows.where((a) => a.faceIndex == 2).length,
-                            ],
-                            layoutStyle: _autoAdvanceOrder,
-                            onFaceSelected: (face) => setState(() => _selectedFaceIndex = face),
+                          child: GestureDetector(
+                            onLongPress: _toggleShootingOrder,
+                            child: FaceIndicatorSidebar(
+                              currentFace: _selectedFaceIndex,
+                              arrowCounts: [
+                                provider.currentEndArrows.where((a) => a.faceIndex == 0).length,
+                                provider.currentEndArrows.where((a) => a.faceIndex == 1).length,
+                                provider.currentEndArrows.where((a) => a.faceIndex == 2).length,
+                              ],
+                              layoutStyle: _autoAdvanceOrder,
+                              onFaceSelected: (face) => setState(() => _selectedFaceIndex = face),
+                            ),
                           ),
                         ),
 
@@ -1275,13 +1300,9 @@ class _PlottingScreenState extends State<PlottingScreen>
                             triangularSupported: supportsTriangular,
                             onLayoutChanged: (layout) async {
                               if (layout == 'single') {
-                                // Ask for shooting order, then switch to single view
-                                final order = await _showFaceOrderDialog();
-                                if (order != null) {
-                                  await _setAutoAdvanceOrder(order);
-                                  await _setSingleFaceTracking(true);
-                                  await _setTripleSpotView(false);
-                                }
+                                // Switch directly to single view (long-press sidebar to change order)
+                                await _setSingleFaceTracking(true);
+                                await _setTripleSpotView(false);
                               } else if (layout == 'triangular') {
                                 _setTripleSpotView(true);
                                 _setFaceLayout(FaceLayout.triangular);
