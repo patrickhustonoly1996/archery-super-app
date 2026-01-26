@@ -1147,38 +1147,51 @@ class _PlottingScreenState extends State<PlottingScreen>
                                 // (negative Y = upper half in normalized coords where center is 0)
                                 final arrowInUpperHalf = pending.y < -0.2;
 
+                                // Calculate position to avoid overlapping with GroupCentreWidget (80px + label ~30px = ~110px)
+                                // For single face: center horizontally, positioned top or bottom based on arrow position
+                                // For triple spot: right side, below the "This Round" widget
+                                const groupCentreHeight = 110.0; // GroupCentreWidget (80px) + label padding
+
+                                // For triple spot: position below "This Round" GroupCentreWidget on right
+                                if (useTripleSpotPosition) {
+                                  return Positioned(
+                                    top: groupCentreHeight + AppSpacing.md,
+                                    right: AppSpacing.md,
+                                    child: RepaintBoundary(
+                                      child: FixedZoomWindow(
+                                        targetX: pending.x,
+                                        targetY: pending.y,
+                                        currentZoomLevel: _zoomController.value.getMaxScaleOnAxis(),
+                                        relativeZoom: 2.0,
+                                        size: 100,
+                                        triSpot: true,
+                                        compoundScoring: _compoundScoring,
+                                        colorblindMode: accessibility.colorblindMode,
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                // For single face: center horizontally, below GroupCentreWidget or at bottom
                                 return Positioned(
-                                  // For triple spot: always at top right
-                                  // For single face: top if arrow is in lower half, bottom if in upper half
-                                  top: useTripleSpotPosition || !arrowInUpperHalf ? AppSpacing.md : null,
-                                  bottom: !useTripleSpotPosition && arrowInUpperHalf ? AppSpacing.md : null,
-                                  right: useTripleSpotPosition ? AppSpacing.md : null,
-                                  left: useTripleSpotPosition ? null : AppSpacing.md,
-                                  child: useTripleSpotPosition
-                                      ? RepaintBoundary(
-                                          child: FixedZoomWindow(
-                                            targetX: pending.x,
-                                            targetY: pending.y,
-                                            currentZoomLevel: _zoomController.value.getMaxScaleOnAxis(),
-                                            relativeZoom: 2.0,
-                                            size: 100, // Slightly smaller for side position
-                                            triSpot: true,
-                                            compoundScoring: _compoundScoring,
-                                            colorblindMode: accessibility.colorblindMode,
-                                          ),
-                                        )
-                                      : RepaintBoundary(
-                                          child: FixedZoomWindow(
-                                            targetX: pending.x,
-                                            targetY: pending.y,
-                                            currentZoomLevel: _zoomController.value.getMaxScaleOnAxis(),
-                                            relativeZoom: 2.0,
-                                            size: 120,
-                                            triSpot: (provider.roundType?.faceCount ?? 1) == 3,
-                                            compoundScoring: _compoundScoring,
-                                            colorblindMode: accessibility.colorblindMode,
-                                          ),
-                                        ),
+                                  top: !arrowInUpperHalf ? groupCentreHeight + AppSpacing.md : null,
+                                  bottom: arrowInUpperHalf ? AppSpacing.md : null,
+                                  left: 0,
+                                  right: 0,
+                                  child: Center(
+                                    child: RepaintBoundary(
+                                      child: FixedZoomWindow(
+                                        targetX: pending.x,
+                                        targetY: pending.y,
+                                        currentZoomLevel: _zoomController.value.getMaxScaleOnAxis(),
+                                        relativeZoom: 2.0,
+                                        size: 120,
+                                        triSpot: (provider.roundType?.faceCount ?? 1) == 3,
+                                        compoundScoring: _compoundScoring,
+                                        colorblindMode: accessibility.colorblindMode,
+                                      ),
+                                    ),
+                                  ),
                                 );
                               },
                             );
@@ -1238,7 +1251,7 @@ class _PlottingScreenState extends State<PlottingScreen>
                       if (supportsTripleSpot && _useTripleSpotView)
                         Positioned(
                           left: AppSpacing.md,
-                          top: 100, // Below the group centre widget
+                          top: 126, // Below GroupCentreWidget (80px target + ~30px labels + 16px padding)
                           child: FaceLayoutToggle(
                             currentLayout: _useCombinedView
                                 ? 'combined'
@@ -1267,7 +1280,7 @@ class _PlottingScreenState extends State<PlottingScreen>
                       if (supportsTripleSpot && _singleFaceTracking && !_useTripleSpotView)
                         Positioned(
                           left: AppSpacing.md,
-                          top: 100,
+                          top: 126, // Below GroupCentreWidget (80px target + ~30px labels + 16px padding)
                           child: FaceIndicatorSidebar(
                             currentFace: _selectedFaceIndex,
                             arrowCounts: [
