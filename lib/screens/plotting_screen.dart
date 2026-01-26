@@ -708,14 +708,15 @@ class _PlottingScreenState extends State<PlottingScreen>
     }
   }
 
-  /// Show dialog to select face shooting order
+  /// Show dialog to select face shooting order for single view mode
+  /// Single view = shooting triple spot but plotting on one target
   Future<String?> _showFaceOrderDialog() async {
     return showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surfaceDark,
         title: Text(
-          'SHOOTING ORDER',
+          'SINGLE VIEW',
           style: TextStyle(
             fontFamily: AppFonts.pixel,
             fontSize: 16,
@@ -728,25 +729,34 @@ class _PlottingScreenState extends State<PlottingScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'What order do you shoot?',
+              'Shooting triple spot but plotting on one target?',
               style: TextStyle(
                 fontFamily: AppFonts.body,
                 fontSize: 14,
                 color: AppColors.textPrimary,
               ),
             ),
+            const SizedBox(height: 8),
+            Text(
+              'Select your shooting order:',
+              style: TextStyle(
+                fontFamily: AppFonts.body,
+                fontSize: 12,
+                color: AppColors.textMuted,
+              ),
+            ),
             const SizedBox(height: 16),
             _FaceSetupOption(
-              title: 'Top \u2192 Middle \u2192 Bottom',
-              subtitle: '1 \u2192 2 \u2192 3',
+              title: 'Face 1 \u2192 2 \u2192 3',
+              subtitle: 'Top to bottom',
               icon: Icons.arrow_downward,
               onTap: () => Navigator.pop(ctx, 'column'),
             ),
             const SizedBox(height: 8),
             _FaceSetupOption(
-              title: 'Top \u2192 Bottom \u2192 Middle',
-              subtitle: '1 \u2192 3 \u2192 2',
-              icon: Icons.swap_vert,
+              title: 'Face 1 \u2192 3 \u2192 2',
+              subtitle: 'Triangle pattern',
+              icon: Icons.change_history,
               onTap: () => Navigator.pop(ctx, 'triangular'),
             ),
           ],
@@ -1225,6 +1235,7 @@ class _PlottingScreenState extends State<PlottingScreen>
                                 arrows: allArrows,
                                 label: 'This Round',
                                 size: 80,
+                                minZoom: 1.2, // Lower minZoom to see full spread
                                 confidenceMultiplier: _confidenceMultiplier,
                                 showRingNotation: _showRingNotation,
                               );
@@ -1233,9 +1244,9 @@ class _PlottingScreenState extends State<PlottingScreen>
                         ),
                       ),
 
-                      // Face indicator sidebar (when using single face tracking mode)
-                      // Shows which face is currently active for arrow assignment
-                      if (supportsTripleSpot && _singleFaceTracking && !_useTripleSpotView)
+                      // Face indicator sidebar (single mode - always tracks faces)
+                      // Shows which face (1, 2, 3) is currently active for arrow assignment
+                      if (supportsTripleSpot && !_useTripleSpotView)
                         Positioned(
                           left: AppSpacing.md,
                           top: 100,
@@ -1252,7 +1263,7 @@ class _PlottingScreenState extends State<PlottingScreen>
                         ),
 
                       // Face layout toggle (bottom left, above scorecard)
-                      // Quick switch between single/triple/triangular/combined views
+                      // Quick switch between single (1 target) / triple (3 targets)
                       if (supportsTripleSpot)
                         Positioned(
                           bottom: AppSpacing.md,
@@ -1260,25 +1271,23 @@ class _PlottingScreenState extends State<PlottingScreen>
                           child: FaceLayoutToggle(
                             currentLayout: !_useTripleSpotView
                                 ? 'single'
-                                : (_useCombinedView
-                                    ? 'combined'
-                                    : (_faceLayout == FaceLayout.triangular ? 'triangular' : 'vertical')),
+                                : (_faceLayout == FaceLayout.triangular ? 'triangular' : 'vertical'),
                             triangularSupported: supportsTriangular,
-                            onLayoutChanged: (layout) {
+                            onLayoutChanged: (layout) async {
                               if (layout == 'single') {
-                                // Show face setup dialog to ask about tracking
-                                _showFaceSetupDialog();
-                              } else if (layout == 'combined') {
-                                _setTripleSpotView(true);
-                                _setCombinedView(true);
+                                // Ask for shooting order, then switch to single view
+                                final order = await _showFaceOrderDialog();
+                                if (order != null) {
+                                  await _setAutoAdvanceOrder(order);
+                                  await _setSingleFaceTracking(true);
+                                  await _setTripleSpotView(false);
+                                }
                               } else if (layout == 'triangular') {
                                 _setTripleSpotView(true);
-                                _setCombinedView(false);
                                 _setFaceLayout(FaceLayout.triangular);
                               } else {
                                 // vertical
                                 _setTripleSpotView(true);
-                                _setCombinedView(false);
                                 _setFaceLayout(FaceLayout.verticalTriple);
                               }
                             },
