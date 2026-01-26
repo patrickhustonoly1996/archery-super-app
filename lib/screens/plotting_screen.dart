@@ -118,7 +118,8 @@ class _PlottingScreenState extends State<PlottingScreen>
   int _selectedFaceIndex = 0;
   // Triple spot auto-advance settings (enabled by default)
   bool _autoAdvanceEnabled = true;
-  String _autoAdvanceOrder = 'column'; // 'column' or 'triangular'
+  // Order format: "0,1,2" (custom) or legacy "column"/"triangular"
+  String _autoAdvanceOrder = '0,1,2';
   // Hide scores mode (for sensitive athletes)
   bool _hideScores = false;
   // Scorecard expanded state
@@ -520,7 +521,7 @@ class _PlottingScreenState extends State<PlottingScreen>
         _confidenceMultiplier = confidence;
         _showRingNotation = ringNotation;
         _autoAdvanceEnabled = autoAdvance;
-        _autoAdvanceOrder = advanceOrder ?? 'column';
+        _autoAdvanceOrder = advanceOrder ?? '0,1,2';
         _hideScores = hideScores;
         _timerEnabled = timerEnabled;
         _timerDuration = timerDuration;
@@ -579,6 +580,27 @@ class _PlottingScreenState extends State<PlottingScreen>
     final db = context.read<AppDatabase>();
     await db.setPreference(kTripleSpotOrderPref, value);
     setState(() => _autoAdvanceOrder = value);
+  }
+
+  /// Get the next face index based on the shooting order
+  /// Handles both new format ("0,1,2") and legacy ("column"/"triangular")
+  int _getNextFace(int currentFace) {
+    // Parse order - handle legacy formats
+    List<int> order;
+    if (_autoAdvanceOrder == 'column') {
+      order = [0, 1, 2];
+    } else if (_autoAdvanceOrder == 'triangular') {
+      order = [0, 2, 1];
+    } else if (_autoAdvanceOrder.contains(',')) {
+      order = _autoAdvanceOrder.split(',').map(int.parse).toList();
+    } else {
+      order = [0, 1, 2]; // Default fallback
+    }
+
+    // Find current position in order and return next
+    final currentPos = order.indexOf(currentFace);
+    if (currentPos == -1) return 0; // Not found, reset to first
+    return order[(currentPos + 1) % order.length];
   }
 
   Future<void> _toggleHideScores() async {
@@ -708,59 +730,11 @@ class _PlottingScreenState extends State<PlottingScreen>
     }
   }
 
-  /// Show dialog to select face shooting order
+  /// Show dialog to select face shooting order by tapping targets
   Future<String?> _showFaceOrderDialog() async {
     return showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surfaceDark,
-        title: Text(
-          'SHOOTING ORDER',
-          style: TextStyle(
-            fontFamily: AppFonts.pixel,
-            fontSize: 16,
-            color: AppColors.gold,
-            letterSpacing: 2,
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'What order do you shoot?',
-              style: TextStyle(
-                fontFamily: AppFonts.body,
-                fontSize: 14,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _FaceSetupOption(
-              title: 'Top \u2192 Middle \u2192 Bottom',
-              subtitle: '1 \u2192 2 \u2192 3',
-              icon: Icons.arrow_downward,
-              onTap: () => Navigator.pop(ctx, 'column'),
-            ),
-            const SizedBox(height: 8),
-            _FaceSetupOption(
-              title: 'Top \u2192 Bottom \u2192 Middle',
-              subtitle: '1 \u2192 3 \u2192 2',
-              icon: Icons.swap_vert,
-              onTap: () => Navigator.pop(ctx, 'triangular'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.textMuted),
-            ),
-          ),
-        ],
-      ),
+      builder: (ctx) => const _ShootingOrderSelector(),
     );
   }
 
@@ -869,11 +843,14 @@ class _PlottingScreenState extends State<PlottingScreen>
         final isIndoor = provider.roundType?.isIndoor ?? false;
         final faceCount = provider.roundType?.faceCount ?? 1;
         final faceSize = provider.roundType?.faceSize ?? 122;
-        // Rounds with faceCount == 3 always support triple spot
+        // Barebow, longbow, and traditional typically shoot full single faces
+        final bowType = provider.selectedBow?.bowType ?? '';
+        final isNonSightedBow = bowType == 'barebow' || bowType == 'longbow' || bowType == 'traditional';
+        // Rounds with faceCount == 3 always support triple spot (unless barebow/longbow)
         // Indoor rounds with 60cm or smaller faces can also use triple spot
-        final supportsTripleSpot = isIndoor && (faceCount == 3 || faceSize <= 60);
+        final supportsTripleSpot = !isNonSightedBow && isIndoor && (faceCount == 3 || faceSize <= 60);
         // Triangular layout only for WA 18m style (already has faceCount == 3)
-        final supportsTriangular = isIndoor && faceCount == 3;
+        final supportsTriangular = !isNonSightedBow && isIndoor && faceCount == 3;
 
         return Scaffold(
           appBar: AppBar(
@@ -1103,14 +1080,7 @@ class _PlottingScreenState extends State<PlottingScreen>
                                         // Auto-advance to next face when tracking enabled
                                         if (_singleFaceTracking && _autoAdvanceEnabled) {
                                           setState(() {
-                                            if (_autoAdvanceOrder == 'triangular') {
-                                              // 0→2, 1→0, 2→1
-                                              const order = [2, 0, 1];
-                                              _selectedFaceIndex = order[_selectedFaceIndex];
-                                            } else {
-                                              // Column: 0→1→2→0
-                                              _selectedFaceIndex = (_selectedFaceIndex + 1) % 3;
-                                            }
+                                            _selectedFaceIndex = _getNextFace(_selectedFaceIndex);
                                           });
                                         }
                                       },
@@ -1225,6 +1195,7 @@ class _PlottingScreenState extends State<PlottingScreen>
                                 arrows: allArrows,
                                 label: 'This Round',
                                 size: 80,
+                                minZoom: 1.2, // Lower minZoom to see full spread
                                 confidenceMultiplier: _confidenceMultiplier,
                                 showRingNotation: _showRingNotation,
                               );
@@ -1233,38 +1204,9 @@ class _PlottingScreenState extends State<PlottingScreen>
                         ),
                       ),
 
-                      // Face layout toggle buttons (left side)
-                      // Shows view mode options when triple spot is supported
-                      if (supportsTripleSpot && _useTripleSpotView)
-                        Positioned(
-                          left: AppSpacing.md,
-                          top: 100, // Below the group centre widget
-                          child: FaceLayoutToggle(
-                            currentLayout: _useCombinedView
-                                ? 'combined'
-                                : (_faceLayout == FaceLayout.triangular ? 'triangular' : 'vertical'),
-                            triangularSupported: supportsTriangular,
-                            onLayoutChanged: (layout) {
-                              if (layout == 'combined') {
-                                _setCombinedView(true);
-                              } else if (layout == 'triangular') {
-                                _setCombinedView(false);
-                                _setFaceLayout(FaceLayout.triangular);
-                              } else if (layout == 'single') {
-                                // Show face setup dialog to ask about tracking
-                                _showFaceSetupDialog();
-                              } else {
-                                // vertical
-                                _setCombinedView(false);
-                                _setFaceLayout(FaceLayout.verticalTriple);
-                              }
-                            },
-                          ),
-                        ),
-
-                      // Face indicator sidebar (when using single face tracking mode)
-                      // Shows which face is currently active for arrow assignment
-                      if (supportsTripleSpot && _singleFaceTracking && !_useTripleSpotView)
+                      // Face indicator sidebar (single mode - always tracks faces)
+                      // Shows which face (1, 2, 3) is currently active
+                      if (supportsTripleSpot && !_useTripleSpotView)
                         Positioned(
                           left: AppSpacing.md,
                           top: 100,
@@ -1280,15 +1222,38 @@ class _PlottingScreenState extends State<PlottingScreen>
                           ),
                         ),
 
-                      // Quick toggle for triple spot view mode (legacy bottom-left position)
-                      // Kept for easy access - switches between stacked and combined views
-                      if (supportsTripleSpot && _useTripleSpotView)
+                      // Face layout toggle (bottom left, above scorecard)
+                      // Single = 1 target with face tracking
+                      // Vertical = 3 targets stacked
+                      // Triangle = 3 targets in △
+                      if (supportsTripleSpot)
                         Positioned(
                           bottom: AppSpacing.md,
                           left: AppSpacing.md,
-                          child: _TripleSpotViewToggle(
-                            isCombined: _useCombinedView,
-                            onToggle: () => _setCombinedView(!_useCombinedView),
+                          child: FaceLayoutToggle(
+                            currentLayout: !_useTripleSpotView
+                                ? 'single'
+                                : (_faceLayout == FaceLayout.triangular ? 'triangular' : 'vertical'),
+                            triangularSupported: supportsTriangular,
+                            onLayoutChanged: (layout) async {
+                              // Ask for shooting order, then apply layout
+                              final order = await _showFaceOrderDialog();
+                              if (order == null) return; // Cancelled
+
+                              await _setAutoAdvanceOrder(order);
+
+                              if (layout == 'single') {
+                                await _setSingleFaceTracking(true);
+                                await _setTripleSpotView(false);
+                              } else if (layout == 'triangular') {
+                                _setTripleSpotView(true);
+                                _setFaceLayout(FaceLayout.triangular);
+                              } else {
+                                // vertical
+                                _setTripleSpotView(true);
+                                _setFaceLayout(FaceLayout.verticalTriple);
+                              }
+                            },
                           ),
                         ),
 
@@ -2290,4 +2255,210 @@ class _FaceSetupOption extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Dialog for selecting shooting order by tapping 3 targets
+class _ShootingOrderSelector extends StatefulWidget {
+  const _ShootingOrderSelector();
+
+  @override
+  State<_ShootingOrderSelector> createState() => _ShootingOrderSelectorState();
+}
+
+class _ShootingOrderSelectorState extends State<_ShootingOrderSelector> {
+  // Order of face selection (0=top, 1=middle, 2=bottom)
+  // Value is the tap order (1st, 2nd, 3rd) or null if not yet tapped
+  final List<int?> _tapOrder = [null, null, null];
+  int _nextTapNumber = 1;
+
+  void _onFaceTapped(int faceIndex) {
+    if (_tapOrder[faceIndex] != null) return; // Already tapped
+
+    setState(() {
+      _tapOrder[faceIndex] = _nextTapNumber;
+      _nextTapNumber++;
+    });
+
+    // Auto-confirm when all 3 selected
+    if (_nextTapNumber > 3) {
+      // Convert tap order to face sequence: find which face was tapped 1st, 2nd, 3rd
+      final order = <int>[];
+      for (var tap = 1; tap <= 3; tap++) {
+        order.add(_tapOrder.indexOf(tap));
+      }
+      // Return as comma-separated string (e.g., "0,1,2" or "0,2,1")
+      Navigator.pop(context, order.join(','));
+    }
+  }
+
+  void _reset() {
+    setState(() {
+      _tapOrder[0] = null;
+      _tapOrder[1] = null;
+      _tapOrder[2] = null;
+      _nextTapNumber = 1;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppColors.surfaceDark,
+      title: Text(
+        'TAP IN ORDER',
+        style: TextStyle(
+          fontFamily: AppFonts.pixel,
+          fontSize: 16,
+          color: AppColors.gold,
+          letterSpacing: 2,
+        ),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Tap the faces in the order you shoot them',
+            style: TextStyle(
+              fontFamily: AppFonts.body,
+              fontSize: 13,
+              color: AppColors.textMuted,
+            ),
+          ),
+          const SizedBox(height: 20),
+          // 3 mini targets stacked vertically
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Column(
+                children: [
+                  _buildMiniTarget(0, 'Top'),
+                  const SizedBox(height: 8),
+                  _buildMiniTarget(1, 'Middle'),
+                  const SizedBox(height: 8),
+                  _buildMiniTarget(2, 'Bottom'),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+      actions: [
+        if (_nextTapNumber > 1)
+          TextButton(
+            onPressed: _reset,
+            child: Text(
+              'Reset',
+              style: TextStyle(color: AppColors.textMuted),
+            ),
+          ),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            'Cancel',
+            style: TextStyle(color: AppColors.textMuted),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMiniTarget(int faceIndex, String label) {
+    final tapNumber = _tapOrder[faceIndex];
+    final isSelected = tapNumber != null;
+
+    return GestureDetector(
+      onTap: () => _onFaceTapped(faceIndex),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Mini target face
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: isSelected ? AppColors.gold : AppColors.surfaceLight,
+                width: isSelected ? 2 : 1,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(3),
+              child: CustomPaint(
+                size: const Size(60, 60),
+                painter: _MiniTargetPainter(),
+              ),
+            ),
+          ),
+          // Tap order number overlay
+          if (isSelected)
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: AppColors.gold,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.surfaceDark, width: 2),
+              ),
+              child: Center(
+                child: Text(
+                  '$tapNumber',
+                  style: TextStyle(
+                    fontFamily: AppFonts.pixel,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.surfaceDark,
+                  ),
+                ),
+              ),
+            ),
+          // Label below
+          Positioned(
+            bottom: -2,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceDark,
+                borderRadius: BorderRadius.circular(2),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  fontSize: 9,
+                  color: isSelected ? AppColors.gold : AppColors.textMuted,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Simple mini target painter for the order selector
+class _MiniTargetPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+
+    // Draw simplified rings
+    final rings = [
+      (1.0, AppColors.ring5), // Blue outer
+      (0.6, AppColors.ring7), // Red
+      (0.3, AppColors.ring9), // Gold center
+    ];
+
+    for (final ring in rings) {
+      final paint = Paint()
+        ..color = ring.$2
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(center, ring.$1 * radius, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

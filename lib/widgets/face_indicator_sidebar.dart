@@ -179,10 +179,13 @@ class _MiniTargetPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-/// Compact face layout toggle buttons for the left side of the plotting screen
+/// Compact face layout toggle buttons for the plotting screen
+/// Single = 1 target with face tracking sidebar
+/// Vertical = 3 targets stacked
+/// Triangular = 3 targets in triangle (WA 18m only)
 class FaceLayoutToggle extends StatelessWidget {
-  /// Currently selected layout
-  final String currentLayout; // 'single', 'vertical', 'triangular', 'combined'
+  /// Currently selected layout: 'single', 'vertical', 'triangular'
+  final String currentLayout;
   /// Whether triangular layout is supported (WA 18m only)
   final bool triangularSupported;
   /// Callback when layout is changed
@@ -207,39 +210,31 @@ class FaceLayoutToggle extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Single face button (exits triple spot mode)
+          // Single face (1 target with face tracking)
           _buildLayoutButton(
             layout: 'single',
             icon: Icons.crop_square,
             label: '1',
-            tooltip: 'Single face view',
+            tooltip: 'Single target (track faces via sidebar)',
           ),
           const SizedBox(height: 4),
-          // Vertical triple button
+          // Vertical triple (3 targets stacked)
           _buildLayoutButton(
             layout: 'vertical',
             icon: Icons.view_agenda_outlined,
-            label: null,
-            tooltip: 'Vertical triple spot',
+            label: '3',
+            tooltip: 'Triple spot (3 targets)',
           ),
-          // Triangular button (only if supported)
+          // Triangular button (only if supported - WA 18m)
           if (triangularSupported) ...[
             const SizedBox(height: 4),
             _buildLayoutButton(
               layout: 'triangular',
               icon: Icons.change_history,
               label: null,
-              tooltip: 'Triangular layout',
+              tooltip: 'Triangle layout (WA 18m)',
             ),
           ],
-          const SizedBox(height: 4),
-          // Combined view button
-          _buildLayoutButton(
-            layout: 'combined',
-            icon: Icons.adjust,
-            label: null,
-            tooltip: 'Combined view (all arrows on one face)',
-          ),
         ],
       ),
     );
@@ -301,3 +296,4 @@ class FaceLayoutToggle extends StatelessWidget {
     );
   }
 }
+
