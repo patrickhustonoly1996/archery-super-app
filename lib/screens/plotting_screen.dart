@@ -206,7 +206,8 @@ class _PlottingScreenState extends State<PlottingScreen>
     _cancelAutoCommitTimer();
 
     await provider.commitEnd();
-    _resetZoom();
+    // Note: Zoom is intentionally NOT reset here so users can stay zoomed
+    // for precision plotting across multiple ends
 
     // Show break checkpoint if we just crossed a boundary (distance change or halfway)
     if (mounted && provider.isAtBreakCheckpoint) {

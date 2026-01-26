@@ -584,26 +584,17 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
     return _lineCutterThresholdMm / radiusMm;
   }
 
-  /// Convert a gesture position to widget-local coordinates, accounting for any
-  /// InteractiveViewer transformation (zoom/pan).
+  /// Convert a gesture position to widget-local coordinates.
+  ///
+  /// Note: When inside an InteractiveViewer, Flutter's hit testing system
+  /// already transforms coordinates through the Transform widget. The
+  /// event.localPosition we receive from Listener is already in widget-local
+  /// coordinate space, so no additional transformation is needed.
   Offset _gestureToWidgetLocal(Offset gesturePosition) {
-    final controller = widget.transformController;
-    if (controller == null) {
-      return gesturePosition;
-    }
-
-    // The gesture position is in the transformed (zoomed) viewport space.
-    // We need to convert it back to the widget's original coordinate space.
-    // InteractiveViewer uses a Matrix4 transformation, so we invert it.
-    final matrix = controller.value;
-    final inverseMatrix = Matrix4.tryInvert(matrix);
-    if (inverseMatrix == null) {
-      return gesturePosition;
-    }
-
-    // Transform the point from viewport space to widget space
-    final transformed = MatrixUtils.transformPoint(inverseMatrix, gesturePosition);
-    return transformed;
+    // Flutter's Transform (used by InteractiveViewer) handles coordinate
+    // transformation during hit testing. The localPosition from pointer
+    // events is already in widget space - no inverse transform needed.
+    return gesturePosition;
   }
 
   /// Convert widget-space pixel position to normalized coordinates (-1 to +1)
