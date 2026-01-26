@@ -102,6 +102,14 @@ class BowSpecifications {
   // === NOTES ===
   final String? notes;
 
+  // === TUNING PHOTOS ===
+  final String? buttonPositionPhotoPath;
+  final String? centreShotPhotoPath;
+  final String? clickerPositionPhotoPath;
+  final String? restPositionPhotoPath;
+  final String? weightsSetupPhotoPath;
+  final String? vBarSetupPhotoPath;
+
   BowSpecifications({
     this.braceHeight,
     this.braceHeightUnit = BraceHeightUnit.millimeters,
@@ -132,6 +140,12 @@ class BowSpecifications {
     this.arrowSpine,
     this.arrowLength,
     this.notes,
+    this.buttonPositionPhotoPath,
+    this.centreShotPhotoPath,
+    this.clickerPositionPhotoPath,
+    this.restPositionPhotoPath,
+    this.weightsSetupPhotoPath,
+    this.vBarSetupPhotoPath,
   });
 
   factory BowSpecifications.fromJson(String? jsonString) {
@@ -187,6 +201,12 @@ class BowSpecifications {
       arrowSpine: base.arrowSpine,
       arrowLength: base.arrowLength,
       notes: base.notes,
+      buttonPositionPhotoPath: base.buttonPositionPhotoPath,
+      centreShotPhotoPath: base.centreShotPhotoPath,
+      clickerPositionPhotoPath: base.clickerPositionPhotoPath,
+      restPositionPhotoPath: base.restPositionPhotoPath,
+      weightsSetupPhotoPath: base.weightsSetupPhotoPath,
+      vBarSetupPhotoPath: base.vBarSetupPhotoPath,
     );
   }
 
@@ -222,6 +242,12 @@ class BowSpecifications {
       arrowSpine: map['arrowSpine'] as String?,
       arrowLength: _parseDouble(map['arrowLength']),
       notes: map['notes'] as String?,
+      buttonPositionPhotoPath: map['buttonPositionPhotoPath'] as String?,
+      centreShotPhotoPath: map['centreShotPhotoPath'] as String?,
+      clickerPositionPhotoPath: map['clickerPositionPhotoPath'] as String?,
+      restPositionPhotoPath: map['restPositionPhotoPath'] as String?,
+      weightsSetupPhotoPath: map['weightsSetupPhotoPath'] as String?,
+      vBarSetupPhotoPath: map['vBarSetupPhotoPath'] as String?,
     );
   }
 
@@ -272,6 +298,12 @@ class BowSpecifications {
       if (arrowSpine != null) 'arrowSpine': arrowSpine,
       if (arrowLength != null) 'arrowLength': arrowLength,
       if (notes != null) 'notes': notes,
+      if (buttonPositionPhotoPath != null) 'buttonPositionPhotoPath': buttonPositionPhotoPath,
+      if (centreShotPhotoPath != null) 'centreShotPhotoPath': centreShotPhotoPath,
+      if (clickerPositionPhotoPath != null) 'clickerPositionPhotoPath': clickerPositionPhotoPath,
+      if (restPositionPhotoPath != null) 'restPositionPhotoPath': restPositionPhotoPath,
+      if (weightsSetupPhotoPath != null) 'weightsSetupPhotoPath': weightsSetupPhotoPath,
+      if (vBarSetupPhotoPath != null) 'vBarSetupPhotoPath': vBarSetupPhotoPath,
     };
   }
 
@@ -311,6 +343,12 @@ class BowSpecifications {
     String? arrowSpine,
     double? arrowLength,
     String? notes,
+    String? buttonPositionPhotoPath,
+    String? centreShotPhotoPath,
+    String? clickerPositionPhotoPath,
+    String? restPositionPhotoPath,
+    String? weightsSetupPhotoPath,
+    String? vBarSetupPhotoPath,
     bool clearBraceHeight = false,
     bool clearNockingPoint = false,
     bool clearTillerTop = false,
@@ -346,6 +384,12 @@ class BowSpecifications {
       arrowSpine: arrowSpine ?? this.arrowSpine,
       arrowLength: arrowLength ?? this.arrowLength,
       notes: notes ?? this.notes,
+      buttonPositionPhotoPath: buttonPositionPhotoPath ?? this.buttonPositionPhotoPath,
+      centreShotPhotoPath: centreShotPhotoPath ?? this.centreShotPhotoPath,
+      clickerPositionPhotoPath: clickerPositionPhotoPath ?? this.clickerPositionPhotoPath,
+      restPositionPhotoPath: restPositionPhotoPath ?? this.restPositionPhotoPath,
+      weightsSetupPhotoPath: weightsSetupPhotoPath ?? this.weightsSetupPhotoPath,
+      vBarSetupPhotoPath: vBarSetupPhotoPath ?? this.vBarSetupPhotoPath,
     );
   }
 

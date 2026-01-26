@@ -7,6 +7,9 @@ import '../providers/skills_provider.dart';
 import '../db/database.dart';
 import '../mixins/form_validation_mixin.dart';
 import '../widgets/loading_button.dart';
+import '../widgets/photo_hint_button.dart';
+import '../models/bow_specifications.dart';
+import '../utils/unique_id.dart';
 
 class BowFormScreen extends StatefulWidget {
   final Bow? bow;
@@ -39,12 +42,24 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
   late TextEditingController _buttonTensionController;
   late TextEditingController _clickerPositionController;
 
+  // Photo paths for tuning positions
+  String? _buttonPositionPhotoPath;
+  String? _centreShotPhotoPath;
+  String? _clickerPositionPhotoPath;
+  String? _restPositionPhotoPath;
+
+  // Temporary bow ID for new bows (used for photo storage)
+  late String _bowId;
+
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     final bow = widget.bow;
+
+    // Set bow ID for photo storage
+    _bowId = bow?.id ?? UniqueId.withPrefix('bow');
 
     _nameController = TextEditingController(text: bow?.name ?? '');
     _bowType = bow?.bowType ?? 'recurve';
@@ -79,6 +94,15 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
     _clickerPositionController = TextEditingController(
       text: bow?.clickerPosition?.toStringAsFixed(1) ?? '',
     );
+
+    // Load photo paths from settings if editing
+    if (bow != null) {
+      final specs = BowSpecifications.fromJson(bow.settings);
+      _buttonPositionPhotoPath = specs.buttonPositionPhotoPath;
+      _centreShotPhotoPath = specs.centreShotPhotoPath;
+      _clickerPositionPhotoPath = specs.clickerPositionPhotoPath;
+      _restPositionPhotoPath = specs.restPositionPhotoPath;
+    }
   }
 
   @override
@@ -125,12 +149,25 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
       final skillsProvider = context.read<SkillsProvider>();
       final bowName = _nameController.text.trim();
 
+      // Build settings JSON with photo paths
+      final existingSpecs = widget.bow != null
+          ? BowSpecifications.fromJson(widget.bow!.settings)
+          : BowSpecifications();
+      final updatedSpecs = existingSpecs.copyWith(
+        buttonPositionPhotoPath: _buttonPositionPhotoPath,
+        centreShotPhotoPath: _centreShotPhotoPath,
+        clickerPositionPhotoPath: _clickerPositionPhotoPath,
+        restPositionPhotoPath: _restPositionPhotoPath,
+      );
+      final settings = updatedSpecs.toJson();
+
       if (widget.bow == null) {
         // Create new bow
         await provider.createBow(
           name: bowName,
           bowType: _bowType,
           setAsDefault: _setAsDefault,
+          settings: settings.isNotEmpty ? settings : null,
           riserModel: riserModel,
           limbModel: limbModel,
           poundage: poundage,
@@ -150,6 +187,7 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
           id: widget.bow!.id,
           name: bowName,
           bowType: _bowType,
+          settings: settings.isNotEmpty ? settings : null,
           riserModel: riserModel,
           limbModel: limbModel,
           poundage: poundage,
@@ -383,6 +421,7 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
             ),
             const SizedBox(height: AppSpacing.md),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: TextFormField(
@@ -398,6 +437,17 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
                     ],
                   ),
                 ),
+                const SizedBox(width: AppSpacing.sm),
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: PhotoHintButton(
+                    photoPath: _buttonPositionPhotoPath,
+                    bowId: _bowId,
+                    fieldName: 'buttonPosition',
+                    label: 'Button Position',
+                    onPhotoChanged: (path) => setState(() => _buttonPositionPhotoPath = path),
+                  ),
+                ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: TextFormField(
@@ -408,22 +458,85 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
                     ),
                   ),
                 ),
+                const SizedBox(width: AppSpacing.sm),
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: PhotoHintButton(
+                    photoPath: _centreShotPhotoPath,
+                    bowId: _bowId,
+                    fieldName: 'centreShot',
+                    label: 'Centre Shot',
+                    onPhotoChanged: (path) => setState(() => _centreShotPhotoPath = path),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: AppSpacing.md),
-            TextFormField(
-              controller: _clickerPositionController,
-              decoration: const InputDecoration(
-                labelText: 'Clicker Position',
-                hintText: '45',
-                suffixText: 'mm',
-                helperText: 'Distance from button center',
-              ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _clickerPositionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Clicker Position',
+                      hintText: '45',
+                      suffixText: 'mm',
+                      helperText: 'Distance from button center',
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: PhotoHintButton(
+                    photoPath: _clickerPositionPhotoPath,
+                    bowId: _bowId,
+                    fieldName: 'clickerPosition',
+                    label: 'Clicker Position',
+                    onPhotoChanged: (path) => setState(() => _clickerPositionPhotoPath = path),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Rest Position',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Photo only',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textMuted,
+                              fontSize: 11,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: PhotoHintButton(
+                    photoPath: _restPositionPhotoPath,
+                    bowId: _bowId,
+                    fieldName: 'restPosition',
+                    label: 'Rest Position',
+                    onPhotoChanged: (path) => setState(() => _restPositionPhotoPath = path),
+                  ),
+                ),
               ],
             ),
+
             const SizedBox(height: AppSpacing.xxl),
           ],
         ),
