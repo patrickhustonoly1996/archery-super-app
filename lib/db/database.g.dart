@@ -18735,6 +18735,18 @@ class $SkillLevelsTable extends SkillLevels
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _lastCelebratedLevelMeta = const VerificationMeta(
+    'lastCelebratedLevel',
+  );
+  @override
+  late final GeneratedColumn<int> lastCelebratedLevel = GeneratedColumn<int>(
+    'last_celebrated_level',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   static const VerificationMeta _lastLevelUpAtMeta = const VerificationMeta(
     'lastLevelUpAt',
   );
@@ -18778,6 +18790,7 @@ class $SkillLevelsTable extends SkillLevels
     description,
     currentLevel,
     currentXp,
+    lastCelebratedLevel,
     lastLevelUpAt,
     createdAt,
     updatedAt,
@@ -18831,6 +18844,15 @@ class $SkillLevelsTable extends SkillLevels
         currentXp.isAcceptableOrUnknown(data['current_xp']!, _currentXpMeta),
       );
     }
+    if (data.containsKey('last_celebrated_level')) {
+      context.handle(
+        _lastCelebratedLevelMeta,
+        lastCelebratedLevel.isAcceptableOrUnknown(
+          data['last_celebrated_level']!,
+          _lastCelebratedLevelMeta,
+        ),
+      );
+    }
     if (data.containsKey('last_level_up_at')) {
       context.handle(
         _lastLevelUpAtMeta,
@@ -18881,6 +18903,10 @@ class $SkillLevelsTable extends SkillLevels
         DriftSqlType.int,
         data['${effectivePrefix}current_xp'],
       )!,
+      lastCelebratedLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_celebrated_level'],
+      )!,
       lastLevelUpAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}last_level_up_at'],
@@ -18908,6 +18934,7 @@ class SkillLevel extends DataClass implements Insertable<SkillLevel> {
   final String? description;
   final int currentLevel;
   final int currentXp;
+  final int lastCelebratedLevel;
   final DateTime? lastLevelUpAt;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -18917,6 +18944,7 @@ class SkillLevel extends DataClass implements Insertable<SkillLevel> {
     this.description,
     required this.currentLevel,
     required this.currentXp,
+    required this.lastCelebratedLevel,
     this.lastLevelUpAt,
     required this.createdAt,
     required this.updatedAt,
@@ -18931,6 +18959,7 @@ class SkillLevel extends DataClass implements Insertable<SkillLevel> {
     }
     map['current_level'] = Variable<int>(currentLevel);
     map['current_xp'] = Variable<int>(currentXp);
+    map['last_celebrated_level'] = Variable<int>(lastCelebratedLevel);
     if (!nullToAbsent || lastLevelUpAt != null) {
       map['last_level_up_at'] = Variable<DateTime>(lastLevelUpAt);
     }
@@ -18948,6 +18977,7 @@ class SkillLevel extends DataClass implements Insertable<SkillLevel> {
           : Value(description),
       currentLevel: Value(currentLevel),
       currentXp: Value(currentXp),
+      lastCelebratedLevel: Value(lastCelebratedLevel),
       lastLevelUpAt: lastLevelUpAt == null && nullToAbsent
           ? const Value.absent()
           : Value(lastLevelUpAt),
@@ -18967,6 +18997,7 @@ class SkillLevel extends DataClass implements Insertable<SkillLevel> {
       description: serializer.fromJson<String?>(json['description']),
       currentLevel: serializer.fromJson<int>(json['currentLevel']),
       currentXp: serializer.fromJson<int>(json['currentXp']),
+      lastCelebratedLevel: serializer.fromJson<int>(json['lastCelebratedLevel']),
       lastLevelUpAt: serializer.fromJson<DateTime?>(json['lastLevelUpAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -18981,6 +19012,7 @@ class SkillLevel extends DataClass implements Insertable<SkillLevel> {
       'description': serializer.toJson<String?>(description),
       'currentLevel': serializer.toJson<int>(currentLevel),
       'currentXp': serializer.toJson<int>(currentXp),
+      'lastCelebratedLevel': serializer.toJson<int>(lastCelebratedLevel),
       'lastLevelUpAt': serializer.toJson<DateTime?>(lastLevelUpAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -18993,6 +19025,7 @@ class SkillLevel extends DataClass implements Insertable<SkillLevel> {
     Value<String?> description = const Value.absent(),
     int? currentLevel,
     int? currentXp,
+    int? lastCelebratedLevel,
     Value<DateTime?> lastLevelUpAt = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -19002,6 +19035,7 @@ class SkillLevel extends DataClass implements Insertable<SkillLevel> {
     description: description.present ? description.value : this.description,
     currentLevel: currentLevel ?? this.currentLevel,
     currentXp: currentXp ?? this.currentXp,
+    lastCelebratedLevel: lastCelebratedLevel ?? this.lastCelebratedLevel,
     lastLevelUpAt: lastLevelUpAt.present
         ? lastLevelUpAt.value
         : this.lastLevelUpAt,
@@ -19019,6 +19053,9 @@ class SkillLevel extends DataClass implements Insertable<SkillLevel> {
           ? data.currentLevel.value
           : this.currentLevel,
       currentXp: data.currentXp.present ? data.currentXp.value : this.currentXp,
+      lastCelebratedLevel: data.lastCelebratedLevel.present
+          ? data.lastCelebratedLevel.value
+          : this.lastCelebratedLevel,
       lastLevelUpAt: data.lastLevelUpAt.present
           ? data.lastLevelUpAt.value
           : this.lastLevelUpAt,
@@ -19035,6 +19072,7 @@ class SkillLevel extends DataClass implements Insertable<SkillLevel> {
           ..write('description: $description, ')
           ..write('currentLevel: $currentLevel, ')
           ..write('currentXp: $currentXp, ')
+          ..write('lastCelebratedLevel: $lastCelebratedLevel, ')
           ..write('lastLevelUpAt: $lastLevelUpAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -19049,6 +19087,7 @@ class SkillLevel extends DataClass implements Insertable<SkillLevel> {
     description,
     currentLevel,
     currentXp,
+    lastCelebratedLevel,
     lastLevelUpAt,
     createdAt,
     updatedAt,
@@ -19062,6 +19101,7 @@ class SkillLevel extends DataClass implements Insertable<SkillLevel> {
           other.description == this.description &&
           other.currentLevel == this.currentLevel &&
           other.currentXp == this.currentXp &&
+          other.lastCelebratedLevel == this.lastCelebratedLevel &&
           other.lastLevelUpAt == this.lastLevelUpAt &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -19073,6 +19113,7 @@ class SkillLevelsCompanion extends UpdateCompanion<SkillLevel> {
   final Value<String?> description;
   final Value<int> currentLevel;
   final Value<int> currentXp;
+  final Value<int> lastCelebratedLevel;
   final Value<DateTime?> lastLevelUpAt;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -19083,6 +19124,7 @@ class SkillLevelsCompanion extends UpdateCompanion<SkillLevel> {
     this.description = const Value.absent(),
     this.currentLevel = const Value.absent(),
     this.currentXp = const Value.absent(),
+    this.lastCelebratedLevel = const Value.absent(),
     this.lastLevelUpAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -19094,6 +19136,7 @@ class SkillLevelsCompanion extends UpdateCompanion<SkillLevel> {
     this.description = const Value.absent(),
     this.currentLevel = const Value.absent(),
     this.currentXp = const Value.absent(),
+    this.lastCelebratedLevel = const Value.absent(),
     this.lastLevelUpAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -19106,6 +19149,7 @@ class SkillLevelsCompanion extends UpdateCompanion<SkillLevel> {
     Expression<String>? description,
     Expression<int>? currentLevel,
     Expression<int>? currentXp,
+    Expression<int>? lastCelebratedLevel,
     Expression<DateTime>? lastLevelUpAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -19117,6 +19161,7 @@ class SkillLevelsCompanion extends UpdateCompanion<SkillLevel> {
       if (description != null) 'description': description,
       if (currentLevel != null) 'current_level': currentLevel,
       if (currentXp != null) 'current_xp': currentXp,
+      if (lastCelebratedLevel != null) 'last_celebrated_level': lastCelebratedLevel,
       if (lastLevelUpAt != null) 'last_level_up_at': lastLevelUpAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -19130,6 +19175,7 @@ class SkillLevelsCompanion extends UpdateCompanion<SkillLevel> {
     Value<String?>? description,
     Value<int>? currentLevel,
     Value<int>? currentXp,
+    Value<int>? lastCelebratedLevel,
     Value<DateTime?>? lastLevelUpAt,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -19141,6 +19187,7 @@ class SkillLevelsCompanion extends UpdateCompanion<SkillLevel> {
       description: description ?? this.description,
       currentLevel: currentLevel ?? this.currentLevel,
       currentXp: currentXp ?? this.currentXp,
+      lastCelebratedLevel: lastCelebratedLevel ?? this.lastCelebratedLevel,
       lastLevelUpAt: lastLevelUpAt ?? this.lastLevelUpAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -19166,6 +19213,9 @@ class SkillLevelsCompanion extends UpdateCompanion<SkillLevel> {
     if (currentXp.present) {
       map['current_xp'] = Variable<int>(currentXp.value);
     }
+    if (lastCelebratedLevel.present) {
+      map['last_celebrated_level'] = Variable<int>(lastCelebratedLevel.value);
+    }
     if (lastLevelUpAt.present) {
       map['last_level_up_at'] = Variable<DateTime>(lastLevelUpAt.value);
     }
@@ -19189,6 +19239,7 @@ class SkillLevelsCompanion extends UpdateCompanion<SkillLevel> {
           ..write('description: $description, ')
           ..write('currentLevel: $currentLevel, ')
           ..write('currentXp: $currentXp, ')
+          ..write('lastCelebratedLevel: $lastCelebratedLevel, ')
           ..write('lastLevelUpAt: $lastLevelUpAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
