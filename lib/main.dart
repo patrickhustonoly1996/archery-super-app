@@ -32,6 +32,7 @@ import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/sync_service.dart';
 import 'services/weather_service.dart';
+import 'config/app_secrets.dart';
 import 'widgets/splash_branding.dart';
 import 'widgets/level_up_celebration.dart';
 
@@ -80,7 +81,10 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
     // Initialize SyncService singleton with database reference
     SyncService().initialize(_database);
     // Initialize weather API for sightmark conditions
-    WeatherService.setApiKey('c7baa373bebb99801fa7b67dce88c171');
+    // Key passed via: --dart-define=WEATHER_API_KEY=your_key
+    if (AppSecrets.hasWeatherKey) {
+      WeatherService.setApiKey(AppSecrets.weatherApiKey);
+    }
   }
 
   @override
