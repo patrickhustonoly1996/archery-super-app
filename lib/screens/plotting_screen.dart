@@ -1234,27 +1234,32 @@ class _PlottingScreenState extends State<PlottingScreen>
                       ),
 
                       // Face layout toggle buttons (left side)
-                      // Shows view mode options when triple spot is supported
-                      if (supportsTripleSpot && _useTripleSpotView)
+                      // Always shows when triple spot is supported for quick switching
+                      if (supportsTripleSpot)
                         Positioned(
                           left: AppSpacing.md,
                           top: 100, // Below the group centre widget
                           child: FaceLayoutToggle(
-                            currentLayout: _useCombinedView
-                                ? 'combined'
-                                : (_faceLayout == FaceLayout.triangular ? 'triangular' : 'vertical'),
+                            currentLayout: !_useTripleSpotView
+                                ? 'single'
+                                : (_useCombinedView
+                                    ? 'combined'
+                                    : (_faceLayout == FaceLayout.triangular ? 'triangular' : 'vertical')),
                             triangularSupported: supportsTriangular,
                             onLayoutChanged: (layout) {
-                              if (layout == 'combined') {
-                                _setCombinedView(true);
-                              } else if (layout == 'triangular') {
-                                _setCombinedView(false);
-                                _setFaceLayout(FaceLayout.triangular);
-                              } else if (layout == 'single') {
+                              if (layout == 'single') {
                                 // Show face setup dialog to ask about tracking
                                 _showFaceSetupDialog();
+                              } else if (layout == 'combined') {
+                                _setTripleSpotView(true);
+                                _setCombinedView(true);
+                              } else if (layout == 'triangular') {
+                                _setTripleSpotView(true);
+                                _setCombinedView(false);
+                                _setFaceLayout(FaceLayout.triangular);
                               } else {
                                 // vertical
+                                _setTripleSpotView(true);
                                 _setCombinedView(false);
                                 _setFaceLayout(FaceLayout.verticalTriple);
                               }
@@ -1267,7 +1272,7 @@ class _PlottingScreenState extends State<PlottingScreen>
                       if (supportsTripleSpot && _singleFaceTracking && !_useTripleSpotView)
                         Positioned(
                           left: AppSpacing.md,
-                          top: 100,
+                          top: 200, // Below the face layout toggle
                           child: FaceIndicatorSidebar(
                             currentFace: _selectedFaceIndex,
                             arrowCounts: [
