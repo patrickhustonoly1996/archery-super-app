@@ -946,7 +946,7 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
                 ),
               ),
 
-            // Preview arrow marker at intended position
+            // Preview arrow marker at intended position - matches actual arrow marker exactly
             if (_isHolding && _arrowPosition != null)
               Positioned(
                 left: _arrowPosition!.dx - halfPreview,
@@ -956,8 +956,11 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
                   height: previewSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.gold.withValues(alpha: 0.8),
-                    border: Border.all(color: Colors.black, width: 1.5),
+                    color: Colors.black,
+                    border: Border.all(
+                      color: Colors.white,
+                      width: (previewSize * 0.15).clamp(0.5, 1.5),
+                    ),
                   ),
                 ),
               ),
