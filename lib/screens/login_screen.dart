@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../services/auth_service_base.dart';
 import '../theme/app_theme.dart';
 import '../widgets/asa_logo.dart';
 import '../widgets/loading_button.dart';
 import '../mixins/form_validation_mixin.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  /// Optional auth service for dependency injection (testing).
+  /// Defaults to the real [AuthService] if not provided.
+  final AuthServiceBase? authService;
+
+  const LoginScreen({super.key, this.authService});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -19,11 +24,17 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
   final _passwordController = TextEditingController();
   final _emailFocus = FocusNode();
   final _passwordFocus = FocusNode();
-  final _authService = AuthService();
+  late final AuthServiceBase _authService;
 
   bool _isLoading = false;
   bool _isSignUp = false; // false = sign in, true = create account
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _authService = widget.authService ?? AuthService();
+  }
 
   @override
   void dispose() {
@@ -57,6 +68,11 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
       // Navigation handled by AuthGate's StreamBuilder listening to auth state
       // No manual navigation needed - it would be redundant and could race
     } on FirebaseAuthException catch (e) {
+      setState(() {
+        _errorMessage = _getErrorMessage(e.code);
+      });
+    } on AuthException catch (e) {
+      // Mock auth service exceptions (for testing)
       setState(() {
         _errorMessage = _getErrorMessage(e.code);
       });
@@ -112,6 +128,10 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
         );
       }
     } on FirebaseAuthException catch (e) {
+      setState(() {
+        _errorMessage = _getErrorMessage(e.code);
+      });
+    } on AuthException catch (e) {
       setState(() {
         _errorMessage = _getErrorMessage(e.code);
       });
