@@ -75,16 +75,22 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
     // Check if competition
     final isCompetition = session.sessionType == 'competition';
 
-    // Award XP
-    await skillsProvider.awardSessionXp(
-      sessionId: session.id,
-      handicap: handicap,
-      arrowCount: arrowCount,
-      hasPlottedArrows: hasPlottedArrows,
-      isCompetition: isCompetition,
-      competitionScore: isCompetition ? sessionProvider.totalScore : null,
-      maxScore: roundType.maxScore,
-    );
+    // Award XP (wrapped in try-catch to prevent silent failures)
+    try {
+      await skillsProvider.awardSessionXp(
+        sessionId: session.id,
+        handicap: handicap,
+        arrowCount: arrowCount,
+        hasPlottedArrows: hasPlottedArrows,
+        isCompetition: isCompetition,
+        competitionScore: sessionProvider.totalScore, // Always pass score for PB tracking
+        maxScore: roundType.maxScore,
+        roundTypeId: roundType.id,
+        roundName: roundType.name,
+      );
+    } catch (e) {
+      debugPrint('Error awarding session XP: $e');
+    }
   }
 
   Future<void> _checkTopPercentile() async {

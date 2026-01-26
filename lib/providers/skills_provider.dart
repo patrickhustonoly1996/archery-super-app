@@ -44,6 +44,11 @@ class SkillsProvider extends ChangeNotifier {
   // Pending XP award events for badge celebration (significant awards only)
   final List<XpAwardEvent> _pendingXpAwards = [];
 
+  // Rate limiting for celebrations (prevent popup spam)
+  DateTime? _appOpenTime;
+  int _celebrationsThisWindow = 0;
+  DateTime? _windowStart;
+
   // Getters
   List<SkillLevel> get skills => _skills;
   int get totalLevel => _totalLevel;
@@ -133,6 +138,11 @@ class SkillsProvider extends ChangeNotifier {
     if (xpAmount <= 0) return false;
 
     try {
+      // Ensure skills are loaded before awarding XP
+      if (!_isLoaded) {
+        await loadSkills();
+      }
+
       // Get current state before award
       final skill = getSkill(skillId);
       if (skill == null) {
@@ -164,8 +174,8 @@ class SkillsProvider extends ChangeNotifier {
           lastLevelUpAt: DateTime.now(),
         );
 
-        // Queue level-up celebration
-        _pendingLevelUps.add(LevelUpEvent(
+        // Queue level-up celebration (rate limited)
+        _queueLevelUpCelebration(LevelUpEvent(
           skillId: skillId,
           skillName: skill.name,
           oldLevel: oldLevel,
@@ -204,10 +214,54 @@ class SkillsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Check if we can show another celebration (rate limiting)
+  /// - First 12 minutes: max 3 celebrations total
+  /// - After 12 minutes: max 3 per 12-minute window
+  bool _canShowCelebration() {
+    final now = DateTime.now();
+    _appOpenTime ??= now;
+
+    final appOpenDuration = now.difference(_appOpenTime!);
+
+    if (appOpenDuration.inMinutes < 12) {
+      // Short session: 3 total for entire app open
+      return _celebrationsThisWindow < 3;
+    } else {
+      // Extended session: 3 per 12-minute window
+      if (_windowStart == null || now.difference(_windowStart!).inMinutes >= 12) {
+        _windowStart = now;
+        _celebrationsThisWindow = 0;
+      }
+      return _celebrationsThisWindow < 3;
+    }
+  }
+
+  /// Record that a celebration was shown
+  void _recordCelebration() {
+    _celebrationsThisWindow++;
+  }
+
   /// Queue an XP award celebration (for significant awards)
+  /// Rate limited: max 3 per app open, or 3 per 12 minutes for extended sessions
   void queueXpAwardCelebration(XpAwardEvent event) {
+    if (!_canShowCelebration()) {
+      debugPrint('Celebration rate limited: ${event.reason}');
+      return;
+    }
+    _recordCelebration();
     _pendingXpAwards.add(event);
     notifyListeners();
+  }
+
+  /// Queue a level-up celebration (rate limited)
+  void _queueLevelUpCelebration(LevelUpEvent event) {
+    if (!_canShowCelebration()) {
+      debugPrint('Level-up celebration rate limited: ${event.skillName} -> ${event.newLevel}');
+      return;
+    }
+    _recordCelebration();
+    _pendingLevelUps.add(event);
+    notifyListeners(); // Critical: notify CelebrationListener
   }
 
   /// Clear the next pending XP award (after celebration is shown)
@@ -290,6 +344,65 @@ class SkillsProvider extends ChangeNotifier {
       return await _db.getXpInRange(skillId, startOfDay, now);
     } catch (e) {
       return 0;
+    }
+  }
+
+  /// Calculate training days this week and current streak
+  /// Returns (daysThisWeek, streakDays)
+  Future<(int, int)> _calculateTrainingStats() async {
+    try {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+
+      // Get sessions from last 60 days to calculate streak
+      final sessions = await _db.getSessionsByDateRange(
+        today.subtract(const Duration(days: 60)),
+        now,
+      );
+
+      if (sessions.isEmpty) return (0, 0);
+
+      // Get unique training days
+      final trainingDays = <DateTime>{};
+      for (final session in sessions) {
+        final day = DateTime(
+          session.startedAt.year,
+          session.startedAt.month,
+          session.startedAt.day,
+        );
+        trainingDays.add(day);
+      }
+
+      // Calculate days this week
+      final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+      final daysThisWeek = trainingDays
+          .where((d) => !d.isBefore(startOfWeek) && !d.isAfter(today))
+          .length;
+
+      // Calculate streak (consecutive days ending today or yesterday)
+      int streakDays = 0;
+      var checkDay = today;
+
+      // Allow streak to continue if trained today OR yesterday
+      if (!trainingDays.contains(today)) {
+        final yesterday = today.subtract(const Duration(days: 1));
+        if (trainingDays.contains(yesterday)) {
+          checkDay = yesterday;
+        } else {
+          return (daysThisWeek, 0); // No recent training
+        }
+      }
+
+      // Count consecutive days backwards
+      while (trainingDays.contains(checkDay)) {
+        streakDays++;
+        checkDay = checkDay.subtract(const Duration(days: 1));
+      }
+
+      return (daysThisWeek, streakDays);
+    } catch (e) {
+      debugPrint('Error calculating training stats: $e');
+      return (0, 0);
     }
   }
 
@@ -407,6 +520,15 @@ class SkillsProvider extends ChangeNotifier {
           achievementType: AchievementType.personalBest,
         ));
       }
+    }
+
+    // Award consistency XP (tracks training days and streaks)
+    final (daysThisWeek, streakDays) = await _calculateTrainingStats();
+    if (daysThisWeek > 0) {
+      await awardConsistencyXp(
+        daysThisWeek: daysThisWeek,
+        streakDays: streakDays,
+      );
     }
   }
 
