@@ -561,12 +561,17 @@ class InteractiveTargetFace extends StatefulWidget {
 class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   // Touch state - coordinates in WIDGET space (not transformed)
   Offset? _touchPosition;
-  Offset? _arrowPosition; // Where arrow will be placed (same as touch - no offset)
+  Offset? _arrowPosition; // Where arrow will be placed (offset from touch)
   bool _isHolding = false;
 
   // Track active pointers to detect pinch vs single-finger drag
   final Set<int> _activePointers = {};
   int? _primaryPointer; // The first finger that touched - used for plotting
+
+  // Finger offset constants (in widget pixels)
+  // Offset from touch point so user can see where arrow lands
+  static const double _holdOffsetX = 50.0; // Horizontal (sign flipped for lefties)
+  static const double _holdOffsetY = 50.0; // Vertical (always upward)
 
   // Line cutter threshold in mm - fixed at 1.5mm regardless of face size
   // Line cutter only activates on the OUTER edge (lower score side) of the line
@@ -609,10 +614,13 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
     return (normalizedX, normalizedY);
   }
 
-  /// Calculate arrow position - now lands exactly where you touch
-  /// (no offset, use pinch-to-zoom if finger blocks view)
+  /// Calculate arrow position with finger offset applied
   Offset _calculateArrowPosition(Offset touchPosition) {
-    return touchPosition;
+    final xOffset = widget.isLeftHanded ? _holdOffsetX : -_holdOffsetX;
+    return Offset(
+      touchPosition.dx + xOffset,
+      touchPosition.dy - _holdOffsetY,
+    );
   }
 
   /// Check if normalized position is on the OUTER edge of a ring boundary.
@@ -928,7 +936,17 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
               arrowSizeMultiplier: widget.arrowSizeMultiplier,
             ),
 
-            // Preview arrow marker at touch position
+            // Offset line from touch to arrow position
+            if (_isHolding && _touchPosition != null && _arrowPosition != null)
+              CustomPaint(
+                size: Size(widget.size, widget.size),
+                painter: _OffsetLinePainter(
+                  from: _touchPosition!,
+                  to: _arrowPosition!,
+                ),
+              ),
+
+            // Preview arrow marker at intended position
             if (_isHolding && _arrowPosition != null)
               Positioned(
                 left: _arrowPosition!.dx - halfPreview,
@@ -947,6 +965,28 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
         ),
       ),
     );
+  }
+}
+
+class _OffsetLinePainter extends CustomPainter {
+  final Offset from;
+  final Offset to;
+
+  _OffsetLinePainter({required this.from, required this.to});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.7)
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    canvas.drawLine(from, to, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _OffsetLinePainter oldDelegate) {
+    return from != oldDelegate.from || to != oldDelegate.to;
   }
 }
 
