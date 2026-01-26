@@ -297,12 +297,10 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
       return;
     }
 
-    // User wasn't logged in before - check Firebase (with short timeout)
+    // User wasn't logged in before - wait for Firebase to init
+    // No aggressive timeout - just wait for it to be ready
     try {
-      await firebaseInitFuture.timeout(
-        const Duration(milliseconds: 300), // Reduced from 500ms
-        onTimeout: () => throw TimeoutException('Firebase init timed out'),
-      );
+      await firebaseInitFuture;
       _firebaseReady = true;
       _cachedUser = FirebaseAuth.instance.currentUser;
 
@@ -313,8 +311,8 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
         _triggerBackgroundSync();
       }
     } catch (e) {
-      // Firebase slow/offline - that's fine, show login
-      debugPrint('Firebase init timed out: $e');
+      // Firebase init failed - that's fine, show login
+      debugPrint('Firebase init failed: $e');
       _firebaseReady = false;
     }
 
@@ -511,24 +509,22 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
     }
 
     // PHASE 4: New user or fresh login - use StreamBuilder for auth changes
-    if (_firebaseReady) {
-      return StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            // User just logged in
-            _persistLoginFlag();
-            _triggerBackgroundSync();
-            _homeScreenShown = true;
-            return const HomeScreen();
-          }
-          // Not logged in yet
-          return const LoginScreen();
-        },
-      );
-    }
-
-    // PHASE 5: Firebase not ready, no cached login - show login
-    return const LoginScreen();
+    // Always use StreamBuilder here, even if Firebase was slow to init at startup.
+    // The user might still sign in successfully (which proves Firebase is working),
+    // and we need to detect that auth state change to navigate to HomeScreen.
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          // User just logged in
+          _persistLoginFlag();
+          _triggerBackgroundSync();
+          _homeScreenShown = true;
+          return const HomeScreen();
+        }
+        // Not logged in yet
+        return const LoginScreen();
+      },
+    );
   }
 }
