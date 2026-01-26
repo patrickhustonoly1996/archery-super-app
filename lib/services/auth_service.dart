@@ -1,10 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'auth_service_base.dart';
 import 'sync_service.dart';
 
 /// Simple authentication service wrapping Firebase Auth
-class AuthService {
+class AuthService implements AuthServiceBase {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   /// Current user stream for auth state changes
