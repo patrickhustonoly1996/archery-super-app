@@ -300,9 +300,28 @@ class CommonPointWeights {
   static const List<int> values = [60, 70, 80, 90, 100, 110, 120, 130, 140];
 }
 
-/// Common spine values
+/// Common spine values (legacy - use EastonSpineValues for target arrows)
 class CommonSpineValues {
   static const List<String> values = [
     '300', '340', '400', '450', '500', '550', '600', '650', '700', '750', '800', '850', '900', '1000', '1100', '1200'
+  ];
+}
+
+/// Easton target arrow spine values (X10, ACE, ACG)
+class EastonSpineValues {
+  // X10 spines
+  static const List<String> x10Spines = [
+    '380', '400', '420', '450', '480', '520', '560', '600', '670', '750', '830', '900', '1000', '1050'
+  ];
+
+  // ACE spines
+  static const List<String> aceSpines = [
+    '370', '400', '430', '470', '520', '570', '620', '670', '720', '780', '850', '920', '1000', '1100'
+  ];
+
+  // Combined and sorted (unique values)
+  static const List<String> allSpines = [
+    '370', '380', '400', '420', '430', '450', '470', '480', '520', '560', '570',
+    '600', '620', '670', '720', '750', '780', '830', '850', '900', '920', '1000', '1050', '1100'
   ];
 }
