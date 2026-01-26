@@ -173,11 +173,17 @@ class _ArcherySuperAppState extends State<ArcherySuperApp> {
               ],
               supportedLocales: SupportedLocales.all,
               builder: (context, child) {
-                // Apply text scaling from accessibility settings
+                // Apply accessibility settings
+                // Only override text scaling if user chose a manual option
+                // Otherwise, follow the system's text size setting
                 final mediaQuery = MediaQuery.of(context);
+                final customScale = accessibility.textScaleFactor;
                 return MediaQuery(
                   data: mediaQuery.copyWith(
-                    textScaler: TextScaler.linear(accessibility.textScaleFactor),
+                    // Only override if not using system scaling
+                    textScaler: customScale != null
+                        ? TextScaler.linear(customScale)
+                        : null, // null = keep system setting
                     boldText: accessibility.boldText,
                     disableAnimations: accessibility.reduceMotion,
                   ),

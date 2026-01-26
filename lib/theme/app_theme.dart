@@ -380,17 +380,17 @@ class AppTheme {
         // Body text - Share Tech Mono for readability
         bodyLarge: TextStyle(
           fontFamily: AppFonts.body,
-          fontSize: 17,
+          fontSize: 18,
           color: AppColors.textPrimary,
         ),
         bodyMedium: TextStyle(
           fontFamily: AppFonts.body,
-          fontSize: 16,
+          fontSize: 17,
           color: AppColors.textPrimary,
         ),
         bodySmall: TextStyle(
           fontFamily: AppFonts.body,
-          fontSize: 14,
+          fontSize: 16,
           color: AppColors.textSecondary,
         ),
         labelLarge: TextStyle(

@@ -1154,103 +1154,71 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.text_fields,
-                        size: 20,
-                        color: AppColors.gold,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Text Size',
-                        style: TextStyle(
-                          fontFamily: AppFonts.body,
-                          fontSize: 14,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
+                  Icon(
+                    Icons.text_fields,
+                    size: 20,
+                    color: AppColors.gold,
                   ),
+                  const SizedBox(width: 12),
                   Text(
-                    accessibility.textScalePercentage,
+                    'Text Size',
                     style: TextStyle(
                       fontFamily: AppFonts.body,
                       fontSize: 14,
-                      color: AppColors.gold,
-                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Text(
-                    'A',
-                    style: TextStyle(
-                      fontFamily: AppFonts.body,
-                      fontSize: 12,
-                      color: AppColors.textMuted,
-                    ),
-                  ),
-                  Expanded(
-                    child: SliderTheme(
-                      data: SliderThemeData(
-                        activeTrackColor: AppColors.gold,
-                        inactiveTrackColor: AppColors.surfaceBright,
-                        thumbColor: AppColors.gold,
-                        overlayColor: AppColors.gold.withValues(alpha: 0.2),
-                        trackHeight: 4,
+              // Text size options
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: TextScaleOption.values.map((option) {
+                  final isSelected = accessibility.textScale == option;
+                  return GestureDetector(
+                    onTap: () => accessibility.setTextScale(option),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
                       ),
-                      child: Slider(
-                        value: accessibility.textScaleFactor,
-                        min: accessibility.minTextScale,
-                        max: accessibility.maxTextScale,
-                        divisions: 14, // 0.05 increments
-                        onChanged: (value) {
-                          accessibility.setTextScaleFactor(value);
-                        },
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.gold.withValues(alpha: 0.2)
+                            : Colors.transparent,
+                        border: Border.all(
+                          color:
+                              isSelected ? AppColors.gold : AppColors.surfaceBright,
+                        ),
+                      ),
+                      child: Text(
+                        option.displayName,
+                        style: TextStyle(
+                          fontFamily: AppFonts.body,
+                          fontSize: 13,
+                          color: isSelected
+                              ? AppColors.gold
+                              : AppColors.textSecondary,
+                        ),
                       ),
                     ),
-                  ),
-                  Text(
-                    'A',
-                    style: TextStyle(
-                      fontFamily: AppFonts.body,
-                      fontSize: 18,
-                      color: AppColors.textMuted,
-                    ),
-                  ),
-                ],
+                  );
+                }).toList(),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
-                'Adjusts text size throughout the app. Logos and icons also scale.',
+                accessibility.usesSystemTextScale
+                    ? 'Using your phone\'s text size setting.'
+                    : 'Override your phone\'s text size setting.',
                 style: TextStyle(
                   fontFamily: AppFonts.body,
-                  fontSize: 11,
+                  fontSize: 13,
                   color: AppColors.textMuted,
                 ),
               ),
-              const SizedBox(height: 12),
-              if (accessibility.textScaleFactor != 1.0)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () => accessibility.resetTextScale(),
-                    child: Text(
-                      'RESET TO DEFAULT',
-                      style: TextStyle(
-                        fontFamily: AppFonts.pixel,
-                        fontSize: 12,
-                        color: AppColors.gold,
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
         );
