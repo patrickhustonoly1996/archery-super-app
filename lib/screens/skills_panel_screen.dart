@@ -453,6 +453,7 @@ class _SkillDetailSheet extends StatefulWidget {
 class _SkillDetailSheetState extends State<_SkillDetailSheet> {
   List<XpHistoryData> _history = [];
   bool _isLoading = true;
+  bool _showXpDetails = false; // Collapsed by default
 
   @override
   void initState() {
@@ -475,13 +476,13 @@ class _SkillDetailSheetState extends State<_SkillDetailSheet> {
   Widget build(BuildContext context) {
     final progress = XpCalculationService.progressToNextLevel(widget.skill.currentXp);
     final xpToNext = XpCalculationService.xpToNextLevel(widget.skill.currentXp);
-    final milestone = XpCalculationService.getMilestoneDescription(widget.skill.currentLevel);
     final isMaxLevel = widget.skill.currentLevel >= 99;
+    final info = _SkillInfo.forSkill(widget.skill.id);
 
     return DraggableScrollableSheet(
-      initialChildSize: 0.6,
-      minChildSize: 0.4,
-      maxChildSize: 0.9,
+      initialChildSize: 0.7,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
@@ -508,126 +509,108 @@ class _SkillDetailSheetState extends State<_SkillDetailSheet> {
                   }),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
-              // Skill header
-              Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: AppColors.gold.withValues(alpha: 0.15),
-                      border: Border.all(color: AppColors.gold, width: 2),
-                    ),
-                    child: Center(
-                      child: _SkillIcon(skillId: widget.skill.id, size: 28),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.skill.name.toUpperCase(),
-                          style: TextStyle(
-                            fontFamily: AppFonts.pixel,
-                            fontSize: 18,
-                            color: AppColors.gold,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                        if (milestone != null)
-                          Text(
-                            milestone,
-                            style: TextStyle(
-                              fontFamily: AppFonts.body,
-                              fontSize: 12,
-                              color: AppColors.textMuted,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Level display
+              // Compact header with skill name, level badge, and progress inline
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppColors.surfaceDark,
-                  border: Border.all(color: AppColors.surfaceLight, width: 1),
+                  border: Border.all(color: AppColors.gold, width: 2),
                 ),
                 child: Column(
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'LEVEL',
-                          style: TextStyle(
-                            fontFamily: AppFonts.pixel,
-                            fontSize: 12,
-                            color: AppColors.textMuted,
-                            letterSpacing: 1,
+                        // Skill icon
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: AppColors.gold.withValues(alpha: 0.15),
+                            border: Border.all(color: AppColors.gold, width: 1),
+                          ),
+                          child: Center(
+                            child: _SkillIcon(skillId: widget.skill.id, size: 24),
                           ),
                         ),
-                        Text(
-                          '${widget.skill.currentLevel}',
-                          style: TextStyle(
-                            fontFamily: AppFonts.pixel,
-                            fontSize: 32,
-                            color: AppColors.gold,
+                        const SizedBox(width: 12),
+                        // Name
+                        Expanded(
+                          child: Text(
+                            widget.skill.name.toUpperCase(),
+                            style: TextStyle(
+                              fontFamily: AppFonts.pixel,
+                              fontSize: 16,
+                              color: AppColors.gold,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ),
+                        // Level badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isMaxLevel
+                                ? AppColors.gold.withValues(alpha: 0.25)
+                                : AppColors.gold.withValues(alpha: 0.15),
+                            border: Border.all(
+                              color: AppColors.gold,
+                              width: isMaxLevel ? 2 : 1,
+                            ),
+                          ),
+                          child: Text(
+                            isMaxLevel ? 'MAX' : 'LV ${widget.skill.currentLevel}',
+                            style: TextStyle(
+                              fontFamily: AppFonts.pixel,
+                              fontSize: 14,
+                              color: AppColors.gold,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-
-                    // Progress bar
+                    const SizedBox(height: 10),
+                    // Compact progress bar
                     Stack(
                       children: [
                         Container(
-                          height: 10,
+                          height: 6,
                           decoration: BoxDecoration(
                             color: AppColors.surfaceLight,
-                            borderRadius: BorderRadius.circular(5),
+                            borderRadius: BorderRadius.circular(3),
                           ),
                         ),
                         FractionallySizedBox(
                           widthFactor: isMaxLevel ? 1.0 : progress,
                           child: Container(
-                            height: 10,
+                            height: 6,
                             decoration: BoxDecoration(
                               color: AppColors.gold,
-                              borderRadius: BorderRadius.circular(5),
+                              borderRadius: BorderRadius.circular(3),
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-
+                    const SizedBox(height: 6),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'TOTAL XP: ${_formatXp(widget.skill.currentXp)}',
+                          '${_formatXp(widget.skill.currentXp)} XP',
                           style: TextStyle(
                             fontFamily: AppFonts.body,
-                            fontSize: 11,
+                            fontSize: 10,
                             color: AppColors.textMuted,
                           ),
                         ),
                         Text(
-                          isMaxLevel ? 'MAX LEVEL' : 'NEXT: ${_formatXp(xpToNext)} XP',
+                          isMaxLevel ? 'MAX LEVEL' : '${_formatXp(xpToNext)} to next',
                           style: TextStyle(
                             fontFamily: AppFonts.body,
-                            fontSize: 11,
-                            color: isMaxLevel ? AppColors.gold : AppColors.textMuted,
+                            fontSize: 10,
+                            color: AppColors.textMuted,
                           ),
                         ),
                       ],
@@ -635,13 +618,120 @@ class _SkillDetailSheetState extends State<_SkillDetailSheet> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
-              // Skill explanation and how to earn XP
-              _buildSkillExplanation(widget.skill.id),
-              const SizedBox(height: 24),
+              // Brief description
+              Text(
+                info.description,
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 12),
 
-              // Recent XP history
+              // HOW TO EARN XP - collapsible button
+              GestureDetector(
+                onTap: () => setState(() => _showXpDetails = !_showXpDetails),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: _showXpDetails
+                        ? AppColors.gold.withValues(alpha: 0.15)
+                        : AppColors.surfaceDark,
+                    border: Border.all(
+                      color: _showXpDetails ? AppColors.gold : AppColors.gold.withValues(alpha: 0.5),
+                      width: _showXpDetails ? 2 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _showXpDetails ? Icons.expand_less : Icons.expand_more,
+                        color: AppColors.gold,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'HOW TO EARN XP',
+                        style: TextStyle(
+                          fontFamily: AppFonts.pixel,
+                          fontSize: 12,
+                          color: AppColors.gold,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        _showXpDetails ? 'TAP TO HIDE' : 'TAP TO VIEW',
+                        style: TextStyle(
+                          fontFamily: AppFonts.body,
+                          fontSize: 10,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Expandable XP details
+              if (_showXpDetails) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceDark,
+                    border: Border(
+                      left: BorderSide(color: AppColors.gold.withValues(alpha: 0.5), width: 2),
+                      right: BorderSide(color: AppColors.gold.withValues(alpha: 0.5), width: 2),
+                      bottom: BorderSide(color: AppColors.gold.withValues(alpha: 0.5), width: 2),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: info.howToEarnXp.map((item) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 20,
+                              height: 20,
+                              margin: const EdgeInsets.only(right: 10),
+                              decoration: BoxDecoration(
+                                color: AppColors.gold.withValues(alpha: 0.1),
+                                border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+                              ),
+                              child: Center(
+                                child: _XpConceptIconWidget(icon: item.icon, size: 12),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                item.text,
+                                style: TextStyle(
+                                  fontFamily: AppFonts.body,
+                                  fontSize: 12,
+                                  color: AppColors.textPrimary,
+                                  height: 1.3,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
+
+              // Recent XP history (collapsed by default, shows only 5)
               Text(
                 'RECENT XP',
                 style: TextStyle(
@@ -651,25 +741,25 @@ class _SkillDetailSheetState extends State<_SkillDetailSheet> {
                   letterSpacing: 1,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
 
               if (_isLoading)
                 const Center(
                   child: Padding(
-                    padding: EdgeInsets.all(20),
+                    padding: EdgeInsets.all(16),
                     child: CircularProgressIndicator(color: AppColors.gold),
                   ),
                 )
               else if (_history.isEmpty)
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: AppColors.surfaceDark,
                     border: Border.all(color: AppColors.surfaceLight),
                   ),
                   child: Center(
                     child: Text(
-                      'No XP earned yet',
+                      'No XP earned yet - start training!',
                       style: TextStyle(
                         fontFamily: AppFonts.body,
                         fontSize: 12,
@@ -679,11 +769,12 @@ class _SkillDetailSheetState extends State<_SkillDetailSheet> {
                   ),
                 )
               else
-                ...List.generate(_history.length, (index) {
+                // Show only first 5 entries to keep it compact
+                ...List.generate(_history.take(5).length, (index) {
                   final entry = _history[index];
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    margin: EdgeInsets.only(bottom: index < _history.length - 1 ? 4 : 0),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    margin: EdgeInsets.only(bottom: index < 4 ? 3 : 0),
                     decoration: BoxDecoration(
                       color: AppColors.surfaceDark,
                       border: Border.all(color: AppColors.surfaceLight),
@@ -694,29 +785,29 @@ class _SkillDetailSheetState extends State<_SkillDetailSheet> {
                           '+${entry.xpAmount}',
                           style: TextStyle(
                             fontFamily: AppFonts.pixel,
-                            fontSize: 14,
+                            fontSize: 12,
                             color: AppColors.gold,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             entry.reason ?? entry.source,
                             style: TextStyle(
                               fontFamily: AppFonts.body,
-                              fontSize: 12,
+                              fontSize: 11,
                               color: AppColors.textPrimary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Text(
                           _formatDate(entry.earnedAt),
                           style: TextStyle(
                             fontFamily: AppFonts.body,
-                            fontSize: 10,
+                            fontSize: 9,
                             color: AppColors.textMuted,
                           ),
                         ),
