@@ -206,7 +206,7 @@ class _PlottingScreenState extends State<PlottingScreen>
     _cancelAutoCommitTimer();
 
     await provider.commitEnd();
-    _resetZoom();
+    // Note: Zoom is intentionally preserved between ends so user doesn't have to re-zoom
 
     // Show break checkpoint if we just crossed a boundary (distance change or halfway)
     if (mounted && provider.isAtBreakCheckpoint) {
