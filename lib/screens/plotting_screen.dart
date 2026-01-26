@@ -1233,12 +1233,30 @@ class _PlottingScreenState extends State<PlottingScreen>
                         ),
                       ),
 
-                      // Face layout toggle buttons (left side)
-                      // Always shows when triple spot is supported for quick switching
-                      if (supportsTripleSpot)
+                      // Face indicator sidebar (when using single face tracking mode)
+                      // Shows which face is currently active for arrow assignment
+                      if (supportsTripleSpot && _singleFaceTracking && !_useTripleSpotView)
                         Positioned(
                           left: AppSpacing.md,
-                          top: 100, // Below the group centre widget
+                          top: 100,
+                          child: FaceIndicatorSidebar(
+                            currentFace: _selectedFaceIndex,
+                            arrowCounts: [
+                              provider.currentEndArrows.where((a) => a.faceIndex == 0).length,
+                              provider.currentEndArrows.where((a) => a.faceIndex == 1).length,
+                              provider.currentEndArrows.where((a) => a.faceIndex == 2).length,
+                            ],
+                            layoutStyle: _autoAdvanceOrder,
+                            onFaceSelected: (face) => setState(() => _selectedFaceIndex = face),
+                          ),
+                        ),
+
+                      // Face layout toggle (bottom left, above scorecard)
+                      // Quick switch between single/triple/triangular/combined views
+                      if (supportsTripleSpot)
+                        Positioned(
+                          bottom: AppSpacing.md,
+                          left: AppSpacing.md,
                           child: FaceLayoutToggle(
                             currentLayout: !_useTripleSpotView
                                 ? 'single'
@@ -1264,36 +1282,6 @@ class _PlottingScreenState extends State<PlottingScreen>
                                 _setFaceLayout(FaceLayout.verticalTriple);
                               }
                             },
-                          ),
-                        ),
-
-                      // Face indicator sidebar (when using single face tracking mode)
-                      // Shows which face is currently active for arrow assignment
-                      if (supportsTripleSpot && _singleFaceTracking && !_useTripleSpotView)
-                        Positioned(
-                          left: AppSpacing.md,
-                          top: 200, // Below the face layout toggle
-                          child: FaceIndicatorSidebar(
-                            currentFace: _selectedFaceIndex,
-                            arrowCounts: [
-                              provider.currentEndArrows.where((a) => a.faceIndex == 0).length,
-                              provider.currentEndArrows.where((a) => a.faceIndex == 1).length,
-                              provider.currentEndArrows.where((a) => a.faceIndex == 2).length,
-                            ],
-                            layoutStyle: _autoAdvanceOrder,
-                            onFaceSelected: (face) => setState(() => _selectedFaceIndex = face),
-                          ),
-                        ),
-
-                      // Quick toggle for triple spot view mode (legacy bottom-left position)
-                      // Kept for easy access - switches between stacked and combined views
-                      if (supportsTripleSpot && _useTripleSpotView)
-                        Positioned(
-                          bottom: AppSpacing.md,
-                          left: AppSpacing.md,
-                          child: _TripleSpotViewToggle(
-                            isCombined: _useCombinedView,
-                            onToggle: () => _setCombinedView(!_useCombinedView),
                           ),
                         ),
 
