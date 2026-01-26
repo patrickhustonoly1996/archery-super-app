@@ -14,6 +14,7 @@ import '../widgets/sight_mark_entry_form.dart';
 import '../widgets/classification_badge.dart';
 import 'home_screen.dart';
 import 'scorecard_view_screen.dart';
+import 'shaft_analysis_screen.dart';
 
 class SessionCompleteScreen extends StatefulWidget {
   const SessionCompleteScreen({super.key});
@@ -479,6 +480,55 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
     );
   }
 
+  Widget _buildShaftAnalysisButton(
+    BuildContext context,
+    dynamic session,
+    SessionProvider provider,
+  ) {
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () async {
+              final equipmentProvider = context.read<EquipmentProvider>();
+              final quiver = equipmentProvider.quivers
+                  .where((q) => q.id == session.quiverId)
+                  .firstOrNull;
+
+              if (quiver == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Quiver not found')),
+                );
+                return;
+              }
+
+              // Get arrows from this session
+              final arrows = await provider.getAllSessionArrows();
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ShaftAnalysisScreen(
+                    quiver: quiver,
+                    arrows: arrows,
+                    sessionId: session.id,
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.analytics_outlined),
+            label: const Padding(
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+              child: Text('View Shaft Analysis'),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<SessionProvider>(
@@ -594,6 +644,10 @@ class _SessionCompleteScreenState extends State<SessionCompleteScreen> {
                   ],
 
                   const SizedBox(height: AppSpacing.xl),
+
+                  // Shaft Analysis button - only show if shaft tagging was enabled
+                  if (session.shaftTaggingEnabled && session.quiverId != null)
+                    _buildShaftAnalysisButton(context, session, provider),
 
                   // Scorecard & Export button - navigates to full scorecard with signatures
                   SizedBox(

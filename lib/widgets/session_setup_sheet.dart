@@ -5,7 +5,6 @@ import '../providers/equipment_provider.dart';
 import '../providers/session_provider.dart';
 import '../services/location_service.dart';
 import '../theme/app_theme.dart';
-import '../screens/plotting_screen.dart';
 import '../screens/settings_screen.dart' show kArrowTrackingDefaultPref;
 
 /// Preference key for scoring timer enabled
@@ -152,12 +151,8 @@ class _SessionSetupSheetState extends State<SessionSetupSheet> {
     );
 
     if (mounted) {
-      // Close sheet and navigate to plotting
+      // Close sheet - calling code handles navigation to PlottingScreen
       Navigator.pop(context, true);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const PlottingScreen()),
-      );
     }
   }
 
