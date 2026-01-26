@@ -37,6 +37,10 @@ class PlottingSettingsSheet extends StatelessWidget {
   final bool lineCutterEnabled;
   final ValueChanged<bool> onLineCutterEnabledChanged;
 
+  // Arrow marker size settings
+  final double arrowMarkerSize;
+  final ValueChanged<double> onArrowMarkerSizeChanged;
+
   const PlottingSettingsSheet({
     super.key,
     required this.supportsTripleSpot,
@@ -66,6 +70,8 @@ class PlottingSettingsSheet extends StatelessWidget {
     required this.onZoomWindowEnabledChanged,
     required this.lineCutterEnabled,
     required this.onLineCutterEnabledChanged,
+    required this.arrowMarkerSize,
+    required this.onArrowMarkerSizeChanged,
   });
 
   // Helper to convert timer duration to selector index
@@ -232,6 +238,13 @@ class PlottingSettingsSheet extends StatelessWidget {
                   onChanged: (index) => onLineCutterEnabledChanged(index == 1),
                 ),
               ),
+              const SizedBox(height: 12),
+
+              // Arrow Marker Size
+              _ArrowSizeSlider(
+                value: arrowMarkerSize,
+                onChanged: onArrowMarkerSizeChanged,
+              ),
 
               // Auto-advance settings (triple spot only)
               if (supportsTripleSpot && useTripleSpot && !useCombinedView) ...[
@@ -246,15 +259,9 @@ class PlottingSettingsSheet extends StatelessWidget {
                 ),
                 if (autoAdvanceEnabled) ...[
                   const SizedBox(height: 12),
-                  _SettingsRow(
-                    label: 'Advance Order',
-                    child: _SegmentedToggle(
-                      options: const ['1-2-3', '1-3-2'],
-                      selectedIndex: autoAdvanceOrder == 'triangular' ? 1 : 0,
-                      onChanged: (index) => onAutoAdvanceOrderChanged(
-                        index == 0 ? 'column' : 'triangular',
-                      ),
-                    ),
+                  _ShootingOrderSelector(
+                    currentOrder: autoAdvanceOrder,
+                    onOrderChanged: onAutoAdvanceOrderChanged,
                   ),
                 ],
               ],
@@ -386,5 +393,318 @@ class _SegmentedToggle extends StatelessWidget {
         }).toList(),
       ),
     );
+  }
+}
+
+/// Slider for adjusting arrow marker size
+class _ArrowSizeSlider extends StatelessWidget {
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  const _ArrowSizeSlider({
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Convert multiplier to display label
+    String sizeLabel;
+    if (value <= 0.6) {
+      sizeLabel = 'XS';
+    } else if (value <= 0.85) {
+      sizeLabel = 'S';
+    } else if (value <= 1.15) {
+      sizeLabel = 'M';
+    } else if (value <= 1.5) {
+      sizeLabel = 'L';
+    } else {
+      sizeLabel = 'XL';
+    }
+
+    return Row(
+      children: [
+        Text(
+          'Arrow Size',
+          style: TextStyle(
+            fontFamily: AppFonts.body,
+            fontSize: 14,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: SliderTheme(
+            data: SliderThemeData(
+              activeTrackColor: AppColors.gold,
+              inactiveTrackColor: AppColors.surfaceLight,
+              thumbColor: AppColors.gold,
+              overlayColor: AppColors.gold.withValues(alpha: 0.2),
+              trackHeight: 4,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+            ),
+            child: Slider(
+              value: value,
+              min: 0.5,
+              max: 2.0,
+              divisions: 6, // 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          width: 32,
+          alignment: Alignment.center,
+          child: Text(
+            sizeLabel,
+            style: TextStyle(
+              fontFamily: AppFonts.pixel,
+              fontSize: 14,
+              color: AppColors.gold,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Tap-to-define shooting order selector for triple spot targets.
+/// User taps the 3 target icons in the order they want to shoot them.
+class _ShootingOrderSelector extends StatefulWidget {
+  final String currentOrder;
+  final ValueChanged<String> onOrderChanged;
+
+  const _ShootingOrderSelector({
+    required this.currentOrder,
+    required this.onOrderChanged,
+  });
+
+  @override
+  State<_ShootingOrderSelector> createState() => _ShootingOrderSelectorState();
+}
+
+class _ShootingOrderSelectorState extends State<_ShootingOrderSelector> {
+  // Track taps during order definition
+  List<int> _tapSequence = [];
+  bool _isDefiningOrder = false;
+
+  // Parse current order to list [0,1,2] or [0,2,1] etc.
+  List<int> get _currentOrderList {
+    if (widget.currentOrder == 'triangular') return [0, 2, 1];
+    if (widget.currentOrder == 'column') return [0, 1, 2];
+    // Custom order format: "0,1,2" or "0,2,1" etc.
+    if (widget.currentOrder.contains(',')) {
+      return widget.currentOrder.split(',').map((s) => int.tryParse(s.trim()) ?? 0).toList();
+    }
+    return [0, 1, 2]; // Default
+  }
+
+  void _startDefiningOrder() {
+    setState(() {
+      _isDefiningOrder = true;
+      _tapSequence = [];
+    });
+  }
+
+  void _onFaceTapped(int faceIndex) {
+    if (!_isDefiningOrder) return;
+    if (_tapSequence.contains(faceIndex)) return; // Already tapped
+
+    setState(() {
+      _tapSequence.add(faceIndex);
+    });
+
+    // If all 3 tapped, save the order
+    if (_tapSequence.length == 3) {
+      // Convert to order string
+      String orderString;
+      if (_tapSequence[0] == 0 && _tapSequence[1] == 1 && _tapSequence[2] == 2) {
+        orderString = 'column';
+      } else if (_tapSequence[0] == 0 && _tapSequence[1] == 2 && _tapSequence[2] == 1) {
+        orderString = 'triangular';
+      } else {
+        // Custom order
+        orderString = _tapSequence.join(',');
+      }
+      widget.onOrderChanged(orderString);
+      setState(() {
+        _isDefiningOrder = false;
+        _tapSequence = [];
+      });
+    }
+  }
+
+  void _cancelDefining() {
+    setState(() {
+      _isDefiningOrder = false;
+      _tapSequence = [];
+    });
+  }
+
+  // Get display order for a face (1st, 2nd, 3rd) based on current order
+  int? _getOrderPosition(int faceIndex) {
+    final order = _isDefiningOrder ? _tapSequence : _currentOrderList;
+    final position = order.indexOf(faceIndex);
+    return position >= 0 ? position + 1 : null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Shooting Order',
+              style: TextStyle(
+                fontFamily: AppFonts.body,
+                fontSize: 14,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const Spacer(),
+            if (!_isDefiningOrder)
+              GestureDetector(
+                onTap: _startDefiningOrder,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.gold),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'TAP TO SET',
+                    style: TextStyle(
+                      fontFamily: AppFonts.pixel,
+                      fontSize: 10,
+                      color: AppColors.gold,
+                    ),
+                  ),
+                ),
+              ),
+            if (_isDefiningOrder)
+              GestureDetector(
+                onTap: _cancelDefining,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.textMuted),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'CANCEL',
+                    style: TextStyle(
+                      fontFamily: AppFonts.pixel,
+                      fontSize: 10,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        // 3 target face icons arranged vertically (like actual triple spot)
+        Center(
+          child: Column(
+            children: [
+              if (_isDefiningOrder)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'Tap faces in shooting order',
+                    style: TextStyle(
+                      fontFamily: AppFonts.body,
+                      fontSize: 12,
+                      color: AppColors.gold,
+                    ),
+                  ),
+                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Face 1 (top)
+                  _buildFaceIcon(0),
+                  const SizedBox(width: 16),
+                  // Face 2 (middle)
+                  _buildFaceIcon(1),
+                  const SizedBox(width: 16),
+                  // Face 3 (bottom)
+                  _buildFaceIcon(2),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFaceIcon(int faceIndex) {
+    final orderPosition = _getOrderPosition(faceIndex);
+    final isSelected = _isDefiningOrder && _tapSequence.contains(faceIndex);
+    final isNextToTap = _isDefiningOrder && !_tapSequence.contains(faceIndex);
+
+    return GestureDetector(
+      onTap: isNextToTap ? () => _onFaceTapped(faceIndex) : null,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isSelected
+              ? AppColors.gold.withValues(alpha: 0.3)
+              : AppColors.surfaceLight,
+          border: Border.all(
+            color: isNextToTap
+                ? AppColors.gold
+                : isSelected
+                    ? AppColors.gold
+                    : AppColors.surfaceLight,
+            width: isNextToTap ? 2 : 1,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${faceIndex + 1}',
+                style: TextStyle(
+                  fontFamily: AppFonts.pixel,
+                  fontSize: 14,
+                  color: isSelected || orderPosition != null
+                      ? AppColors.gold
+                      : AppColors.textMuted,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (orderPosition != null)
+                Text(
+                  _getOrdinal(orderPosition),
+                  style: TextStyle(
+                    fontFamily: AppFonts.body,
+                    fontSize: 10,
+                    color: AppColors.gold,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getOrdinal(int n) {
+    switch (n) {
+      case 1: return '1st';
+      case 2: return '2nd';
+      case 3: return '3rd';
+      default: return '${n}th';
+    }
   }
 }

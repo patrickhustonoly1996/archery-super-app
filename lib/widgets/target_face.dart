@@ -17,6 +17,8 @@ class TargetFace extends StatelessWidget {
   final String scoringType; // '10-zone', '5-zone', 'worcester'
   /// Arrow IDs to highlight with a green halo (current/selected end arrows)
   final Set<String>? highlightedArrowIds;
+  /// Multiplier for arrow marker size (0.5 = half, 1.0 = default, 2.0 = double)
+  final double arrowSizeMultiplier;
 
   const TargetFace({
     super.key,
@@ -28,12 +30,13 @@ class TargetFace extends StatelessWidget {
     this.colorblindMode = ColorblindMode.none,
     this.scoringType = '10-zone',
     this.highlightedArrowIds,
+    this.arrowSizeMultiplier = 1.0,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Calculate marker size for positioning offset
-    final markerSize = (size * _ArrowMarker._markerFraction).clamp(4.0, 10.0);
+    // Calculate marker size for positioning offset (with multiplier applied)
+    final markerSize = (size * _ArrowMarker._markerFraction * arrowSizeMultiplier).clamp(2.0, 20.0);
     final halfMarker = markerSize / 2;
 
     // For tri-spot, arrows need to be scaled to match the ring scaling
@@ -72,6 +75,7 @@ class TargetFace extends StatelessWidget {
                 shaftNumber: arrow.shaftNumber,
                 targetSize: size,
                 isHighlighted: highlightedArrowIds?.contains(arrow.id) ?? false,
+                sizeMultiplier: arrowSizeMultiplier,
               ),
             );
           }).toList(),
@@ -418,6 +422,8 @@ class _ArrowMarker extends StatelessWidget {
   final double targetSize;
   /// Whether this arrow should be highlighted (current/selected end)
   final bool isHighlighted;
+  /// Size multiplier for the marker (0.5 = half, 1.0 = default, 2.0 = double)
+  final double sizeMultiplier;
 
   /// Arrow marker size as fraction of target diameter
   /// 7mm on 122cm target = 0.00574, but scaled up for visibility
@@ -429,12 +435,13 @@ class _ArrowMarker extends StatelessWidget {
     required this.targetSize,
     this.shaftNumber,
     this.isHighlighted = false,
+    this.sizeMultiplier = 1.0,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Calculate marker size proportional to target (min 4px, max 10px)
-    final markerSize = (targetSize * _markerFraction).clamp(4.0, 10.0);
+    // Calculate marker size proportional to target with multiplier (min 2px, max 20px)
+    final markerSize = (targetSize * _markerFraction * sizeMultiplier).clamp(2.0, 20.0);
     final borderWidth = (markerSize * 0.15).clamp(0.5, 1.5);
 
     // Use contrasting color based on ring
@@ -462,13 +469,21 @@ class _ArrowMarker extends StatelessWidget {
           color: markerColor == Colors.black ? Colors.white : Colors.black,
           width: borderWidth,
         ),
-        // Green halo for highlighted (current/selected end) arrows
+        // Multi-layered halo for highlighted arrows - visible on ALL ring colors
+        // White outer glow + cyan inner glow = universal contrast
         boxShadow: isHighlighted
             ? [
+                // White outer glow - visible on dark backgrounds (black, blue, red)
                 BoxShadow(
-                  color: const Color(0xFF4CAF50).withValues(alpha: 0.7),
-                  blurRadius: 6,
-                  spreadRadius: 2,
+                  color: Colors.white.withValues(alpha: 0.9),
+                  blurRadius: 10,
+                  spreadRadius: 4,
+                ),
+                // Cyan inner glow - visible on light backgrounds (white, gold)
+                BoxShadow(
+                  color: const Color(0xFF00E5FF),
+                  blurRadius: 4,
+                  spreadRadius: 1,
                 ),
               ]
             : null,
@@ -515,6 +530,9 @@ class InteractiveTargetFace extends StatefulWidget {
   /// Arrow IDs to highlight with a green halo (current/selected end arrows)
   final Set<String>? highlightedArrowIds;
 
+  /// Multiplier for arrow marker size (0.5 = half, 1.0 = default, 2.0 = double)
+  final double arrowSizeMultiplier;
+
   const InteractiveTargetFace({
     super.key,
     required this.arrows,
@@ -533,6 +551,7 @@ class InteractiveTargetFace extends StatefulWidget {
     this.onPendingArrowChanged,
     this.transformController,
     this.highlightedArrowIds,
+    this.arrowSizeMultiplier = 1.0,
   });
 
   @override
@@ -854,8 +873,8 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate marker sizes proportionally
-    final previewSize = (widget.size * _ArrowMarker._markerFraction * 1.3).clamp(5.0, 12.0);
+    // Calculate marker sizes proportionally with multiplier - match actual arrow marker size exactly
+    final previewSize = (widget.size * _ArrowMarker._markerFraction * widget.arrowSizeMultiplier).clamp(2.0, 20.0);
     final halfPreview = previewSize / 2;
 
     // Target fills available space naturally - NO Transform.scale
@@ -883,6 +902,7 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
               showRingLabels: widget.showRingLabels,
               scoringType: widget.scoringType,
               highlightedArrowIds: widget.highlightedArrowIds,
+              arrowSizeMultiplier: widget.arrowSizeMultiplier,
             ),
 
             // Offset line from touch to arrow position
@@ -1050,12 +1070,10 @@ class _FixedZoomWindowPainter extends CustomPainter {
 
   /// Get the score at the crosshair position for color determination
   int _getScoreAtPosition() {
-    // For triSpot, coordinates are already scaled by ring6 (0.5)
-    // So we need to scale back to get the true distance from center
-    final ringScale = triSpot ? (1.0 / TargetRings.ring6) : 1.0;
-    final adjustedX = targetX * ringScale;
-    final adjustedY = targetY * ringScale;
-    final distance = math.sqrt(adjustedX * adjustedX + adjustedY * adjustedY);
+    // Coordinates are already in full-target normalized space
+    // (triSpot scaling was applied at input - 0.5 = ring 6 boundary)
+    // No further scaling needed for score calculation
+    final distance = math.sqrt(targetX * targetX + targetY * targetY);
     return TargetRings.getScore(distance);
   }
 

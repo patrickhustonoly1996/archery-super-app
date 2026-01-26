@@ -7,6 +7,8 @@ import '../providers/equipment_provider.dart';
 import '../providers/connectivity_provider.dart';
 import '../providers/auto_plot_provider.dart';
 import '../providers/accessibility_provider.dart';
+import '../providers/sight_marks_provider.dart';
+import '../models/sight_mark.dart';
 import '../widgets/target_face.dart';
 import '../widgets/triple_spot_target.dart';
 import '../widgets/face_indicator_sidebar.dart';
@@ -86,6 +88,9 @@ const String kZoomWindowEnabledPref = 'zoom_window_enabled';
 /// Preference key for line cutter prompt enabled
 const String kLineCutterEnabledPref = 'line_cutter_enabled';
 
+/// Preference key for arrow marker size multiplier (0.5 to 2.0, default 1.0)
+const String kArrowMarkerSizePref = 'arrow_marker_size';
+
 class PlottingScreen extends StatefulWidget {
   const PlottingScreen({super.key});
 
@@ -129,6 +134,9 @@ class _PlottingScreenState extends State<PlottingScreen>
 
   // Line cutter prompt enabled (asks IN/OUT when on ring boundary)
   bool _lineCutterEnabled = true;
+
+  // Arrow marker size multiplier (0.5 = half size, 1.0 = default, 2.0 = double)
+  double _arrowMarkerSize = 1.0;
 
   // Pending arrow position for fixed zoom window (normalized -1 to +1)
   // Using ValueNotifier for efficient updates without full widget rebuild
@@ -193,19 +201,17 @@ class _PlottingScreenState extends State<PlottingScreen>
     _autoCommitTimer = null;
   }
 
-  /// Commit end and check for halfway checkpoint
+  /// Commit end and check for break checkpoint (halfway or distance boundary)
   Future<void> _commitEndWithHalfwayCheck(SessionProvider provider) async {
     _cancelAutoCommitTimer();
-    // Check if we'll be at halfway point after this commit
-    final willBeAtHalfway = provider.isAtHalfwayPoint ||
-        (provider.currentEndNumber == (provider.totalEnds / 2).ceil());
 
     await provider.commitEnd();
     _resetZoom();
 
-    // Show halfway checkpoint if we just crossed the halfway point
-    if (mounted && willBeAtHalfway && provider.isAtHalfwayPoint) {
-      _showHalfwayCheckpoint(provider);
+    // Show break checkpoint if we just crossed a boundary (distance change or halfway)
+    if (mounted && provider.isAtBreakCheckpoint) {
+      final breakEndNumber = provider.breakCheckpointEndNumber!;
+      _showBreakCheckpoint(provider, breakEndNumber);
     }
   }
 
@@ -224,13 +230,42 @@ class _PlottingScreenState extends State<PlottingScreen>
     return provider.currentEndArrows.map((a) => a.id).toSet();
   }
 
-  /// Show the halfway checkpoint dialog
-  Future<void> _showHalfwayCheckpoint(SessionProvider provider) async {
-    provider.markHalfwayCheckpointShown();
+  /// Show a break checkpoint dialog (halfway or distance boundary)
+  Future<void> _showBreakCheckpoint(SessionProvider provider, int breakEndNumber) async {
+    provider.markBreakCheckpointShown(breakEndNumber);
 
-    String? sightMarkAdjustment;
-    String? halfwayNotes;
+    String? breakNotes;
     bool clearPlotFace = false;
+    final sightMarkController = TextEditingController();
+
+    // Determine if this is a distance change or a simple halfway break
+    final isDistanceChange = provider.isDistanceBoundary(breakEndNumber);
+    final nextDistanceLeg = isDistanceChange ? provider.currentDistanceLeg : null;
+    final isHalfway = breakEndNumber == (provider.totalEnds / 2).ceil();
+
+    // Get the distance for the NEXT leg (what they're about to shoot)
+    // For distance change: use the next distance leg
+    // For halfway: use the current round's distance
+    final nextDistance = nextDistanceLeg?.distance ?? provider.roundType?.distance?.toDouble();
+    final distanceUnit = nextDistanceLeg?.unit ?? 'm';
+
+    // Build title and description based on break type
+    String title;
+    String description;
+    String notesLabel;
+    if (isDistanceChange && nextDistanceLeg != null) {
+      title = 'DISTANCE CHANGE';
+      description = 'End $breakEndNumber complete. Next: ${nextDistanceLeg.displayDistance}';
+      notesLabel = 'Notes for this distance (optional)';
+    } else if (isHalfway) {
+      title = 'HALFWAY CHECKPOINT';
+      description = 'End $breakEndNumber of ${provider.totalEnds} complete';
+      notesLabel = 'First half notes (optional)';
+    } else {
+      title = 'BREAK';
+      description = 'End $breakEndNumber of ${provider.totalEnds} complete';
+      notesLabel = 'Notes (optional)';
+    }
 
     await showModalBottomSheet(
       context: context,
@@ -254,10 +289,14 @@ class _PlottingScreenState extends State<PlottingScreen>
               // Header
               Row(
                 children: [
-                  Icon(Icons.flag, color: AppColors.gold, size: 24),
+                  Icon(
+                    isDistanceChange ? Icons.swap_horiz : Icons.flag,
+                    color: AppColors.gold,
+                    size: 24,
+                  ),
                   const SizedBox(width: AppSpacing.sm),
                   Text(
-                    'HALFWAY CHECKPOINT',
+                    title,
                     style: TextStyle(
                       fontFamily: AppFonts.pixel,
                       fontSize: 18,
@@ -269,7 +308,7 @@ class _PlottingScreenState extends State<PlottingScreen>
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'End ${(provider.totalEnds / 2).ceil()} of ${provider.totalEnds} complete',
+                description,
                 style: TextStyle(
                   fontFamily: AppFonts.body,
                   fontSize: 14,
@@ -278,39 +317,55 @@ class _PlottingScreenState extends State<PlottingScreen>
               ),
               const SizedBox(height: AppSpacing.lg),
 
-              // Sight mark adjustment field
-              Text(
-                'Sight mark adjustment (optional)',
-                style: TextStyle(
-                  fontFamily: AppFonts.body,
-                  fontSize: 12,
-                  color: AppColors.textMuted,
+              // Sight mark recording for next distance
+              if (nextDistance != null) ...[
+                Row(
+                  children: [
+                    Icon(Icons.visibility, color: AppColors.gold, size: 18),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      'Sight mark for ${nextDistance.toStringAsFixed(0)}$distanceUnit',
+                      style: TextStyle(
+                        fontFamily: AppFonts.body,
+                        fontSize: 14,
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              TextField(
-                style: TextStyle(fontFamily: AppFonts.body, color: AppColors.textPrimary),
-                decoration: InputDecoration(
-                  hintText: 'e.g., +2 clicks, lowered 1mm',
-                  hintStyle: TextStyle(color: AppColors.textMuted),
-                  filled: true,
-                  fillColor: AppColors.surfaceLight,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
+                const SizedBox(height: AppSpacing.xs),
+                TextField(
+                  controller: sightMarkController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  style: TextStyle(
+                    fontFamily: AppFonts.body,
+                    color: AppColors.textPrimary,
+                    fontSize: 18,
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
+                  decoration: InputDecoration(
+                    hintText: 'e.g., 5.14 or 51.4',
+                    hintStyle: TextStyle(color: AppColors.textMuted),
+                    filled: true,
+                    fillColor: AppColors.surfaceLight,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.md,
+                    ),
+                    prefixIcon: Icon(Icons.my_location, color: AppColors.textMuted),
                   ),
+                  autofocus: true,
                 ),
-                onChanged: (value) => sightMarkAdjustment = value,
-              ),
-              const SizedBox(height: AppSpacing.md),
+                const SizedBox(height: AppSpacing.md),
+              ],
 
               // Notes field
               Text(
-                'First half notes (optional)',
+                notesLabel,
                 style: TextStyle(
                   fontFamily: AppFonts.body,
                   fontSize: 12,
@@ -335,7 +390,7 @@ class _PlottingScreenState extends State<PlottingScreen>
                     vertical: AppSpacing.sm,
                   ),
                 ),
-                onChanged: (value) => halfwayNotes = value,
+                onChanged: (value) => breakNotes = value,
               ),
               const SizedBox(height: AppSpacing.md),
 
@@ -352,7 +407,7 @@ class _PlottingScreenState extends State<PlottingScreen>
                   ),
                 ),
                 subtitle: Text(
-                  'Hide first half arrows (data preserved)',
+                  'Hide previous arrows (data preserved)',
                   style: TextStyle(
                     fontFamily: AppFonts.body,
                     fontSize: 12,
@@ -384,14 +439,30 @@ class _PlottingScreenState extends State<PlottingScreen>
       provider.setArrowsHiddenBeforeEnd(provider.currentEndNumber);
     }
 
-    // Save notes to session if provided (would need session notes feature)
-    // For now, just log that adjustment/notes were recorded
-    if (sightMarkAdjustment != null && sightMarkAdjustment!.isNotEmpty) {
-      debugPrint('Halfway sight adjustment: $sightMarkAdjustment');
+    // Save sight mark if provided
+    final sightMarkValue = sightMarkController.text.trim();
+    if (sightMarkValue.isNotEmpty && nextDistance != null && provider.selectedBowId != null) {
+      try {
+        final sightMarksProvider = context.read<SightMarksProvider>();
+        await sightMarksProvider.addSightMark(
+          bowId: provider.selectedBowId!,
+          distance: nextDistance,
+          unit: distanceUnit == 'yd' ? DistanceUnit.yards : DistanceUnit.meters,
+          sightValue: sightMarkValue,
+          confidenceScore: 0.8, // Slightly higher confidence - recorded during round
+          isIndoor: provider.roundType?.isIndoor ?? false,
+        );
+      } catch (e) {
+        debugPrint('Failed to save sight mark: $e');
+      }
     }
-    if (halfwayNotes != null && halfwayNotes!.isNotEmpty) {
-      debugPrint('Halfway notes: $halfwayNotes');
+
+    // Log notes if provided
+    if (breakNotes != null && breakNotes!.isNotEmpty) {
+      debugPrint('Break notes: $breakNotes');
     }
+
+    sightMarkController.dispose();
   }
 
   /// View arrows from a past end
@@ -438,6 +509,7 @@ class _PlottingScreenState extends State<PlottingScreen>
     final timerLeadIn = await db.getIntPreference(kScoringTimerLeadInPref, defaultValue: 10);
     final zoomWindowEnabled = await db.getBoolPreference(kZoomWindowEnabledPref, defaultValue: true);
     final lineCutterEnabled = await db.getBoolPreference(kLineCutterEnabledPref, defaultValue: true);
+    final arrowMarkerSize = await db.getDoublePreference(kArrowMarkerSizePref, defaultValue: 1.0);
     final faceLayoutStr = await db.getPreference(kFaceLayoutPref);
     final singleFaceTracking = await db.getBoolPreference(kSingleFaceTrackingPref, defaultValue: false);
     if (mounted) {
@@ -455,6 +527,7 @@ class _PlottingScreenState extends State<PlottingScreen>
         _timerLeadIn = timerLeadIn;
         _zoomWindowEnabled = zoomWindowEnabled;
         _lineCutterEnabled = lineCutterEnabled;
+        _arrowMarkerSize = arrowMarkerSize;
         _faceLayout = FaceLayout.values.firstWhere(
           (e) => e.name == faceLayoutStr,
           orElse: () => FaceLayout.verticalTriple,
@@ -542,6 +615,12 @@ class _PlottingScreenState extends State<PlottingScreen>
     final db = context.read<AppDatabase>();
     await db.setBoolPreference(kLineCutterEnabledPref, value);
     setState(() => _lineCutterEnabled = value);
+  }
+
+  Future<void> _setArrowMarkerSize(double value) async {
+    final db = context.read<AppDatabase>();
+    await db.setDoublePreference(kArrowMarkerSizePref, value);
+    setState(() => _arrowMarkerSize = value);
   }
 
   Future<void> _setFaceLayout(FaceLayout layout) async {
@@ -757,6 +836,11 @@ class _PlottingScreenState extends State<PlottingScreen>
             _setLineCutterEnabled(value);
             setSheetState(() {});
           },
+          arrowMarkerSize: _arrowMarkerSize,
+          onArrowMarkerSizeChanged: (value) {
+            _setArrowMarkerSize(value);
+            setSheetState(() {});
+          },
         ),
       ),
     );
@@ -895,12 +979,12 @@ class _PlottingScreenState extends State<PlottingScreen>
                               // Use triple spot view for indoor rounds when enabled
                               if (supportsTripleSpot && _useTripleSpotView) {
                                 if (_useCombinedView) {
-                                  // Combined view: all arrows on one tri-spot face
+                                  // Combined view: all arrows on one tri-spot face (read-only)
                                   return InteractiveViewer(
                                     transformationController: _zoomController,
                                     minScale: 1.0,
                                     maxScale: 4.0,
-                                    panEnabled: true,
+                                    panEnabled: true, // OK here - no plotting interaction
                                     scaleEnabled: true,
                                     constrained: true,
                                     child: CombinedTripleSpotView(
@@ -916,7 +1000,7 @@ class _PlottingScreenState extends State<PlottingScreen>
                                     transformationController: _zoomController,
                                     minScale: 1.0,
                                     maxScale: 4.0,
-                                    panEnabled: true,
+                                    panEnabled: false, // Disabled so single-finger goes to child for plotting
                                     scaleEnabled: true,
                                     constrained: true,
                                     child: TriangularTripleSpotTarget(
@@ -928,6 +1012,8 @@ class _PlottingScreenState extends State<PlottingScreen>
                                       advanceOrder: _autoAdvanceOrder,
                                       selectedFace: _selectedFaceIndex,
                                       highlightedArrowIds: highlightedIds,
+                                      transformController: _zoomController,
+                                      arrowSizeMultiplier: _arrowMarkerSize,
                                       onFaceChanged: (face) => setState(() => _selectedFaceIndex = face),
                                       onArrowPlotted: (x, y, faceIndex, {scoreOverride}) async {
                                         await _plotArrowWithFace(
@@ -948,7 +1034,7 @@ class _PlottingScreenState extends State<PlottingScreen>
                                     transformationController: _zoomController,
                                     minScale: 1.0,
                                     maxScale: 4.0,
-                                    panEnabled: true,
+                                    panEnabled: false, // Disabled so single-finger goes to child for plotting
                                     scaleEnabled: true,
                                     constrained: true,
                                     child: InteractiveTripleSpotTarget(
@@ -960,6 +1046,8 @@ class _PlottingScreenState extends State<PlottingScreen>
                                       advanceOrder: _autoAdvanceOrder,
                                       selectedFace: _selectedFaceIndex,
                                       highlightedArrowIds: highlightedIds,
+                                      transformController: _zoomController,
+                                      arrowSizeMultiplier: _arrowMarkerSize,
                                       onFaceChanged: (face) => setState(() => _selectedFaceIndex = face),
                                       onArrowPlotted: (x, y, faceIndex, {scoreOverride}) async {
                                         await _plotArrowWithFace(
@@ -982,12 +1070,12 @@ class _PlottingScreenState extends State<PlottingScreen>
                               // and auto-advance cycles through faces
                               final isTriSpot = (provider.roundType?.faceCount ?? 1) == 3;
                               // Wrap in InteractiveViewer for pinch-to-zoom
-                              // Single-finger gestures pass through for plotting
+                              // panEnabled=false so single-finger gestures go to child for plotting
                               return InteractiveViewer(
                                 transformationController: _zoomController,
                                 minScale: 1.0,
                                 maxScale: 4.0,
-                                panEnabled: true,
+                                panEnabled: false,
                                 scaleEnabled: true,
                                 constrained: true,
                                 child: Consumer<AccessibilityProvider>(
@@ -1006,6 +1094,7 @@ class _PlottingScreenState extends State<PlottingScreen>
                                       colorblindMode: accessibility.colorblindMode,
                                       showRingLabels: accessibility.showRingLabels,
                                       highlightedArrowIds: highlightedIds,
+                                      arrowSizeMultiplier: _arrowMarkerSize,
                                       onArrowPlotted: (x, y, {scoreOverride}) async {
                                         // Use current face index when tracking enabled, else face 0
                                         final faceIndex = _singleFaceTracking ? _selectedFaceIndex : 0;
@@ -1040,9 +1129,9 @@ class _PlottingScreenState extends State<PlottingScreen>
                         ),
                       ),
 
-                      // Fixed zoom window - position depends on view mode
+                      // Fixed zoom window - position depends on view mode and arrow position
                       // For triple spot: right side to avoid covering top face
-                      // For single face: top center
+                      // For single face: top center (but moves to bottom if arrow is in upper half)
                       if (_zoomWindowEnabled)
                         Consumer<AccessibilityProvider>(
                           builder: (context, accessibility, _) {
@@ -1054,8 +1143,15 @@ class _PlottingScreenState extends State<PlottingScreen>
                                 // Position to the right for triple spot view to avoid covering top face
                                 final useTripleSpotPosition = supportsTripleSpot && _useTripleSpotView && !_useCombinedView;
 
+                                // For single face: move zoom window to bottom if arrow is in upper half
+                                // (negative Y = upper half in normalized coords where center is 0)
+                                final arrowInUpperHalf = pending.y < -0.2;
+
                                 return Positioned(
-                                  top: AppSpacing.md,
+                                  // For triple spot: always at top right
+                                  // For single face: top if arrow is in lower half, bottom if in upper half
+                                  top: useTripleSpotPosition || !arrowInUpperHalf ? AppSpacing.md : null,
+                                  bottom: !useTripleSpotPosition && arrowInUpperHalf ? AppSpacing.md : null,
                                   right: useTripleSpotPosition ? AppSpacing.md : null,
                                   left: useTripleSpotPosition ? null : 0,
                                   child: useTripleSpotPosition

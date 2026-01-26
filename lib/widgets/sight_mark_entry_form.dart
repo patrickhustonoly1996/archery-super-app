@@ -226,10 +226,22 @@ class _SightMarkEntryFormState extends State<SightMarkEntryForm> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title
-              Text(
-                isEditing ? 'Edit Sight Mark' : 'Add Sight Mark',
-                style: Theme.of(context).textTheme.headlineSmall,
+              // Title with cancel button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    isEditing ? 'Edit Sight Mark' : 'Add Sight Mark',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                    color: AppColors.textMuted,
+                    tooltip: 'Cancel',
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
               ),
               const SizedBox(height: AppSpacing.lg),
 
