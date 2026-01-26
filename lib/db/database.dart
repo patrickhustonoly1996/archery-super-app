@@ -622,6 +622,22 @@ class SightMarkPreferencesTable extends Table {
   Set<Column> get primaryKey => {bowId};
 }
 
+/// Angle correction profiles for learning uphill/downhill adjustments per bow
+class AngleCorrectionProfiles extends Table {
+  TextColumn get id => text()();
+  TextColumn get bowId => text().references(Bows, #id)();
+  RealColumn get arrowSpeedFps => real()(); // Stored/estimated arrow speed
+  RealColumn get uphillFactor => real()(); // Learned uphill factor per degree
+  RealColumn get downhillFactor => real()(); // Learned downhill factor per degree
+  IntColumn get uphillDataPoints => integer().withDefault(const Constant(0))();
+  IntColumn get downhillDataPoints => integer().withDefault(const Constant(0))();
+  RealColumn get confidenceScore => real().withDefault(const Constant(0.3))(); // 0.0 to 1.0
+  DateTimeColumn get lastUpdated => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Shooting venues/locations for sightmark memory
 class Venues extends Table {
   TextColumn get id => text()();
@@ -959,6 +975,7 @@ class FieldSessionMeta extends Table {
   // Sight Marks System
   SightMarks,
   SightMarkPreferencesTable,
+  AngleCorrectionProfiles,
   Venues,
   // Auto-Plot System
   RegisteredTargets,
@@ -989,7 +1006,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 30;
+  int get schemaVersion => 31;
 
   @override
   MigrationStrategy get migration {
@@ -1255,6 +1272,10 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(sessions, sessions.locationName);
           await m.addColumn(sessions, sessions.latitude);
           await m.addColumn(sessions, sessions.longitude);
+        }
+        if (from <= 30) {
+          // Angle correction profiles for learning uphill/downhill adjustments
+          await m.createTable(angleCorrectionProfiles);
         }
       },
     );
@@ -2670,6 +2691,74 @@ class AppDatabase extends _$AppDatabase {
   /// Delete sight mark preferences for a bow
   Future<int> deleteSightMarkPreferences(String bowId) =>
       (delete(sightMarkPreferencesTable)..where((t) => t.bowId.equals(bowId))).go();
+
+  // ===========================================================================
+  // ANGLE CORRECTION PROFILES
+  // ===========================================================================
+
+  /// Get angle correction profile for a bow
+  Future<AngleCorrectionProfile?> getAngleCorrectionProfile(String bowId) =>
+      (select(angleCorrectionProfiles)..where((t) => t.bowId.equals(bowId)))
+          .getSingleOrNull();
+
+  /// Get all angle correction profiles
+  Future<List<AngleCorrectionProfile>> getAllAngleCorrectionProfiles() =>
+      select(angleCorrectionProfiles).get();
+
+  /// Insert a new angle correction profile
+  Future<int> insertAngleCorrectionProfile(
+          AngleCorrectionProfilesCompanion profile) =>
+      into(angleCorrectionProfiles).insert(profile);
+
+  /// Update an existing angle correction profile
+  Future<bool> updateAngleCorrectionProfile(
+          AngleCorrectionProfilesCompanion profile) =>
+      update(angleCorrectionProfiles).replace(profile);
+
+  /// Insert or update angle correction profile
+  Future<void> upsertAngleCorrectionProfile({
+    required String id,
+    required String bowId,
+    required double arrowSpeedFps,
+    required double uphillFactor,
+    required double downhillFactor,
+    int uphillDataPoints = 0,
+    int downhillDataPoints = 0,
+    double confidenceScore = 0.3,
+  }) async {
+    final existing = await getAngleCorrectionProfile(bowId);
+    if (existing != null) {
+      await (update(angleCorrectionProfiles)
+            ..where((t) => t.bowId.equals(bowId)))
+          .write(AngleCorrectionProfilesCompanion(
+        arrowSpeedFps: Value(arrowSpeedFps),
+        uphillFactor: Value(uphillFactor),
+        downhillFactor: Value(downhillFactor),
+        uphillDataPoints: Value(uphillDataPoints),
+        downhillDataPoints: Value(downhillDataPoints),
+        confidenceScore: Value(confidenceScore),
+        lastUpdated: Value(DateTime.now()),
+      ));
+    } else {
+      await into(angleCorrectionProfiles).insert(
+        AngleCorrectionProfilesCompanion.insert(
+          id: id,
+          bowId: bowId,
+          arrowSpeedFps: arrowSpeedFps,
+          uphillFactor: uphillFactor,
+          downhillFactor: downhillFactor,
+          uphillDataPoints: Value(uphillDataPoints),
+          downhillDataPoints: Value(downhillDataPoints),
+          confidenceScore: Value(confidenceScore),
+        ),
+      );
+    }
+  }
+
+  /// Delete angle correction profile for a bow
+  Future<int> deleteAngleCorrectionProfile(String bowId) =>
+      (delete(angleCorrectionProfiles)..where((t) => t.bowId.equals(bowId)))
+          .go();
 
   // ===========================================================================
   // VENUES

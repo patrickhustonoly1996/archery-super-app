@@ -17,6 +17,8 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _emailFocus = FocusNode();
+  final _passwordFocus = FocusNode();
   final _authService = AuthService();
 
   bool _isLoading = false;
@@ -27,6 +29,8 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
@@ -120,6 +124,7 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Form(
               key: _formKey,
@@ -221,10 +226,13 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
                   // Email field
                   TextFormField(
                     controller: _emailController,
+                    focusNode: _emailFocus,
                     keyboardType: TextInputType.emailAddress,
                     autocorrect: false,
                     textInputAction: TextInputAction.next,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
+                    onTap: () => _emailFocus.requestFocus(),
+                    onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
                     decoration: const InputDecoration(
                       labelText: 'Email',
                       prefixIcon: Icon(Icons.email_outlined),
@@ -236,9 +244,11 @@ class _LoginScreenState extends State<LoginScreen> with FormValidationMixin {
                   // Password field
                   TextFormField(
                     controller: _passwordController,
+                    focusNode: _passwordFocus,
                     obscureText: true,
                     textInputAction: TextInputAction.done,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
+                    onTap: () => _passwordFocus.requestFocus(),
                     onFieldSubmitted: (_) => _submit(),
                     decoration: const InputDecoration(
                       labelText: 'Password',

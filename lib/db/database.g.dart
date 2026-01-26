@@ -21011,6 +21011,598 @@ class SightMarkPreferencesTableCompanion
   }
 }
 
+class $AngleCorrectionProfilesTable extends AngleCorrectionProfiles
+    with TableInfo<$AngleCorrectionProfilesTable, AngleCorrectionProfile> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AngleCorrectionProfilesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bowIdMeta = const VerificationMeta('bowId');
+  @override
+  late final GeneratedColumn<String> bowId = GeneratedColumn<String>(
+    'bow_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES bows (id)',
+    ),
+  );
+  static const VerificationMeta _arrowSpeedFpsMeta = const VerificationMeta(
+    'arrowSpeedFps',
+  );
+  @override
+  late final GeneratedColumn<double> arrowSpeedFps = GeneratedColumn<double>(
+    'arrow_speed_fps',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _uphillFactorMeta = const VerificationMeta(
+    'uphillFactor',
+  );
+  @override
+  late final GeneratedColumn<double> uphillFactor = GeneratedColumn<double>(
+    'uphill_factor',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _downhillFactorMeta = const VerificationMeta(
+    'downhillFactor',
+  );
+  @override
+  late final GeneratedColumn<double> downhillFactor = GeneratedColumn<double>(
+    'downhill_factor',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _uphillDataPointsMeta = const VerificationMeta(
+    'uphillDataPoints',
+  );
+  @override
+  late final GeneratedColumn<int> uphillDataPoints = GeneratedColumn<int>(
+    'uphill_data_points',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _downhillDataPointsMeta =
+      const VerificationMeta('downhillDataPoints');
+  @override
+  late final GeneratedColumn<int> downhillDataPoints = GeneratedColumn<int>(
+    'downhill_data_points',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _confidenceScoreMeta = const VerificationMeta(
+    'confidenceScore',
+  );
+  @override
+  late final GeneratedColumn<double> confidenceScore = GeneratedColumn<double>(
+    'confidence_score',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.3),
+  );
+  static const VerificationMeta _lastUpdatedMeta = const VerificationMeta(
+    'lastUpdated',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastUpdated = GeneratedColumn<DateTime>(
+    'last_updated',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    bowId,
+    arrowSpeedFps,
+    uphillFactor,
+    downhillFactor,
+    uphillDataPoints,
+    downhillDataPoints,
+    confidenceScore,
+    lastUpdated,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'angle_correction_profiles';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AngleCorrectionProfile> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('bow_id')) {
+      context.handle(
+        _bowIdMeta,
+        bowId.isAcceptableOrUnknown(data['bow_id']!, _bowIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bowIdMeta);
+    }
+    if (data.containsKey('arrow_speed_fps')) {
+      context.handle(
+        _arrowSpeedFpsMeta,
+        arrowSpeedFps.isAcceptableOrUnknown(
+          data['arrow_speed_fps']!,
+          _arrowSpeedFpsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_arrowSpeedFpsMeta);
+    }
+    if (data.containsKey('uphill_factor')) {
+      context.handle(
+        _uphillFactorMeta,
+        uphillFactor.isAcceptableOrUnknown(
+          data['uphill_factor']!,
+          _uphillFactorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_uphillFactorMeta);
+    }
+    if (data.containsKey('downhill_factor')) {
+      context.handle(
+        _downhillFactorMeta,
+        downhillFactor.isAcceptableOrUnknown(
+          data['downhill_factor']!,
+          _downhillFactorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_downhillFactorMeta);
+    }
+    if (data.containsKey('uphill_data_points')) {
+      context.handle(
+        _uphillDataPointsMeta,
+        uphillDataPoints.isAcceptableOrUnknown(
+          data['uphill_data_points']!,
+          _uphillDataPointsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('downhill_data_points')) {
+      context.handle(
+        _downhillDataPointsMeta,
+        downhillDataPoints.isAcceptableOrUnknown(
+          data['downhill_data_points']!,
+          _downhillDataPointsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('confidence_score')) {
+      context.handle(
+        _confidenceScoreMeta,
+        confidenceScore.isAcceptableOrUnknown(
+          data['confidence_score']!,
+          _confidenceScoreMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_updated')) {
+      context.handle(
+        _lastUpdatedMeta,
+        lastUpdated.isAcceptableOrUnknown(
+          data['last_updated']!,
+          _lastUpdatedMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AngleCorrectionProfile map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AngleCorrectionProfile(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      bowId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bow_id'],
+      )!,
+      arrowSpeedFps: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}arrow_speed_fps'],
+      )!,
+      uphillFactor: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}uphill_factor'],
+      )!,
+      downhillFactor: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}downhill_factor'],
+      )!,
+      uphillDataPoints: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}uphill_data_points'],
+      )!,
+      downhillDataPoints: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}downhill_data_points'],
+      )!,
+      confidenceScore: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}confidence_score'],
+      )!,
+      lastUpdated: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_updated'],
+      )!,
+    );
+  }
+
+  @override
+  $AngleCorrectionProfilesTable createAlias(String alias) {
+    return $AngleCorrectionProfilesTable(attachedDatabase, alias);
+  }
+}
+
+class AngleCorrectionProfile extends DataClass
+    implements Insertable<AngleCorrectionProfile> {
+  final String id;
+  final String bowId;
+  final double arrowSpeedFps;
+  final double uphillFactor;
+  final double downhillFactor;
+  final int uphillDataPoints;
+  final int downhillDataPoints;
+  final double confidenceScore;
+  final DateTime lastUpdated;
+  const AngleCorrectionProfile({
+    required this.id,
+    required this.bowId,
+    required this.arrowSpeedFps,
+    required this.uphillFactor,
+    required this.downhillFactor,
+    required this.uphillDataPoints,
+    required this.downhillDataPoints,
+    required this.confidenceScore,
+    required this.lastUpdated,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['bow_id'] = Variable<String>(bowId);
+    map['arrow_speed_fps'] = Variable<double>(arrowSpeedFps);
+    map['uphill_factor'] = Variable<double>(uphillFactor);
+    map['downhill_factor'] = Variable<double>(downhillFactor);
+    map['uphill_data_points'] = Variable<int>(uphillDataPoints);
+    map['downhill_data_points'] = Variable<int>(downhillDataPoints);
+    map['confidence_score'] = Variable<double>(confidenceScore);
+    map['last_updated'] = Variable<DateTime>(lastUpdated);
+    return map;
+  }
+
+  AngleCorrectionProfilesCompanion toCompanion(bool nullToAbsent) {
+    return AngleCorrectionProfilesCompanion(
+      id: Value(id),
+      bowId: Value(bowId),
+      arrowSpeedFps: Value(arrowSpeedFps),
+      uphillFactor: Value(uphillFactor),
+      downhillFactor: Value(downhillFactor),
+      uphillDataPoints: Value(uphillDataPoints),
+      downhillDataPoints: Value(downhillDataPoints),
+      confidenceScore: Value(confidenceScore),
+      lastUpdated: Value(lastUpdated),
+    );
+  }
+
+  factory AngleCorrectionProfile.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AngleCorrectionProfile(
+      id: serializer.fromJson<String>(json['id']),
+      bowId: serializer.fromJson<String>(json['bowId']),
+      arrowSpeedFps: serializer.fromJson<double>(json['arrowSpeedFps']),
+      uphillFactor: serializer.fromJson<double>(json['uphillFactor']),
+      downhillFactor: serializer.fromJson<double>(json['downhillFactor']),
+      uphillDataPoints: serializer.fromJson<int>(json['uphillDataPoints']),
+      downhillDataPoints: serializer.fromJson<int>(json['downhillDataPoints']),
+      confidenceScore: serializer.fromJson<double>(json['confidenceScore']),
+      lastUpdated: serializer.fromJson<DateTime>(json['lastUpdated']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'bowId': serializer.toJson<String>(bowId),
+      'arrowSpeedFps': serializer.toJson<double>(arrowSpeedFps),
+      'uphillFactor': serializer.toJson<double>(uphillFactor),
+      'downhillFactor': serializer.toJson<double>(downhillFactor),
+      'uphillDataPoints': serializer.toJson<int>(uphillDataPoints),
+      'downhillDataPoints': serializer.toJson<int>(downhillDataPoints),
+      'confidenceScore': serializer.toJson<double>(confidenceScore),
+      'lastUpdated': serializer.toJson<DateTime>(lastUpdated),
+    };
+  }
+
+  AngleCorrectionProfile copyWith({
+    String? id,
+    String? bowId,
+    double? arrowSpeedFps,
+    double? uphillFactor,
+    double? downhillFactor,
+    int? uphillDataPoints,
+    int? downhillDataPoints,
+    double? confidenceScore,
+    DateTime? lastUpdated,
+  }) => AngleCorrectionProfile(
+    id: id ?? this.id,
+    bowId: bowId ?? this.bowId,
+    arrowSpeedFps: arrowSpeedFps ?? this.arrowSpeedFps,
+    uphillFactor: uphillFactor ?? this.uphillFactor,
+    downhillFactor: downhillFactor ?? this.downhillFactor,
+    uphillDataPoints: uphillDataPoints ?? this.uphillDataPoints,
+    downhillDataPoints: downhillDataPoints ?? this.downhillDataPoints,
+    confidenceScore: confidenceScore ?? this.confidenceScore,
+    lastUpdated: lastUpdated ?? this.lastUpdated,
+  );
+  AngleCorrectionProfile copyWithCompanion(
+    AngleCorrectionProfilesCompanion data,
+  ) {
+    return AngleCorrectionProfile(
+      id: data.id.present ? data.id.value : this.id,
+      bowId: data.bowId.present ? data.bowId.value : this.bowId,
+      arrowSpeedFps: data.arrowSpeedFps.present
+          ? data.arrowSpeedFps.value
+          : this.arrowSpeedFps,
+      uphillFactor: data.uphillFactor.present
+          ? data.uphillFactor.value
+          : this.uphillFactor,
+      downhillFactor: data.downhillFactor.present
+          ? data.downhillFactor.value
+          : this.downhillFactor,
+      uphillDataPoints: data.uphillDataPoints.present
+          ? data.uphillDataPoints.value
+          : this.uphillDataPoints,
+      downhillDataPoints: data.downhillDataPoints.present
+          ? data.downhillDataPoints.value
+          : this.downhillDataPoints,
+      confidenceScore: data.confidenceScore.present
+          ? data.confidenceScore.value
+          : this.confidenceScore,
+      lastUpdated: data.lastUpdated.present
+          ? data.lastUpdated.value
+          : this.lastUpdated,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AngleCorrectionProfile(')
+          ..write('id: $id, ')
+          ..write('bowId: $bowId, ')
+          ..write('arrowSpeedFps: $arrowSpeedFps, ')
+          ..write('uphillFactor: $uphillFactor, ')
+          ..write('downhillFactor: $downhillFactor, ')
+          ..write('uphillDataPoints: $uphillDataPoints, ')
+          ..write('downhillDataPoints: $downhillDataPoints, ')
+          ..write('confidenceScore: $confidenceScore, ')
+          ..write('lastUpdated: $lastUpdated')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    bowId,
+    arrowSpeedFps,
+    uphillFactor,
+    downhillFactor,
+    uphillDataPoints,
+    downhillDataPoints,
+    confidenceScore,
+    lastUpdated,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AngleCorrectionProfile &&
+          other.id == this.id &&
+          other.bowId == this.bowId &&
+          other.arrowSpeedFps == this.arrowSpeedFps &&
+          other.uphillFactor == this.uphillFactor &&
+          other.downhillFactor == this.downhillFactor &&
+          other.uphillDataPoints == this.uphillDataPoints &&
+          other.downhillDataPoints == this.downhillDataPoints &&
+          other.confidenceScore == this.confidenceScore &&
+          other.lastUpdated == this.lastUpdated);
+}
+
+class AngleCorrectionProfilesCompanion
+    extends UpdateCompanion<AngleCorrectionProfile> {
+  final Value<String> id;
+  final Value<String> bowId;
+  final Value<double> arrowSpeedFps;
+  final Value<double> uphillFactor;
+  final Value<double> downhillFactor;
+  final Value<int> uphillDataPoints;
+  final Value<int> downhillDataPoints;
+  final Value<double> confidenceScore;
+  final Value<DateTime> lastUpdated;
+  final Value<int> rowid;
+  const AngleCorrectionProfilesCompanion({
+    this.id = const Value.absent(),
+    this.bowId = const Value.absent(),
+    this.arrowSpeedFps = const Value.absent(),
+    this.uphillFactor = const Value.absent(),
+    this.downhillFactor = const Value.absent(),
+    this.uphillDataPoints = const Value.absent(),
+    this.downhillDataPoints = const Value.absent(),
+    this.confidenceScore = const Value.absent(),
+    this.lastUpdated = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AngleCorrectionProfilesCompanion.insert({
+    required String id,
+    required String bowId,
+    required double arrowSpeedFps,
+    required double uphillFactor,
+    required double downhillFactor,
+    this.uphillDataPoints = const Value.absent(),
+    this.downhillDataPoints = const Value.absent(),
+    this.confidenceScore = const Value.absent(),
+    this.lastUpdated = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       bowId = Value(bowId),
+       arrowSpeedFps = Value(arrowSpeedFps),
+       uphillFactor = Value(uphillFactor),
+       downhillFactor = Value(downhillFactor);
+  static Insertable<AngleCorrectionProfile> custom({
+    Expression<String>? id,
+    Expression<String>? bowId,
+    Expression<double>? arrowSpeedFps,
+    Expression<double>? uphillFactor,
+    Expression<double>? downhillFactor,
+    Expression<int>? uphillDataPoints,
+    Expression<int>? downhillDataPoints,
+    Expression<double>? confidenceScore,
+    Expression<DateTime>? lastUpdated,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (bowId != null) 'bow_id': bowId,
+      if (arrowSpeedFps != null) 'arrow_speed_fps': arrowSpeedFps,
+      if (uphillFactor != null) 'uphill_factor': uphillFactor,
+      if (downhillFactor != null) 'downhill_factor': downhillFactor,
+      if (uphillDataPoints != null) 'uphill_data_points': uphillDataPoints,
+      if (downhillDataPoints != null)
+        'downhill_data_points': downhillDataPoints,
+      if (confidenceScore != null) 'confidence_score': confidenceScore,
+      if (lastUpdated != null) 'last_updated': lastUpdated,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AngleCorrectionProfilesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? bowId,
+    Value<double>? arrowSpeedFps,
+    Value<double>? uphillFactor,
+    Value<double>? downhillFactor,
+    Value<int>? uphillDataPoints,
+    Value<int>? downhillDataPoints,
+    Value<double>? confidenceScore,
+    Value<DateTime>? lastUpdated,
+    Value<int>? rowid,
+  }) {
+    return AngleCorrectionProfilesCompanion(
+      id: id ?? this.id,
+      bowId: bowId ?? this.bowId,
+      arrowSpeedFps: arrowSpeedFps ?? this.arrowSpeedFps,
+      uphillFactor: uphillFactor ?? this.uphillFactor,
+      downhillFactor: downhillFactor ?? this.downhillFactor,
+      uphillDataPoints: uphillDataPoints ?? this.uphillDataPoints,
+      downhillDataPoints: downhillDataPoints ?? this.downhillDataPoints,
+      confidenceScore: confidenceScore ?? this.confidenceScore,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (bowId.present) {
+      map['bow_id'] = Variable<String>(bowId.value);
+    }
+    if (arrowSpeedFps.present) {
+      map['arrow_speed_fps'] = Variable<double>(arrowSpeedFps.value);
+    }
+    if (uphillFactor.present) {
+      map['uphill_factor'] = Variable<double>(uphillFactor.value);
+    }
+    if (downhillFactor.present) {
+      map['downhill_factor'] = Variable<double>(downhillFactor.value);
+    }
+    if (uphillDataPoints.present) {
+      map['uphill_data_points'] = Variable<int>(uphillDataPoints.value);
+    }
+    if (downhillDataPoints.present) {
+      map['downhill_data_points'] = Variable<int>(downhillDataPoints.value);
+    }
+    if (confidenceScore.present) {
+      map['confidence_score'] = Variable<double>(confidenceScore.value);
+    }
+    if (lastUpdated.present) {
+      map['last_updated'] = Variable<DateTime>(lastUpdated.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AngleCorrectionProfilesCompanion(')
+          ..write('id: $id, ')
+          ..write('bowId: $bowId, ')
+          ..write('arrowSpeedFps: $arrowSpeedFps, ')
+          ..write('uphillFactor: $uphillFactor, ')
+          ..write('downhillFactor: $downhillFactor, ')
+          ..write('uphillDataPoints: $uphillDataPoints, ')
+          ..write('downhillDataPoints: $downhillDataPoints, ')
+          ..write('confidenceScore: $confidenceScore, ')
+          ..write('lastUpdated: $lastUpdated, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $VenuesTable extends Venues with TableInfo<$VenuesTable, Venue> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -30722,6 +31314,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SightMarksTable sightMarks = $SightMarksTable(this);
   late final $SightMarkPreferencesTableTable sightMarkPreferencesTable =
       $SightMarkPreferencesTableTable(this);
+  late final $AngleCorrectionProfilesTable angleCorrectionProfiles =
+      $AngleCorrectionProfilesTable(this);
   late final $VenuesTable venues = $VenuesTable(this);
   late final $RegisteredTargetsTable registeredTargets =
       $RegisteredTargetsTable(this);
@@ -30780,6 +31374,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     xpHistory,
     sightMarks,
     sightMarkPreferencesTable,
+    angleCorrectionProfiles,
     venues,
     registeredTargets,
     autoPlotUsage,
@@ -31439,6 +32034,34 @@ final class $$BowsTableReferences
   }
 
   static MultiTypedResultKey<
+    $AngleCorrectionProfilesTable,
+    List<AngleCorrectionProfile>
+  >
+  _angleCorrectionProfilesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.angleCorrectionProfiles,
+        aliasName: $_aliasNameGenerator(
+          db.bows.id,
+          db.angleCorrectionProfiles.bowId,
+        ),
+      );
+
+  $$AngleCorrectionProfilesTableProcessedTableManager
+  get angleCorrectionProfilesRefs {
+    final manager = $$AngleCorrectionProfilesTableTableManager(
+      $_db,
+      $_db.angleCorrectionProfiles,
+    ).filter((f) => f.bowId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _angleCorrectionProfilesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
     $FieldCourseSightMarksTable,
     List<FieldCourseSightMark>
   >
@@ -31753,6 +32376,32 @@ class $$BowsTableFilterComposer extends Composer<_$AppDatabase, $BowsTable> {
               }) => $$SightMarkPreferencesTableTableFilterComposer(
                 $db: $db,
                 $table: $db.sightMarkPreferencesTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> angleCorrectionProfilesRefs(
+    Expression<bool> Function($$AngleCorrectionProfilesTableFilterComposer f) f,
+  ) {
+    final $$AngleCorrectionProfilesTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.angleCorrectionProfiles,
+          getReferencedColumn: (t) => t.bowId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AngleCorrectionProfilesTableFilterComposer(
+                $db: $db,
+                $table: $db.angleCorrectionProfiles,
                 $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
                 joinBuilder: joinBuilder,
                 $removeJoinBuilderFromRootComposer:
@@ -32182,6 +32831,33 @@ class $$BowsTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> angleCorrectionProfilesRefs<T extends Object>(
+    Expression<T> Function($$AngleCorrectionProfilesTableAnnotationComposer a)
+    f,
+  ) {
+    final $$AngleCorrectionProfilesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.angleCorrectionProfiles,
+          getReferencedColumn: (t) => t.bowId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AngleCorrectionProfilesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.angleCorrectionProfiles,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
   Expression<T> fieldCourseSightMarksRefs<T extends Object>(
     Expression<T> Function($$FieldCourseSightMarksTableAnnotationComposer a) f,
   ) {
@@ -32230,6 +32906,7 @@ class $$BowsTableTableManager
             bool tuningSessionsRefs,
             bool sightMarksRefs,
             bool sightMarkPreferencesTableRefs,
+            bool angleCorrectionProfilesRefs,
             bool fieldCourseSightMarksRefs,
           })
         > {
@@ -32359,6 +33036,7 @@ class $$BowsTableTableManager
                 tuningSessionsRefs = false,
                 sightMarksRefs = false,
                 sightMarkPreferencesTableRefs = false,
+                angleCorrectionProfilesRefs = false,
                 fieldCourseSightMarksRefs = false,
               }) {
                 return PrefetchHooks(
@@ -32372,6 +33050,7 @@ class $$BowsTableTableManager
                     if (sightMarksRefs) db.sightMarks,
                     if (sightMarkPreferencesTableRefs)
                       db.sightMarkPreferencesTable,
+                    if (angleCorrectionProfilesRefs) db.angleCorrectionProfiles,
                     if (fieldCourseSightMarksRefs) db.fieldCourseSightMarks,
                   ],
                   addJoins: null,
@@ -32491,6 +33170,26 @@ class $$BowsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (angleCorrectionProfilesRefs)
+                        await $_getPrefetchedData<
+                          Bow,
+                          $BowsTable,
+                          AngleCorrectionProfile
+                        >(
+                          currentTable: table,
+                          referencedTable: $$BowsTableReferences
+                              ._angleCorrectionProfilesRefsTable(db),
+                          managerFromTypedResult: (p0) => $$BowsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).angleCorrectionProfilesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bowId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (fieldCourseSightMarksRefs)
                         await $_getPrefetchedData<
                           Bow,
@@ -32539,6 +33238,7 @@ typedef $$BowsTableProcessedTableManager =
         bool tuningSessionsRefs,
         bool sightMarksRefs,
         bool sightMarkPreferencesTableRefs,
+        bool angleCorrectionProfilesRefs,
         bool fieldCourseSightMarksRefs,
       })
     >;
@@ -44316,6 +45016,436 @@ typedef $$SightMarkPreferencesTableTableProcessedTableManager =
       SightMarkPreferencesTableData,
       PrefetchHooks Function({bool bowId})
     >;
+typedef $$AngleCorrectionProfilesTableCreateCompanionBuilder =
+    AngleCorrectionProfilesCompanion Function({
+      required String id,
+      required String bowId,
+      required double arrowSpeedFps,
+      required double uphillFactor,
+      required double downhillFactor,
+      Value<int> uphillDataPoints,
+      Value<int> downhillDataPoints,
+      Value<double> confidenceScore,
+      Value<DateTime> lastUpdated,
+      Value<int> rowid,
+    });
+typedef $$AngleCorrectionProfilesTableUpdateCompanionBuilder =
+    AngleCorrectionProfilesCompanion Function({
+      Value<String> id,
+      Value<String> bowId,
+      Value<double> arrowSpeedFps,
+      Value<double> uphillFactor,
+      Value<double> downhillFactor,
+      Value<int> uphillDataPoints,
+      Value<int> downhillDataPoints,
+      Value<double> confidenceScore,
+      Value<DateTime> lastUpdated,
+      Value<int> rowid,
+    });
+
+final class $$AngleCorrectionProfilesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $AngleCorrectionProfilesTable,
+          AngleCorrectionProfile
+        > {
+  $$AngleCorrectionProfilesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $BowsTable _bowIdTable(_$AppDatabase db) => db.bows.createAlias(
+    $_aliasNameGenerator(db.angleCorrectionProfiles.bowId, db.bows.id),
+  );
+
+  $$BowsTableProcessedTableManager get bowId {
+    final $_column = $_itemColumn<String>('bow_id')!;
+
+    final manager = $$BowsTableTableManager(
+      $_db,
+      $_db.bows,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_bowIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$AngleCorrectionProfilesTableFilterComposer
+    extends Composer<_$AppDatabase, $AngleCorrectionProfilesTable> {
+  $$AngleCorrectionProfilesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get arrowSpeedFps => $composableBuilder(
+    column: $table.arrowSpeedFps,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get uphillFactor => $composableBuilder(
+    column: $table.uphillFactor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get downhillFactor => $composableBuilder(
+    column: $table.downhillFactor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get uphillDataPoints => $composableBuilder(
+    column: $table.uphillDataPoints,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get downhillDataPoints => $composableBuilder(
+    column: $table.downhillDataPoints,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get confidenceScore => $composableBuilder(
+    column: $table.confidenceScore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastUpdated => $composableBuilder(
+    column: $table.lastUpdated,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$BowsTableFilterComposer get bowId {
+    final $$BowsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableFilterComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AngleCorrectionProfilesTableOrderingComposer
+    extends Composer<_$AppDatabase, $AngleCorrectionProfilesTable> {
+  $$AngleCorrectionProfilesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get arrowSpeedFps => $composableBuilder(
+    column: $table.arrowSpeedFps,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get uphillFactor => $composableBuilder(
+    column: $table.uphillFactor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get downhillFactor => $composableBuilder(
+    column: $table.downhillFactor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get uphillDataPoints => $composableBuilder(
+    column: $table.uphillDataPoints,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get downhillDataPoints => $composableBuilder(
+    column: $table.downhillDataPoints,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get confidenceScore => $composableBuilder(
+    column: $table.confidenceScore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastUpdated => $composableBuilder(
+    column: $table.lastUpdated,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$BowsTableOrderingComposer get bowId {
+    final $$BowsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableOrderingComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AngleCorrectionProfilesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AngleCorrectionProfilesTable> {
+  $$AngleCorrectionProfilesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<double> get arrowSpeedFps => $composableBuilder(
+    column: $table.arrowSpeedFps,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get uphillFactor => $composableBuilder(
+    column: $table.uphillFactor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get downhillFactor => $composableBuilder(
+    column: $table.downhillFactor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get uphillDataPoints => $composableBuilder(
+    column: $table.uphillDataPoints,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get downhillDataPoints => $composableBuilder(
+    column: $table.downhillDataPoints,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get confidenceScore => $composableBuilder(
+    column: $table.confidenceScore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastUpdated => $composableBuilder(
+    column: $table.lastUpdated,
+    builder: (column) => column,
+  );
+
+  $$BowsTableAnnotationComposer get bowId {
+    final $$BowsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bowId,
+      referencedTable: $db.bows,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BowsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.bows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AngleCorrectionProfilesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AngleCorrectionProfilesTable,
+          AngleCorrectionProfile,
+          $$AngleCorrectionProfilesTableFilterComposer,
+          $$AngleCorrectionProfilesTableOrderingComposer,
+          $$AngleCorrectionProfilesTableAnnotationComposer,
+          $$AngleCorrectionProfilesTableCreateCompanionBuilder,
+          $$AngleCorrectionProfilesTableUpdateCompanionBuilder,
+          (AngleCorrectionProfile, $$AngleCorrectionProfilesTableReferences),
+          AngleCorrectionProfile,
+          PrefetchHooks Function({bool bowId})
+        > {
+  $$AngleCorrectionProfilesTableTableManager(
+    _$AppDatabase db,
+    $AngleCorrectionProfilesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AngleCorrectionProfilesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$AngleCorrectionProfilesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$AngleCorrectionProfilesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> bowId = const Value.absent(),
+                Value<double> arrowSpeedFps = const Value.absent(),
+                Value<double> uphillFactor = const Value.absent(),
+                Value<double> downhillFactor = const Value.absent(),
+                Value<int> uphillDataPoints = const Value.absent(),
+                Value<int> downhillDataPoints = const Value.absent(),
+                Value<double> confidenceScore = const Value.absent(),
+                Value<DateTime> lastUpdated = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AngleCorrectionProfilesCompanion(
+                id: id,
+                bowId: bowId,
+                arrowSpeedFps: arrowSpeedFps,
+                uphillFactor: uphillFactor,
+                downhillFactor: downhillFactor,
+                uphillDataPoints: uphillDataPoints,
+                downhillDataPoints: downhillDataPoints,
+                confidenceScore: confidenceScore,
+                lastUpdated: lastUpdated,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String bowId,
+                required double arrowSpeedFps,
+                required double uphillFactor,
+                required double downhillFactor,
+                Value<int> uphillDataPoints = const Value.absent(),
+                Value<int> downhillDataPoints = const Value.absent(),
+                Value<double> confidenceScore = const Value.absent(),
+                Value<DateTime> lastUpdated = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AngleCorrectionProfilesCompanion.insert(
+                id: id,
+                bowId: bowId,
+                arrowSpeedFps: arrowSpeedFps,
+                uphillFactor: uphillFactor,
+                downhillFactor: downhillFactor,
+                uphillDataPoints: uphillDataPoints,
+                downhillDataPoints: downhillDataPoints,
+                confidenceScore: confidenceScore,
+                lastUpdated: lastUpdated,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$AngleCorrectionProfilesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({bowId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (bowId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.bowId,
+                                referencedTable:
+                                    $$AngleCorrectionProfilesTableReferences
+                                        ._bowIdTable(db),
+                                referencedColumn:
+                                    $$AngleCorrectionProfilesTableReferences
+                                        ._bowIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$AngleCorrectionProfilesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AngleCorrectionProfilesTable,
+      AngleCorrectionProfile,
+      $$AngleCorrectionProfilesTableFilterComposer,
+      $$AngleCorrectionProfilesTableOrderingComposer,
+      $$AngleCorrectionProfilesTableAnnotationComposer,
+      $$AngleCorrectionProfilesTableCreateCompanionBuilder,
+      $$AngleCorrectionProfilesTableUpdateCompanionBuilder,
+      (AngleCorrectionProfile, $$AngleCorrectionProfilesTableReferences),
+      AngleCorrectionProfile,
+      PrefetchHooks Function({bool bowId})
+    >;
 typedef $$VenuesTableCreateCompanionBuilder =
     VenuesCompanion Function({
       required String id,
@@ -51247,6 +52377,11 @@ class $AppDatabaseManager {
       $$SightMarkPreferencesTableTableTableManager(
         _db,
         _db.sightMarkPreferencesTable,
+      );
+  $$AngleCorrectionProfilesTableTableManager get angleCorrectionProfiles =>
+      $$AngleCorrectionProfilesTableTableManager(
+        _db,
+        _db.angleCorrectionProfiles,
       );
   $$VenuesTableTableManager get venues =>
       $$VenuesTableTableManager(_db, _db.venues);

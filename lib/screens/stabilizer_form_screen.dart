@@ -122,6 +122,43 @@ class _StabilizerFormScreenState extends State<StabilizerFormScreen> {
     _damperModelController = TextEditingController(text: s?.damperModel ?? '');
     _damperPositionsController = TextEditingController(text: s?.damperPositions ?? '');
     _notesController = TextEditingController(text: s?.notes ?? '');
+
+    // Auto-fill right side rod from left side rod when right is empty
+    _setupAutoFillListeners();
+  }
+
+  /// Sets up listeners to auto-fill right side rod from left side rod
+  void _setupAutoFillListeners() {
+    _leftSideRodModelController.addListener(() {
+      if (_rightSideRodModelController.text.isEmpty && _leftSideRodModelController.text.isNotEmpty) {
+        _rightSideRodModelController.text = _leftSideRodModelController.text;
+      }
+    });
+    _leftSideRodLengthController.addListener(() {
+      if (_rightSideRodLengthController.text.isEmpty && _leftSideRodLengthController.text.isNotEmpty) {
+        _rightSideRodLengthController.text = _leftSideRodLengthController.text;
+      }
+    });
+    _leftSideRodWeightController.addListener(() {
+      if (_rightSideRodWeightController.text.isEmpty && _leftSideRodWeightController.text.isNotEmpty) {
+        _rightSideRodWeightController.text = _leftSideRodWeightController.text;
+      }
+    });
+    _leftWeightsController.addListener(() {
+      if (_rightWeightsController.text.isEmpty && _leftWeightsController.text.isNotEmpty) {
+        _rightWeightsController.text = _leftWeightsController.text;
+      }
+    });
+    _leftAngleHController.addListener(() {
+      if (_rightAngleHController.text.isEmpty && _leftAngleHController.text.isNotEmpty) {
+        _rightAngleHController.text = _leftAngleHController.text;
+      }
+    });
+    _leftAngleVController.addListener(() {
+      if (_rightAngleVController.text.isEmpty && _leftAngleVController.text.isNotEmpty) {
+        _rightAngleVController.text = _leftAngleVController.text;
+      }
+    });
   }
 
   @override

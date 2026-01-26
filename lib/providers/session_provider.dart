@@ -37,9 +37,11 @@ class SessionProvider extends ChangeNotifier {
   // Prevent concurrent end commits (race condition guard)
   bool _isCommittingEnd = false;
 
-  // Halfway checkpoint state
+  // Break checkpoint state
   int? _arrowsHiddenBeforeEndNumber;
   bool _halfwayCheckpointShown = false;
+  // Track which distance boundary checkpoints have been shown (for multi-distance rounds)
+  final Set<int> _shownBreakCheckpoints = {};
 
   // Getters
   Session? get currentSession => _currentSession;
@@ -218,9 +220,47 @@ class SessionProvider extends ChangeNotifier {
     return currentEndNumber == halfPoint + 1 && !_halfwayCheckpointShown;
   }
 
+  /// Check if we're at a break checkpoint (distance boundary or halfway)
+  /// Returns the end number that triggered the break, or null if no break
+  int? get breakCheckpointEndNumber {
+    // Check for multi-distance round break points
+    final boundaries = distanceBoundaryEnds;
+    if (boundaries.isNotEmpty) {
+      // We just completed an end, check if previous end was a boundary
+      final previousEndNumber = currentEndNumber - 1;
+      // Don't show break after the final end (that's session complete)
+      if (previousEndNumber > 0 &&
+          previousEndNumber < totalEnds &&
+          boundaries.contains(previousEndNumber) &&
+          !_shownBreakCheckpoints.contains(previousEndNumber)) {
+        return previousEndNumber;
+      }
+    } else {
+      // Single-distance round: use halfway point
+      final halfPoint = (totalEnds / 2).ceil();
+      if (currentEndNumber == halfPoint + 1 && !_halfwayCheckpointShown) {
+        return halfPoint;
+      }
+    }
+    return null;
+  }
+
+  /// Check if we're at any kind of break checkpoint
+  bool get isAtBreakCheckpoint => breakCheckpointEndNumber != null;
+
   /// Mark that the halfway checkpoint has been shown this session
   void markHalfwayCheckpointShown() {
     _halfwayCheckpointShown = true;
+  }
+
+  /// Mark that a break checkpoint has been shown for a specific end
+  void markBreakCheckpointShown(int endNumber) {
+    _shownBreakCheckpoints.add(endNumber);
+    // Also mark halfway shown for backwards compatibility
+    final halfPoint = (totalEnds / 2).ceil();
+    if (endNumber == halfPoint) {
+      _halfwayCheckpointShown = true;
+    }
   }
 
   /// Current end score
@@ -324,6 +364,8 @@ class SessionProvider extends ChangeNotifier {
       _ends = [];
       _currentEndArrows = [];
       _completedEndArrows = []; // Clear cache for new session
+      _halfwayCheckpointShown = false;
+      _shownBreakCheckpoints.clear();
 
       // Store equipment state
       _selectedBowId = bowId;
@@ -612,6 +654,8 @@ class SessionProvider extends ChangeNotifier {
     _completedEndArrows = [];
     _activeEnd = null;
     _arrowsPerEndOverride = null;
+    _halfwayCheckpointShown = false;
+    _shownBreakCheckpoints.clear();
     notifyListeners();
   }
 
@@ -733,6 +777,8 @@ class SessionProvider extends ChangeNotifier {
     _currentEndArrows = [];
     _completedEndArrows = [];
     _activeEnd = null;
+    _halfwayCheckpointShown = false;
+    _shownBreakCheckpoints.clear();
     notifyListeners();
   }
 

@@ -197,6 +197,15 @@ class ChiptuneService {
   /// Check if initialized and ready.
   bool get isReady => _initialized;
 
+  /// Stop any currently playing sound.
+  Future<void> stop() async {
+    try {
+      await _player?.stop();
+    } catch (e) {
+      // Silently fail
+    }
+  }
+
   /// Get count of available sounds by type.
   Map<String, int> get soundCounts => {
         'levelUp': _levelUpSounds.length,

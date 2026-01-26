@@ -148,34 +148,34 @@ class _XpBadgeCelebrationState extends State<XpBadgeCelebration>
   }
 
   bool _soundComplete = false;
+  bool _dismissed = false;
+  final ChiptuneService _chiptune = ChiptuneService();
 
   void _playCelebrationSoundAndWait() async {
     try {
-      final chiptune = ChiptuneService();
-
       // Play sound based on achievement type
       switch (widget.event.achievementType) {
         case AchievementType.streak7:
-          await chiptune.playStreak7();
+          await _chiptune.playStreak7();
           break;
         case AchievementType.streak14:
-          await chiptune.playStreak14();
+          await _chiptune.playStreak14();
           break;
         case AchievementType.streak30:
-          await chiptune.playStreak30();
+          await _chiptune.playStreak30();
           break;
         case AchievementType.personalBest:
-          await chiptune.playPersonalBest();
+          await _chiptune.playPersonalBest();
           break;
         case AchievementType.milestone:
-          await chiptune.playMilestone();
+          await _chiptune.playMilestone();
           break;
         case AchievementType.competition:
         case AchievementType.excellentForm:
         case AchievementType.fullPlot:
         case AchievementType.standard:
         default:
-          await chiptune.playAchievement();
+          await _chiptune.playAchievement();
           break;
       }
     } catch (e) {
@@ -184,14 +184,24 @@ class _XpBadgeCelebrationState extends State<XpBadgeCelebration>
     }
 
     // Sound complete - can now exit
-    if (mounted) {
+    if (mounted && !_dismissed) {
       setState(() => _soundComplete = true);
       // Brief pause after sound, then start exit animation
       Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted && !_isExiting) {
+        if (mounted && !_isExiting && !_dismissed) {
           _startExitAnimation();
         }
       });
+    }
+  }
+
+  /// Dismiss immediately - stops music and exits
+  void _dismiss() {
+    if (_dismissed) return;
+    _dismissed = true;
+    _chiptune.stop(); // Stop music immediately
+    if (!_isExiting) {
+      _startExitAnimation();
     }
   }
 
@@ -280,7 +290,7 @@ class _XpBadgeCelebrationState extends State<XpBadgeCelebration>
     return Material(
       type: MaterialType.transparency,
       child: GestureDetector(
-        onTap: (_soundComplete && !_isExiting) ? _startExitAnimation : null,
+        onTap: _dismiss, // Tap anytime to stop music and dismiss
         child: Stack(
           children: [
             // Fireworks particles (only during entrance)

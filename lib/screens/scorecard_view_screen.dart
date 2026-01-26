@@ -2,10 +2,10 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:signature/signature.dart';
 import '../db/database.dart';
 import '../theme/app_theme.dart';
 import '../widgets/world_archery_scorecard.dart';
-import '../widgets/signature_pad.dart';
 import '../widgets/target_face.dart';
 import '../services/signature_service.dart';
 import '../services/scorecard_export_service.dart';
@@ -213,7 +213,7 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
         allArrows.addAll(arrows);
       }
 
-      // Generate plot images based on options
+      // Generate plot images based on selected options (multi-select)
       List<Uint8List>? plotImages;
       List<String>? plotLabels;
 
@@ -222,59 +222,83 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
         plotLabels = [];
 
         final isTriSpot = (_roundType?.faceCount ?? 1) == 3;
+        final scoringType = _roundType?.scoringType ?? '10-zone';
 
-        if (options.plotStyle == PlotStyle.full || options.plotStyle == PlotStyle.triSpotCombined) {
-          // Full session plot (all arrows on one face)
-          final fullPlot = await _generatePlotImage(allArrows, showAsTriSpot: isTriSpot);
-          if (fullPlot != null) {
-            plotImages.add(fullPlot);
-            plotLabels.add('All Arrows');
-          }
-        } else if (options.plotStyle == PlotStyle.triSpotSeparate) {
-          // Triple spot: arrows on their respective faces (1, 2, 3)
-          for (int faceIndex = 0; faceIndex < 3; faceIndex++) {
-            final faceArrows = allArrows.where((a) => a.faceIndex == faceIndex).toList();
-            if (faceArrows.isNotEmpty) {
-              final facePlot = await _generatePlotImage(faceArrows, showAsTriSpot: true);
-              if (facePlot != null) {
-                plotImages.add(facePlot);
-                plotLabels.add('Face ${faceIndex + 1}');
+        // Process each selected style
+        for (final style in options.selectedStyles) {
+          if (style == PlotStyle.full || style == PlotStyle.triSpotCombined) {
+            // Full session plot (all arrows on one face)
+            final fullPlot = await _generatePlotImage(
+              allArrows,
+              showAsTriSpot: isTriSpot,
+              scoringType: scoringType,
+            );
+            if (fullPlot != null) {
+              plotImages.add(fullPlot);
+              plotLabels.add('All Arrows');
+            }
+          } else if (style == PlotStyle.triSpotSeparate) {
+            // Triple spot: arrows on their respective faces (1, 2, 3)
+            for (int faceIndex = 0; faceIndex < 3; faceIndex++) {
+              final faceArrows = allArrows.where((a) => a.faceIndex == faceIndex).toList();
+              if (faceArrows.isNotEmpty) {
+                final facePlot = await _generatePlotImage(
+                  faceArrows,
+                  showAsTriSpot: true,
+                  scoringType: scoringType,
+                );
+                if (facePlot != null) {
+                  plotImages.add(facePlot);
+                  plotLabels.add('Face ${faceIndex + 1}');
+                }
               }
             }
-          }
-        } else if (options.plotStyle == PlotStyle.halves) {
-          // First half and second half
-          final halfEndCount = _ends.length ~/ 2;
-          final firstHalfArrows = <Arrow>[];
-          final secondHalfArrows = <Arrow>[];
+          } else if (style == PlotStyle.halves) {
+            // First half and second half
+            final halfEndCount = _ends.length ~/ 2;
+            final firstHalfArrows = <Arrow>[];
+            final secondHalfArrows = <Arrow>[];
 
-          for (int i = 0; i < _ends.length; i++) {
-            if (i < _endArrows.length) {
-              if (i < halfEndCount) {
-                firstHalfArrows.addAll(_endArrows[i]);
-              } else {
-                secondHalfArrows.addAll(_endArrows[i]);
+            for (int i = 0; i < _ends.length; i++) {
+              if (i < _endArrows.length) {
+                if (i < halfEndCount) {
+                  firstHalfArrows.addAll(_endArrows[i]);
+                } else {
+                  secondHalfArrows.addAll(_endArrows[i]);
+                }
               }
             }
-          }
 
-          final firstHalf = await _generatePlotImage(firstHalfArrows, showAsTriSpot: isTriSpot);
-          final secondHalf = await _generatePlotImage(secondHalfArrows, showAsTriSpot: isTriSpot);
-          if (firstHalf != null) {
-            plotImages.add(firstHalf);
-            plotLabels.add('First Half');
-          }
-          if (secondHalf != null) {
-            plotImages.add(secondHalf);
-            plotLabels.add('Second Half');
-          }
-        } else if (options.plotStyle == PlotStyle.perEnd) {
-          // Per-end plots
-          for (int i = 0; i < _endArrows.length; i++) {
-            final endPlot = await _generatePlotImage(_endArrows[i], showAsTriSpot: isTriSpot);
-            if (endPlot != null) {
-              plotImages.add(endPlot);
-              plotLabels.add('End ${i + 1}');
+            final firstHalf = await _generatePlotImage(
+              firstHalfArrows,
+              showAsTriSpot: isTriSpot,
+              scoringType: scoringType,
+            );
+            final secondHalf = await _generatePlotImage(
+              secondHalfArrows,
+              showAsTriSpot: isTriSpot,
+              scoringType: scoringType,
+            );
+            if (firstHalf != null) {
+              plotImages.add(firstHalf);
+              plotLabels.add('First Half');
+            }
+            if (secondHalf != null) {
+              plotImages.add(secondHalf);
+              plotLabels.add('Second Half');
+            }
+          } else if (style == PlotStyle.perEnd) {
+            // Per-end plots
+            for (int i = 0; i < _endArrows.length; i++) {
+              final endPlot = await _generatePlotImage(
+                _endArrows[i],
+                showAsTriSpot: isTriSpot,
+                scoringType: scoringType,
+              );
+              if (endPlot != null) {
+                plotImages.add(endPlot);
+                plotLabels.add('End ${i + 1}');
+              }
             }
           }
         }
@@ -322,89 +346,248 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
     );
   }
 
-  /// Generate a plot image for given arrows
+  /// Generate a plot image for given arrows - using accurate target colors
   /// [showAsTriSpot] - if true, renders as tri-spot (rings 6-10 only, 2x scale)
-  Future<Uint8List?> _generatePlotImage(List<Arrow> arrows, {bool showAsTriSpot = false}) async {
+  /// [scoringType] - '10-zone' (default), '5-zone' (IFAA), or 'worcester'
+  Future<Uint8List?> _generatePlotImage(
+    List<Arrow> arrows, {
+    bool showAsTriSpot = false,
+    String scoringType = '10-zone',
+  }) async {
     if (arrows.isEmpty) return null;
 
     final isTriSpot = showAsTriSpot;
+    final isWorcester = scoringType == 'worcester';
+
+    // Much larger image size for better quality in export
+    const int imageSize = 800;
+    const double imageSizeDouble = 800.0;
+    const double center = imageSizeDouble / 2;
+    const double radius = imageSizeDouble / 2 - 20; // Small margin
 
     // Use canvas-based rendering for plot generation
     final pictureRecorder = ui.PictureRecorder();
     final canvas = Canvas(pictureRecorder);
 
-    // Draw a dark background
+    // Draw white background for PDF export
     canvas.drawRect(
-      const Rect.fromLTWH(0, 0, 300, 300),
-      Paint()..color = AppColors.backgroundDark,
+      const Rect.fromLTWH(0, 0, imageSizeDouble, imageSizeDouble),
+      Paint()..color = Colors.white,
     );
 
-    // Create a simple target with arrows representation
-    final center = const Offset(150, 150);
-    final radius = 140.0;
-
-    // Draw rings (simplified)
-    final ringColors = [
-      const Color(0xFFFFD700), // Gold (10, X)
-      const Color(0xFFFFD700), // Gold (9)
-      const Color(0xFFFF5555), // Red (8)
-      const Color(0xFFFF5555), // Red (7)
-      const Color(0xFF5599FF), // Blue (6)
-      const Color(0xFF5599FF), // Blue (5)
-      const Color(0xFF222222), // Black (4)
-      const Color(0xFF222222), // Black (3)
-      const Color(0xFFEEEEEE), // White (2)
-      const Color(0xFFEEEEEE), // White (1)
-    ];
-
-    for (int i = 10; i >= 1; i--) {
-      final ringRadius = radius * (i / 10);
-      canvas.drawCircle(
-        center,
-        ringRadius,
-        Paint()
-          ..color = ringColors[10 - i]
-          ..style = PaintingStyle.fill,
-      );
-      canvas.drawCircle(
-        center,
-        ringRadius,
-        Paint()
-          ..color = Colors.black54
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.5,
-      );
+    if (isWorcester) {
+      // Worcester target: 5 equal rings, white center (5), black outer (4,3,2,1)
+      _drawWorcesterTarget(canvas, center, radius);
+    } else {
+      // Standard WA/IFAA target (same colors, different scoring)
+      _drawStandardTarget(canvas, center, radius, isTriSpot);
     }
 
-    // Draw arrows
+    // Draw arrows - larger markers for visibility
+    const arrowMarkerSize = 12.0;
     for (final arrow in arrows) {
-      final scale = isTriSpot ? 2.0 : 1.0;
-      final x = center.dx + (arrow.x * scale * radius);
-      final y = center.dy + (arrow.y * scale * radius);
+      // For tri-spot, arrow coordinates need scaling to match ring scaling
+      final arrowScale = isTriSpot ? 2.0 : 1.0;
+      final x = center + (arrow.x * arrowScale * radius);
+      final y = center + (arrow.y * arrowScale * radius);
 
-      // Arrow marker
+      // Determine marker color based on ring (for contrast)
+      final (markerColor, borderColor) = _getArrowMarkerColors(
+        arrow.score,
+        isWorcester: isWorcester,
+      );
+
+      // Arrow marker - filled circle with border
       canvas.drawCircle(
         Offset(x, y),
-        4,
+        arrowMarkerSize,
         Paint()
-          ..color = Colors.black
+          ..color = markerColor
           ..style = PaintingStyle.fill,
       );
       canvas.drawCircle(
         Offset(x, y),
-        4,
+        arrowMarkerSize,
         Paint()
-          ..color = Colors.white
+          ..color = borderColor
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.5,
+          ..strokeWidth = 2,
       );
     }
 
     final picture = pictureRecorder.endRecording();
-    final image = await picture.toImage(300, 300);
+    final image = await picture.toImage(imageSize, imageSize);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
 
     return byteData?.buffer.asUint8List();
+  }
+
+  /// Draw standard WA/IFAA target (10-zone or 5-zone use same colors)
+  void _drawStandardTarget(Canvas canvas, double center, double radius, bool isTriSpot) {
+    // Accurate World Archery target colors
+    const goldColor = Color(0xFFFFD700);    // Gold/Yellow (9, 10, X)
+    const redColor = Color(0xFFE30613);     // Red (7, 8)
+    const blueColor = Color(0xFF009FE3);    // Blue (5, 6)
+    const blackColor = Color(0xFF1D1D1B);   // Black (3, 4)
+    const whiteColor = Color(0xFFFFFEFD);   // White (1, 2)
+
+    // Ring boundary positions (normalized: 0 = center, 1 = edge)
+    final ringData = isTriSpot
+        ? [
+            // Tri-spot: only rings 6-10 visible, scaled to fill face
+            (1.0, blueColor),    // Ring 6 (outermost)
+            (0.8, redColor),     // Ring 7
+            (0.6, redColor),     // Ring 8
+            (0.4, goldColor),    // Ring 9
+            (0.2, goldColor),    // Ring 10
+            (0.1, goldColor),    // X ring
+          ]
+        : [
+            // Full target: all rings
+            (1.0, whiteColor),   // Ring 1 (outermost)
+            (0.9, whiteColor),   // Ring 2
+            (0.8, blackColor),   // Ring 3
+            (0.7, blackColor),   // Ring 4
+            (0.6, blueColor),    // Ring 5
+            (0.5, blueColor),    // Ring 6
+            (0.4, redColor),     // Ring 7
+            (0.3, redColor),     // Ring 8
+            (0.2, goldColor),    // Ring 9
+            (0.1, goldColor),    // Ring 10
+            (0.05, goldColor),   // X ring
+          ];
+
+    // Draw rings from outside in
+    for (final (ringFraction, color) in ringData) {
+      final ringRadius = radius * ringFraction;
+      canvas.drawCircle(
+        Offset(center, center),
+        ringRadius,
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.fill,
+      );
+    }
+
+    // Draw ring lines
+    final linePaint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    for (final (ringFraction, _) in ringData) {
+      final ringRadius = radius * ringFraction;
+      canvas.drawCircle(Offset(center, center), ringRadius, linePaint);
+    }
+
+    // Draw center cross
+    final crossSize = radius * 0.03;
+    final crossPaint = Paint()
+      ..color = Colors.black
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(center, center - crossSize),
+      Offset(center, center + crossSize),
+      crossPaint,
+    );
+    canvas.drawLine(
+      Offset(center - crossSize, center),
+      Offset(center + crossSize, center),
+      crossPaint,
+    );
+  }
+
+  /// Draw Worcester target: 5 equal rings, white center (5), black outer (4,3,2,1)
+  void _drawWorcesterTarget(Canvas canvas, double center, double radius) {
+    const blackColor = Color(0xFF1D1D1B);
+    const whiteColor = Color(0xFFFFFEFD);
+
+    // Worcester has 5 equal-width rings (each 20% of radius)
+    // Ring 5 (center): white - scores 5
+    // Rings 4, 3, 2, 1 (outer): black - scores 4, 3, 2, 1
+    final ringData = [
+      (1.0, blackColor),   // Ring 1 (outermost) - black
+      (0.8, blackColor),   // Ring 2 - black
+      (0.6, blackColor),   // Ring 3 - black
+      (0.4, blackColor),   // Ring 4 - black
+      (0.2, whiteColor),   // Ring 5 (center) - white
+    ];
+
+    // Draw rings from outside in
+    for (final (ringFraction, color) in ringData) {
+      final ringRadius = radius * ringFraction;
+      canvas.drawCircle(
+        Offset(center, center),
+        ringRadius,
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.fill,
+      );
+    }
+
+    // Draw ring lines - white on black rings, black on white center
+    for (int i = 0; i < ringData.length; i++) {
+      final ringFraction = ringData[i].$1;
+      final ringRadius = radius * ringFraction;
+      // Use black line for innermost ring (white center), white for outer (black)
+      final isWhiteRing = i == ringData.length - 1;
+      final linePaint = Paint()
+        ..color = isWhiteRing ? Colors.black : Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5;
+      canvas.drawCircle(Offset(center, center), ringRadius, linePaint);
+    }
+
+    // Draw center cross
+    final crossSize = radius * 0.06;
+    final crossPaint = Paint()
+      ..color = Colors.black
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(center, center - crossSize),
+      Offset(center, center + crossSize),
+      crossPaint,
+    );
+    canvas.drawLine(
+      Offset(center - crossSize, center),
+      Offset(center + crossSize, center),
+      crossPaint,
+    );
+  }
+
+  /// Get arrow marker colors based on score and target type
+  /// Uses high-contrast combinations for visibility on all ring colors
+  (Color markerColor, Color borderColor) _getArrowMarkerColors(
+    int score, {
+    bool isWorcester = false,
+  }) {
+    const goldColor = Color(0xFFFFD700);
+    const redColor = Color(0xFFE30613);
+
+    if (isWorcester) {
+      // Worcester: score 5 is white center, 1-4 are black
+      if (score == 5) {
+        return (Colors.black, goldColor); // Black marker, gold border on white
+      } else {
+        return (Colors.white, goldColor); // White marker, gold border on black
+      }
+    }
+
+    // Standard WA/IFAA target - ensure high contrast on all ring colors
+    if (score >= 9) {
+      return (Colors.black, Colors.white); // Black/white on gold
+    } else if (score >= 7) {
+      return (Colors.white, Colors.black); // White/black on red
+    } else if (score >= 5) {
+      return (Colors.white, Colors.black); // White/black on blue
+    } else if (score >= 3) {
+      return (Colors.white, goldColor); // White/gold on black - high visibility
+    } else {
+      // White rings (1-2): use black marker with red border for visibility
+      return (Colors.black, redColor); // Black/red on white - stands out
+    }
   }
 
   @override
@@ -1002,7 +1185,7 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'CAPTURE SIGNATURES',
+            'SIGNATURES',
             style: TextStyle(
               fontFamily: AppFonts.pixel,
               fontSize: 12,
@@ -1010,42 +1193,216 @@ class _ScorecardViewScreenState extends State<ScorecardViewScreen> {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
+          // Archer signature - horizontal layout
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(
-                child: SignaturePad(
-                  label: 'Archer Signature',
-                  savedSignature: _archerSignature,
-                  onSignatureChanged: _onArcherSignatureChanged,
-                  width: double.infinity,
-                  height: 100,
+              Text(
+                'Archer',
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
-                child: SignaturePad(
-                  label: 'Witness Signature',
-                  savedSignature: _witnessSignature,
-                  onSignatureChanged: _onWitnessSignatureChanged,
-                  width: double.infinity,
-                  height: 100,
+                child: Container(
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceLight.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: _archerSignature != null
+                          ? AppColors.gold.withValues(alpha: 0.5)
+                          : AppColors.surfaceLight,
+                    ),
+                  ),
+                  child: _archerSignature != null
+                      ? Stack(
+                          children: [
+                            Center(
+                              child: Image.memory(
+                                _archerSignature!,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            Positioned(
+                              right: 4,
+                              top: 4,
+                              child: GestureDetector(
+                                onTap: () => _onArcherSignatureChanged(null),
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceDark,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Icon(
+                                    Icons.close,
+                                    size: 14,
+                                    color: AppColors.textMuted,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : GestureDetector(
+                          onTap: () => _showArcherSignatureDialog(),
+                          child: Center(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.draw_outlined,
+                                  size: 16,
+                                  color: AppColors.gold,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Tap to sign',
+                                  style: TextStyle(
+                                    fontFamily: AppFonts.body,
+                                    fontSize: 11,
+                                    color: AppColors.gold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'Your archer signature is saved and will auto-fill on future scorecards.',
-            style: TextStyle(
-              fontFamily: AppFonts.body,
-              fontSize: 10,
-              color: AppColors.textMuted,
-              fontStyle: FontStyle.italic,
+          if (_archerSignature == null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Set your signature in Profile to auto-fill on all scorecards',
+              style: TextStyle(
+                fontFamily: AppFonts.body,
+                fontSize: 10,
+                color: AppColors.textMuted,
+                fontStyle: FontStyle.italic,
+              ),
             ),
+          ],
+          const SizedBox(height: AppSpacing.md),
+          // Witness signature - horizontal layout
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Witness',
+                style: TextStyle(
+                  fontFamily: AppFonts.body,
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Container(
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceLight.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: _witnessSignature != null
+                          ? AppColors.gold.withValues(alpha: 0.5)
+                          : AppColors.surfaceLight,
+                    ),
+                  ),
+                  child: _witnessSignature != null
+                      ? Stack(
+                          children: [
+                            Center(
+                              child: Image.memory(
+                                _witnessSignature!,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            Positioned(
+                              right: 4,
+                              top: 4,
+                              child: GestureDetector(
+                                onTap: () => _onWitnessSignatureChanged(null),
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceDark,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Icon(
+                                    Icons.close,
+                                    size: 14,
+                                    color: AppColors.textMuted,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : GestureDetector(
+                          onTap: () => _showWitnessSignatureDialog(),
+                          child: Center(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.draw_outlined,
+                                  size: 16,
+                                  color: AppColors.textMuted,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Tap to sign',
+                                  style: TextStyle(
+                                    fontFamily: AppFonts.body,
+                                    fontSize: 11,
+                                    color: AppColors.textMuted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _showArcherSignatureDialog() async {
+    final result = await showDialog<Uint8List?>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => _HorizontalSignatureDialog(
+        label: 'Archer Signature',
+        existingSignature: _archerSignature,
+      ),
+    );
+    if (result != null) {
+      _onArcherSignatureChanged(result);
+    }
+  }
+
+  Future<void> _showWitnessSignatureDialog() async {
+    final result = await showDialog<Uint8List?>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => _HorizontalSignatureDialog(
+        label: 'Witness Signature',
+        existingSignature: _witnessSignature,
+      ),
+    );
+    if (result != null) {
+      _onWitnessSignatureChanged(result);
+    }
   }
 }
 
@@ -1068,18 +1425,18 @@ enum PlotStyle {
   triSpotSeparate,
 }
 
-/// Export options configuration
+/// Export options configuration - now supports multiple plot styles
 class ExportOptions {
-  final bool includePlot;
-  final PlotStyle plotStyle;
+  final Set<PlotStyle> selectedStyles;
 
   const ExportOptions({
-    required this.includePlot,
-    required this.plotStyle,
+    required this.selectedStyles,
   });
+
+  bool get includePlot => selectedStyles.isNotEmpty;
 }
 
-/// Export options dialog
+/// Export options dialog - multi-select for plot styles
 class _ExportOptionsDialog extends StatefulWidget {
   final bool isTripleSpot;
 
@@ -1090,14 +1447,25 @@ class _ExportOptionsDialog extends StatefulWidget {
 }
 
 class _ExportOptionsDialogState extends State<_ExportOptionsDialog> {
-  bool _includePlot = true;
-  late PlotStyle _plotStyle;
+  final Set<PlotStyle> _selectedStyles = {};
 
   @override
   void initState() {
     super.initState();
-    // Default to combined view for triple spot, full for single face
-    _plotStyle = widget.isTripleSpot ? PlotStyle.triSpotCombined : PlotStyle.full;
+    // Default to full/combined view selected
+    _selectedStyles.add(
+      widget.isTripleSpot ? PlotStyle.triSpotCombined : PlotStyle.full,
+    );
+  }
+
+  void _toggleStyle(PlotStyle style) {
+    setState(() {
+      if (_selectedStyles.contains(style)) {
+        _selectedStyles.remove(style);
+      } else {
+        _selectedStyles.add(style);
+      }
+    });
   }
 
   @override
@@ -1105,7 +1473,7 @@ class _ExportOptionsDialogState extends State<_ExportOptionsDialog> {
     return AlertDialog(
       backgroundColor: AppColors.surfaceDark,
       title: Text(
-        'Export Options',
+        'Include Plots',
         style: TextStyle(
           fontFamily: AppFonts.pixel,
           color: AppColors.gold,
@@ -1115,160 +1483,58 @@ class _ExportOptionsDialogState extends State<_ExportOptionsDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Include plot checkbox
-          CheckboxListTile(
-            title: Text(
-              'Include arrow plot',
-              style: TextStyle(
-                fontFamily: AppFonts.body,
-                color: AppColors.textPrimary,
-              ),
+          Text(
+            'Select which plots to include:',
+            style: TextStyle(
+              fontFamily: AppFonts.body,
+              fontSize: 12,
+              color: AppColors.textSecondary,
             ),
-            value: _includePlot,
-            onChanged: (v) => setState(() => _includePlot = v ?? true),
-            activeColor: AppColors.gold,
-            contentPadding: EdgeInsets.zero,
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // Triple spot specific options
+          if (widget.isTripleSpot) ...[
+            _buildCheckboxOption(
+              style: PlotStyle.triSpotCombined,
+              title: 'Full session (combined)',
+              subtitle: 'All arrows on single target',
+            ),
+            _buildCheckboxOption(
+              style: PlotStyle.triSpotSeparate,
+              title: 'Three faces',
+              subtitle: 'Arrows on faces 1, 2, 3 as shot',
+            ),
+          ] else ...[
+            _buildCheckboxOption(
+              style: PlotStyle.full,
+              title: 'Full session',
+              subtitle: 'All arrows on one target',
+            ),
+          ],
+
+          // Common options for both
+          _buildCheckboxOption(
+            style: PlotStyle.halves,
+            title: 'By halves',
+            subtitle: 'First half & second half separately',
+          ),
+          _buildCheckboxOption(
+            style: PlotStyle.perEnd,
+            title: 'Per end',
+            subtitle: 'Individual plot for each end',
           ),
 
-          // Plot style options (only if including plot)
-          if (_includePlot) ...[
+          if (_selectedStyles.isEmpty) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Plot breakdown:',
+              'No plots selected - scorecard will export without plots',
               style: TextStyle(
                 fontFamily: AppFonts.body,
-                fontSize: 12,
-                color: AppColors.textSecondary,
+                fontSize: 11,
+                color: AppColors.textMuted,
+                fontStyle: FontStyle.italic,
               ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-
-            // Triple spot specific options
-            if (widget.isTripleSpot) ...[
-              RadioListTile<PlotStyle>(
-                title: Text(
-                  'Combined (one face)',
-                  style: TextStyle(
-                    fontFamily: AppFonts.body,
-                    color: AppColors.textPrimary,
-                    fontSize: 13,
-                  ),
-                ),
-                subtitle: Text(
-                  'All arrows shown on single target',
-                  style: TextStyle(
-                    fontFamily: AppFonts.body,
-                    color: AppColors.textMuted,
-                    fontSize: 10,
-                  ),
-                ),
-                value: PlotStyle.triSpotCombined,
-                groupValue: _plotStyle,
-                onChanged: (v) => setState(() => _plotStyle = v ?? PlotStyle.triSpotCombined),
-                activeColor: AppColors.gold,
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-              ),
-              RadioListTile<PlotStyle>(
-                title: Text(
-                  'Three faces',
-                  style: TextStyle(
-                    fontFamily: AppFonts.body,
-                    color: AppColors.textPrimary,
-                    fontSize: 13,
-                  ),
-                ),
-                subtitle: Text(
-                  'Arrows on faces 1, 2, 3 as shot',
-                  style: TextStyle(
-                    fontFamily: AppFonts.body,
-                    color: AppColors.textMuted,
-                    fontSize: 10,
-                  ),
-                ),
-                value: PlotStyle.triSpotSeparate,
-                groupValue: _plotStyle,
-                onChanged: (v) => setState(() => _plotStyle = v ?? PlotStyle.triSpotCombined),
-                activeColor: AppColors.gold,
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-              ),
-            ] else ...[
-              // Single face options
-              RadioListTile<PlotStyle>(
-                title: Text(
-                  'Full session',
-                  style: TextStyle(
-                    fontFamily: AppFonts.body,
-                    color: AppColors.textPrimary,
-                    fontSize: 13,
-                  ),
-                ),
-                subtitle: Text(
-                  'All arrows on one target',
-                  style: TextStyle(
-                    fontFamily: AppFonts.body,
-                    color: AppColors.textMuted,
-                    fontSize: 10,
-                  ),
-                ),
-                value: PlotStyle.full,
-                groupValue: _plotStyle,
-                onChanged: (v) => setState(() => _plotStyle = v ?? PlotStyle.full),
-                activeColor: AppColors.gold,
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-              ),
-            ],
-
-            // Common options for both
-            RadioListTile<PlotStyle>(
-              title: Text(
-                'By halves',
-                style: TextStyle(
-                  fontFamily: AppFonts.body,
-                  color: AppColors.textPrimary,
-                  fontSize: 13,
-                ),
-              ),
-              subtitle: Text(
-                'First half & second half separately',
-                style: TextStyle(
-                  fontFamily: AppFonts.body,
-                  color: AppColors.textMuted,
-                  fontSize: 10,
-                ),
-              ),
-              value: PlotStyle.halves,
-              groupValue: _plotStyle,
-              onChanged: (v) => setState(() => _plotStyle = v ?? _plotStyle),
-              activeColor: AppColors.gold,
-              contentPadding: EdgeInsets.zero,
-              dense: true,
-            ),
-            RadioListTile<PlotStyle>(
-              title: Text(
-                'Per end',
-                style: TextStyle(
-                  fontFamily: AppFonts.body,
-                  color: AppColors.textPrimary,
-                  fontSize: 13,
-                ),
-              ),
-              subtitle: Text(
-                'Individual plot for each end',
-                style: TextStyle(
-                  fontFamily: AppFonts.body,
-                  color: AppColors.textMuted,
-                  fontSize: 10,
-                ),
-              ),
-              value: PlotStyle.perEnd,
-              groupValue: _plotStyle,
-              onChanged: (v) => setState(() => _plotStyle = v ?? _plotStyle),
-              activeColor: AppColors.gold,
-              contentPadding: EdgeInsets.zero,
-              dense: true,
             ),
           ],
         ],
@@ -1281,14 +1547,182 @@ class _ExportOptionsDialogState extends State<_ExportOptionsDialog> {
         ElevatedButton(
           onPressed: () => Navigator.pop(
             context,
-            ExportOptions(
-              includePlot: _includePlot,
-              plotStyle: _plotStyle,
-            ),
+            ExportOptions(selectedStyles: _selectedStyles),
           ),
           child: const Text('Export PDF'),
         ),
       ],
+    );
+  }
+
+  Widget _buildCheckboxOption({
+    required PlotStyle style,
+    required String title,
+    required String subtitle,
+  }) {
+    final isSelected = _selectedStyles.contains(style);
+    return CheckboxListTile(
+      title: Text(
+        title,
+        style: TextStyle(
+          fontFamily: AppFonts.body,
+          color: AppColors.textPrimary,
+          fontSize: 13,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+          fontFamily: AppFonts.body,
+          color: AppColors.textMuted,
+          fontSize: 10,
+        ),
+      ),
+      value: isSelected,
+      onChanged: (_) => _toggleStyle(style),
+      activeColor: AppColors.gold,
+      contentPadding: EdgeInsets.zero,
+      dense: true,
+      controlAffinity: ListTileControlAffinity.leading,
+    );
+  }
+}
+
+/// Horizontal signature dialog for landscape signing
+class _HorizontalSignatureDialog extends StatefulWidget {
+  final String label;
+  final Uint8List? existingSignature;
+
+  const _HorizontalSignatureDialog({
+    required this.label,
+    this.existingSignature,
+  });
+
+  @override
+  State<_HorizontalSignatureDialog> createState() => _HorizontalSignatureDialogState();
+}
+
+class _HorizontalSignatureDialogState extends State<_HorizontalSignatureDialog> {
+  late SignatureController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = SignatureController(
+      penStrokeWidth: 3,
+      penColor: AppColors.textPrimary,
+      exportBackgroundColor: Colors.transparent,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (_controller.isNotEmpty) {
+      final signature = await _controller.toPngBytes();
+      if (mounted) {
+        Navigator.pop(context, signature);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: AppColors.backgroundDark,
+      insetPadding: const EdgeInsets.all(16),
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                Expanded(
+                  child: Text(
+                    widget.label,
+                    style: TextStyle(
+                      fontFamily: AppFonts.pixel,
+                      fontSize: 16,
+                      color: AppColors.gold,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => _controller.clear(),
+                  child: Text(
+                    'Clear',
+                    style: TextStyle(color: AppColors.textMuted),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                ElevatedButton(
+                  onPressed: _save,
+                  child: const Text('Save'),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            // Signature area - wider than tall for horizontal signature
+            Container(
+              height: 120,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceDark,
+                border: Border.all(color: AppColors.gold, width: 2),
+                borderRadius: BorderRadius.circular(AppSpacing.sm),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
+                child: Stack(
+                  children: [
+                    Signature(
+                      controller: _controller,
+                      backgroundColor: AppColors.surfaceDark,
+                    ),
+                    // Signature line at bottom
+                    Positioned(
+                      left: 24,
+                      right: 24,
+                      bottom: 24,
+                      child: Container(
+                        height: 1,
+                        color: AppColors.textMuted.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    // Hint text
+                    Center(
+                      child: AnimatedBuilder(
+                        animation: _controller,
+                        builder: (context, child) {
+                          if (_controller.isNotEmpty) return const SizedBox.shrink();
+                          return Text(
+                            'Sign here',
+                            style: TextStyle(
+                              fontFamily: AppFonts.pixel,
+                              fontSize: 18,
+                              color: AppColors.textMuted.withValues(alpha: 0.2),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

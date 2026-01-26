@@ -3,21 +3,27 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Text size scaling options
 enum TextScaleOption {
+  /// Uses the device's system text size setting
+  system('Use System', null),
   small('Small', 0.85),
   normal('Normal', 1.0),
   large('Large', 1.15),
   extraLarge('Extra Large', 1.3);
 
   final String displayName;
-  final double scaleFactor;
+  /// Scale factor, or null for system (will use MediaQuery)
+  final double? scaleFactor;
 
   const TextScaleOption(this.displayName, this.scaleFactor);
 
+  /// Whether this option follows system settings
+  bool get usesSystemScale => scaleFactor == null;
+
   static TextScaleOption fromString(String? value) {
-    if (value == null) return TextScaleOption.normal;
+    if (value == null) return TextScaleOption.system;
     return TextScaleOption.values.firstWhere(
       (o) => o.name == value,
-      orElse: () => TextScaleOption.normal,
+      orElse: () => TextScaleOption.system,
     );
   }
 }
@@ -125,7 +131,7 @@ class AccessibilityProvider extends ChangeNotifier {
 
   ColorblindMode _colorblindMode = ColorblindMode.none;
   bool _showRingLabels = false;
-  TextScaleOption _textScale = TextScaleOption.large; // Default to Large for better readability
+  TextScaleOption _textScale = TextScaleOption.system; // Default to system text size
   bool _reduceMotion = false;
   bool _boldText = false;
   bool _screenReaderOptimized = false;
@@ -136,8 +142,13 @@ class AccessibilityProvider extends ChangeNotifier {
   ColorblindMode get colorblindMode => _colorblindMode;
   bool get showRingLabels => _showRingLabels;
   TextScaleOption get textScale => _textScale;
-  double get textScaleFactor => _textScale.scaleFactor;
-  String get textScalePercentage => '${(_textScale.scaleFactor * 100).round()}%';
+  /// Returns the scale factor, or null if using system settings
+  double? get textScaleFactor => _textScale.scaleFactor;
+  /// Whether we're following system text scaling
+  bool get usesSystemTextScale => _textScale.usesSystemScale;
+  String get textScalePercentage => _textScale.usesSystemScale
+      ? 'System'
+      : '${(_textScale.scaleFactor! * 100).round()}%';
   double get minTextScale => 0.85; // TextScaleOption.small
   double get maxTextScale => 1.30; // TextScaleOption.extraLarge
   bool get reduceMotion => _reduceMotion;
@@ -232,9 +243,9 @@ class AccessibilityProvider extends ChangeNotifier {
     await setTextScale(option);
   }
 
-  /// Reset to default text scale
+  /// Reset to default text scale (system)
   Future<void> resetTextScale() async {
-    await setTextScale(TextScaleOption.normal);
+    await setTextScale(TextScaleOption.system);
   }
 
   /// Toggle reduced motion (disables animations)

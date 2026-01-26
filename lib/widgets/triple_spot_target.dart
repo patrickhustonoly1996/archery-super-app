@@ -115,6 +115,10 @@ class InteractiveTripleSpotTarget extends StatefulWidget {
   final Function(double? x, double? y)? onPendingArrowChanged;
   /// Arrow IDs to highlight with green halo
   final Set<String>? highlightedArrowIds;
+  /// Transform controller for coordinate adjustment when zoomed
+  final TransformationController? transformController;
+  /// Multiplier for arrow marker size (0.5 = half, 1.0 = default, 2.0 = double)
+  final double arrowSizeMultiplier;
 
   const InteractiveTripleSpotTarget({
     super.key,
@@ -130,6 +134,8 @@ class InteractiveTripleSpotTarget extends StatefulWidget {
     this.onFaceChanged,
     this.onPendingArrowChanged,
     this.highlightedArrowIds,
+    this.transformController,
+    this.arrowSizeMultiplier = 1.0,
   });
 
   @override
@@ -162,7 +168,21 @@ class _InteractiveTripleSpotTargetState
       const order = [2, 0, 1];
       return order[current];
     }
-    // Column: 0→1→2→0 (top to bottom)
+    if (widget.advanceOrder == 'column') {
+      // Column: 0→1→2→0 (top to bottom)
+      return (current + 1) % 3;
+    }
+    // Custom order: parse "0,1,2" or "1,2,0" etc.
+    if (widget.advanceOrder.contains(',')) {
+      final orderList = widget.advanceOrder.split(',').map((s) => int.tryParse(s.trim()) ?? 0).toList();
+      if (orderList.length == 3) {
+        final currentIndex = orderList.indexOf(current);
+        if (currentIndex >= 0) {
+          return orderList[(currentIndex + 1) % 3];
+        }
+      }
+    }
+    // Default: column order
     return (current + 1) % 3;
   }
 
@@ -241,6 +261,8 @@ class _InteractiveTripleSpotTargetState
               isLeftHanded: widget.isLeftHanded,
               compoundScoring: widget.compoundScoring,
               highlightedArrowIds: widget.highlightedArrowIds,
+              transformController: widget.transformController,
+              arrowSizeMultiplier: widget.arrowSizeMultiplier,
               onArrowPlotted: (x, y, {scoreOverride}) {
                 _onArrowPlotted(x, y, faceIndex, scoreOverride: scoreOverride);
               },
@@ -380,6 +402,10 @@ class TriangularTripleSpotTarget extends StatefulWidget {
   final Function(double? x, double? y)? onPendingArrowChanged;
   /// Arrow IDs to highlight with green halo
   final Set<String>? highlightedArrowIds;
+  /// Transform controller for coordinate adjustment when zoomed
+  final TransformationController? transformController;
+  /// Multiplier for arrow marker size (0.5 = half, 1.0 = default, 2.0 = double)
+  final double arrowSizeMultiplier;
 
   const TriangularTripleSpotTarget({
     super.key,
@@ -395,6 +421,8 @@ class TriangularTripleSpotTarget extends StatefulWidget {
     this.onFaceChanged,
     this.onPendingArrowChanged,
     this.highlightedArrowIds,
+    this.transformController,
+    this.arrowSizeMultiplier = 1.0,
   });
 
   @override
@@ -425,7 +453,21 @@ class _TriangularTripleSpotTargetState
       const order = [2, 0, 1];
       return order[current];
     }
-    // Column: 0→1→2→0 (top to bottom-left to bottom-right)
+    if (widget.advanceOrder == 'column') {
+      // Column: 0→1→2→0 (top to bottom-left to bottom-right)
+      return (current + 1) % 3;
+    }
+    // Custom order: parse "0,1,2" or "1,2,0" etc.
+    if (widget.advanceOrder.contains(',')) {
+      final orderList = widget.advanceOrder.split(',').map((s) => int.tryParse(s.trim()) ?? 0).toList();
+      if (orderList.length == 3) {
+        final currentIndex = orderList.indexOf(current);
+        if (currentIndex >= 0) {
+          return orderList[(currentIndex + 1) % 3];
+        }
+      }
+    }
+    // Default: column order
     return (current + 1) % 3;
   }
 
@@ -508,6 +550,8 @@ class _TriangularTripleSpotTargetState
               isLeftHanded: widget.isLeftHanded,
               compoundScoring: widget.compoundScoring,
               highlightedArrowIds: widget.highlightedArrowIds,
+              transformController: widget.transformController,
+              arrowSizeMultiplier: widget.arrowSizeMultiplier,
               onArrowPlotted: (x, y, {scoreOverride}) {
                 _onArrowPlotted(x, y, faceIndex, scoreOverride: scoreOverride);
               },

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:signature/signature.dart';
 import '../theme/app_theme.dart' hide ColorblindMode;
 import '../providers/user_profile_provider.dart';
 import '../providers/accessibility_provider.dart';
@@ -11,6 +12,7 @@ import '../models/user_profile.dart';
 import '../widgets/pixel_archer_icon.dart';
 import '../widgets/pixel_profile_icon.dart';
 import '../services/sample_data_seeder.dart';
+import '../services/signature_service.dart';
 import 'federation_form_screen.dart';
 import 'skills_panel_screen.dart';
 
@@ -35,6 +37,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Gender? _selectedGender;
   DateTime? _selectedDateOfBirth;
 
+  // Signature for scorecards
+  Uint8List? _archerSignature;
+  SignatureService? _signatureService;
+
   bool _isLoading = true;
   bool _hasChanges = false;
 
@@ -54,7 +60,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Future<void> _loadProfile() async {
     final provider = context.read<UserProfileProvider>();
+    final db = context.read<AppDatabase>();
     await provider.loadProfile();
+
+    // Load signature
+    _signatureService = SignatureService(db);
+    final signature = await _signatureService!.getArcherSignature();
 
     if (mounted) {
       setState(() {
@@ -68,6 +79,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         _selectedCompetitionLevels = provider.competitionLevels.toSet();
         _selectedGender = provider.gender;
         _selectedDateOfBirth = provider.dateOfBirth;
+        _archerSignature = signature;
         _isLoading = false;
       });
     }
@@ -197,6 +209,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                   const SizedBox(height: 32),
 
+                  // Scorecard signature section
+                  _buildSectionHeader('SCORECARD SIGNATURE'),
+                  const SizedBox(height: 12),
+                  _buildSignatureSection(),
+
+                  const SizedBox(height: 32),
+
                   // Accessibility section
                   _buildSectionHeader('ACCESSIBILITY'),
                   const SizedBox(height: 12),
@@ -270,7 +289,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget _buildSkillsCard() {
     return Consumer<SkillsProvider>(
       builder: (context, skillsProvider, _) {
-        final totalLevel = skillsProvider.totalLevel;
+        // Use combinedLevel (average 1-99) to match home screen display
+        final combinedLevel = skillsProvider.combinedLevel;
 
         return GestureDetector(
           onTap: () => SkillsPanelScreen.show(context),
@@ -298,7 +318,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         color: AppColors.gold.withValues(alpha: 0.3),
                         child: Text(
-                          '$totalLevel',
+                          '$combinedLevel',
                           style: TextStyle(
                             fontFamily: AppFonts.pixel,
                             fontSize: 16,
@@ -316,7 +336,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'TOTAL LEVEL',
+                        'COMBINED LEVEL',
                         style: TextStyle(
                           fontFamily: AppFonts.pixel,
                           fontSize: 12,
@@ -326,7 +346,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Level $totalLevel',
+                        'Level $combinedLevel',
                         style: TextStyle(
                           fontFamily: AppFonts.pixel,
                           fontSize: 24,
@@ -892,6 +912,235 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
+  Widget _buildSignatureSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLight,
+        border: Border.all(color: AppColors.surfaceBright),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.draw_outlined, color: AppColors.gold, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Your Signature',
+                      style: TextStyle(
+                        fontFamily: AppFonts.body,
+                        fontSize: 14,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      'Auto-fills on all scorecards',
+                      style: TextStyle(
+                        fontFamily: AppFonts.body,
+                        fontSize: 11,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Signature display/capture area
+          GestureDetector(
+            onTap: _showSignatureDialog,
+            child: Container(
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceDark,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: _archerSignature != null
+                      ? AppColors.gold.withValues(alpha: 0.5)
+                      : AppColors.surfaceBright,
+                ),
+              ),
+              child: _archerSignature != null
+                  ? Stack(
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Image.memory(
+                              _archerSignature!,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          right: 8,
+                          top: 8,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              GestureDetector(
+                                onTap: _showSignatureDialog,
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceLight,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Icon(
+                                    Icons.edit,
+                                    size: 16,
+                                    color: AppColors.textMuted,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: _clearSignature,
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceLight,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Icon(
+                                    Icons.delete_outline,
+                                    size: 16,
+                                    color: AppColors.error,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  : Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.draw_outlined,
+                            size: 24,
+                            color: AppColors.gold,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Tap to add your signature',
+                            style: TextStyle(
+                              fontFamily: AppFonts.body,
+                              fontSize: 12,
+                              color: AppColors.gold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+            ),
+          ),
+          if (_archerSignature == null) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.gold.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: AppColors.gold, size: 18),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Add your signature here so it auto-fills on all your scorecards.',
+                      style: TextStyle(
+                        fontFamily: AppFonts.body,
+                        fontSize: 11,
+                        color: AppColors.gold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showSignatureDialog() async {
+    final result = await showDialog<Uint8List?>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => _ProfileSignatureDialog(
+        existingSignature: _archerSignature,
+      ),
+    );
+    if (result != null) {
+      await _signatureService?.saveArcherSignature(result);
+      setState(() {
+        _archerSignature = result;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Signature saved'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _clearSignature() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        title: Text(
+          'Remove Signature?',
+          style: TextStyle(
+            fontFamily: AppFonts.pixel,
+            color: AppColors.gold,
+          ),
+        ),
+        content: Text(
+          'Your signature will be removed from future scorecards.',
+          style: TextStyle(
+            fontFamily: AppFonts.body,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+            ),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await _signatureService?.saveArcherSignature(null);
+      setState(() {
+        _archerSignature = null;
+      });
+    }
+  }
+
   Widget _buildTextSizeSlider() {
     return Consumer<AccessibilityProvider>(
       builder: (context, accessibility, _) {
@@ -905,103 +1154,71 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.text_fields,
-                        size: 20,
-                        color: AppColors.gold,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Text Size',
-                        style: TextStyle(
-                          fontFamily: AppFonts.body,
-                          fontSize: 14,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
+                  Icon(
+                    Icons.text_fields,
+                    size: 20,
+                    color: AppColors.gold,
                   ),
+                  const SizedBox(width: 12),
                   Text(
-                    accessibility.textScalePercentage,
+                    'Text Size',
                     style: TextStyle(
                       fontFamily: AppFonts.body,
                       fontSize: 14,
-                      color: AppColors.gold,
-                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Text(
-                    'A',
-                    style: TextStyle(
-                      fontFamily: AppFonts.body,
-                      fontSize: 12,
-                      color: AppColors.textMuted,
-                    ),
-                  ),
-                  Expanded(
-                    child: SliderTheme(
-                      data: SliderThemeData(
-                        activeTrackColor: AppColors.gold,
-                        inactiveTrackColor: AppColors.surfaceBright,
-                        thumbColor: AppColors.gold,
-                        overlayColor: AppColors.gold.withValues(alpha: 0.2),
-                        trackHeight: 4,
+              // Text size options
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: TextScaleOption.values.map((option) {
+                  final isSelected = accessibility.textScale == option;
+                  return GestureDetector(
+                    onTap: () => accessibility.setTextScale(option),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
                       ),
-                      child: Slider(
-                        value: accessibility.textScaleFactor,
-                        min: accessibility.minTextScale,
-                        max: accessibility.maxTextScale,
-                        divisions: 14, // 0.05 increments
-                        onChanged: (value) {
-                          accessibility.setTextScaleFactor(value);
-                        },
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.gold.withValues(alpha: 0.2)
+                            : Colors.transparent,
+                        border: Border.all(
+                          color:
+                              isSelected ? AppColors.gold : AppColors.surfaceBright,
+                        ),
+                      ),
+                      child: Text(
+                        option.displayName,
+                        style: TextStyle(
+                          fontFamily: AppFonts.body,
+                          fontSize: 13,
+                          color: isSelected
+                              ? AppColors.gold
+                              : AppColors.textSecondary,
+                        ),
                       ),
                     ),
-                  ),
-                  Text(
-                    'A',
-                    style: TextStyle(
-                      fontFamily: AppFonts.body,
-                      fontSize: 18,
-                      color: AppColors.textMuted,
-                    ),
-                  ),
-                ],
+                  );
+                }).toList(),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
-                'Adjusts text size throughout the app. Logos and icons also scale.',
+                accessibility.usesSystemTextScale
+                    ? 'Using your phone\'s text size setting.'
+                    : 'Override your phone\'s text size setting.',
                 style: TextStyle(
                   fontFamily: AppFonts.body,
-                  fontSize: 11,
+                  fontSize: 13,
                   color: AppColors.textMuted,
                 ),
               ),
-              const SizedBox(height: 12),
-              if (accessibility.textScaleFactor != 1.0)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () => accessibility.resetTextScale(),
-                    child: Text(
-                      'RESET TO DEFAULT',
-                      style: TextStyle(
-                        fontFamily: AppFonts.pixel,
-                        fontSize: 12,
-                        color: AppColors.gold,
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
         );
@@ -1904,5 +2121,149 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         );
       }
     }
+  }
+}
+
+/// Signature capture dialog for user profile
+class _ProfileSignatureDialog extends StatefulWidget {
+  final Uint8List? existingSignature;
+
+  const _ProfileSignatureDialog({this.existingSignature});
+
+  @override
+  State<_ProfileSignatureDialog> createState() => _ProfileSignatureDialogState();
+}
+
+class _ProfileSignatureDialogState extends State<_ProfileSignatureDialog> {
+  late SignatureController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = SignatureController(
+      penStrokeWidth: 3,
+      penColor: AppColors.textPrimary,
+      exportBackgroundColor: Colors.transparent,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (_controller.isNotEmpty) {
+      final signature = await _controller.toPngBytes();
+      if (mounted) {
+        Navigator.pop(context, signature);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: AppColors.backgroundDark,
+      insetPadding: const EdgeInsets.all(16),
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                Expanded(
+                  child: Text(
+                    'Your Signature',
+                    style: TextStyle(
+                      fontFamily: AppFonts.pixel,
+                      fontSize: 16,
+                      color: AppColors.gold,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => _controller.clear(),
+                  child: Text(
+                    'Clear',
+                    style: TextStyle(color: AppColors.textMuted),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                ElevatedButton(
+                  onPressed: _save,
+                  child: const Text('Save'),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            // Signature area - wider than tall for horizontal signature
+            Container(
+              height: 120,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceDark,
+                border: Border.all(color: AppColors.gold, width: 2),
+                borderRadius: BorderRadius.circular(AppSpacing.sm),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
+                child: Stack(
+                  children: [
+                    Signature(
+                      controller: _controller,
+                      backgroundColor: AppColors.surfaceDark,
+                    ),
+                    // Signature line at bottom
+                    Positioned(
+                      left: 24,
+                      right: 24,
+                      bottom: 24,
+                      child: Container(
+                        height: 1,
+                        color: AppColors.textMuted.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    // Hint text
+                    Center(
+                      child: AnimatedBuilder(
+                        animation: _controller,
+                        builder: (context, child) {
+                          if (_controller.isNotEmpty) return const SizedBox.shrink();
+                          return Text(
+                            'Sign here',
+                            style: TextStyle(
+                              fontFamily: AppFonts.pixel,
+                              fontSize: 18,
+                              color: AppColors.textMuted.withValues(alpha: 0.2),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'This signature will auto-fill on all your scorecards',
+              style: TextStyle(
+                fontFamily: AppFonts.body,
+                fontSize: 11,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

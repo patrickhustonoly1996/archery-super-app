@@ -65,14 +65,21 @@ enum IndoorLightQuality {
   }
 }
 
-/// Sun position relative to the target
+/// Sun position relative to the archer (8 compass directions + overhead)
 enum SunPosition {
   none('none', 'N/A', 'No direct sun'),
-  inFace('in_face', 'In Face', 'Sun behind target'),
-  behind('behind', 'Behind', 'Sun behind archer'),
-  left('left', 'Left', 'Sun on archer\'s left'),
-  right('right', 'Right', 'Sun on archer\'s right'),
-  overhead('overhead', 'Overhead', 'Sun directly above');
+  // Cardinal directions (relative to archer facing target)
+  inFace('in_face', 'N', 'Sun behind target (in face)'),
+  right('right', 'E', 'Sun on archer\'s right'),
+  behind('behind', 'S', 'Sun behind archer'),
+  left('left', 'W', 'Sun on archer\'s left'),
+  // Diagonal directions
+  frontRight('front_right', 'NE', 'Sun front-right'),
+  backRight('back_right', 'SE', 'Sun back-right'),
+  backLeft('back_left', 'SW', 'Sun back-left'),
+  frontLeft('front_left', 'NW', 'Sun front-left'),
+  // Overhead
+  overhead('overhead', 'OVER', 'Sun directly above');
 
   final String value;
   final String displayName;
@@ -82,6 +89,13 @@ enum SunPosition {
 
   static SunPosition? fromString(String? value) {
     if (value == null) return null;
+    // Handle legacy values
+    if (value == 'in_face') return SunPosition.inFace;
+    if (value == 'behind') return SunPosition.behind;
+    if (value == 'left') return SunPosition.left;
+    if (value == 'right') return SunPosition.right;
+    if (value == 'overhead') return SunPosition.overhead;
+    if (value == 'none') return SunPosition.none;
     return SunPosition.values.where((e) => e.value == value).firstOrNull;
   }
 }
@@ -204,11 +218,11 @@ class SunLightSelector extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
 
-          // Visual sun position selector
+          // Visual sun position selector - 8 compass directions
           Center(
             child: SizedBox(
-              width: 180,
-              height: 120,
+              width: 200,
+              height: 160,
               child: CustomPaint(
                 painter: _SunPositionPainter(
                   selectedPosition: sunPosition,
@@ -224,62 +238,75 @@ class SunLightSelector extends StatelessWidget {
   }
 
   Widget _buildSunPositionButtons(BuildContext context) {
+    // 8 compass points arranged in a circle + overhead in center
     return Stack(
       children: [
-        // In Face (top - behind target)
+        // N - In Face (top center)
         Positioned(
           top: 0,
           left: 0,
           right: 0,
           child: Center(
-            child: _buildSunButton(
-              context,
-              SunPosition.inFace,
-              'IN FACE',
-            ),
+            child: _buildSunButton(context, SunPosition.inFace, 'N'),
           ),
         ),
 
-        // Behind (bottom - behind archer)
+        // NE - Front Right (top right)
         Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: _buildSunButton(
-              context,
-              SunPosition.behind,
-              'BEHIND',
-            ),
-          ),
+          top: 12,
+          right: 12,
+          child: _buildSunButton(context, SunPosition.frontRight, 'NE'),
         ),
 
-        // Left
-        Positioned(
-          left: 0,
-          top: 0,
-          bottom: 0,
-          child: Center(
-            child: _buildSunButton(
-              context,
-              SunPosition.left,
-              'LEFT',
-            ),
-          ),
-        ),
-
-        // Right
+        // E - Right (middle right)
         Positioned(
           right: 0,
           top: 0,
           bottom: 0,
           child: Center(
-            child: _buildSunButton(
-              context,
-              SunPosition.right,
-              'RIGHT',
-            ),
+            child: _buildSunButton(context, SunPosition.right, 'E'),
           ),
+        ),
+
+        // SE - Back Right (bottom right)
+        Positioned(
+          bottom: 12,
+          right: 12,
+          child: _buildSunButton(context, SunPosition.backRight, 'SE'),
+        ),
+
+        // S - Behind (bottom center)
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: _buildSunButton(context, SunPosition.behind, 'S'),
+          ),
+        ),
+
+        // SW - Back Left (bottom left)
+        Positioned(
+          bottom: 12,
+          left: 12,
+          child: _buildSunButton(context, SunPosition.backLeft, 'SW'),
+        ),
+
+        // W - Left (middle left)
+        Positioned(
+          left: 0,
+          top: 0,
+          bottom: 0,
+          child: Center(
+            child: _buildSunButton(context, SunPosition.left, 'W'),
+          ),
+        ),
+
+        // NW - Front Left (top left)
+        Positioned(
+          top: 12,
+          left: 12,
+          child: _buildSunButton(context, SunPosition.frontLeft, 'NW'),
         ),
 
         // Overhead (center)
@@ -361,7 +388,7 @@ class SunLightSelector extends StatelessWidget {
   }
 }
 
-/// Custom painter for sun position visual
+/// Custom painter for sun position visual - shows compass with archer/target
 class _SunPositionPainter extends CustomPainter {
   final SunPosition? selectedPosition;
   final bool enabled;
@@ -376,42 +403,29 @@ class _SunPositionPainter extends CustomPainter {
     final centerX = size.width / 2;
     final centerY = size.height / 2;
 
-    final paint = Paint()
-      ..color = AppColors.surfaceBright
+    // Draw compass circle
+    final compassPaint = Paint()
+      ..color = AppColors.surfaceBright.withValues(alpha: 0.5)
       ..strokeWidth = 1
       ..style = PaintingStyle.stroke;
 
-    // Draw archer position (bottom center)
-    final archerY = size.height - 15;
-    _drawArcher(canvas, centerX, archerY, enabled);
+    canvas.drawCircle(Offset(centerX, centerY), 50, compassPaint);
 
-    // Draw target (top center)
-    final targetY = 25.0;
-    _drawTarget(canvas, centerX, targetY, enabled);
+    // Draw archer position (center-bottom of compass)
+    _drawArcher(canvas, centerX, centerY + 20, enabled);
 
-    // Draw shooting line
-    paint.color = AppColors.textMuted.withValues(alpha: 0.3);
-    canvas.drawLine(
-      Offset(centerX, archerY - 5),
-      Offset(centerX, targetY + 10),
-      paint,
-    );
+    // Draw target (center-top of compass - where archer is aiming)
+    _drawTarget(canvas, centerX, centerY - 25, enabled);
 
-    // Draw direction indicators
-    final indicatorPaint = Paint()
-      ..color = AppColors.textMuted.withValues(alpha: 0.5)
+    // Draw shooting line (archer to target)
+    final linePaint = Paint()
+      ..color = AppColors.textMuted.withValues(alpha: 0.3)
       ..strokeWidth = 1;
 
-    // Left/right arrows
     canvas.drawLine(
-      Offset(25, centerY),
-      Offset(40, centerY),
-      indicatorPaint,
-    );
-    canvas.drawLine(
-      Offset(size.width - 25, centerY),
-      Offset(size.width - 40, centerY),
-      indicatorPaint,
+      Offset(centerX, centerY + 15),
+      Offset(centerX, centerY - 20),
+      linePaint,
     );
   }
 

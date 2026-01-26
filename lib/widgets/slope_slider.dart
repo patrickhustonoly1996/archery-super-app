@@ -216,18 +216,30 @@ class _SlopeSliderState extends State<SlopeSlider> {
           ),
         ),
 
-        // Labels
+        // Labels with range indicators
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'UPHILL',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textMuted,
-                      fontSize: 10,
-                    ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'UPHILL',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textMuted,
+                          fontSize: 10,
+                        ),
+                  ),
+                  Text(
+                    _mode == ArcheryMode.field ? '−45°' : '−12°',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: _themeColor.withValues(alpha: 0.5),
+                          fontSize: 8,
+                        ),
+                  ),
+                ],
               ),
               Text(
                 'LEVEL',
@@ -236,29 +248,105 @@ class _SlopeSliderState extends State<SlopeSlider> {
                       fontSize: 10,
                     ),
               ),
-              Text(
-                'DOWNHILL',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textMuted,
-                      fontSize: 10,
-                    ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'DOWNHILL',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textMuted,
+                          fontSize: 10,
+                        ),
+                  ),
+                  Text(
+                    _mode == ArcheryMode.field ? '+45°' : '+12°',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: _themeColor.withValues(alpha: 0.5),
+                          fontSize: 8,
+                        ),
+                  ),
+                ],
               ),
             ],
           ),
         ),
 
-        // Field mode hint (only in target mode at extreme)
-        if (_mode == ArcheryMode.target && widget.value.abs() >= _targetMax - 1)
+        // Field mode hint - always show in target mode, more prominent at extremes
+        if (_mode == ArcheryMode.target)
           Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.xs),
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
             child: Center(
-              child: Text(
-                'Hold for field archery mode',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: const Color(0xFF4CAF50).withValues(alpha: 0.7),
-                      fontSize: 10,
-                      fontStyle: FontStyle.italic,
+              child: GestureDetector(
+                onTap: _toggleMode,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: const Color(0xFF4CAF50).withValues(alpha: 0.3),
                     ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.terrain,
+                        size: 12,
+                        color: const Color(0xFF4CAF50).withValues(alpha: 0.8),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        widget.value.abs() >= _targetMax - 1
+                            ? 'Hold slider or tap for field mode (±45°)'
+                            : 'Tap for field archery mode (±45°)',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: const Color(0xFF4CAF50).withValues(alpha: 0.8),
+                              fontSize: 10,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+        // In field mode, show option to return to target mode
+        if (_mode == ArcheryMode.field)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            child: Center(
+              child: GestureDetector(
+                onTap: _toggleMode,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.gold.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: AppColors.gold.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.sports_score,
+                        size: 12,
+                        color: AppColors.gold.withValues(alpha: 0.8),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Tap to return to target mode (±12°)',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.gold.withValues(alpha: 0.8),
+                              fontSize: 10,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

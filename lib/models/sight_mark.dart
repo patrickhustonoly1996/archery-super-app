@@ -41,14 +41,46 @@ enum DistanceUnit {
     return meters;
   }
 
-  /// Common distances for this unit
+  /// Common distances for this unit (default 10m/yd increment)
   List<double> get commonDistances {
     if (this == meters) {
-      return [18, 25, 30, 40, 50, 60, 70, 90];
+      return [20, 30, 40, 50, 60, 70, 80, 90];
     } else {
       return [20, 30, 40, 50, 60, 70, 80, 100];
     }
   }
+
+  /// Get distances at specified increment
+  List<double> distancesAtIncrement(SightMarkIncrement increment) {
+    switch (increment) {
+      case SightMarkIncrement.ten:
+        return commonDistances;
+      case SightMarkIncrement.five:
+        if (this == meters) {
+          return [15, 18, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90];
+        } else {
+          return [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100];
+        }
+      case SightMarkIncrement.one:
+        if (this == meters) {
+          return List.generate(76, (i) => 15 + i.toDouble()); // 15-90m
+        } else {
+          return List.generate(86, (i) => 15 + i.toDouble()); // 15-100yd
+        }
+    }
+  }
+}
+
+/// Increment options for generated sightmarks
+enum SightMarkIncrement {
+  ten('10', '10m / 10yd'),
+  five('5', '5m / 5yd'),
+  one('1', 'Every metre/yard');
+
+  final String label;
+  final String description;
+
+  const SightMarkIncrement(this.label, this.description);
 }
 
 /// Notation style for sight mark values

@@ -27,7 +27,7 @@ class LevelBadge extends StatelessWidget {
       children: [
         // Level number in gold box
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             color: AppColors.gold.withValues(alpha: 0.15),
             border: Border.all(color: AppColors.gold, width: 1),
@@ -36,7 +36,7 @@ class LevelBadge extends StatelessWidget {
             'LV$level',
             style: TextStyle(
               fontFamily: AppFonts.pixel,
-              fontSize: 10,
+              fontSize: 14,
               color: AppColors.gold,
               letterSpacing: 0.5,
             ),
@@ -112,8 +112,8 @@ class LevelDisplay extends StatelessWidget {
           children: [
             // Level number
             Container(
-              width: 48,
-              height: 48,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
                 color: AppColors.gold.withValues(alpha: 0.15),
                 border: Border.all(color: AppColors.gold, width: 2),
@@ -123,7 +123,7 @@ class LevelDisplay extends StatelessWidget {
                   '$level',
                   style: TextStyle(
                     fontFamily: AppFonts.pixel,
-                    fontSize: 20,
+                    fontSize: 28,
                     color: AppColors.gold,
                     fontWeight: FontWeight.bold,
                   ),
@@ -140,7 +140,7 @@ class LevelDisplay extends StatelessWidget {
                     skillName.toUpperCase(),
                     style: TextStyle(
                       fontFamily: AppFonts.pixel,
-                      fontSize: 12,
+                      fontSize: 16,
                       color: AppColors.textPrimary,
                       letterSpacing: 1,
                     ),
@@ -176,7 +176,7 @@ class LevelDisplay extends StatelessWidget {
                         : '$xpInLevel / $xpNeeded XP',
                     style: TextStyle(
                       fontFamily: AppFonts.body,
-                      fontSize: 10,
+                      fontSize: 14,
                       color: AppColors.textMuted,
                     ),
                   ),

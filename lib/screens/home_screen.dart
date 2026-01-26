@@ -29,7 +29,6 @@ import 'performance_profile_screen.dart';
 import 'user_profile_screen.dart';
 import 'education/courses_home_screen.dart';
 import 'settings_screen.dart';
-import 'chiptune_test_screen.dart'; // TODO: Remove after testing sounds
 import 'sight_marks_hub_screen.dart';
 import 'field_session_start_screen.dart';
 import 'shaft_comparison_screen.dart';
@@ -211,16 +210,6 @@ class _HomeScreenState extends State<HomeScreen>
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const PerformanceProfileScreen()),
-      ),
-    ),
-    // TODO: Remove after testing sounds
-    _MenuItem(
-      label: 'SOUNDS',
-      sublabel: 'Test chiptunes',
-      pixelIcon: PixelIconType.lightning,
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const ChiptuneTestScreen()),
       ),
     ),
     _MenuItem(

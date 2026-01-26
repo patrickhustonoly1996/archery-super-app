@@ -79,18 +79,19 @@ class _LevelUpCelebrationState extends State<LevelUpCelebration>
   }
 
   bool _soundComplete = false;
+  bool _dismissed = false;
+  final ChiptuneService _chiptune = ChiptuneService();
 
   void _playCelebrationSoundAndWait() async {
     try {
-      final chiptune = ChiptuneService();
       final newLevel = widget.event.newLevel;
 
       // Play milestone jingle for milestone levels (10, 25, 50, 75, 92, 99)
       final milestones = [10, 25, 50, 75, 92, 99];
       if (milestones.contains(newLevel)) {
-        await chiptune.playMilestone();
+        await _chiptune.playMilestone();
       } else {
-        await chiptune.playLevelUp();
+        await _chiptune.playLevelUp();
       }
     } catch (e) {
       // Sound is optional, don't crash if it fails
@@ -98,15 +99,23 @@ class _LevelUpCelebrationState extends State<LevelUpCelebration>
     }
 
     // Sound complete - auto-dismiss after a brief pause
-    if (mounted) {
+    if (mounted && !_dismissed) {
       setState(() => _soundComplete = true);
       // Give a moment to see the full celebration, then dismiss
       Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          widget.onComplete();
+        if (mounted && !_dismissed) {
+          _dismiss();
         }
       });
     }
+  }
+
+  /// Dismiss the celebration - stops music if playing
+  void _dismiss() {
+    if (_dismissed) return;
+    _dismissed = true;
+    _chiptune.stop(); // Stop music immediately
+    widget.onComplete();
   }
 
   void _generateParticles() {
@@ -179,7 +188,7 @@ class _LevelUpCelebrationState extends State<LevelUpCelebration>
     return Material(
       type: MaterialType.transparency,
       child: GestureDetector(
-        onTap: _soundComplete ? widget.onComplete : null,
+        onTap: _dismiss, // Tap anytime to stop music and dismiss
         child: Stack(
           children: [
             // Fireworks particles
