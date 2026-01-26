@@ -568,8 +568,9 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   final Set<int> _activePointers = {};
   int? _primaryPointer; // The first finger that touched - used for plotting
 
-  // Finger offset constants (in widget pixels)
+  // Finger offset constants (in screen pixels at 1x zoom)
   // Offset from touch point so user can see where arrow lands
+  // These are scaled inversely with zoom so visual offset stays consistent
   static const double _holdOffsetX = 50.0; // Horizontal (sign flipped for lefties)
   static const double _holdOffsetY = 50.0; // Vertical (always upward)
 
@@ -582,6 +583,15 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
   double get _boundaryProximityThreshold {
     final radiusMm = widget.faceSizeCm * 5.0; // cm to mm, then /2 for radius
     return _lineCutterThresholdMm / radiusMm;
+  }
+
+  /// Get the current zoom scale from the transform controller.
+  /// Returns 1.0 if no controller or if unable to determine scale.
+  double get _currentZoomScale {
+    final controller = widget.transformController;
+    if (controller == null) return 1.0;
+    // InteractiveViewer uses uniform scaling, so max scale = the zoom level
+    return controller.value.getMaxScaleOnAxis();
   }
 
   /// Convert a gesture position to widget-local coordinates, accounting for any
@@ -623,12 +633,18 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
     return (normalizedX, normalizedY);
   }
 
-  /// Calculate arrow position with finger offset applied
+  /// Calculate arrow position with finger offset applied.
+  /// The offset is scaled inversely with zoom so the visual distance between
+  /// thumb and arrow preview stays consistent regardless of zoom level.
   Offset _calculateArrowPosition(Offset touchPosition) {
-    final xOffset = widget.isLeftHanded ? _holdOffsetX : -_holdOffsetX;
+    final zoomScale = _currentZoomScale;
+    // Divide offset by zoom scale so visual offset stays constant on screen
+    final scaledOffsetX = _holdOffsetX / zoomScale;
+    final scaledOffsetY = _holdOffsetY / zoomScale;
+    final xOffset = widget.isLeftHanded ? scaledOffsetX : -scaledOffsetX;
     return Offset(
       touchPosition.dx + xOffset,
-      touchPosition.dy - _holdOffsetY,
+      touchPosition.dy - scaledOffsetY,
     );
   }
 
