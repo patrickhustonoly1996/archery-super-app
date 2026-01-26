@@ -28,12 +28,21 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
   String _bowType = 'recurve';
   bool _setAsDefault = false;
 
-  // Equipment
+  // Equipment - basic
   late TextEditingController _riserModelController;
   late TextEditingController _limbModelController;
   late TextEditingController _poundageController;
 
-  // Tuning
+  // Equipment - extended
+  String? _riserLength;
+  String? _limbLength;
+  late TextEditingController _markedLimbWeightController;
+  late TextEditingController _drawWeightOnFingersController;
+  late TextEditingController _peakWeightController;
+  late TextEditingController _stringMaterialController;
+  late TextEditingController _stringStrandsController;
+
+  // Tuning - basic
   late TextEditingController _braceHeightController;
   late TextEditingController _tillerTopController;
   late TextEditingController _tillerBottomController;
@@ -41,6 +50,29 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
   late TextEditingController _buttonPositionController;
   late TextEditingController _buttonTensionController;
   late TextEditingController _clickerPositionController;
+
+  // Tuning - extended
+  late TextEditingController _buttonModelController;
+  String? _centreShot;
+  late TextEditingController _clickerModelController;
+
+  // Accessories
+  late TextEditingController _sightModelController;
+  late TextEditingController _sightExtensionController;
+
+  // Stabilizers
+  late TextEditingController _longRodController;
+  late TextEditingController _sideRodController;
+  late TextEditingController _vBarAngleController;
+  late TextEditingController _stabWeightsController;
+
+  // Arrows
+  late TextEditingController _arrowModelController;
+  late TextEditingController _arrowSpineController;
+  late TextEditingController _arrowLengthController;
+
+  // Notes
+  late TextEditingController _notesController;
 
   // Photo paths for tuning positions
   String? _buttonPositionPhotoPath;
@@ -53,10 +85,18 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
 
   bool _isLoading = false;
 
+  // Track which optional sections are expanded
+  bool _showEquipmentDetails = false;
+  bool _showAccessories = false;
+  bool _showStabilizers = false;
+  bool _showArrows = false;
+  bool _showNotes = false;
+
   @override
   void initState() {
     super.initState();
     final bow = widget.bow;
+    final specs = bow != null ? BowSpecifications.fromJson(bow.settings) : BowSpecifications();
 
     // Set bow ID for photo storage
     _bowId = bow?.id ?? UniqueId.withPrefix('bow');
@@ -65,14 +105,31 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
     _bowType = bow?.bowType ?? 'recurve';
     _setAsDefault = bow?.isDefault ?? false;
 
-    // Equipment - read from dedicated columns
+    // Equipment - basic (from dedicated columns)
     _riserModelController = TextEditingController(text: bow?.riserModel ?? '');
     _limbModelController = TextEditingController(text: bow?.limbModel ?? '');
     _poundageController = TextEditingController(
       text: bow?.poundage?.toStringAsFixed(0) ?? '',
     );
 
-    // Tuning - read from dedicated columns
+    // Equipment - extended (from specs JSON)
+    _riserLength = specs.riserLength;
+    _limbLength = specs.limbLength;
+    _markedLimbWeightController = TextEditingController(
+      text: specs.markedLimbWeight?.toStringAsFixed(0) ?? '',
+    );
+    _drawWeightOnFingersController = TextEditingController(
+      text: specs.drawWeightOnFingers?.toStringAsFixed(0) ?? '',
+    );
+    _peakWeightController = TextEditingController(
+      text: specs.peakWeight?.toStringAsFixed(0) ?? '',
+    );
+    _stringMaterialController = TextEditingController(text: specs.stringMaterial ?? '');
+    _stringStrandsController = TextEditingController(
+      text: specs.stringStrands?.toString() ?? '',
+    );
+
+    // Tuning - basic (from dedicated columns)
     _braceHeightController = TextEditingController(
       text: bow?.braceHeight?.toStringAsFixed(1) ?? '',
     );
@@ -95,13 +152,61 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
       text: bow?.clickerPosition?.toStringAsFixed(1) ?? '',
     );
 
-    // Load photo paths from settings if editing
+    // Tuning - extended (from specs JSON)
+    _buttonModelController = TextEditingController(text: specs.buttonModel ?? '');
+    _centreShot = specs.centreShot;
+    _clickerModelController = TextEditingController(text: specs.clickerModel ?? '');
+
+    // Accessories (from specs JSON)
+    _sightModelController = TextEditingController(text: specs.sightModel ?? '');
+    _sightExtensionController = TextEditingController(text: specs.sightExtensionLength ?? '');
+
+    // Stabilizers (from specs JSON)
+    _longRodController = TextEditingController(
+      text: specs.longRodLength?.toStringAsFixed(0) ?? '',
+    );
+    _sideRodController = TextEditingController(
+      text: specs.sideRodLength?.toStringAsFixed(0) ?? '',
+    );
+    _vBarAngleController = TextEditingController(
+      text: specs.vBarAngle?.toStringAsFixed(0) ?? '',
+    );
+    _stabWeightsController = TextEditingController(text: specs.stabilizerWeights ?? '');
+
+    // Arrows (from specs JSON)
+    _arrowModelController = TextEditingController(text: specs.arrowModel ?? '');
+    _arrowSpineController = TextEditingController(text: specs.arrowSpine ?? '');
+    _arrowLengthController = TextEditingController(
+      text: specs.arrowLength?.toStringAsFixed(2) ?? '',
+    );
+
+    // Notes
+    _notesController = TextEditingController(text: specs.notes ?? '');
+
+    // Photo paths
+    _buttonPositionPhotoPath = specs.buttonPositionPhotoPath;
+    _centreShotPhotoPath = specs.centreShotPhotoPath;
+    _clickerPositionPhotoPath = specs.clickerPositionPhotoPath;
+    _restPositionPhotoPath = specs.restPositionPhotoPath;
+
+    // Auto-expand sections that have data when editing
     if (bow != null) {
-      final specs = BowSpecifications.fromJson(bow.settings);
-      _buttonPositionPhotoPath = specs.buttonPositionPhotoPath;
-      _centreShotPhotoPath = specs.centreShotPhotoPath;
-      _clickerPositionPhotoPath = specs.clickerPositionPhotoPath;
-      _restPositionPhotoPath = specs.restPositionPhotoPath;
+      _showEquipmentDetails = _riserLength != null ||
+          _limbLength != null ||
+          specs.markedLimbWeight != null ||
+          specs.drawWeightOnFingers != null ||
+          specs.peakWeight != null ||
+          specs.stringMaterial != null ||
+          specs.stringStrands != null;
+      _showAccessories = specs.sightModel != null || specs.sightExtensionLength != null;
+      _showStabilizers = specs.longRodLength != null ||
+          specs.sideRodLength != null ||
+          specs.vBarAngle != null ||
+          specs.stabilizerWeights != null;
+      _showArrows = specs.arrowModel != null ||
+          specs.arrowSpine != null ||
+          specs.arrowLength != null;
+      _showNotes = specs.notes != null && specs.notes!.isNotEmpty;
     }
   }
 
@@ -111,6 +216,11 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
     _riserModelController.dispose();
     _limbModelController.dispose();
     _poundageController.dispose();
+    _markedLimbWeightController.dispose();
+    _drawWeightOnFingersController.dispose();
+    _peakWeightController.dispose();
+    _stringMaterialController.dispose();
+    _stringStrandsController.dispose();
     _braceHeightController.dispose();
     _tillerTopController.dispose();
     _tillerBottomController.dispose();
@@ -118,6 +228,18 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
     _buttonPositionController.dispose();
     _buttonTensionController.dispose();
     _clickerPositionController.dispose();
+    _buttonModelController.dispose();
+    _clickerModelController.dispose();
+    _sightModelController.dispose();
+    _sightExtensionController.dispose();
+    _longRodController.dispose();
+    _sideRodController.dispose();
+    _vBarAngleController.dispose();
+    _stabWeightsController.dispose();
+    _arrowModelController.dispose();
+    _arrowSpineController.dispose();
+    _arrowLengthController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -129,7 +251,7 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
     try {
       final provider = context.read<EquipmentProvider>();
 
-      // Parse numeric values
+      // Parse numeric values for dedicated columns
       final poundage = double.tryParse(_poundageController.text);
       final braceHeight = double.tryParse(_braceHeightController.text);
       final tillerTop = double.tryParse(_tillerTopController.text);
@@ -149,16 +271,58 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
       final skillsProvider = context.read<SkillsProvider>();
       final bowName = _nameController.text.trim();
 
-      // Build settings JSON with photo paths
+      // Build complete specs for settings JSON
       final existingSpecs = widget.bow != null
           ? BowSpecifications.fromJson(widget.bow!.settings)
           : BowSpecifications();
-      final updatedSpecs = existingSpecs.copyWith(
+
+      final updatedSpecs = BowSpecifications(
+        // Photo paths
         buttonPositionPhotoPath: _buttonPositionPhotoPath,
         centreShotPhotoPath: _centreShotPhotoPath,
         clickerPositionPhotoPath: _clickerPositionPhotoPath,
         restPositionPhotoPath: _restPositionPhotoPath,
+        weightsSetupPhotoPath: existingSpecs.weightsSetupPhotoPath,
+        vBarSetupPhotoPath: existingSpecs.vBarSetupPhotoPath,
+        // Keep brace height unit preference
+        braceHeightUnit: existingSpecs.braceHeightUnit,
+        // Equipment extended
+        riserLength: _riserLength,
+        limbLength: _limbLength,
+        markedLimbWeight: double.tryParse(_markedLimbWeightController.text),
+        drawWeightOnFingers: double.tryParse(_drawWeightOnFingersController.text),
+        peakWeight: double.tryParse(_peakWeightController.text),
+        stringMaterial: _stringMaterialController.text.trim().isEmpty
+            ? null : _stringMaterialController.text.trim(),
+        stringStrands: int.tryParse(_stringStrandsController.text),
+        // Tuning extended
+        buttonModel: _buttonModelController.text.trim().isEmpty
+            ? null : _buttonModelController.text.trim(),
+        centreShot: _centreShot,
+        clickerModel: _clickerModelController.text.trim().isEmpty
+            ? null : _clickerModelController.text.trim(),
+        // Accessories
+        sightModel: _sightModelController.text.trim().isEmpty
+            ? null : _sightModelController.text.trim(),
+        sightExtensionLength: _sightExtensionController.text.trim().isEmpty
+            ? null : _sightExtensionController.text.trim(),
+        // Stabilizers
+        longRodLength: double.tryParse(_longRodController.text),
+        sideRodLength: double.tryParse(_sideRodController.text),
+        vBarAngle: double.tryParse(_vBarAngleController.text),
+        stabilizerWeights: _stabWeightsController.text.trim().isEmpty
+            ? null : _stabWeightsController.text.trim(),
+        // Arrows
+        arrowModel: _arrowModelController.text.trim().isEmpty
+            ? null : _arrowModelController.text.trim(),
+        arrowSpine: _arrowSpineController.text.trim().isEmpty
+            ? null : _arrowSpineController.text.trim(),
+        arrowLength: double.tryParse(_arrowLengthController.text),
+        // Notes
+        notes: _notesController.text.trim().isEmpty
+            ? null : _notesController.text.trim(),
       );
+
       final settings = updatedSpecs.toJson();
 
       if (widget.bow == null) {
@@ -320,6 +484,46 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
               textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: DropdownButtonFormField<String>(
+                    value: _riserLength,
+                    decoration: const InputDecoration(
+                      labelText: 'Riser Length',
+                    ),
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text('-')),
+                      ...RiserLengthOptions.values.map((v) => DropdownMenuItem(
+                            value: v,
+                            child: Text('$v"'),
+                          )),
+                    ],
+                    onChanged: (v) => setState(() => _riserLength = v),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  flex: 2,
+                  child: DropdownButtonFormField<String>(
+                    value: _limbLength,
+                    decoration: const InputDecoration(
+                      labelText: 'Limb Length',
+                    ),
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text('-')),
+                      ...LimbLengthOptions.values.map((v) => DropdownMenuItem(
+                            value: v,
+                            child: Text(LimbLengthOptions.displayName(v)),
+                          )),
+                    ],
+                    onChanged: (v) => setState(() => _limbLength = v),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
             TextFormField(
               controller: _limbModelController,
               decoration: const InputDecoration(
@@ -339,6 +543,49 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+              ],
+            ),
+
+            // Equipment Details (expandable)
+            _buildExpandableSection(
+              title: 'More Equipment Details',
+              isExpanded: _showEquipmentDetails,
+              onToggle: () => setState(() => _showEquipmentDetails = !_showEquipmentDetails),
+              children: [
+                _buildNumberField(
+                  controller: _markedLimbWeightController,
+                  label: 'Marked Limb Weight',
+                  suffix: '#',
+                  hint: 'e.g., 44',
+                  helperText: 'Weight printed on limbs (at 28")',
+                ),
+                if (_bowType == 'recurve' || _bowType == 'barebow')
+                  _buildNumberField(
+                    controller: _drawWeightOnFingersController,
+                    label: 'Draw Weight on Fingers',
+                    suffix: '#',
+                    hint: 'e.g., 48',
+                    helperText: 'Actual weight at your draw length',
+                  ),
+                if (_bowType == 'compound')
+                  _buildNumberField(
+                    controller: _peakWeightController,
+                    label: 'Peak Weight',
+                    suffix: '#',
+                    hint: 'e.g., 60',
+                    helperText: 'Peak draw weight on cams',
+                  ),
+                _buildTextField(
+                  controller: _stringMaterialController,
+                  label: 'String Material',
+                  hint: 'e.g., BCY-X, 8125, Fast Flight',
+                ),
+                _buildNumberField(
+                  controller: _stringStrandsController,
+                  label: 'String Strands',
+                  hint: 'e.g., 18',
+                  isInteger: true,
+                ),
               ],
             ),
 
@@ -420,6 +667,15 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
               ],
             ),
             const SizedBox(height: AppSpacing.md),
+
+            // Button section
+            _buildSectionHeader(context, 'BUTTON / CENTRE SHOT'),
+            const SizedBox(height: AppSpacing.sm),
+            _buildTextField(
+              controller: _buttonModelController,
+              label: 'Button Model',
+              hint: 'e.g., Beiter, Shibuya DX',
+            ),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -472,6 +728,31 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
               ],
             ),
             const SizedBox(height: AppSpacing.md),
+            DropdownButtonFormField<String>(
+              value: _centreShot,
+              decoration: const InputDecoration(
+                labelText: 'Centre Shot',
+                helperText: 'Arrow position relative to string alignment',
+              ),
+              items: [
+                const DropdownMenuItem(value: null, child: Text('Not set')),
+                ...CentreShotOptions.values.map((v) => DropdownMenuItem(
+                      value: v,
+                      child: Text(CentreShotOptions.displayName(v)),
+                    )),
+              ],
+              onChanged: (v) => setState(() => _centreShot = v),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
+            // Clicker section
+            _buildSectionHeader(context, 'CLICKER'),
+            const SizedBox(height: AppSpacing.sm),
+            _buildTextField(
+              controller: _clickerModelController,
+              label: 'Clicker Model',
+              hint: 'e.g., Beiter, Shibuya',
+            ),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -537,6 +818,104 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
               ],
             ),
 
+            const SizedBox(height: AppSpacing.xl),
+            const Divider(),
+            const SizedBox(height: AppSpacing.md),
+
+            // Accessories (expandable)
+            _buildExpandableSection(
+              title: 'SIGHT',
+              isExpanded: _showAccessories,
+              onToggle: () => setState(() => _showAccessories = !_showAccessories),
+              children: [
+                _buildTextField(
+                  controller: _sightModelController,
+                  label: 'Sight Model',
+                  hint: 'e.g., Shibuya Ultima RC',
+                ),
+                _buildTextField(
+                  controller: _sightExtensionController,
+                  label: 'Sight Extension',
+                  hint: 'e.g., 6, 9',
+                  helperText: 'Extension length in inches',
+                ),
+              ],
+            ),
+
+            // Stabilizers (expandable)
+            _buildExpandableSection(
+              title: 'STABILIZERS',
+              isExpanded: _showStabilizers,
+              onToggle: () => setState(() => _showStabilizers = !_showStabilizers),
+              children: [
+                _buildNumberField(
+                  controller: _longRodController,
+                  label: 'Long Rod Length',
+                  suffix: '"',
+                  hint: 'e.g., 30',
+                ),
+                _buildNumberField(
+                  controller: _sideRodController,
+                  label: 'Side Rod Length',
+                  suffix: '"',
+                  hint: 'e.g., 12',
+                ),
+                _buildNumberField(
+                  controller: _vBarAngleController,
+                  label: 'V-Bar Angle',
+                  suffix: '°',
+                  hint: 'e.g., 35',
+                ),
+                _buildTextField(
+                  controller: _stabWeightsController,
+                  label: 'Weights Setup',
+                  hint: 'e.g., 4oz long, 2oz each side',
+                  maxLines: 2,
+                ),
+              ],
+            ),
+
+            // Arrow Setup (expandable)
+            _buildExpandableSection(
+              title: 'ARROW SETUP',
+              isExpanded: _showArrows,
+              onToggle: () => setState(() => _showArrows = !_showArrows),
+              children: [
+                _buildTextField(
+                  controller: _arrowModelController,
+                  label: 'Arrow Model',
+                  hint: 'e.g., Easton X10, ACE',
+                ),
+                _buildTextField(
+                  controller: _arrowSpineController,
+                  label: 'Arrow Spine',
+                  hint: 'e.g., 600, 700, 800',
+                ),
+                _buildNumberField(
+                  controller: _arrowLengthController,
+                  label: 'Arrow Length',
+                  suffix: '"',
+                  hint: 'e.g., 28.5',
+                  decimalPlaces: 2,
+                ),
+              ],
+            ),
+
+            // Notes (expandable)
+            _buildExpandableSection(
+              title: 'NOTES',
+              isExpanded: _showNotes,
+              onToggle: () => setState(() => _showNotes = !_showNotes),
+              children: [
+                _buildTextField(
+                  controller: _notesController,
+                  label: 'General Notes',
+                  hint: 'Any additional setup notes...',
+                  maxLines: 4,
+                ),
+              ],
+            ),
+
             const SizedBox(height: AppSpacing.xxl),
           ],
         ),
@@ -563,6 +942,112 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
               fontWeight: FontWeight.bold,
               letterSpacing: 1.2,
             ),
+      ),
+    );
+  }
+
+  Widget _buildExpandableSection({
+    required String title,
+    required bool isExpanded,
+    required VoidCallback onToggle,
+    required List<Widget> children,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: onToggle,
+          borderRadius: BorderRadius.circular(AppSpacing.xs),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceBright.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(AppSpacing.xs),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                        ),
+                  ),
+                ),
+                Icon(
+                  isExpanded ? Icons.expand_less : Icons.expand_more,
+                  color: AppColors.textMuted,
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (isExpanded) ...[
+          const SizedBox(height: AppSpacing.sm),
+          ...children,
+        ],
+        const SizedBox(height: AppSpacing.md),
+      ],
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    String? hint,
+    String? helperText,
+    int maxLines = 1,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          helperText: helperText,
+        ),
+        maxLines: maxLines,
+        textCapitalization: TextCapitalization.words,
+      ),
+    );
+  }
+
+  Widget _buildNumberField({
+    required TextEditingController controller,
+    required String label,
+    String? suffix,
+    String? hint,
+    String? helperText,
+    bool allowNegative = false,
+    bool isInteger = false,
+    int decimalPlaces = 1,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          helperText: helperText,
+          suffixText: suffix,
+        ),
+        keyboardType: TextInputType.numberWithOptions(
+          decimal: !isInteger,
+          signed: allowNegative,
+        ),
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(
+            RegExp(allowNegative ? r'^-?\d*\.?\d*$' : r'^\d*\.?\d*$'),
+          ),
+        ],
       ),
     );
   }
