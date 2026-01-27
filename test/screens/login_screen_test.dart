@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:archery_super_app/screens/login_screen.dart';
 import 'package:archery_super_app/theme/app_theme.dart';
+import 'package:archery_super_app/widgets/loading_button.dart';
 
 import '../mocks/mock_auth_service_base.dart';
 
@@ -126,8 +127,13 @@ void main() {
           (tester) async {
         await pumpLoginScreen(tester);
 
+        // Scroll the encouragement box into view (it may be below the fold)
+        final encouragementFinder = find.text('Create your free account');
+        await tester.ensureVisible(encouragementFinder);
+        await tester.pumpAndSettle();
+
         // Tap on the encouragement box
-        await tester.tap(find.text('Create your free account'));
+        await tester.tap(encouragementFinder);
         await tester.pumpAndSettle();
 
         // Should now be in sign-up mode
@@ -489,11 +495,15 @@ void main() {
             find.byType(TextFormField).first, 'test@example.com');
         await tester.enterText(find.byType(TextFormField).last, 'password123');
 
+        // Find the LoadingButton for tapping (text changes to spinner during loading)
+        final loadingButtonFinder = find.byType(LoadingButton);
+
         // Tap submit twice quickly
         await tester.tap(find.text('Sign In'));
         await tester.pump(const Duration(milliseconds: 50));
         // Second tap should be ignored (button disabled during loading)
-        await tester.tap(find.text('Sign In'), warnIfMissed: false);
+        // Use LoadingButton finder since text is replaced by spinner during loading
+        await tester.tap(loadingButtonFinder, warnIfMissed: false);
 
         await tester.pumpAndSettle();
 
