@@ -112,6 +112,7 @@ class EquipmentProvider extends ChangeNotifier {
     String? bowId,
     int shaftCount = 12,
     bool setAsDefault = false,
+    String? settings,
   }) async {
     final quiverId = UniqueId.generate();
 
@@ -133,6 +134,7 @@ class EquipmentProvider extends ChangeNotifier {
         bowId: Value(bowId),
         shaftCount: Value(shaftCount),
         isDefault: Value(setAsDefault),
+        settings: Value(settings),
       ),
       shaftsList: shaftsList,
     );

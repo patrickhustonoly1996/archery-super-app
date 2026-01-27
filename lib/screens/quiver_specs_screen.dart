@@ -6,7 +6,6 @@ import '../providers/equipment_provider.dart';
 import '../providers/skills_provider.dart';
 import '../db/database.dart';
 import '../models/arrow_specifications.dart';
-import '../models/bow_specifications.dart';
 
 /// Screen for editing arrow specifications
 class QuiverSpecsScreen extends StatefulWidget {
@@ -61,8 +60,10 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
   String? _shaftSpine;
   String? _pointType;
   String? _nockType;
-  String? _fletchType;
   bool? _hasWrap;
+
+  // Text controllers for types
+  final _fletchTypeController = TextEditingController();
 
   @override
   void initState() {
@@ -91,7 +92,7 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
     _nockColorController.text = _specs.nockColor ?? '';
 
     // Fletching
-    _fletchType = _specs.fletchType;
+    _fletchTypeController.text = _specs.fletchType ?? '';
     _fletchModelController.text = _specs.fletchModel ?? '';
     _fletchSizeController.text = _specs.fletchSize?.toStringAsFixed(2) ?? '';
     _fletchAngleController.text = _specs.fletchAngle?.toStringAsFixed(1) ?? '';
@@ -107,69 +108,6 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
     _notesController.text = _specs.notes ?? '';
   }
 
-  /// Copy arrow details from the linked bow's settings
-  Future<void> _copyFromBow() async {
-    if (widget.quiver.bowId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('This quiver is not linked to a bow'),
-          backgroundColor: AppColors.warning,
-        ),
-      );
-      return;
-    }
-
-    final bow = await context.read<EquipmentProvider>().getBow(widget.quiver.bowId!);
-    if (bow == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Linked bow not found'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-      return;
-    }
-
-    final bowSpecs = BowSpecifications.fromJson(bow.settings);
-
-    // Check if bow has any arrow specs to copy
-    if (bowSpecs.arrowModel == null && bowSpecs.arrowSpine == null && bowSpecs.arrowLength == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No arrow details found in bow settings'),
-            backgroundColor: AppColors.warning,
-          ),
-        );
-      }
-      return;
-    }
-
-    setState(() {
-      // Copy available fields from bow
-      if (bowSpecs.arrowModel != null) {
-        _shaftModelController.text = bowSpecs.arrowModel!;
-      }
-      if (bowSpecs.arrowSpine != null) {
-        _shaftSpine = bowSpecs.arrowSpine;
-      }
-      if (bowSpecs.arrowLength != null) {
-        _totalLengthController.text = bowSpecs.arrowLength!.toStringAsFixed(2);
-      }
-    });
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Copied arrow details from ${bow.name}'),
-          backgroundColor: AppColors.success,
-        ),
-      );
-    }
-  }
-
   @override
   void dispose() {
     _shaftModelController.dispose();
@@ -181,6 +119,7 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
     _nockModelController.dispose();
     _nockSizeController.dispose();
     _nockColorController.dispose();
+    _fletchTypeController.dispose();
     _fletchModelController.dispose();
     _fletchSizeController.dispose();
     _fletchAngleController.dispose();
@@ -215,7 +154,7 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
         nockSize: _nockSizeController.text.isEmpty ? null : _nockSizeController.text,
         nockColor: _nockColorController.text.isEmpty ? null : _nockColorController.text,
         // Fletching
-        fletchType: _fletchType,
+        fletchType: _fletchTypeController.text.isEmpty ? null : _fletchTypeController.text,
         fletchModel: _fletchModelController.text.isEmpty ? null : _fletchModelController.text,
         fletchSize: double.tryParse(_fletchSizeController.text),
         fletchAngle: double.tryParse(_fletchAngleController.text),
@@ -292,11 +231,6 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            // Copy from bow option (if linked)
-            if (widget.quiver.bowId != null) ...[
-              _buildCopyFromBowCard(),
-              const SizedBox(height: AppSpacing.lg),
-            ],
             // Shaft Section
             _buildSectionHeader('SHAFT', isPrimary: true),
             const SizedBox(height: AppSpacing.md),
@@ -310,7 +244,7 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
               label: 'Spine',
               items: [
                 const DropdownMenuItem(value: null, child: Text('Not set')),
-                ...CommonSpineValues.values.map((v) => DropdownMenuItem(
+                ...EastonSpineValues.allSpines.map((v) => DropdownMenuItem(
                       value: v,
                       child: Text(v),
                     )),
@@ -417,17 +351,10 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
             // Fletching Section
             _buildSectionHeader('FLETCHING'),
             const SizedBox(height: AppSpacing.md),
-            _buildDropdownField(
-              value: _fletchType,
+            _buildTextField(
+              controller: _fletchTypeController,
               label: 'Fletching Type',
-              items: [
-                const DropdownMenuItem(value: null, child: Text('Not set')),
-                ...FletchTypeOptions.values.map((v) => DropdownMenuItem(
-                      value: v,
-                      child: Text(FletchTypeOptions.displayName(v)),
-                    )),
-              ],
-              onChanged: (v) => setState(() => _fletchType = v),
+              hint: 'e.g., Spin Wing, Shield, Kurly Vane, Blazer',
             ),
             _buildTextField(
               controller: _fletchModelController,
@@ -594,56 +521,6 @@ class _QuiverSpecsScreenState extends State<QuiverSpecsScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildCopyFromBowCard() {
-    return FutureBuilder<Bow?>(
-      future: context.read<EquipmentProvider>().getBow(widget.quiver.bowId!),
-      builder: (context, snapshot) {
-        final bow = snapshot.data;
-        final bowName = bow?.name ?? 'linked bow';
-
-        return Card(
-          color: AppColors.surfaceLight,
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Linked to $bowName',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        'Copy arrow details from bow settings',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textMuted,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _copyFromBow,
-                  icon: const Icon(Icons.download, size: 18),
-                  label: const Text('Copy'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.gold,
-                    side: const BorderSide(color: AppColors.gold),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 
