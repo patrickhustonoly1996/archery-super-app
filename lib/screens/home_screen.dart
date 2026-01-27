@@ -889,7 +889,7 @@ class _TopBar extends StatelessWidget {
               ),
             ),
             child: Text(
-              'v1.7.2',
+              'v1.7.3',
               style: TextStyle(
                 fontFamily: AppFonts.pixel,
                 fontSize: 6,
@@ -2334,6 +2334,7 @@ class _RetroSheetItem extends StatelessWidget {
     );
   }
 }
+
 
 
 
