@@ -33,6 +33,7 @@ class _FieldTargetSetupSheetState extends State<FieldTargetSetupSheet> {
   DistanceUnit _customUnit = DistanceUnit.yards;
   PegType _customPegType = PegType.single;
   List<double> _customDistances = [50];
+  int _customFaceSize = 65; // Default face size in cm
 
   // Face-size-first flow - step tracking
   bool get _hasFaceSize => _selectedFaceSize != null;

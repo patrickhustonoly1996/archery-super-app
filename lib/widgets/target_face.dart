@@ -585,6 +585,15 @@ class _InteractiveTargetFaceState extends State<InteractiveTargetFace> {
     return _lineCutterThresholdMm / radiusMm;
   }
 
+  /// Get the current zoom scale from the transform controller.
+  /// Returns 1.0 if no controller or if unable to determine scale.
+  double get _currentZoomScale {
+    final controller = widget.transformController;
+    if (controller == null) return 1.0;
+    // InteractiveViewer uses uniform scaling, so max scale = the zoom level
+    return controller.value.getMaxScaleOnAxis();
+  }
+
   /// Convert a gesture position to widget-local coordinates.
   ///
   /// Note: When inside an InteractiveViewer, Flutter's hit testing system
