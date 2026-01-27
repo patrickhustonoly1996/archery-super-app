@@ -9,6 +9,7 @@ import '../providers/field_course_provider.dart';
 import '../providers/field_sight_mark_provider.dart';
 import '../providers/sight_marks_provider.dart';
 import '../widgets/field_target_setup_sheet.dart';
+import '../widgets/field_scorecard_widget.dart';
 import 'field_session_complete_screen.dart';
 import 'animal_scoring_screen.dart';
 
@@ -19,10 +20,36 @@ class FieldScoringScreen extends StatefulWidget {
   State<FieldScoringScreen> createState() => _FieldScoringScreenState();
 }
 
-class _FieldScoringScreenState extends State<FieldScoringScreen> {
+class _FieldScoringScreenState extends State<FieldScoringScreen>
+    with SingleTickerProviderStateMixin {
   // Arrow scores for current target
   final List<FieldArrowScore> _currentArrowScores = [];
   String? _sightMarkUsed;
+
+  // Track sight marks per target (persists during navigation)
+  final Map<int, String> _sightMarksByTarget = {};
+
+  // Track if current target was already scored (editing mode)
+  bool _isEditingScored = false;
+
+  // Sight mark text controller
+  final TextEditingController _sightMarkController = TextEditingController();
+
+  // Tab controller for scoring/scorecard views
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _sightMarkController.dispose();
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,12 +64,54 @@ class _FieldScoringScreenState extends State<FieldScoringScreen> {
           appBar: _buildAppBar(session),
           body: Column(
             children: [
-              // Target info header
-              _buildTargetHeader(session),
+              // Tab bar
+              Container(
+                color: AppColors.surfaceDark,
+                child: TabBar(
+                  controller: _tabController,
+                  tabs: const [
+                    Tab(text: 'SCORE'),
+                    Tab(text: 'SCORECARD'),
+                  ],
+                  labelColor: AppColors.gold,
+                  unselectedLabelColor: AppColors.textSecondary,
+                  indicatorColor: AppColors.gold,
+                  labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontFamily: AppFonts.pixel,
+                      ),
+                ),
+              ),
 
-              // Scoring area
+              // Tab content
               Expanded(
-                child: _buildScoringArea(session),
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    // Scoring tab
+                    Column(
+                      children: [
+                        // Target info header
+                        _buildTargetHeader(session),
+
+                        // Scoring area
+                        Expanded(
+                          child: _buildScoringArea(session),
+                        ),
+                      ],
+                    ),
+
+                    // Scorecard tab
+                    FieldScorecardWidget(
+                      session: session,
+                      onTargetTap: (targetNum) {
+                        _saveSightMarkForTarget(session.currentTargetNumber);
+                        session.goToTarget(targetNum);
+                        _loadTargetScores(session);
+                        _tabController.animateTo(0); // Switch back to scoring
+                      },
+                    ),
+                  ],
+                ),
               ),
 
               // Bottom controls
@@ -108,8 +177,9 @@ class _FieldScoringScreenState extends State<FieldScoringScreen> {
                 icon: const Icon(Icons.chevron_left),
                 onPressed: session.currentTargetNumber > 1
                     ? () {
+                        _saveSightMarkForTarget(session.currentTargetNumber);
                         session.previousTarget();
-                        _resetCurrentScores();
+                        _loadTargetScores(session);
                       }
                     : null,
               ),
@@ -134,8 +204,9 @@ class _FieldScoringScreenState extends State<FieldScoringScreen> {
                 icon: const Icon(Icons.chevron_right),
                 onPressed: session.currentTargetNumber < session.targetCount
                     ? () {
+                        _saveSightMarkForTarget(session.currentTargetNumber);
                         session.nextTarget();
-                        _resetCurrentScores();
+                        _loadTargetScores(session);
                       }
                     : null,
               ),
@@ -166,40 +237,247 @@ class _FieldScoringScreenState extends State<FieldScoringScreen> {
   }
 
   Widget _buildSightMarkRow(FieldSessionProvider session, FieldCourseTarget target) {
-    // This would use the FieldSightMarkProvider for predictions
-    // For now, show a simple input field
-    return Row(
-      children: [
-        Text(
-          'Sight Mark:',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondary,
-              ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: SizedBox(
-            height: 36,
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Enter sight mark',
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.xs,
+    return Consumer2<FieldSightMarkProvider, SightMarksProvider>(
+      builder: (context, fieldSightMarks, baseSightMarks, _) {
+        return FutureBuilder<FieldPredictedSightMark?>(
+          future: _getPredictedSightMark(session, target, fieldSightMarks),
+          builder: (context, snapshot) {
+            final prediction = snapshot.data;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Sight Mark:',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: SizedBox(
+                        height: 36,
+                        child: TextField(
+                          controller: _sightMarkController,
+                          decoration: InputDecoration(
+                            hintText: prediction?.displayValue ?? 'Enter sight mark',
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm,
+                              vertical: AppSpacing.xs,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(AppSpacing.xs),
+                            ),
+                            filled: true,
+                            fillColor: AppColors.surfaceLight,
+                            suffixIcon: prediction != null
+                                ? IconButton(
+                                    icon: const Icon(Icons.auto_awesome, size: 18),
+                                    color: AppColors.gold,
+                                    tooltip: 'Use predicted',
+                                    padding: EdgeInsets.zero,
+                                    onPressed: () {
+                                      _sightMarkController.text = prediction.displayValue;
+                                      _sightMarkUsed = prediction.displayValue;
+                                    },
+                                  )
+                                : null,
+                          ),
+                          style: Theme.of(context).textTheme.bodySmall,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          onChanged: (value) => _sightMarkUsed = value,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppSpacing.xs),
+                // Show prediction info and see sight marks option
+                const SizedBox(height: AppSpacing.xs),
+                Row(
+                  children: [
+                    if (prediction != null) ...[
+                      Icon(
+                        Icons.lightbulb_outline,
+                        size: 14,
+                        color: AppColors.gold.withValues(alpha: 0.7),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          _getPredictionLabel(prediction),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.gold.withValues(alpha: 0.7),
+                                fontSize: 11,
+                              ),
+                        ),
+                      ),
+                    ] else
+                      const Spacer(),
+                    // See sight marks link
+                    GestureDetector(
+                      onTap: () => _showSightMarksSheet(target),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.list_alt,
+                            size: 14,
+                            color: AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'See marks',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 11,
+                                  decoration: TextDecoration.underline,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                filled: true,
-                fillColor: AppColors.surfaceLight,
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<FieldPredictedSightMark?> _getPredictedSightMark(
+    FieldSessionProvider session,
+    FieldCourseTarget target,
+    FieldSightMarkProvider fieldSightMarks,
+  ) async {
+    // Need bow ID from session - for now use a placeholder
+    // In production this would come from the session's selected bow
+    final bowId = session.course?.id; // Placeholder
+    if (bowId == null) return null;
+
+    return fieldSightMarks.getPredictedMark(
+      courseTargetId: target.id,
+      bowId: bowId,
+      distance: target.primaryDistance,
+      unit: target.unit,
+    );
+  }
+
+  String _getPredictionLabel(FieldPredictedSightMark prediction) {
+    if (prediction.hasCourseLearning) {
+      return 'Predicted: ${prediction.displayValue} (${prediction.differentialDisplay} from ${prediction.shotCount} shots)';
+    }
+    return 'Predicted: ${prediction.displayValue}';
+  }
+
+  void _showSightMarksSheet(FieldCourseTarget target) {
+    final sightMarksProvider = context.read<SightMarksProvider>();
+    // TODO: Get actual bow ID from session
+    final session = context.read<FieldSessionProvider>();
+    final bowId = session.course?.id ?? '';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceDark,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        final marks = sightMarksProvider.getMarksForBow(bowId);
+        final nearbyMarks = marks.where((m) {
+          // Show marks within 10 units of target distance
+          final diff = (m.distance - target.primaryDistance).abs();
+          return diff <= 10;
+        }).toList()
+          ..sort((a, b) =>
+              (a.distance - target.primaryDistance)
+                  .abs()
+                  .compareTo((b.distance - target.primaryDistance).abs()));
+
+        return Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceLight,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-              style: Theme.of(context).textTheme.bodySmall,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              onChanged: (value) => _sightMarkUsed = value,
-            ),
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                'Sight Marks near ${target.primaryDistance.round()}${target.unit.abbreviation}',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontFamily: AppFonts.pixel,
+                    ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              if (nearbyMarks.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Center(
+                    child: Text(
+                      'No recorded sight marks near this distance',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                    ),
+                  ),
+                )
+              else
+                ...nearbyMarks.take(5).map((mark) => ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.xs,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.gold.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '${mark.distance.round()}${mark.unit.abbreviation}',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.gold,
+                              ),
+                        ),
+                      ),
+                      title: Text(
+                        mark.sightValue,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontFamily: AppFonts.pixel,
+                            ),
+                      ),
+                      subtitle: mark.isIndoor
+                          ? Text(
+                              'Indoor',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.textMuted,
+                                  ),
+                            )
+                          : null,
+                      trailing: const Icon(Icons.chevron_right, size: 20),
+                      onTap: () {
+                        _sightMarkController.text = mark.sightValue;
+                        _sightMarkUsed = mark.sightValue;
+                        Navigator.pop(context);
+                      },
+                    )),
+              const SizedBox(height: AppSpacing.lg),
+            ],
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -382,8 +660,9 @@ class _FieldScoringScreenState extends State<FieldScoringScreen> {
 
           return GestureDetector(
             onTap: () {
+              _saveSightMarkForTarget(session.currentTargetNumber);
               session.goToTarget(targetNum);
-              _resetCurrentScores();
+              _loadTargetScores(session);
             },
             child: Container(
               width: 12,
@@ -407,11 +686,42 @@ class _FieldScoringScreenState extends State<FieldScoringScreen> {
     );
   }
 
-  void _resetCurrentScores() {
+  void _saveSightMarkForTarget(int targetNum) {
+    if (_sightMarkUsed != null && _sightMarkUsed!.isNotEmpty) {
+      _sightMarksByTarget[targetNum] = _sightMarkUsed!;
+    }
+  }
+
+  void _loadTargetScores(FieldSessionProvider session) {
+    final targetNum = session.currentTargetNumber;
+
     setState(() {
       _currentArrowScores.clear();
-      _sightMarkUsed = null;
+      _isEditingScored = false;
+
+      // Check if this target was already scored
+      final existingScore = session.scoredTargets
+          .where((t) => t.targetNumber == targetNum)
+          .firstOrNull;
+
+      if (existingScore != null) {
+        // Load existing scores for review/edit
+        _currentArrowScores.addAll(existingScore.arrowScores);
+        _sightMarkUsed = existingScore.sightMarkUsed;
+        _sightMarkController.text = _sightMarkUsed ?? '';
+        _isEditingScored = true;
+      } else {
+        // Load persisted sight mark if any, or clear
+        _sightMarkUsed = _sightMarksByTarget[targetNum];
+        _sightMarkController.text = _sightMarkUsed ?? '';
+      }
     });
+  }
+
+  void _resetCurrentScores() {
+    // Deprecated - use _loadTargetScores instead
+    final session = context.read<FieldSessionProvider>();
+    _loadTargetScores(session);
   }
 
   void _addScore(FieldScoringZone zone) {

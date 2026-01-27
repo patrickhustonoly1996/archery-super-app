@@ -24,7 +24,7 @@ class FieldTargetSetupSheet extends StatefulWidget {
 
 class _FieldTargetSetupSheetState extends State<FieldTargetSetupSheet> {
   PegConfiguration? _selectedConfig;
-  int? _customFaceSize;
+  int? _selectedFaceSize;
   String _notes = '';
   bool _isCustomDistance = false;
 
@@ -34,6 +34,10 @@ class _FieldTargetSetupSheetState extends State<FieldTargetSetupSheet> {
   PegType _customPegType = PegType.single;
   List<double> _customDistances = [50];
 
+  // Face-size-first flow - step tracking
+  bool get _hasFaceSize => _selectedFaceSize != null;
+  bool get _hasConfig => _selectedConfig != null || _isCustomDistance;
+
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
@@ -42,79 +46,169 @@ class _FieldTargetSetupSheetState extends State<FieldTargetSetupSheet> {
       maxChildSize: 0.95,
       expand: false,
       builder: (context, scrollController) {
-        return SingleChildScrollView(
-          controller: scrollController,
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceLight,
-                    borderRadius: BorderRadius.circular(2),
+        return Column(
+          children: [
+            // Fixed header with save button at top
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceDark,
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppColors.surfaceLight.withValues(alpha: 0.3),
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                'Target ${widget.targetNumber}',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontFamily: AppFonts.pixel,
+              child: Column(
+                children: [
+                  // Drag handle
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceLight,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-
-              // Toggle between preset and custom
-              _buildModeToggle(),
-              const SizedBox(height: AppSpacing.lg),
-
-              // Content based on mode
-              if (_isCustomDistance)
-                _buildCustomDistanceSection()
-              else
-                _buildPresetSection(),
-
-              const SizedBox(height: AppSpacing.xl),
-
-              // Face size
-              _buildFaceSizeSection(),
-
-              const SizedBox(height: AppSpacing.lg),
-
-              // Notes
-              TextField(
-                decoration: InputDecoration(
-                  labelText: 'Notes (optional)',
-                  hintText: 'e.g., uphill, shadows',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.sm),
                   ),
-                  filled: true,
-                  fillColor: AppColors.surfaceLight,
-                ),
-                onChanged: (value) => _notes = value,
+                  const SizedBox(height: AppSpacing.md),
+                  // Header row with title and save button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Target ${widget.targetNumber}',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              fontFamily: AppFonts.pixel,
+                            ),
+                      ),
+                      ElevatedButton(
+                        onPressed: _canSave() ? _save : null,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.lg,
+                            vertical: AppSpacing.sm,
+                          ),
+                        ),
+                        child: const Text('Add Target'),
+                      ),
+                    ],
+                  ),
+                ],
               ),
+            ),
+            // Scrollable content
+            Expanded(
+              child: SingleChildScrollView(
+                controller: scrollController,
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // STEP 1: Face size first
+                    _buildStepHeader(1, 'Select Face Size', _hasFaceSize),
+                    const SizedBox(height: AppSpacing.sm),
+                    _buildFaceSizeSection(),
 
-              const SizedBox(height: AppSpacing.xl),
+                    const SizedBox(height: AppSpacing.xl),
 
-              // Save button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _canSave() ? _save : null,
-                  child: const Text('Add Target'),
+                    // STEP 2: Peg configuration (only if face size selected)
+                    _buildStepHeader(2, 'Select Distance', _hasConfig),
+                    const SizedBox(height: AppSpacing.sm),
+                    if (!_hasFaceSize)
+                      _buildLockedSection('Select face size first')
+                    else ...[
+                      // Toggle between preset and custom
+                      _buildModeToggle(),
+                      const SizedBox(height: AppSpacing.lg),
+
+                      // Content based on mode
+                      if (_isCustomDistance)
+                        _buildCustomDistanceSection()
+                      else
+                        _buildPresetSection(),
+                    ],
+
+                    const SizedBox(height: AppSpacing.xl),
+
+                    // Notes (optional)
+                    Text(
+                      'Notes (optional)',
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    TextField(
+                      decoration: InputDecoration(
+                        hintText: 'e.g., uphill, shadows',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppSpacing.sm),
+                        ),
+                        filled: true,
+                        fillColor: AppColors.surfaceLight,
+                      ),
+                      onChanged: (value) => _notes = value,
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: AppSpacing.lg),
-            ],
-          ),
+            ),
+          ],
         );
       },
+    );
+  }
+
+  Widget _buildStepHeader(int step, String title, bool isComplete) {
+    return Row(
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isComplete ? AppColors.gold : AppColors.surfaceLight,
+          ),
+          alignment: Alignment.center,
+          child: isComplete
+              ? const Icon(Icons.check, size: 14, color: AppColors.background)
+              : Text(
+                  '$step',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontFamily: AppFonts.pixel,
+              ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLockedSection(String message) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLight.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(AppSpacing.sm),
+        border: Border.all(color: AppColors.surfaceLight),
+      ),
+      child: Center(
+        child: Text(
+          message,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.textMuted,
+              ),
+        ),
+      ),
     );
   }
 
@@ -143,9 +237,18 @@ class _FieldTargetSetupSheetState extends State<FieldTargetSetupSheet> {
   Widget _buildPresetSection() {
     return Consumer<FieldCourseProvider>(
       builder: (context, provider, _) {
-        final presets = widget.roundType == FieldRoundType.animal
+        final allPresets = widget.roundType == FieldRoundType.animal
             ? provider.getAvailableAnimalPresets()
             : provider.getAvailableFieldPresets();
+
+        // Filter presets by selected face size
+        final presets = _selectedFaceSize != null
+            ? allPresets.where((config) {
+                final faceSizeForConfig =
+                    IFAAFaceSizes.getFaceSize(config.primaryDistance);
+                return faceSizeForConfig == _selectedFaceSize;
+              }).toList()
+            : allPresets;
 
         if (presets.isEmpty) {
           return Container(
@@ -157,13 +260,15 @@ class _FieldTargetSetupSheetState extends State<FieldTargetSetupSheet> {
             child: Column(
               children: [
                 const Icon(
-                  Icons.warning_amber_outlined,
+                  Icons.info_outline,
                   color: AppColors.gold,
                   size: 32,
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'All preset pegs are in use',
+                  _selectedFaceSize != null
+                      ? 'No presets for ${_selectedFaceSize}cm face'
+                      : 'All preset pegs are in use',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -182,7 +287,7 @@ class _FieldTargetSetupSheetState extends State<FieldTargetSetupSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Select Peg Configuration',
+              'Available Distances for ${_selectedFaceSize}cm',
               style: Theme.of(context).textTheme.labelLarge,
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -197,8 +302,6 @@ class _FieldTargetSetupSheetState extends State<FieldTargetSetupSheet> {
                   onSelected: (_) {
                     setState(() {
                       _selectedConfig = config;
-                      // Auto-set face size based on distance
-                      _customFaceSize = IFAAFaceSizes.getFaceSize(config.primaryDistance);
                     });
                   },
                   selectedColor: AppColors.gold,
@@ -396,35 +499,73 @@ class _FieldTargetSetupSheetState extends State<FieldTargetSetupSheet> {
   }
 
   Widget _buildFaceSizeSection() {
-    final suggestedSize = _getSuggestedFaceSize();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Face Size',
-          style: Theme.of(context).textTheme.labelLarge,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Wrap(
-          spacing: AppSpacing.sm,
-          children: [20, 35, 50, 65].map((size) {
-            final isSelected = (_customFaceSize ?? suggestedSize) == size;
-            final isSuggested = suggestedSize == size && _customFaceSize == null;
-            return ChoiceChip(
-              label: Text('${size}cm${isSuggested ? ' (suggested)' : ''}'),
-              selected: isSelected,
-              onSelected: (_) => setState(() => _customFaceSize = size),
-              selectedColor: AppColors.gold,
-              labelStyle: TextStyle(
-                color: isSelected ? AppColors.background : AppColors.textPrimary,
-                fontFamily: AppFonts.body,
+    return Wrap(
+      spacing: AppSpacing.sm,
+      runSpacing: AppSpacing.sm,
+      children: [20, 35, 50, 65].map((size) {
+        final isSelected = _selectedFaceSize == size;
+        // Show typical distance range for each face size
+        final distanceHint = _getDistanceHintForFace(size);
+        return GestureDetector(
+          onTap: () => setState(() {
+            _selectedFaceSize = size;
+            // Clear config when face size changes
+            _selectedConfig = null;
+          }),
+          child: Container(
+            width: 80,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? AppColors.gold.withValues(alpha: 0.2)
+                  : AppColors.surfaceLight,
+              border: Border.all(
+                color: isSelected ? AppColors.gold : AppColors.surfaceLight,
+                width: isSelected ? 2 : 1,
               ),
-            );
-          }).toList(),
-        ),
-      ],
+              borderRadius: BorderRadius.circular(AppSpacing.sm),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  '${size}cm',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: isSelected ? AppColors.gold : AppColors.textPrimary,
+                        fontFamily: AppFonts.pixel,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  distanceHint,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textMuted,
+                        fontSize: 10,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
     );
+  }
+
+  String _getDistanceHintForFace(int faceSize) {
+    switch (faceSize) {
+      case 20:
+        return '15-30yd';
+      case 35:
+        return '35-45yd';
+      case 50:
+        return '50-60yd';
+      case 65:
+        return '65-80yd';
+      default:
+        return '';
+    }
   }
 
   int _getSuggestedFaceSize() {
@@ -435,6 +576,7 @@ class _FieldTargetSetupSheetState extends State<FieldTargetSetupSheet> {
   }
 
   bool _canSave() {
+    if (_selectedFaceSize == null) return false;
     if (_isCustomDistance) {
       return _customDistances.isNotEmpty;
     }
@@ -446,7 +588,7 @@ class _FieldTargetSetupSheetState extends State<FieldTargetSetupSheet> {
         ? _buildCustomConfig()
         : _selectedConfig!;
 
-    final faceSize = _customFaceSize ?? _getSuggestedFaceSize();
+    final faceSize = _selectedFaceSize ?? _getSuggestedFaceSize();
 
     widget.onSave(config, faceSize, _notes.isNotEmpty ? _notes : null);
   }
