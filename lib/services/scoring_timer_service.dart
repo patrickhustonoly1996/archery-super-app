@@ -31,6 +31,7 @@ class ScoringTimerService {
 
   Timer? _timer;
   ScoringTimerState _state = ScoringTimerState.idle;
+  bool _isPaused = false;
 
   // Configuration
   int _leadInSeconds = 10;
@@ -53,8 +54,9 @@ class ScoringTimerService {
   int get secondsRemaining => _secondsRemaining;
   int get leadInSeconds => _leadInSeconds;
   int get mainDurationSeconds => _mainDurationSeconds;
-  bool get isRunning => _state != ScoringTimerState.idle && _state != ScoringTimerState.expired;
+  bool get isRunning => _timer != null && !_isPaused;
   bool get isIdle => _state == ScoringTimerState.idle;
+  bool get isPaused => _isPaused;
 
   /// Configure the timer durations
   void configure({
@@ -81,6 +83,7 @@ class ScoringTimerService {
     if (_state != ScoringTimerState.idle) return;
 
     _timer?.cancel();
+    _isPaused = false;
 
     if (_leadInSeconds > 0) {
       // Start with lead-in countdown
@@ -103,18 +106,24 @@ class ScoringTimerService {
     _timer = Timer.periodic(const Duration(milliseconds: 100), _tick);
   }
 
-  /// Pause the timer (for app lifecycle)
+  /// Pause the timer
   void pause() {
+    if (!isRunning) return;
     _timer?.cancel();
     _timer = null;
+    _isPaused = true;
+    _onStateChange?.call();
   }
 
   /// Resume the timer after pause
   void resume() {
     if (_state == ScoringTimerState.idle || _state == ScoringTimerState.expired) return;
+    if (!_isPaused) return;
 
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 100), _tick);
+    _isPaused = false;
+    _onStateChange?.call();
   }
 
   /// Stop and reset the timer
@@ -124,6 +133,7 @@ class ScoringTimerService {
     _state = ScoringTimerState.idle;
     _secondsRemaining = 0;
     _mainSecondsRemaining = 0;
+    _isPaused = false;
     _onStateChange?.call();
     _onTick?.call(_state, _secondsRemaining);
   }

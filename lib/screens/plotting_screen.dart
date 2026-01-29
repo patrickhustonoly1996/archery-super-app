@@ -26,6 +26,7 @@ import 'home_screen.dart';
 import 'auto_plot_scan_router.dart';
 import '../services/vision_api_service.dart';
 import '../utils/target_coordinate_system.dart';
+import '../models/arrow_coordinate.dart';
 
 /// Preference key for triple spot view mode
 const String kTripleSpotViewPref = 'indoor_triple_spot_view';
@@ -129,6 +130,7 @@ class _PlottingScreenState extends State<PlottingScreen>
   bool _timerEnabled = false;
   int _timerDuration = 120; // seconds (90, 120, 180, 240)
   int _timerLeadIn = 10; // seconds (10 or 15)
+  int _timerResetTrigger = 0; // Increment to reset timer after end
 
   // Zoom window enabled (shows magnified view during plotting)
   bool _zoomWindowEnabled = true;
@@ -209,6 +211,13 @@ class _PlottingScreenState extends State<PlottingScreen>
     await provider.commitEnd();
     // Note: Zoom is intentionally NOT reset here so users can stay zoomed
     // for precision plotting across multiple ends
+
+    // Reset timer for next end
+    if (mounted) {
+      setState(() {
+        _timerResetTrigger++;
+      });
+    }
 
     // Show break checkpoint if we just crossed a boundary (distance change or halfway)
     if (mounted && provider.isAtBreakCheckpoint) {
@@ -485,7 +494,48 @@ class _PlottingScreenState extends State<PlottingScreen>
       setState(() {
         _viewingEndArrows = arrows;
       });
+
+      // Apply autozoom to fit the arrow group
+      _applyAutoZoom(arrows, provider);
     }
+  }
+
+  /// Apply auto-zoom based on arrow grouping
+  void _applyAutoZoom(List<Arrow> arrows, SessionProvider provider) {
+    if (arrows.isEmpty) {
+      // Reset zoom if no arrows
+      _zoomController.value = Matrix4.identity();
+      return;
+    }
+
+    // Get face size from round type
+    final faceSizeCm = provider.roundType?.faceSizeCm ?? 80;
+
+    // Convert arrows to coordinates
+    final coordinates = arrows
+        .map((a) => ArrowCoordinate(
+              xMm: a.xMm,
+              yMm: a.yMm,
+              faceSizeCm: faceSizeCm,
+            ))
+        .toList();
+
+    // Get a reference widget size (assume 300px as standard)
+    const widgetSize = 300.0;
+
+    // Create coordinate system
+    final coordSystem = TargetCoordinateSystem(
+      faceSizeCm: faceSizeCm,
+      widgetSize: widgetSize,
+    );
+
+    // Calculate optimal zoom
+    final optimalZoom = coordSystem.calculateAutoZoom(arrows: coordinates);
+
+    // Apply zoom centered on the widget
+    // InteractiveViewer expects scale to be applied from center
+    final scale = optimalZoom;
+    _zoomController.value = Matrix4.identity()..scale(scale, scale, 1.0);
   }
 
   /// Return to current end (exit history view)
@@ -1308,6 +1358,7 @@ class _PlottingScreenState extends State<PlottingScreen>
                           enabled: _timerEnabled,
                           leadInSeconds: _timerLeadIn,
                           durationSeconds: _timerDuration,
+                          resetTrigger: _timerResetTrigger,
                         ),
                       ),
                     ],

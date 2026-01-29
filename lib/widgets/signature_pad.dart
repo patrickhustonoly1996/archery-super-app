@@ -330,6 +330,38 @@ class _FullScreenSignatureDialogState extends State<_FullScreenSignatureDialog> 
               ),
             ),
 
+            // Landscape orientation prompt
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: AppColors.gold.withValues(alpha: 0.15),
+                border: Border.all(color: AppColors.gold, width: 1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.screen_rotation,
+                    color: AppColors.gold,
+                    size: 20,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      'For best results, rotate your phone to landscape mode',
+                      style: TextStyle(
+                        fontFamily: AppFonts.body,
+                        fontSize: 11,
+                        color: AppColors.gold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+
             // Signature area - takes most of the screen
             Expanded(
               child: Container(

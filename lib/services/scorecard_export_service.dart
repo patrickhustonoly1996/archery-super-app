@@ -91,8 +91,8 @@ class ScorecardExportService {
                       children: [
                         pw.Image(
                           pw.MemoryImage(plotImages[0]),
-                          width: 180,
-                          height: 180,
+                          width: 350,
+                          height: 350,
                         ),
                         if (plotLabels != null && plotLabels.isNotEmpty)
                           pw.Text(

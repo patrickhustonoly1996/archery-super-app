@@ -19,12 +19,16 @@ class ScoringTimerWidget extends StatefulWidget {
   /// Called when timer state changes (for parent to react if needed)
   final ValueChanged<ScoringTimerState>? onStateChanged;
 
+  /// Increment this value to trigger a timer reset (useful for resetting after each end)
+  final int resetTrigger;
+
   const ScoringTimerWidget({
     super.key,
     required this.enabled,
     required this.leadInSeconds,
     required this.durationSeconds,
     this.onStateChanged,
+    this.resetTrigger = 0,
   });
 
   @override
@@ -55,6 +59,10 @@ class _ScoringTimerWidgetState extends State<ScoringTimerWidget>
         leadInSeconds: widget.leadInSeconds,
         mainDurationSeconds: widget.durationSeconds,
       );
+    }
+    // Auto-reset when resetTrigger changes
+    if (oldWidget.resetTrigger != widget.resetTrigger) {
+      _timerService.reset();
     }
   }
 
@@ -119,12 +127,33 @@ class _ScoringTimerWidgetState extends State<ScoringTimerWidget>
     super.dispose();
   }
 
-  void _handleTap() {
+  void _handlePlayPause() {
     if (_state == ScoringTimerState.idle) {
       _timerService.start();
+    } else if (_state == ScoringTimerState.leadIn ||
+               _state == ScoringTimerState.running ||
+               _state == ScoringTimerState.warning) {
+      // Pause if running
+      _timerService.pause();
+      setState(() {
+        // Mark as paused by keeping current state but stopping the tick
+      });
     } else if (_state == ScoringTimerState.expired) {
+      // Restart from idle
       _timerService.reset();
     }
+  }
+
+  void _handleStop() {
+    _timerService.stop();
+  }
+
+  bool get _isPaused {
+    // Timer is paused if it's not idle, not expired, and the internal timer is null
+    return (_state == ScoringTimerState.leadIn ||
+            _state == ScoringTimerState.running ||
+            _state == ScoringTimerState.warning) &&
+           !_timerService.isRunning;
   }
 
   Color _getIndicatorColor() {
@@ -164,62 +193,111 @@ class _ScoringTimerWidgetState extends State<ScoringTimerWidget>
     final indicatorColor = _getIndicatorColor();
     final displayText = _getDisplayText();
     final isLeadIn = _state == ScoringTimerState.leadIn;
+    final isRunning = _timerService.isRunning;
+    final isPaused = _timerService.isPaused;
 
-    return GestureDetector(
-      onTap: _handleTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceDark.withValues(alpha: 0.95),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: indicatorColor.withValues(alpha: 0.6),
-            width: 2,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: indicatorColor.withValues(alpha: 0.6),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Traffic light indicator
+          Container(
+            width: 14,
+            height: 14,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: indicatorColor,
+              boxShadow: _state != ScoringTimerState.idle && !isPaused
+                  ? [
+                      BoxShadow(
+                        color: indicatorColor.withValues(alpha: 0.5),
+                        blurRadius: 8,
+                        spreadRadius: 2,
+                      ),
+                    ]
+                  : null,
             ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Traffic light indicator
-            Container(
-              width: 16,
-              height: 16,
+          ),
+          const SizedBox(width: 8),
+          // Timer display
+          Text(
+            displayText,
+            style: TextStyle(
+              fontFamily: AppFonts.pixel,
+              fontSize: isLeadIn ? 20 : 16,
+              color: _state == ScoringTimerState.idle
+                  ? AppColors.textMuted
+                  : (isPaused ? AppColors.textMuted : indicatorColor),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Play/Pause button
+          GestureDetector(
+            onTap: () {
+              if (_state == ScoringTimerState.idle) {
+                _timerService.start();
+              } else if (isRunning) {
+                _timerService.pause();
+              } else if (isPaused) {
+                _timerService.resume();
+              } else if (_state == ScoringTimerState.expired) {
+                _timerService.reset();
+              }
+            },
+            child: Container(
+              width: 24,
+              height: 24,
               decoration: BoxDecoration(
+                color: AppColors.surfaceLight,
                 shape: BoxShape.circle,
-                color: indicatorColor,
-                boxShadow: _state != ScoringTimerState.idle
-                    ? [
-                        BoxShadow(
-                          color: indicatorColor.withValues(alpha: 0.5),
-                          blurRadius: 8,
-                          spreadRadius: 2,
-                        ),
-                      ]
-                    : null,
+              ),
+              child: Icon(
+                _state == ScoringTimerState.idle || _state == ScoringTimerState.expired
+                    ? Icons.play_arrow
+                    : (isRunning ? Icons.pause : Icons.play_arrow),
+                size: 16,
+                color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(width: 8),
-            // Timer display
-            Text(
-              displayText,
-              style: TextStyle(
-                fontFamily: AppFonts.pixel,
-                fontSize: isLeadIn ? 24 : 18,
-                color: _state == ScoringTimerState.idle
-                    ? AppColors.textMuted
-                    : indicatorColor,
-                fontWeight: FontWeight.bold,
+          ),
+          // Stop button (only show when not idle)
+          if (_state != ScoringTimerState.idle) ...[
+            const SizedBox(width: 6),
+            GestureDetector(
+              onTap: _handleStop,
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceLight,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.stop,
+                  size: 16,
+                  color: AppColors.error,
+                ),
               ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }
