@@ -152,7 +152,7 @@ class SimulatedInclinometerService extends InclinometerService {
         _currentAngle = current;
 
         _recentReadings.add(_currentAngle);
-        if (_recentReadings.length > _stabilityWindowSize) {
+        if (_recentReadings.length > InclinometerService._stabilityWindowSize) {
           _recentReadings.removeAt(0);
         }
         _isStable = _calculateIsStable();

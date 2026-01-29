@@ -197,91 +197,98 @@ class FieldScorecardWidget extends StatelessWidget {
                 : BorderSide.none,
           ),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Target number
-            SizedBox(
-              width: 40,
-              child: Center(
-                child: Text(
-                  '$targetNum',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: isCurrent ? AppColors.gold : AppColors.textPrimary,
-                        fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-                      ),
-                ),
-              ),
-            ),
-
-            // Distance
-            Expanded(
-              flex: 2,
-              child: Text(
-                target?.distanceDisplay ?? '-',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
+            Row(
+              children: [
+                // Target number
+                SizedBox(
+                  width: 40,
+                  child: Center(
+                    child: Text(
+                      '$targetNum',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: isCurrent ? AppColors.gold : AppColors.textPrimary,
+                            fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                          ),
                     ),
-              ),
-            ),
+                  ),
+                ),
 
-            // Arrow scores
-            SizedBox(
-              width: 100,
-              child: isScored
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: score.arrowScores.map((a) {
-                        return Container(
-                          width: 20,
-                          margin: const EdgeInsets.symmetric(horizontal: 1),
-                          alignment: Alignment.center,
+                // Distance
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    target?.distanceDisplay ?? '-',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                  ),
+                ),
+
+                // Arrow scores
+                SizedBox(
+                  width: 100,
+                  child: isScored
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: score.arrowScores.map((a) {
+                            return Container(
+                              width: 20,
+                              margin: const EdgeInsets.symmetric(horizontal: 1),
+                              alignment: Alignment.center,
+                              child: Text(
+                                a.zone.display,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: _getScoreColor(a.zone),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 11,
+                                    ),
+                              ),
+                            );
+                          }).toList(),
+                        )
+                      : Center(
                           child: Text(
-                            a.zone.display,
+                            '-',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: _getScoreColor(a.zone),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11,
+                                  color: AppColors.textMuted,
                                 ),
                           ),
-                        );
-                      }).toList(),
-                    )
-                  : Center(
-                      child: Text(
-                        '-',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textMuted,
-                            ),
-                      ),
+                        ),
+                ),
+
+                // Total score
+                SizedBox(
+                  width: 50,
+                  child: Center(
+                    child: Text(
+                      isScored ? '${score.totalScore}' : '-',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: isScored ? AppColors.gold : AppColors.textMuted,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
-            ),
-
-            // Total score
-            SizedBox(
-              width: 50,
-              child: Center(
-                child: Text(
-                  isScored ? '${score.totalScore}' : '-',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: isScored ? AppColors.gold : AppColors.textMuted,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  ),
                 ),
-              ),
-            ),
 
-            // Running total
-            SizedBox(
-              width: 40,
-              child: Center(
-                child: Text(
-                  runningTotal > 0 ? '$runningTotal' : '-',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                // Running total
+                SizedBox(
+                  width: 40,
+                  child: Center(
+                    child: Text(
+                      runningTotal > 0 ? '$runningTotal' : '-',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
+            // Peg distance breakdown for walk-down/walk-up targets
+            if (target != null) _buildPegBreakdown(context, target),
           ],
         ),
       ),
@@ -296,6 +303,31 @@ class FieldScorecardWidget extends StatelessWidget {
       }
     }
     return total;
+  }
+
+  /// Build per-peg distance breakdown for walk-down/walk-up targets
+  Widget _buildPegBreakdown(BuildContext context, FieldCourseTarget target) {
+    if (!target.isWalkDown && !target.isWalkUp) return const SizedBox.shrink();
+    final pegs = target.pegConfig.positions;
+    if (pegs.length <= 1) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 40, top: 2, bottom: 2),
+      child: Row(
+        children: pegs.map((peg) {
+          return Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
+            child: Text(
+              peg.displayString,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textMuted,
+                    fontSize: 10,
+                  ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
   }
 
   Color _getScoreColor(FieldScoringZone zone) {

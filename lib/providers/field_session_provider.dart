@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
 import '../db/database.dart';
@@ -313,8 +312,37 @@ class FieldSessionProvider extends ChangeNotifier {
       completedAt: Value(DateTime.now()),
     ));
 
+    // Persist individual arrow plots
+    await _persistArrowPlots(targetScore.id, arrowScores);
+
     _scoredTargets.add(targetScore);
     notifyListeners();
+  }
+
+  /// Persist individual arrow plot data for field targets
+  Future<void> _persistArrowPlots(
+    String sessionTargetId,
+    List<FieldArrowScore> arrowScores,
+  ) async {
+    for (final score in arrowScores) {
+      await _db.insertFieldArrowPlot(FieldArrowPlotsCompanion.insert(
+        id: UniqueId.withPrefix('fap'),
+        sessionTargetId: sessionTargetId,
+        arrowNumber: score.arrowNumber,
+        pegIndex: score.pegPosition != null ? score.pegPosition! - 1 : 0,
+        xMm: Value(score.coordinate?.xMm),
+        yMm: Value(score.coordinate?.yMm),
+        normalizedX: Value(score.coordinate?.normalizedX),
+        normalizedY: Value(score.coordinate?.normalizedY),
+        score: score.score,
+        isX: Value(score.isX),
+        isPoorShot: Value(score.isPoorShot),
+        poorShotDirection: Value(score.poorShotDirection),
+        isPlotted: Value(score.coordinate != null),
+        slopeAngleDeg: Value(score.slopeAngleDeg),
+        sightMarkUsed: Value(score.sightMarkUsed),
+      ));
+    }
   }
 
   // ===========================================================================

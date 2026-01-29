@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
-import '../models/field_course.dart';
 import '../providers/field_session_provider.dart';
-import '../providers/field_course_provider.dart';
 
 class FieldSessionCompleteScreen extends StatelessWidget {
   const FieldSessionCompleteScreen({super.key});
@@ -31,6 +29,9 @@ class FieldSessionCompleteScreen extends StatelessWidget {
                 _buildTargetBreakdown(context, session),
 
                 const SizedBox(height: AppSpacing.xl),
+
+                // Sightmark reminder if any targets had unrecorded sight marks
+                _buildSightMarkReminder(context, session),
 
                 // Course save option (if new course)
                 if (session.isNewCourseCreation)
@@ -271,6 +272,56 @@ class FieldSessionCompleteScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSightMarkReminder(BuildContext context, FieldSessionProvider session) {
+    final targetsWithoutSightMarks = session.scoredTargets
+        .where((t) => t.sightMarkUsed == null || t.sightMarkUsed!.isEmpty)
+        .toList();
+    if (targetsWithoutSightMarks.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceDark,
+          borderRadius: BorderRadius.circular(AppSpacing.sm),
+          border: Border.all(
+            color: AppColors.textSecondary.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.straighten, color: AppColors.textSecondary, size: 20),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Sight Marks Not Recorded',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    '${targetsWithoutSightMarks.length} target${targetsWithoutSightMarks.length == 1 ? '' : 's'} '
+                    'had no sight mark recorded. Consider noting your sight marks '
+                    'during the round for future reference.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textMuted,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
