@@ -509,7 +509,7 @@ class _PlottingScreenState extends State<PlottingScreen>
     }
 
     // Get face size from round type
-    final faceSizeCm = provider.roundType?.faceSizeCm ?? 80;
+    final faceSizeCm = provider.roundType?.faceSize ?? 80;
 
     // Convert arrows to coordinates
     final coordinates = arrows
