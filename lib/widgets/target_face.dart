@@ -1055,8 +1055,12 @@ class FixedZoomWindow extends StatelessWidget {
     this.colorblindMode = ColorblindMode.none,
   });
 
-  /// The effective zoom level for the window (current * relative)
-  double get effectiveZoom => currentZoomLevel * relativeZoom;
+  /// The effective zoom level for the window (current * relative, minimum 2x main screen)
+  double get effectiveZoom {
+    final calculated = currentZoomLevel * relativeZoom;
+    final minimum = currentZoomLevel * 2.0;
+    return calculated < minimum ? minimum : calculated;
+  }
 
   @override
   Widget build(BuildContext context) {
