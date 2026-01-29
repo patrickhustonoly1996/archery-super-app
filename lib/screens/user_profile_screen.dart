@@ -216,13 +216,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                   const SizedBox(height: 32),
 
-                  // Accessibility section
-                  _buildSectionHeader('ACCESSIBILITY'),
-                  const SizedBox(height: 12),
-                  _buildTextSizeSlider(),
-
-                  const SizedBox(height: 32),
-
                   // Federation memberships section
                   _buildSectionHeader('FEDERATION MEMBERSHIPS'),
                   const SizedBox(height: 12),
@@ -1139,91 +1132,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         _archerSignature = null;
       });
     }
-  }
-
-  Widget _buildTextSizeSlider() {
-    return Consumer<AccessibilityProvider>(
-      builder: (context, accessibility, _) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceLight,
-            border: Border.all(color: AppColors.surfaceBright),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.text_fields,
-                    size: 20,
-                    color: AppColors.gold,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Text Size',
-                    style: TextStyle(
-                      fontFamily: AppFonts.body,
-                      fontSize: 14,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Text size options
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: TextScaleOption.values.map((option) {
-                  final isSelected = accessibility.textScale == option;
-                  return GestureDetector(
-                    onTap: () => accessibility.setTextScale(option),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.gold.withValues(alpha: 0.2)
-                            : Colors.transparent,
-                        border: Border.all(
-                          color:
-                              isSelected ? AppColors.gold : AppColors.surfaceBright,
-                        ),
-                      ),
-                      child: Text(
-                        option.displayName,
-                        style: TextStyle(
-                          fontFamily: AppFonts.body,
-                          fontSize: 13,
-                          color: isSelected
-                              ? AppColors.gold
-                              : AppColors.textSecondary,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                accessibility.usesSystemTextScale
-                    ? 'Using your phone\'s text size setting.'
-                    : 'Override your phone\'s text size setting.',
-                style: TextStyle(
-                  fontFamily: AppFonts.body,
-                  fontSize: 13,
-                  color: AppColors.textMuted,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   Widget _buildAcknowledgementFooter() {
