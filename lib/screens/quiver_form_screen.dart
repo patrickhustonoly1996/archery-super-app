@@ -63,6 +63,9 @@ class _QuiverFormScreenState extends State<QuiverFormScreen>
   String? _nockType;
   bool? _hasWrap;
 
+  // Bare shafts
+  late TextEditingController _bareShaftsController;
+
   @override
   void initState() {
     super.initState();
@@ -70,6 +73,7 @@ class _QuiverFormScreenState extends State<QuiverFormScreen>
     _selectedBowId = widget.quiver?.bowId;
     _shaftCount = widget.quiver?.shaftCount ?? 12;
     _setAsDefault = widget.quiver?.isDefault ?? false;
+    _bareShaftsController = TextEditingController();
 
     // Initialize arrow specs if editing
     if (widget.quiver != null) {
@@ -114,6 +118,9 @@ class _QuiverFormScreenState extends State<QuiverFormScreen>
 
     // Notes
     _notesController.text = specs.notes ?? '';
+
+    // Bare shafts
+    _bareShaftsController.text = specs.bareShafts ?? '';
   }
 
   @override
@@ -137,6 +144,7 @@ class _QuiverFormScreenState extends State<QuiverFormScreen>
     _wrapModelController.dispose();
     _wrapColorController.dispose();
     _notesController.dispose();
+    _bareShaftsController.dispose();
     super.dispose();
   }
 
@@ -185,6 +193,9 @@ class _QuiverFormScreenState extends State<QuiverFormScreen>
           _wrapColorController.text.isEmpty ? null : _wrapColorController.text,
       // Notes
       notes: _notesController.text.isEmpty ? null : _notesController.text,
+      // Bare shafts
+      bareShafts:
+          _bareShaftsController.text.isEmpty ? null : _bareShaftsController.text,
     );
   }
 
@@ -332,39 +343,47 @@ class _QuiverFormScreenState extends State<QuiverFormScreen>
               ),
             if (!isEditing) ...[
               const SizedBox(height: AppSpacing.lg),
-              Text(
-                'Number of Arrows',
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Row(
-                children: [
-                  Expanded(
-                    child: Slider(
-                      value: _shaftCount.toDouble(),
-                      min: 6,
-                      max: 24,
-                      divisions: 6,
-                      activeColor: AppColors.gold,
-                      inactiveColor: AppColors.surfaceLight,
-                      label: _shaftCount.toString(),
-                      onChanged: (value) {
-                        setState(() => _shaftCount = value.toInt());
-                      },
-                    ),
-                  ),
-                  SizedBox(
-                    width: 40,
-                    child: Text(
-                      _shaftCount.toString(),
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: AppColors.gold,
-                              ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+              TextFormField(
+                initialValue: _shaftCount.toString(),
+                decoration: const InputDecoration(
+                  labelText: 'Number of Arrows',
+                  hintText: 'e.g., 12, 15, 18',
+                  helperText: 'Enter exact number of arrows in this quiver',
+                ),
+                keyboardType: const TextInputType.numberWithOptions(decimal: false),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
                 ],
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Enter number of arrows';
+                  }
+                  final count = int.tryParse(value);
+                  if (count == null || count < 1) {
+                    return 'Must be at least 1';
+                  }
+                  if (count > 100) {
+                    return 'Maximum 100 arrows';
+                  }
+                  return null;
+                },
+                onChanged: (value) {
+                  final count = int.tryParse(value);
+                  if (count != null) {
+                    setState(() => _shaftCount = count);
+                  }
+                },
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextFormField(
+                controller: _bareShaftsController,
+                decoration: const InputDecoration(
+                  labelText: 'Bare Shafts',
+                  hintText: 'e.g., 11, 12 or 11-12',
+                  helperText: 'Arrow numbers that are bare shafts (optional)',
+                ),
+                textCapitalization: TextCapitalization.none,
               ),
             ],
             const SizedBox(height: AppSpacing.md),

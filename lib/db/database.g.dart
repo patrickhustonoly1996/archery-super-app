@@ -18735,9 +18735,8 @@ class $SkillLevelsTable extends SkillLevels
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
-  static const VerificationMeta _lastCelebratedLevelMeta = const VerificationMeta(
-    'lastCelebratedLevel',
-  );
+  static const VerificationMeta _lastCelebratedLevelMeta =
+      const VerificationMeta('lastCelebratedLevel');
   @override
   late final GeneratedColumn<int> lastCelebratedLevel = GeneratedColumn<int>(
     'last_celebrated_level',
@@ -18997,7 +18996,9 @@ class SkillLevel extends DataClass implements Insertable<SkillLevel> {
       description: serializer.fromJson<String?>(json['description']),
       currentLevel: serializer.fromJson<int>(json['currentLevel']),
       currentXp: serializer.fromJson<int>(json['currentXp']),
-      lastCelebratedLevel: serializer.fromJson<int>(json['lastCelebratedLevel']),
+      lastCelebratedLevel: serializer.fromJson<int>(
+        json['lastCelebratedLevel'],
+      ),
       lastLevelUpAt: serializer.fromJson<DateTime?>(json['lastLevelUpAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -19161,7 +19162,8 @@ class SkillLevelsCompanion extends UpdateCompanion<SkillLevel> {
       if (description != null) 'description': description,
       if (currentLevel != null) 'current_level': currentLevel,
       if (currentXp != null) 'current_xp': currentXp,
-      if (lastCelebratedLevel != null) 'last_celebrated_level': lastCelebratedLevel,
+      if (lastCelebratedLevel != null)
+        'last_celebrated_level': lastCelebratedLevel,
       if (lastLevelUpAt != null) 'last_level_up_at': lastLevelUpAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -30319,6 +30321,28 @@ class $FieldSessionTargetsTable extends FieldSessionTargets
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _slopeAngleMeta = const VerificationMeta(
+    'slopeAngle',
+  );
+  @override
+  late final GeneratedColumn<double> slopeAngle = GeneratedColumn<double>(
+    'slope_angle',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _pegSightMarksMeta = const VerificationMeta(
+    'pegSightMarks',
+  );
+  @override
+  late final GeneratedColumn<String> pegSightMarks = GeneratedColumn<String>(
+    'peg_sight_marks',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -30332,6 +30356,8 @@ class $FieldSessionTargetsTable extends FieldSessionTargets
     station,
     wasHit,
     completedAt,
+    slopeAngle,
+    pegSightMarks,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -30431,6 +30457,21 @@ class $FieldSessionTargetsTable extends FieldSessionTargets
         ),
       );
     }
+    if (data.containsKey('slope_angle')) {
+      context.handle(
+        _slopeAngleMeta,
+        slopeAngle.isAcceptableOrUnknown(data['slope_angle']!, _slopeAngleMeta),
+      );
+    }
+    if (data.containsKey('peg_sight_marks')) {
+      context.handle(
+        _pegSightMarksMeta,
+        pegSightMarks.isAcceptableOrUnknown(
+          data['peg_sight_marks']!,
+          _pegSightMarksMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -30484,6 +30525,14 @@ class $FieldSessionTargetsTable extends FieldSessionTargets
         DriftSqlType.dateTime,
         data['${effectivePrefix}completed_at'],
       ),
+      slopeAngle: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}slope_angle'],
+      ),
+      pegSightMarks: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}peg_sight_marks'],
+      ),
     );
   }
 
@@ -30506,6 +30555,8 @@ class FieldSessionTarget extends DataClass
   final int? station;
   final bool? wasHit;
   final DateTime? completedAt;
+  final double? slopeAngle;
+  final String? pegSightMarks;
   const FieldSessionTarget({
     required this.id,
     required this.sessionId,
@@ -30518,6 +30569,8 @@ class FieldSessionTarget extends DataClass
     this.station,
     this.wasHit,
     this.completedAt,
+    this.slopeAngle,
+    this.pegSightMarks,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -30542,6 +30595,12 @@ class FieldSessionTarget extends DataClass
     }
     if (!nullToAbsent || completedAt != null) {
       map['completed_at'] = Variable<DateTime>(completedAt);
+    }
+    if (!nullToAbsent || slopeAngle != null) {
+      map['slope_angle'] = Variable<double>(slopeAngle);
+    }
+    if (!nullToAbsent || pegSightMarks != null) {
+      map['peg_sight_marks'] = Variable<String>(pegSightMarks);
     }
     return map;
   }
@@ -30569,6 +30628,12 @@ class FieldSessionTarget extends DataClass
       completedAt: completedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(completedAt),
+      slopeAngle: slopeAngle == null && nullToAbsent
+          ? const Value.absent()
+          : Value(slopeAngle),
+      pegSightMarks: pegSightMarks == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pegSightMarks),
     );
   }
 
@@ -30589,6 +30654,8 @@ class FieldSessionTarget extends DataClass
       station: serializer.fromJson<int?>(json['station']),
       wasHit: serializer.fromJson<bool?>(json['wasHit']),
       completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
+      slopeAngle: serializer.fromJson<double?>(json['slopeAngle']),
+      pegSightMarks: serializer.fromJson<String?>(json['pegSightMarks']),
     );
   }
   @override
@@ -30606,6 +30673,8 @@ class FieldSessionTarget extends DataClass
       'station': serializer.toJson<int?>(station),
       'wasHit': serializer.toJson<bool?>(wasHit),
       'completedAt': serializer.toJson<DateTime?>(completedAt),
+      'slopeAngle': serializer.toJson<double?>(slopeAngle),
+      'pegSightMarks': serializer.toJson<String?>(pegSightMarks),
     };
   }
 
@@ -30621,6 +30690,8 @@ class FieldSessionTarget extends DataClass
     Value<int?> station = const Value.absent(),
     Value<bool?> wasHit = const Value.absent(),
     Value<DateTime?> completedAt = const Value.absent(),
+    Value<double?> slopeAngle = const Value.absent(),
+    Value<String?> pegSightMarks = const Value.absent(),
   }) => FieldSessionTarget(
     id: id ?? this.id,
     sessionId: sessionId ?? this.sessionId,
@@ -30637,6 +30708,10 @@ class FieldSessionTarget extends DataClass
     station: station.present ? station.value : this.station,
     wasHit: wasHit.present ? wasHit.value : this.wasHit,
     completedAt: completedAt.present ? completedAt.value : this.completedAt,
+    slopeAngle: slopeAngle.present ? slopeAngle.value : this.slopeAngle,
+    pegSightMarks: pegSightMarks.present
+        ? pegSightMarks.value
+        : this.pegSightMarks,
   );
   FieldSessionTarget copyWithCompanion(FieldSessionTargetsCompanion data) {
     return FieldSessionTarget(
@@ -30663,6 +30738,12 @@ class FieldSessionTarget extends DataClass
       completedAt: data.completedAt.present
           ? data.completedAt.value
           : this.completedAt,
+      slopeAngle: data.slopeAngle.present
+          ? data.slopeAngle.value
+          : this.slopeAngle,
+      pegSightMarks: data.pegSightMarks.present
+          ? data.pegSightMarks.value
+          : this.pegSightMarks,
     );
   }
 
@@ -30679,7 +30760,9 @@ class FieldSessionTarget extends DataClass
           ..write('sightMarkUsed: $sightMarkUsed, ')
           ..write('station: $station, ')
           ..write('wasHit: $wasHit, ')
-          ..write('completedAt: $completedAt')
+          ..write('completedAt: $completedAt, ')
+          ..write('slopeAngle: $slopeAngle, ')
+          ..write('pegSightMarks: $pegSightMarks')
           ..write(')'))
         .toString();
   }
@@ -30697,6 +30780,8 @@ class FieldSessionTarget extends DataClass
     station,
     wasHit,
     completedAt,
+    slopeAngle,
+    pegSightMarks,
   );
   @override
   bool operator ==(Object other) =>
@@ -30712,7 +30797,9 @@ class FieldSessionTarget extends DataClass
           other.sightMarkUsed == this.sightMarkUsed &&
           other.station == this.station &&
           other.wasHit == this.wasHit &&
-          other.completedAt == this.completedAt);
+          other.completedAt == this.completedAt &&
+          other.slopeAngle == this.slopeAngle &&
+          other.pegSightMarks == this.pegSightMarks);
 }
 
 class FieldSessionTargetsCompanion extends UpdateCompanion<FieldSessionTarget> {
@@ -30727,6 +30814,8 @@ class FieldSessionTargetsCompanion extends UpdateCompanion<FieldSessionTarget> {
   final Value<int?> station;
   final Value<bool?> wasHit;
   final Value<DateTime?> completedAt;
+  final Value<double?> slopeAngle;
+  final Value<String?> pegSightMarks;
   final Value<int> rowid;
   const FieldSessionTargetsCompanion({
     this.id = const Value.absent(),
@@ -30740,6 +30829,8 @@ class FieldSessionTargetsCompanion extends UpdateCompanion<FieldSessionTarget> {
     this.station = const Value.absent(),
     this.wasHit = const Value.absent(),
     this.completedAt = const Value.absent(),
+    this.slopeAngle = const Value.absent(),
+    this.pegSightMarks = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   FieldSessionTargetsCompanion.insert({
@@ -30754,6 +30845,8 @@ class FieldSessionTargetsCompanion extends UpdateCompanion<FieldSessionTarget> {
     this.station = const Value.absent(),
     this.wasHit = const Value.absent(),
     this.completedAt = const Value.absent(),
+    this.slopeAngle = const Value.absent(),
+    this.pegSightMarks = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        sessionId = Value(sessionId),
@@ -30771,6 +30864,8 @@ class FieldSessionTargetsCompanion extends UpdateCompanion<FieldSessionTarget> {
     Expression<int>? station,
     Expression<bool>? wasHit,
     Expression<DateTime>? completedAt,
+    Expression<double>? slopeAngle,
+    Expression<String>? pegSightMarks,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -30785,6 +30880,8 @@ class FieldSessionTargetsCompanion extends UpdateCompanion<FieldSessionTarget> {
       if (station != null) 'station': station,
       if (wasHit != null) 'was_hit': wasHit,
       if (completedAt != null) 'completed_at': completedAt,
+      if (slopeAngle != null) 'slope_angle': slopeAngle,
+      if (pegSightMarks != null) 'peg_sight_marks': pegSightMarks,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -30801,6 +30898,8 @@ class FieldSessionTargetsCompanion extends UpdateCompanion<FieldSessionTarget> {
     Value<int?>? station,
     Value<bool?>? wasHit,
     Value<DateTime?>? completedAt,
+    Value<double?>? slopeAngle,
+    Value<String?>? pegSightMarks,
     Value<int>? rowid,
   }) {
     return FieldSessionTargetsCompanion(
@@ -30815,6 +30914,8 @@ class FieldSessionTargetsCompanion extends UpdateCompanion<FieldSessionTarget> {
       station: station ?? this.station,
       wasHit: wasHit ?? this.wasHit,
       completedAt: completedAt ?? this.completedAt,
+      slopeAngle: slopeAngle ?? this.slopeAngle,
+      pegSightMarks: pegSightMarks ?? this.pegSightMarks,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -30855,6 +30956,12 @@ class FieldSessionTargetsCompanion extends UpdateCompanion<FieldSessionTarget> {
     if (completedAt.present) {
       map['completed_at'] = Variable<DateTime>(completedAt.value);
     }
+    if (slopeAngle.present) {
+      map['slope_angle'] = Variable<double>(slopeAngle.value);
+    }
+    if (pegSightMarks.present) {
+      map['peg_sight_marks'] = Variable<String>(pegSightMarks.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -30875,6 +30982,8 @@ class FieldSessionTargetsCompanion extends UpdateCompanion<FieldSessionTarget> {
           ..write('station: $station, ')
           ..write('wasHit: $wasHit, ')
           ..write('completedAt: $completedAt, ')
+          ..write('slopeAngle: $slopeAngle, ')
+          ..write('pegSightMarks: $pegSightMarks, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -31321,6 +31430,1774 @@ class FieldSessionMetaCompanion extends UpdateCompanion<FieldSessionMetaData> {
   }
 }
 
+class $FieldArrowPlotsTable extends FieldArrowPlots
+    with TableInfo<$FieldArrowPlotsTable, FieldArrowPlot> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FieldArrowPlotsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sessionTargetIdMeta = const VerificationMeta(
+    'sessionTargetId',
+  );
+  @override
+  late final GeneratedColumn<String> sessionTargetId = GeneratedColumn<String>(
+    'session_target_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES field_session_targets (id)',
+    ),
+  );
+  static const VerificationMeta _arrowNumberMeta = const VerificationMeta(
+    'arrowNumber',
+  );
+  @override
+  late final GeneratedColumn<int> arrowNumber = GeneratedColumn<int>(
+    'arrow_number',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pegIndexMeta = const VerificationMeta(
+    'pegIndex',
+  );
+  @override
+  late final GeneratedColumn<int> pegIndex = GeneratedColumn<int>(
+    'peg_index',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _xMmMeta = const VerificationMeta('xMm');
+  @override
+  late final GeneratedColumn<double> xMm = GeneratedColumn<double>(
+    'x_mm',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _yMmMeta = const VerificationMeta('yMm');
+  @override
+  late final GeneratedColumn<double> yMm = GeneratedColumn<double>(
+    'y_mm',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _normalizedXMeta = const VerificationMeta(
+    'normalizedX',
+  );
+  @override
+  late final GeneratedColumn<double> normalizedX = GeneratedColumn<double>(
+    'normalized_x',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _normalizedYMeta = const VerificationMeta(
+    'normalizedY',
+  );
+  @override
+  late final GeneratedColumn<double> normalizedY = GeneratedColumn<double>(
+    'normalized_y',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _scoreMeta = const VerificationMeta('score');
+  @override
+  late final GeneratedColumn<int> score = GeneratedColumn<int>(
+    'score',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isXMeta = const VerificationMeta('isX');
+  @override
+  late final GeneratedColumn<bool> isX = GeneratedColumn<bool>(
+    'is_x',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_x" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _isPoorShotMeta = const VerificationMeta(
+    'isPoorShot',
+  );
+  @override
+  late final GeneratedColumn<bool> isPoorShot = GeneratedColumn<bool>(
+    'is_poor_shot',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_poor_shot" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _poorShotDirectionMeta = const VerificationMeta(
+    'poorShotDirection',
+  );
+  @override
+  late final GeneratedColumn<String> poorShotDirection =
+      GeneratedColumn<String>(
+        'poor_shot_direction',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _isPlottedMeta = const VerificationMeta(
+    'isPlotted',
+  );
+  @override
+  late final GeneratedColumn<bool> isPlotted = GeneratedColumn<bool>(
+    'is_plotted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_plotted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _slopeAngleDegMeta = const VerificationMeta(
+    'slopeAngleDeg',
+  );
+  @override
+  late final GeneratedColumn<double> slopeAngleDeg = GeneratedColumn<double>(
+    'slope_angle_deg',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sightMarkUsedMeta = const VerificationMeta(
+    'sightMarkUsed',
+  );
+  @override
+  late final GeneratedColumn<String> sightMarkUsed = GeneratedColumn<String>(
+    'sight_mark_used',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sessionTargetId,
+    arrowNumber,
+    pegIndex,
+    xMm,
+    yMm,
+    normalizedX,
+    normalizedY,
+    score,
+    isX,
+    isPoorShot,
+    poorShotDirection,
+    isPlotted,
+    slopeAngleDeg,
+    sightMarkUsed,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'field_arrow_plots';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FieldArrowPlot> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('session_target_id')) {
+      context.handle(
+        _sessionTargetIdMeta,
+        sessionTargetId.isAcceptableOrUnknown(
+          data['session_target_id']!,
+          _sessionTargetIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionTargetIdMeta);
+    }
+    if (data.containsKey('arrow_number')) {
+      context.handle(
+        _arrowNumberMeta,
+        arrowNumber.isAcceptableOrUnknown(
+          data['arrow_number']!,
+          _arrowNumberMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_arrowNumberMeta);
+    }
+    if (data.containsKey('peg_index')) {
+      context.handle(
+        _pegIndexMeta,
+        pegIndex.isAcceptableOrUnknown(data['peg_index']!, _pegIndexMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pegIndexMeta);
+    }
+    if (data.containsKey('x_mm')) {
+      context.handle(
+        _xMmMeta,
+        xMm.isAcceptableOrUnknown(data['x_mm']!, _xMmMeta),
+      );
+    }
+    if (data.containsKey('y_mm')) {
+      context.handle(
+        _yMmMeta,
+        yMm.isAcceptableOrUnknown(data['y_mm']!, _yMmMeta),
+      );
+    }
+    if (data.containsKey('normalized_x')) {
+      context.handle(
+        _normalizedXMeta,
+        normalizedX.isAcceptableOrUnknown(
+          data['normalized_x']!,
+          _normalizedXMeta,
+        ),
+      );
+    }
+    if (data.containsKey('normalized_y')) {
+      context.handle(
+        _normalizedYMeta,
+        normalizedY.isAcceptableOrUnknown(
+          data['normalized_y']!,
+          _normalizedYMeta,
+        ),
+      );
+    }
+    if (data.containsKey('score')) {
+      context.handle(
+        _scoreMeta,
+        score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scoreMeta);
+    }
+    if (data.containsKey('is_x')) {
+      context.handle(
+        _isXMeta,
+        isX.isAcceptableOrUnknown(data['is_x']!, _isXMeta),
+      );
+    }
+    if (data.containsKey('is_poor_shot')) {
+      context.handle(
+        _isPoorShotMeta,
+        isPoorShot.isAcceptableOrUnknown(
+          data['is_poor_shot']!,
+          _isPoorShotMeta,
+        ),
+      );
+    }
+    if (data.containsKey('poor_shot_direction')) {
+      context.handle(
+        _poorShotDirectionMeta,
+        poorShotDirection.isAcceptableOrUnknown(
+          data['poor_shot_direction']!,
+          _poorShotDirectionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_plotted')) {
+      context.handle(
+        _isPlottedMeta,
+        isPlotted.isAcceptableOrUnknown(data['is_plotted']!, _isPlottedMeta),
+      );
+    }
+    if (data.containsKey('slope_angle_deg')) {
+      context.handle(
+        _slopeAngleDegMeta,
+        slopeAngleDeg.isAcceptableOrUnknown(
+          data['slope_angle_deg']!,
+          _slopeAngleDegMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sight_mark_used')) {
+      context.handle(
+        _sightMarkUsedMeta,
+        sightMarkUsed.isAcceptableOrUnknown(
+          data['sight_mark_used']!,
+          _sightMarkUsedMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FieldArrowPlot map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FieldArrowPlot(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      sessionTargetId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_target_id'],
+      )!,
+      arrowNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}arrow_number'],
+      )!,
+      pegIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}peg_index'],
+      )!,
+      xMm: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}x_mm'],
+      ),
+      yMm: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}y_mm'],
+      ),
+      normalizedX: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}normalized_x'],
+      ),
+      normalizedY: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}normalized_y'],
+      ),
+      score: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}score'],
+      )!,
+      isX: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_x'],
+      )!,
+      isPoorShot: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_poor_shot'],
+      )!,
+      poorShotDirection: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}poor_shot_direction'],
+      ),
+      isPlotted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_plotted'],
+      )!,
+      slopeAngleDeg: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}slope_angle_deg'],
+      ),
+      sightMarkUsed: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sight_mark_used'],
+      ),
+    );
+  }
+
+  @override
+  $FieldArrowPlotsTable createAlias(String alias) {
+    return $FieldArrowPlotsTable(attachedDatabase, alias);
+  }
+}
+
+class FieldArrowPlot extends DataClass implements Insertable<FieldArrowPlot> {
+  final String id;
+  final String sessionTargetId;
+  final int arrowNumber;
+  final int pegIndex;
+  final double? xMm;
+  final double? yMm;
+  final double? normalizedX;
+  final double? normalizedY;
+  final int score;
+  final bool isX;
+  final bool isPoorShot;
+  final String? poorShotDirection;
+  final bool isPlotted;
+  final double? slopeAngleDeg;
+  final String? sightMarkUsed;
+  const FieldArrowPlot({
+    required this.id,
+    required this.sessionTargetId,
+    required this.arrowNumber,
+    required this.pegIndex,
+    this.xMm,
+    this.yMm,
+    this.normalizedX,
+    this.normalizedY,
+    required this.score,
+    required this.isX,
+    required this.isPoorShot,
+    this.poorShotDirection,
+    required this.isPlotted,
+    this.slopeAngleDeg,
+    this.sightMarkUsed,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['session_target_id'] = Variable<String>(sessionTargetId);
+    map['arrow_number'] = Variable<int>(arrowNumber);
+    map['peg_index'] = Variable<int>(pegIndex);
+    if (!nullToAbsent || xMm != null) {
+      map['x_mm'] = Variable<double>(xMm);
+    }
+    if (!nullToAbsent || yMm != null) {
+      map['y_mm'] = Variable<double>(yMm);
+    }
+    if (!nullToAbsent || normalizedX != null) {
+      map['normalized_x'] = Variable<double>(normalizedX);
+    }
+    if (!nullToAbsent || normalizedY != null) {
+      map['normalized_y'] = Variable<double>(normalizedY);
+    }
+    map['score'] = Variable<int>(score);
+    map['is_x'] = Variable<bool>(isX);
+    map['is_poor_shot'] = Variable<bool>(isPoorShot);
+    if (!nullToAbsent || poorShotDirection != null) {
+      map['poor_shot_direction'] = Variable<String>(poorShotDirection);
+    }
+    map['is_plotted'] = Variable<bool>(isPlotted);
+    if (!nullToAbsent || slopeAngleDeg != null) {
+      map['slope_angle_deg'] = Variable<double>(slopeAngleDeg);
+    }
+    if (!nullToAbsent || sightMarkUsed != null) {
+      map['sight_mark_used'] = Variable<String>(sightMarkUsed);
+    }
+    return map;
+  }
+
+  FieldArrowPlotsCompanion toCompanion(bool nullToAbsent) {
+    return FieldArrowPlotsCompanion(
+      id: Value(id),
+      sessionTargetId: Value(sessionTargetId),
+      arrowNumber: Value(arrowNumber),
+      pegIndex: Value(pegIndex),
+      xMm: xMm == null && nullToAbsent ? const Value.absent() : Value(xMm),
+      yMm: yMm == null && nullToAbsent ? const Value.absent() : Value(yMm),
+      normalizedX: normalizedX == null && nullToAbsent
+          ? const Value.absent()
+          : Value(normalizedX),
+      normalizedY: normalizedY == null && nullToAbsent
+          ? const Value.absent()
+          : Value(normalizedY),
+      score: Value(score),
+      isX: Value(isX),
+      isPoorShot: Value(isPoorShot),
+      poorShotDirection: poorShotDirection == null && nullToAbsent
+          ? const Value.absent()
+          : Value(poorShotDirection),
+      isPlotted: Value(isPlotted),
+      slopeAngleDeg: slopeAngleDeg == null && nullToAbsent
+          ? const Value.absent()
+          : Value(slopeAngleDeg),
+      sightMarkUsed: sightMarkUsed == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sightMarkUsed),
+    );
+  }
+
+  factory FieldArrowPlot.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FieldArrowPlot(
+      id: serializer.fromJson<String>(json['id']),
+      sessionTargetId: serializer.fromJson<String>(json['sessionTargetId']),
+      arrowNumber: serializer.fromJson<int>(json['arrowNumber']),
+      pegIndex: serializer.fromJson<int>(json['pegIndex']),
+      xMm: serializer.fromJson<double?>(json['xMm']),
+      yMm: serializer.fromJson<double?>(json['yMm']),
+      normalizedX: serializer.fromJson<double?>(json['normalizedX']),
+      normalizedY: serializer.fromJson<double?>(json['normalizedY']),
+      score: serializer.fromJson<int>(json['score']),
+      isX: serializer.fromJson<bool>(json['isX']),
+      isPoorShot: serializer.fromJson<bool>(json['isPoorShot']),
+      poorShotDirection: serializer.fromJson<String?>(
+        json['poorShotDirection'],
+      ),
+      isPlotted: serializer.fromJson<bool>(json['isPlotted']),
+      slopeAngleDeg: serializer.fromJson<double?>(json['slopeAngleDeg']),
+      sightMarkUsed: serializer.fromJson<String?>(json['sightMarkUsed']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'sessionTargetId': serializer.toJson<String>(sessionTargetId),
+      'arrowNumber': serializer.toJson<int>(arrowNumber),
+      'pegIndex': serializer.toJson<int>(pegIndex),
+      'xMm': serializer.toJson<double?>(xMm),
+      'yMm': serializer.toJson<double?>(yMm),
+      'normalizedX': serializer.toJson<double?>(normalizedX),
+      'normalizedY': serializer.toJson<double?>(normalizedY),
+      'score': serializer.toJson<int>(score),
+      'isX': serializer.toJson<bool>(isX),
+      'isPoorShot': serializer.toJson<bool>(isPoorShot),
+      'poorShotDirection': serializer.toJson<String?>(poorShotDirection),
+      'isPlotted': serializer.toJson<bool>(isPlotted),
+      'slopeAngleDeg': serializer.toJson<double?>(slopeAngleDeg),
+      'sightMarkUsed': serializer.toJson<String?>(sightMarkUsed),
+    };
+  }
+
+  FieldArrowPlot copyWith({
+    String? id,
+    String? sessionTargetId,
+    int? arrowNumber,
+    int? pegIndex,
+    Value<double?> xMm = const Value.absent(),
+    Value<double?> yMm = const Value.absent(),
+    Value<double?> normalizedX = const Value.absent(),
+    Value<double?> normalizedY = const Value.absent(),
+    int? score,
+    bool? isX,
+    bool? isPoorShot,
+    Value<String?> poorShotDirection = const Value.absent(),
+    bool? isPlotted,
+    Value<double?> slopeAngleDeg = const Value.absent(),
+    Value<String?> sightMarkUsed = const Value.absent(),
+  }) => FieldArrowPlot(
+    id: id ?? this.id,
+    sessionTargetId: sessionTargetId ?? this.sessionTargetId,
+    arrowNumber: arrowNumber ?? this.arrowNumber,
+    pegIndex: pegIndex ?? this.pegIndex,
+    xMm: xMm.present ? xMm.value : this.xMm,
+    yMm: yMm.present ? yMm.value : this.yMm,
+    normalizedX: normalizedX.present ? normalizedX.value : this.normalizedX,
+    normalizedY: normalizedY.present ? normalizedY.value : this.normalizedY,
+    score: score ?? this.score,
+    isX: isX ?? this.isX,
+    isPoorShot: isPoorShot ?? this.isPoorShot,
+    poorShotDirection: poorShotDirection.present
+        ? poorShotDirection.value
+        : this.poorShotDirection,
+    isPlotted: isPlotted ?? this.isPlotted,
+    slopeAngleDeg: slopeAngleDeg.present
+        ? slopeAngleDeg.value
+        : this.slopeAngleDeg,
+    sightMarkUsed: sightMarkUsed.present
+        ? sightMarkUsed.value
+        : this.sightMarkUsed,
+  );
+  FieldArrowPlot copyWithCompanion(FieldArrowPlotsCompanion data) {
+    return FieldArrowPlot(
+      id: data.id.present ? data.id.value : this.id,
+      sessionTargetId: data.sessionTargetId.present
+          ? data.sessionTargetId.value
+          : this.sessionTargetId,
+      arrowNumber: data.arrowNumber.present
+          ? data.arrowNumber.value
+          : this.arrowNumber,
+      pegIndex: data.pegIndex.present ? data.pegIndex.value : this.pegIndex,
+      xMm: data.xMm.present ? data.xMm.value : this.xMm,
+      yMm: data.yMm.present ? data.yMm.value : this.yMm,
+      normalizedX: data.normalizedX.present
+          ? data.normalizedX.value
+          : this.normalizedX,
+      normalizedY: data.normalizedY.present
+          ? data.normalizedY.value
+          : this.normalizedY,
+      score: data.score.present ? data.score.value : this.score,
+      isX: data.isX.present ? data.isX.value : this.isX,
+      isPoorShot: data.isPoorShot.present
+          ? data.isPoorShot.value
+          : this.isPoorShot,
+      poorShotDirection: data.poorShotDirection.present
+          ? data.poorShotDirection.value
+          : this.poorShotDirection,
+      isPlotted: data.isPlotted.present ? data.isPlotted.value : this.isPlotted,
+      slopeAngleDeg: data.slopeAngleDeg.present
+          ? data.slopeAngleDeg.value
+          : this.slopeAngleDeg,
+      sightMarkUsed: data.sightMarkUsed.present
+          ? data.sightMarkUsed.value
+          : this.sightMarkUsed,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldArrowPlot(')
+          ..write('id: $id, ')
+          ..write('sessionTargetId: $sessionTargetId, ')
+          ..write('arrowNumber: $arrowNumber, ')
+          ..write('pegIndex: $pegIndex, ')
+          ..write('xMm: $xMm, ')
+          ..write('yMm: $yMm, ')
+          ..write('normalizedX: $normalizedX, ')
+          ..write('normalizedY: $normalizedY, ')
+          ..write('score: $score, ')
+          ..write('isX: $isX, ')
+          ..write('isPoorShot: $isPoorShot, ')
+          ..write('poorShotDirection: $poorShotDirection, ')
+          ..write('isPlotted: $isPlotted, ')
+          ..write('slopeAngleDeg: $slopeAngleDeg, ')
+          ..write('sightMarkUsed: $sightMarkUsed')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    sessionTargetId,
+    arrowNumber,
+    pegIndex,
+    xMm,
+    yMm,
+    normalizedX,
+    normalizedY,
+    score,
+    isX,
+    isPoorShot,
+    poorShotDirection,
+    isPlotted,
+    slopeAngleDeg,
+    sightMarkUsed,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FieldArrowPlot &&
+          other.id == this.id &&
+          other.sessionTargetId == this.sessionTargetId &&
+          other.arrowNumber == this.arrowNumber &&
+          other.pegIndex == this.pegIndex &&
+          other.xMm == this.xMm &&
+          other.yMm == this.yMm &&
+          other.normalizedX == this.normalizedX &&
+          other.normalizedY == this.normalizedY &&
+          other.score == this.score &&
+          other.isX == this.isX &&
+          other.isPoorShot == this.isPoorShot &&
+          other.poorShotDirection == this.poorShotDirection &&
+          other.isPlotted == this.isPlotted &&
+          other.slopeAngleDeg == this.slopeAngleDeg &&
+          other.sightMarkUsed == this.sightMarkUsed);
+}
+
+class FieldArrowPlotsCompanion extends UpdateCompanion<FieldArrowPlot> {
+  final Value<String> id;
+  final Value<String> sessionTargetId;
+  final Value<int> arrowNumber;
+  final Value<int> pegIndex;
+  final Value<double?> xMm;
+  final Value<double?> yMm;
+  final Value<double?> normalizedX;
+  final Value<double?> normalizedY;
+  final Value<int> score;
+  final Value<bool> isX;
+  final Value<bool> isPoorShot;
+  final Value<String?> poorShotDirection;
+  final Value<bool> isPlotted;
+  final Value<double?> slopeAngleDeg;
+  final Value<String?> sightMarkUsed;
+  final Value<int> rowid;
+  const FieldArrowPlotsCompanion({
+    this.id = const Value.absent(),
+    this.sessionTargetId = const Value.absent(),
+    this.arrowNumber = const Value.absent(),
+    this.pegIndex = const Value.absent(),
+    this.xMm = const Value.absent(),
+    this.yMm = const Value.absent(),
+    this.normalizedX = const Value.absent(),
+    this.normalizedY = const Value.absent(),
+    this.score = const Value.absent(),
+    this.isX = const Value.absent(),
+    this.isPoorShot = const Value.absent(),
+    this.poorShotDirection = const Value.absent(),
+    this.isPlotted = const Value.absent(),
+    this.slopeAngleDeg = const Value.absent(),
+    this.sightMarkUsed = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FieldArrowPlotsCompanion.insert({
+    required String id,
+    required String sessionTargetId,
+    required int arrowNumber,
+    required int pegIndex,
+    this.xMm = const Value.absent(),
+    this.yMm = const Value.absent(),
+    this.normalizedX = const Value.absent(),
+    this.normalizedY = const Value.absent(),
+    required int score,
+    this.isX = const Value.absent(),
+    this.isPoorShot = const Value.absent(),
+    this.poorShotDirection = const Value.absent(),
+    this.isPlotted = const Value.absent(),
+    this.slopeAngleDeg = const Value.absent(),
+    this.sightMarkUsed = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       sessionTargetId = Value(sessionTargetId),
+       arrowNumber = Value(arrowNumber),
+       pegIndex = Value(pegIndex),
+       score = Value(score);
+  static Insertable<FieldArrowPlot> custom({
+    Expression<String>? id,
+    Expression<String>? sessionTargetId,
+    Expression<int>? arrowNumber,
+    Expression<int>? pegIndex,
+    Expression<double>? xMm,
+    Expression<double>? yMm,
+    Expression<double>? normalizedX,
+    Expression<double>? normalizedY,
+    Expression<int>? score,
+    Expression<bool>? isX,
+    Expression<bool>? isPoorShot,
+    Expression<String>? poorShotDirection,
+    Expression<bool>? isPlotted,
+    Expression<double>? slopeAngleDeg,
+    Expression<String>? sightMarkUsed,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sessionTargetId != null) 'session_target_id': sessionTargetId,
+      if (arrowNumber != null) 'arrow_number': arrowNumber,
+      if (pegIndex != null) 'peg_index': pegIndex,
+      if (xMm != null) 'x_mm': xMm,
+      if (yMm != null) 'y_mm': yMm,
+      if (normalizedX != null) 'normalized_x': normalizedX,
+      if (normalizedY != null) 'normalized_y': normalizedY,
+      if (score != null) 'score': score,
+      if (isX != null) 'is_x': isX,
+      if (isPoorShot != null) 'is_poor_shot': isPoorShot,
+      if (poorShotDirection != null) 'poor_shot_direction': poorShotDirection,
+      if (isPlotted != null) 'is_plotted': isPlotted,
+      if (slopeAngleDeg != null) 'slope_angle_deg': slopeAngleDeg,
+      if (sightMarkUsed != null) 'sight_mark_used': sightMarkUsed,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FieldArrowPlotsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? sessionTargetId,
+    Value<int>? arrowNumber,
+    Value<int>? pegIndex,
+    Value<double?>? xMm,
+    Value<double?>? yMm,
+    Value<double?>? normalizedX,
+    Value<double?>? normalizedY,
+    Value<int>? score,
+    Value<bool>? isX,
+    Value<bool>? isPoorShot,
+    Value<String?>? poorShotDirection,
+    Value<bool>? isPlotted,
+    Value<double?>? slopeAngleDeg,
+    Value<String?>? sightMarkUsed,
+    Value<int>? rowid,
+  }) {
+    return FieldArrowPlotsCompanion(
+      id: id ?? this.id,
+      sessionTargetId: sessionTargetId ?? this.sessionTargetId,
+      arrowNumber: arrowNumber ?? this.arrowNumber,
+      pegIndex: pegIndex ?? this.pegIndex,
+      xMm: xMm ?? this.xMm,
+      yMm: yMm ?? this.yMm,
+      normalizedX: normalizedX ?? this.normalizedX,
+      normalizedY: normalizedY ?? this.normalizedY,
+      score: score ?? this.score,
+      isX: isX ?? this.isX,
+      isPoorShot: isPoorShot ?? this.isPoorShot,
+      poorShotDirection: poorShotDirection ?? this.poorShotDirection,
+      isPlotted: isPlotted ?? this.isPlotted,
+      slopeAngleDeg: slopeAngleDeg ?? this.slopeAngleDeg,
+      sightMarkUsed: sightMarkUsed ?? this.sightMarkUsed,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (sessionTargetId.present) {
+      map['session_target_id'] = Variable<String>(sessionTargetId.value);
+    }
+    if (arrowNumber.present) {
+      map['arrow_number'] = Variable<int>(arrowNumber.value);
+    }
+    if (pegIndex.present) {
+      map['peg_index'] = Variable<int>(pegIndex.value);
+    }
+    if (xMm.present) {
+      map['x_mm'] = Variable<double>(xMm.value);
+    }
+    if (yMm.present) {
+      map['y_mm'] = Variable<double>(yMm.value);
+    }
+    if (normalizedX.present) {
+      map['normalized_x'] = Variable<double>(normalizedX.value);
+    }
+    if (normalizedY.present) {
+      map['normalized_y'] = Variable<double>(normalizedY.value);
+    }
+    if (score.present) {
+      map['score'] = Variable<int>(score.value);
+    }
+    if (isX.present) {
+      map['is_x'] = Variable<bool>(isX.value);
+    }
+    if (isPoorShot.present) {
+      map['is_poor_shot'] = Variable<bool>(isPoorShot.value);
+    }
+    if (poorShotDirection.present) {
+      map['poor_shot_direction'] = Variable<String>(poorShotDirection.value);
+    }
+    if (isPlotted.present) {
+      map['is_plotted'] = Variable<bool>(isPlotted.value);
+    }
+    if (slopeAngleDeg.present) {
+      map['slope_angle_deg'] = Variable<double>(slopeAngleDeg.value);
+    }
+    if (sightMarkUsed.present) {
+      map['sight_mark_used'] = Variable<String>(sightMarkUsed.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldArrowPlotsCompanion(')
+          ..write('id: $id, ')
+          ..write('sessionTargetId: $sessionTargetId, ')
+          ..write('arrowNumber: $arrowNumber, ')
+          ..write('pegIndex: $pegIndex, ')
+          ..write('xMm: $xMm, ')
+          ..write('yMm: $yMm, ')
+          ..write('normalizedX: $normalizedX, ')
+          ..write('normalizedY: $normalizedY, ')
+          ..write('score: $score, ')
+          ..write('isX: $isX, ')
+          ..write('isPoorShot: $isPoorShot, ')
+          ..write('poorShotDirection: $poorShotDirection, ')
+          ..write('isPlotted: $isPlotted, ')
+          ..write('slopeAngleDeg: $slopeAngleDeg, ')
+          ..write('sightMarkUsed: $sightMarkUsed, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FieldTargetAngleRecordsTable extends FieldTargetAngleRecords
+    with TableInfo<$FieldTargetAngleRecordsTable, FieldTargetAngleRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FieldTargetAngleRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sessionTargetIdMeta = const VerificationMeta(
+    'sessionTargetId',
+  );
+  @override
+  late final GeneratedColumn<String> sessionTargetId = GeneratedColumn<String>(
+    'session_target_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES field_session_targets (id)',
+    ),
+  );
+  static const VerificationMeta _pegIndexMeta = const VerificationMeta(
+    'pegIndex',
+  );
+  @override
+  late final GeneratedColumn<int> pegIndex = GeneratedColumn<int>(
+    'peg_index',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _angleDegreesMeta = const VerificationMeta(
+    'angleDegrees',
+  );
+  @override
+  late final GeneratedColumn<double> angleDegrees = GeneratedColumn<double>(
+    'angle_degrees',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _recordedAtMeta = const VerificationMeta(
+    'recordedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> recordedAt = GeneratedColumn<DateTime>(
+    'recorded_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sessionTargetId,
+    pegIndex,
+    angleDegrees,
+    source,
+    recordedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'field_target_angle_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FieldTargetAngleRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('session_target_id')) {
+      context.handle(
+        _sessionTargetIdMeta,
+        sessionTargetId.isAcceptableOrUnknown(
+          data['session_target_id']!,
+          _sessionTargetIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionTargetIdMeta);
+    }
+    if (data.containsKey('peg_index')) {
+      context.handle(
+        _pegIndexMeta,
+        pegIndex.isAcceptableOrUnknown(data['peg_index']!, _pegIndexMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pegIndexMeta);
+    }
+    if (data.containsKey('angle_degrees')) {
+      context.handle(
+        _angleDegreesMeta,
+        angleDegrees.isAcceptableOrUnknown(
+          data['angle_degrees']!,
+          _angleDegreesMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_angleDegreesMeta);
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceMeta);
+    }
+    if (data.containsKey('recorded_at')) {
+      context.handle(
+        _recordedAtMeta,
+        recordedAt.isAcceptableOrUnknown(data['recorded_at']!, _recordedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FieldTargetAngleRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FieldTargetAngleRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      sessionTargetId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_target_id'],
+      )!,
+      pegIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}peg_index'],
+      )!,
+      angleDegrees: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}angle_degrees'],
+      )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+      recordedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}recorded_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FieldTargetAngleRecordsTable createAlias(String alias) {
+    return $FieldTargetAngleRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class FieldTargetAngleRecord extends DataClass
+    implements Insertable<FieldTargetAngleRecord> {
+  final String id;
+  final String sessionTargetId;
+  final int pegIndex;
+  final double angleDegrees;
+  final String source;
+  final DateTime recordedAt;
+  const FieldTargetAngleRecord({
+    required this.id,
+    required this.sessionTargetId,
+    required this.pegIndex,
+    required this.angleDegrees,
+    required this.source,
+    required this.recordedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['session_target_id'] = Variable<String>(sessionTargetId);
+    map['peg_index'] = Variable<int>(pegIndex);
+    map['angle_degrees'] = Variable<double>(angleDegrees);
+    map['source'] = Variable<String>(source);
+    map['recorded_at'] = Variable<DateTime>(recordedAt);
+    return map;
+  }
+
+  FieldTargetAngleRecordsCompanion toCompanion(bool nullToAbsent) {
+    return FieldTargetAngleRecordsCompanion(
+      id: Value(id),
+      sessionTargetId: Value(sessionTargetId),
+      pegIndex: Value(pegIndex),
+      angleDegrees: Value(angleDegrees),
+      source: Value(source),
+      recordedAt: Value(recordedAt),
+    );
+  }
+
+  factory FieldTargetAngleRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FieldTargetAngleRecord(
+      id: serializer.fromJson<String>(json['id']),
+      sessionTargetId: serializer.fromJson<String>(json['sessionTargetId']),
+      pegIndex: serializer.fromJson<int>(json['pegIndex']),
+      angleDegrees: serializer.fromJson<double>(json['angleDegrees']),
+      source: serializer.fromJson<String>(json['source']),
+      recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'sessionTargetId': serializer.toJson<String>(sessionTargetId),
+      'pegIndex': serializer.toJson<int>(pegIndex),
+      'angleDegrees': serializer.toJson<double>(angleDegrees),
+      'source': serializer.toJson<String>(source),
+      'recordedAt': serializer.toJson<DateTime>(recordedAt),
+    };
+  }
+
+  FieldTargetAngleRecord copyWith({
+    String? id,
+    String? sessionTargetId,
+    int? pegIndex,
+    double? angleDegrees,
+    String? source,
+    DateTime? recordedAt,
+  }) => FieldTargetAngleRecord(
+    id: id ?? this.id,
+    sessionTargetId: sessionTargetId ?? this.sessionTargetId,
+    pegIndex: pegIndex ?? this.pegIndex,
+    angleDegrees: angleDegrees ?? this.angleDegrees,
+    source: source ?? this.source,
+    recordedAt: recordedAt ?? this.recordedAt,
+  );
+  FieldTargetAngleRecord copyWithCompanion(
+    FieldTargetAngleRecordsCompanion data,
+  ) {
+    return FieldTargetAngleRecord(
+      id: data.id.present ? data.id.value : this.id,
+      sessionTargetId: data.sessionTargetId.present
+          ? data.sessionTargetId.value
+          : this.sessionTargetId,
+      pegIndex: data.pegIndex.present ? data.pegIndex.value : this.pegIndex,
+      angleDegrees: data.angleDegrees.present
+          ? data.angleDegrees.value
+          : this.angleDegrees,
+      source: data.source.present ? data.source.value : this.source,
+      recordedAt: data.recordedAt.present
+          ? data.recordedAt.value
+          : this.recordedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldTargetAngleRecord(')
+          ..write('id: $id, ')
+          ..write('sessionTargetId: $sessionTargetId, ')
+          ..write('pegIndex: $pegIndex, ')
+          ..write('angleDegrees: $angleDegrees, ')
+          ..write('source: $source, ')
+          ..write('recordedAt: $recordedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    sessionTargetId,
+    pegIndex,
+    angleDegrees,
+    source,
+    recordedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FieldTargetAngleRecord &&
+          other.id == this.id &&
+          other.sessionTargetId == this.sessionTargetId &&
+          other.pegIndex == this.pegIndex &&
+          other.angleDegrees == this.angleDegrees &&
+          other.source == this.source &&
+          other.recordedAt == this.recordedAt);
+}
+
+class FieldTargetAngleRecordsCompanion
+    extends UpdateCompanion<FieldTargetAngleRecord> {
+  final Value<String> id;
+  final Value<String> sessionTargetId;
+  final Value<int> pegIndex;
+  final Value<double> angleDegrees;
+  final Value<String> source;
+  final Value<DateTime> recordedAt;
+  final Value<int> rowid;
+  const FieldTargetAngleRecordsCompanion({
+    this.id = const Value.absent(),
+    this.sessionTargetId = const Value.absent(),
+    this.pegIndex = const Value.absent(),
+    this.angleDegrees = const Value.absent(),
+    this.source = const Value.absent(),
+    this.recordedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FieldTargetAngleRecordsCompanion.insert({
+    required String id,
+    required String sessionTargetId,
+    required int pegIndex,
+    required double angleDegrees,
+    required String source,
+    this.recordedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       sessionTargetId = Value(sessionTargetId),
+       pegIndex = Value(pegIndex),
+       angleDegrees = Value(angleDegrees),
+       source = Value(source);
+  static Insertable<FieldTargetAngleRecord> custom({
+    Expression<String>? id,
+    Expression<String>? sessionTargetId,
+    Expression<int>? pegIndex,
+    Expression<double>? angleDegrees,
+    Expression<String>? source,
+    Expression<DateTime>? recordedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sessionTargetId != null) 'session_target_id': sessionTargetId,
+      if (pegIndex != null) 'peg_index': pegIndex,
+      if (angleDegrees != null) 'angle_degrees': angleDegrees,
+      if (source != null) 'source': source,
+      if (recordedAt != null) 'recorded_at': recordedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FieldTargetAngleRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? sessionTargetId,
+    Value<int>? pegIndex,
+    Value<double>? angleDegrees,
+    Value<String>? source,
+    Value<DateTime>? recordedAt,
+    Value<int>? rowid,
+  }) {
+    return FieldTargetAngleRecordsCompanion(
+      id: id ?? this.id,
+      sessionTargetId: sessionTargetId ?? this.sessionTargetId,
+      pegIndex: pegIndex ?? this.pegIndex,
+      angleDegrees: angleDegrees ?? this.angleDegrees,
+      source: source ?? this.source,
+      recordedAt: recordedAt ?? this.recordedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (sessionTargetId.present) {
+      map['session_target_id'] = Variable<String>(sessionTargetId.value);
+    }
+    if (pegIndex.present) {
+      map['peg_index'] = Variable<int>(pegIndex.value);
+    }
+    if (angleDegrees.present) {
+      map['angle_degrees'] = Variable<double>(angleDegrees.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (recordedAt.present) {
+      map['recorded_at'] = Variable<DateTime>(recordedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldTargetAngleRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('sessionTargetId: $sessionTargetId, ')
+          ..write('pegIndex: $pegIndex, ')
+          ..write('angleDegrees: $angleDegrees, ')
+          ..write('source: $source, ')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FieldCourseTargetAnglesTable extends FieldCourseTargetAngles
+    with TableInfo<$FieldCourseTargetAnglesTable, FieldCourseTargetAngle> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FieldCourseTargetAnglesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _courseTargetIdMeta = const VerificationMeta(
+    'courseTargetId',
+  );
+  @override
+  late final GeneratedColumn<String> courseTargetId = GeneratedColumn<String>(
+    'course_target_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES field_course_targets (id)',
+    ),
+  );
+  static const VerificationMeta _pegIndexMeta = const VerificationMeta(
+    'pegIndex',
+  );
+  @override
+  late final GeneratedColumn<int> pegIndex = GeneratedColumn<int>(
+    'peg_index',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _angleDegreesMeta = const VerificationMeta(
+    'angleDegrees',
+  );
+  @override
+  late final GeneratedColumn<double> angleDegrees = GeneratedColumn<double>(
+    'angle_degrees',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sessionCountMeta = const VerificationMeta(
+    'sessionCount',
+  );
+  @override
+  late final GeneratedColumn<int> sessionCount = GeneratedColumn<int>(
+    'session_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _lastUpdatedMeta = const VerificationMeta(
+    'lastUpdated',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastUpdated = GeneratedColumn<DateTime>(
+    'last_updated',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    courseTargetId,
+    pegIndex,
+    angleDegrees,
+    sessionCount,
+    lastUpdated,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'field_course_target_angles';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FieldCourseTargetAngle> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('course_target_id')) {
+      context.handle(
+        _courseTargetIdMeta,
+        courseTargetId.isAcceptableOrUnknown(
+          data['course_target_id']!,
+          _courseTargetIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_courseTargetIdMeta);
+    }
+    if (data.containsKey('peg_index')) {
+      context.handle(
+        _pegIndexMeta,
+        pegIndex.isAcceptableOrUnknown(data['peg_index']!, _pegIndexMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pegIndexMeta);
+    }
+    if (data.containsKey('angle_degrees')) {
+      context.handle(
+        _angleDegreesMeta,
+        angleDegrees.isAcceptableOrUnknown(
+          data['angle_degrees']!,
+          _angleDegreesMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_angleDegreesMeta);
+    }
+    if (data.containsKey('session_count')) {
+      context.handle(
+        _sessionCountMeta,
+        sessionCount.isAcceptableOrUnknown(
+          data['session_count']!,
+          _sessionCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_updated')) {
+      context.handle(
+        _lastUpdatedMeta,
+        lastUpdated.isAcceptableOrUnknown(
+          data['last_updated']!,
+          _lastUpdatedMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FieldCourseTargetAngle map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FieldCourseTargetAngle(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      courseTargetId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}course_target_id'],
+      )!,
+      pegIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}peg_index'],
+      )!,
+      angleDegrees: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}angle_degrees'],
+      )!,
+      sessionCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}session_count'],
+      )!,
+      lastUpdated: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_updated'],
+      )!,
+    );
+  }
+
+  @override
+  $FieldCourseTargetAnglesTable createAlias(String alias) {
+    return $FieldCourseTargetAnglesTable(attachedDatabase, alias);
+  }
+}
+
+class FieldCourseTargetAngle extends DataClass
+    implements Insertable<FieldCourseTargetAngle> {
+  final String id;
+  final String courseTargetId;
+  final int pegIndex;
+  final double angleDegrees;
+  final int sessionCount;
+  final DateTime lastUpdated;
+  const FieldCourseTargetAngle({
+    required this.id,
+    required this.courseTargetId,
+    required this.pegIndex,
+    required this.angleDegrees,
+    required this.sessionCount,
+    required this.lastUpdated,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['course_target_id'] = Variable<String>(courseTargetId);
+    map['peg_index'] = Variable<int>(pegIndex);
+    map['angle_degrees'] = Variable<double>(angleDegrees);
+    map['session_count'] = Variable<int>(sessionCount);
+    map['last_updated'] = Variable<DateTime>(lastUpdated);
+    return map;
+  }
+
+  FieldCourseTargetAnglesCompanion toCompanion(bool nullToAbsent) {
+    return FieldCourseTargetAnglesCompanion(
+      id: Value(id),
+      courseTargetId: Value(courseTargetId),
+      pegIndex: Value(pegIndex),
+      angleDegrees: Value(angleDegrees),
+      sessionCount: Value(sessionCount),
+      lastUpdated: Value(lastUpdated),
+    );
+  }
+
+  factory FieldCourseTargetAngle.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FieldCourseTargetAngle(
+      id: serializer.fromJson<String>(json['id']),
+      courseTargetId: serializer.fromJson<String>(json['courseTargetId']),
+      pegIndex: serializer.fromJson<int>(json['pegIndex']),
+      angleDegrees: serializer.fromJson<double>(json['angleDegrees']),
+      sessionCount: serializer.fromJson<int>(json['sessionCount']),
+      lastUpdated: serializer.fromJson<DateTime>(json['lastUpdated']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'courseTargetId': serializer.toJson<String>(courseTargetId),
+      'pegIndex': serializer.toJson<int>(pegIndex),
+      'angleDegrees': serializer.toJson<double>(angleDegrees),
+      'sessionCount': serializer.toJson<int>(sessionCount),
+      'lastUpdated': serializer.toJson<DateTime>(lastUpdated),
+    };
+  }
+
+  FieldCourseTargetAngle copyWith({
+    String? id,
+    String? courseTargetId,
+    int? pegIndex,
+    double? angleDegrees,
+    int? sessionCount,
+    DateTime? lastUpdated,
+  }) => FieldCourseTargetAngle(
+    id: id ?? this.id,
+    courseTargetId: courseTargetId ?? this.courseTargetId,
+    pegIndex: pegIndex ?? this.pegIndex,
+    angleDegrees: angleDegrees ?? this.angleDegrees,
+    sessionCount: sessionCount ?? this.sessionCount,
+    lastUpdated: lastUpdated ?? this.lastUpdated,
+  );
+  FieldCourseTargetAngle copyWithCompanion(
+    FieldCourseTargetAnglesCompanion data,
+  ) {
+    return FieldCourseTargetAngle(
+      id: data.id.present ? data.id.value : this.id,
+      courseTargetId: data.courseTargetId.present
+          ? data.courseTargetId.value
+          : this.courseTargetId,
+      pegIndex: data.pegIndex.present ? data.pegIndex.value : this.pegIndex,
+      angleDegrees: data.angleDegrees.present
+          ? data.angleDegrees.value
+          : this.angleDegrees,
+      sessionCount: data.sessionCount.present
+          ? data.sessionCount.value
+          : this.sessionCount,
+      lastUpdated: data.lastUpdated.present
+          ? data.lastUpdated.value
+          : this.lastUpdated,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldCourseTargetAngle(')
+          ..write('id: $id, ')
+          ..write('courseTargetId: $courseTargetId, ')
+          ..write('pegIndex: $pegIndex, ')
+          ..write('angleDegrees: $angleDegrees, ')
+          ..write('sessionCount: $sessionCount, ')
+          ..write('lastUpdated: $lastUpdated')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    courseTargetId,
+    pegIndex,
+    angleDegrees,
+    sessionCount,
+    lastUpdated,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FieldCourseTargetAngle &&
+          other.id == this.id &&
+          other.courseTargetId == this.courseTargetId &&
+          other.pegIndex == this.pegIndex &&
+          other.angleDegrees == this.angleDegrees &&
+          other.sessionCount == this.sessionCount &&
+          other.lastUpdated == this.lastUpdated);
+}
+
+class FieldCourseTargetAnglesCompanion
+    extends UpdateCompanion<FieldCourseTargetAngle> {
+  final Value<String> id;
+  final Value<String> courseTargetId;
+  final Value<int> pegIndex;
+  final Value<double> angleDegrees;
+  final Value<int> sessionCount;
+  final Value<DateTime> lastUpdated;
+  final Value<int> rowid;
+  const FieldCourseTargetAnglesCompanion({
+    this.id = const Value.absent(),
+    this.courseTargetId = const Value.absent(),
+    this.pegIndex = const Value.absent(),
+    this.angleDegrees = const Value.absent(),
+    this.sessionCount = const Value.absent(),
+    this.lastUpdated = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FieldCourseTargetAnglesCompanion.insert({
+    required String id,
+    required String courseTargetId,
+    required int pegIndex,
+    required double angleDegrees,
+    this.sessionCount = const Value.absent(),
+    this.lastUpdated = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       courseTargetId = Value(courseTargetId),
+       pegIndex = Value(pegIndex),
+       angleDegrees = Value(angleDegrees);
+  static Insertable<FieldCourseTargetAngle> custom({
+    Expression<String>? id,
+    Expression<String>? courseTargetId,
+    Expression<int>? pegIndex,
+    Expression<double>? angleDegrees,
+    Expression<int>? sessionCount,
+    Expression<DateTime>? lastUpdated,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (courseTargetId != null) 'course_target_id': courseTargetId,
+      if (pegIndex != null) 'peg_index': pegIndex,
+      if (angleDegrees != null) 'angle_degrees': angleDegrees,
+      if (sessionCount != null) 'session_count': sessionCount,
+      if (lastUpdated != null) 'last_updated': lastUpdated,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FieldCourseTargetAnglesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? courseTargetId,
+    Value<int>? pegIndex,
+    Value<double>? angleDegrees,
+    Value<int>? sessionCount,
+    Value<DateTime>? lastUpdated,
+    Value<int>? rowid,
+  }) {
+    return FieldCourseTargetAnglesCompanion(
+      id: id ?? this.id,
+      courseTargetId: courseTargetId ?? this.courseTargetId,
+      pegIndex: pegIndex ?? this.pegIndex,
+      angleDegrees: angleDegrees ?? this.angleDegrees,
+      sessionCount: sessionCount ?? this.sessionCount,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (courseTargetId.present) {
+      map['course_target_id'] = Variable<String>(courseTargetId.value);
+    }
+    if (pegIndex.present) {
+      map['peg_index'] = Variable<int>(pegIndex.value);
+    }
+    if (angleDegrees.present) {
+      map['angle_degrees'] = Variable<double>(angleDegrees.value);
+    }
+    if (sessionCount.present) {
+      map['session_count'] = Variable<int>(sessionCount.value);
+    }
+    if (lastUpdated.present) {
+      map['last_updated'] = Variable<DateTime>(lastUpdated.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldCourseTargetAnglesCompanion(')
+          ..write('id: $id, ')
+          ..write('courseTargetId: $courseTargetId, ')
+          ..write('pegIndex: $pegIndex, ')
+          ..write('angleDegrees: $angleDegrees, ')
+          ..write('sessionCount: $sessionCount, ')
+          ..write('lastUpdated: $lastUpdated, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -31392,6 +33269,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $FieldSessionMetaTable fieldSessionMeta = $FieldSessionMetaTable(
     this,
   );
+  late final $FieldArrowPlotsTable fieldArrowPlots = $FieldArrowPlotsTable(
+    this,
+  );
+  late final $FieldTargetAngleRecordsTable fieldTargetAngleRecords =
+      $FieldTargetAngleRecordsTable(this);
+  late final $FieldCourseTargetAnglesTable fieldCourseTargetAngles =
+      $FieldCourseTargetAnglesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -31443,6 +33327,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     fieldCourseSightMarks,
     fieldSessionTargets,
     fieldSessionMeta,
+    fieldArrowPlots,
+    fieldTargetAngleRecords,
+    fieldCourseTargetAngles,
   ];
 }
 
@@ -43665,6 +45552,7 @@ typedef $$SkillLevelsTableCreateCompanionBuilder =
       Value<String?> description,
       Value<int> currentLevel,
       Value<int> currentXp,
+      Value<int> lastCelebratedLevel,
       Value<DateTime?> lastLevelUpAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -43677,6 +45565,7 @@ typedef $$SkillLevelsTableUpdateCompanionBuilder =
       Value<String?> description,
       Value<int> currentLevel,
       Value<int> currentXp,
+      Value<int> lastCelebratedLevel,
       Value<DateTime?> lastLevelUpAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -43714,6 +45603,11 @@ class $$SkillLevelsTableFilterComposer
 
   ColumnFilters<int> get currentXp => $composableBuilder(
     column: $table.currentXp,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lastCelebratedLevel => $composableBuilder(
+    column: $table.lastCelebratedLevel,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -43767,6 +45661,11 @@ class $$SkillLevelsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get lastCelebratedLevel => $composableBuilder(
+    column: $table.lastCelebratedLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get lastLevelUpAt => $composableBuilder(
     column: $table.lastLevelUpAt,
     builder: (column) => ColumnOrderings(column),
@@ -43810,6 +45709,11 @@ class $$SkillLevelsTableAnnotationComposer
 
   GeneratedColumn<int> get currentXp =>
       $composableBuilder(column: $table.currentXp, builder: (column) => column);
+
+  GeneratedColumn<int> get lastCelebratedLevel => $composableBuilder(
+    column: $table.lastCelebratedLevel,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get lastLevelUpAt => $composableBuilder(
     column: $table.lastLevelUpAt,
@@ -43859,6 +45763,7 @@ class $$SkillLevelsTableTableManager
                 Value<String?> description = const Value.absent(),
                 Value<int> currentLevel = const Value.absent(),
                 Value<int> currentXp = const Value.absent(),
+                Value<int> lastCelebratedLevel = const Value.absent(),
                 Value<DateTime?> lastLevelUpAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -43869,6 +45774,7 @@ class $$SkillLevelsTableTableManager
                 description: description,
                 currentLevel: currentLevel,
                 currentXp: currentXp,
+                lastCelebratedLevel: lastCelebratedLevel,
                 lastLevelUpAt: lastLevelUpAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -43881,6 +45787,7 @@ class $$SkillLevelsTableTableManager
                 Value<String?> description = const Value.absent(),
                 Value<int> currentLevel = const Value.absent(),
                 Value<int> currentXp = const Value.absent(),
+                Value<int> lastCelebratedLevel = const Value.absent(),
                 Value<DateTime?> lastLevelUpAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -43891,6 +45798,7 @@ class $$SkillLevelsTableTableManager
                 description: description,
                 currentLevel: currentLevel,
                 currentXp: currentXp,
+                lastCelebratedLevel: lastCelebratedLevel,
                 lastLevelUpAt: lastLevelUpAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -50269,6 +52177,34 @@ final class $$FieldCourseTargetsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<
+    $FieldCourseTargetAnglesTable,
+    List<FieldCourseTargetAngle>
+  >
+  _fieldCourseTargetAnglesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.fieldCourseTargetAngles,
+        aliasName: $_aliasNameGenerator(
+          db.fieldCourseTargets.id,
+          db.fieldCourseTargetAngles.courseTargetId,
+        ),
+      );
+
+  $$FieldCourseTargetAnglesTableProcessedTableManager
+  get fieldCourseTargetAnglesRefs {
+    final manager = $$FieldCourseTargetAnglesTableTableManager(
+      $_db,
+      $_db.fieldCourseTargetAngles,
+    ).filter((f) => f.courseTargetId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _fieldCourseTargetAnglesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$FieldCourseTargetsTableFilterComposer
@@ -50401,6 +52337,32 @@ class $$FieldCourseTargetsTableFilterComposer
                 $removeJoinBuilderFromRootComposer,
           ),
     );
+    return f(composer);
+  }
+
+  Expression<bool> fieldCourseTargetAnglesRefs(
+    Expression<bool> Function($$FieldCourseTargetAnglesTableFilterComposer f) f,
+  ) {
+    final $$FieldCourseTargetAnglesTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.fieldCourseTargetAngles,
+          getReferencedColumn: (t) => t.courseTargetId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldCourseTargetAnglesTableFilterComposer(
+                $db: $db,
+                $table: $db.fieldCourseTargetAngles,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 }
@@ -50609,6 +52571,33 @@ class $$FieldCourseTargetsTableAnnotationComposer
         );
     return f(composer);
   }
+
+  Expression<T> fieldCourseTargetAnglesRefs<T extends Object>(
+    Expression<T> Function($$FieldCourseTargetAnglesTableAnnotationComposer a)
+    f,
+  ) {
+    final $$FieldCourseTargetAnglesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.fieldCourseTargetAngles,
+          getReferencedColumn: (t) => t.courseTargetId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldCourseTargetAnglesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.fieldCourseTargetAngles,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$FieldCourseTargetsTableTableManager
@@ -50628,6 +52617,7 @@ class $$FieldCourseTargetsTableTableManager
             bool courseId,
             bool fieldCourseSightMarksRefs,
             bool fieldSessionTargetsRefs,
+            bool fieldCourseTargetAnglesRefs,
           })
         > {
   $$FieldCourseTargetsTableTableManager(
@@ -50715,12 +52705,14 @@ class $$FieldCourseTargetsTableTableManager
                 courseId = false,
                 fieldCourseSightMarksRefs = false,
                 fieldSessionTargetsRefs = false,
+                fieldCourseTargetAnglesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (fieldCourseSightMarksRefs) db.fieldCourseSightMarks,
                     if (fieldSessionTargetsRefs) db.fieldSessionTargets,
+                    if (fieldCourseTargetAnglesRefs) db.fieldCourseTargetAngles,
                   ],
                   addJoins:
                       <
@@ -50800,6 +52792,27 @@ class $$FieldCourseTargetsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (fieldCourseTargetAnglesRefs)
+                        await $_getPrefetchedData<
+                          FieldCourseTarget,
+                          $FieldCourseTargetsTable,
+                          FieldCourseTargetAngle
+                        >(
+                          currentTable: table,
+                          referencedTable: $$FieldCourseTargetsTableReferences
+                              ._fieldCourseTargetAnglesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$FieldCourseTargetsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).fieldCourseTargetAnglesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.courseTargetId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -50824,6 +52837,7 @@ typedef $$FieldCourseTargetsTableProcessedTableManager =
         bool courseId,
         bool fieldCourseSightMarksRefs,
         bool fieldSessionTargetsRefs,
+        bool fieldCourseTargetAnglesRefs,
       })
     >;
 typedef $$FieldCourseSightMarksTableCreateCompanionBuilder =
@@ -51380,6 +53394,8 @@ typedef $$FieldSessionTargetsTableCreateCompanionBuilder =
       Value<int?> station,
       Value<bool?> wasHit,
       Value<DateTime?> completedAt,
+      Value<double?> slopeAngle,
+      Value<String?> pegSightMarks,
       Value<int> rowid,
     });
 typedef $$FieldSessionTargetsTableUpdateCompanionBuilder =
@@ -51395,6 +53411,8 @@ typedef $$FieldSessionTargetsTableUpdateCompanionBuilder =
       Value<int?> station,
       Value<bool?> wasHit,
       Value<DateTime?> completedAt,
+      Value<double?> slopeAngle,
+      Value<String?> pegSightMarks,
       Value<int> rowid,
     });
 
@@ -51449,6 +53467,60 @@ final class $$FieldSessionTargetsTableReferences
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$FieldArrowPlotsTable, List<FieldArrowPlot>>
+  _fieldArrowPlotsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.fieldArrowPlots,
+    aliasName: $_aliasNameGenerator(
+      db.fieldSessionTargets.id,
+      db.fieldArrowPlots.sessionTargetId,
+    ),
+  );
+
+  $$FieldArrowPlotsTableProcessedTableManager get fieldArrowPlotsRefs {
+    final manager =
+        $$FieldArrowPlotsTableTableManager($_db, $_db.fieldArrowPlots).filter(
+          (f) => f.sessionTargetId.id.sqlEquals($_itemColumn<String>('id')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _fieldArrowPlotsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $FieldTargetAngleRecordsTable,
+    List<FieldTargetAngleRecord>
+  >
+  _fieldTargetAngleRecordsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.fieldTargetAngleRecords,
+        aliasName: $_aliasNameGenerator(
+          db.fieldSessionTargets.id,
+          db.fieldTargetAngleRecords.sessionTargetId,
+        ),
+      );
+
+  $$FieldTargetAngleRecordsTableProcessedTableManager
+  get fieldTargetAngleRecordsRefs {
+    final manager =
+        $$FieldTargetAngleRecordsTableTableManager(
+          $_db,
+          $_db.fieldTargetAngleRecords,
+        ).filter(
+          (f) => f.sessionTargetId.id.sqlEquals($_itemColumn<String>('id')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _fieldTargetAngleRecordsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
     );
   }
 }
@@ -51507,6 +53579,16 @@ class $$FieldSessionTargetsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<double> get slopeAngle => $composableBuilder(
+    column: $table.slopeAngle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get pegSightMarks => $composableBuilder(
+    column: $table.pegSightMarks,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$SessionsTableFilterComposer get sessionId {
     final $$SessionsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -51551,6 +53633,57 @@ class $$FieldSessionTargetsTableFilterComposer
           ),
     );
     return composer;
+  }
+
+  Expression<bool> fieldArrowPlotsRefs(
+    Expression<bool> Function($$FieldArrowPlotsTableFilterComposer f) f,
+  ) {
+    final $$FieldArrowPlotsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fieldArrowPlots,
+      getReferencedColumn: (t) => t.sessionTargetId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldArrowPlotsTableFilterComposer(
+            $db: $db,
+            $table: $db.fieldArrowPlots,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> fieldTargetAngleRecordsRefs(
+    Expression<bool> Function($$FieldTargetAngleRecordsTableFilterComposer f) f,
+  ) {
+    final $$FieldTargetAngleRecordsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.fieldTargetAngleRecords,
+          getReferencedColumn: (t) => t.sessionTargetId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldTargetAngleRecordsTableFilterComposer(
+                $db: $db,
+                $table: $db.fieldTargetAngleRecords,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
   }
 }
 
@@ -51605,6 +53738,16 @@ class $$FieldSessionTargetsTableOrderingComposer
 
   ColumnOrderings<DateTime> get completedAt => $composableBuilder(
     column: $table.completedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get slopeAngle => $composableBuilder(
+    column: $table.slopeAngle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get pegSightMarks => $composableBuilder(
+    column: $table.pegSightMarks,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -51701,6 +53844,16 @@ class $$FieldSessionTargetsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<double> get slopeAngle => $composableBuilder(
+    column: $table.slopeAngle,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get pegSightMarks => $composableBuilder(
+    column: $table.pegSightMarks,
+    builder: (column) => column,
+  );
+
   $$SessionsTableAnnotationComposer get sessionId {
     final $$SessionsTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -51747,6 +53900,58 @@ class $$FieldSessionTargetsTableAnnotationComposer
         );
     return composer;
   }
+
+  Expression<T> fieldArrowPlotsRefs<T extends Object>(
+    Expression<T> Function($$FieldArrowPlotsTableAnnotationComposer a) f,
+  ) {
+    final $$FieldArrowPlotsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fieldArrowPlots,
+      getReferencedColumn: (t) => t.sessionTargetId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldArrowPlotsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.fieldArrowPlots,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> fieldTargetAngleRecordsRefs<T extends Object>(
+    Expression<T> Function($$FieldTargetAngleRecordsTableAnnotationComposer a)
+    f,
+  ) {
+    final $$FieldTargetAngleRecordsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.fieldTargetAngleRecords,
+          getReferencedColumn: (t) => t.sessionTargetId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldTargetAngleRecordsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.fieldTargetAngleRecords,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$FieldSessionTargetsTableTableManager
@@ -51762,7 +53967,12 @@ class $$FieldSessionTargetsTableTableManager
           $$FieldSessionTargetsTableUpdateCompanionBuilder,
           (FieldSessionTarget, $$FieldSessionTargetsTableReferences),
           FieldSessionTarget,
-          PrefetchHooks Function({bool sessionId, bool courseTargetId})
+          PrefetchHooks Function({
+            bool sessionId,
+            bool courseTargetId,
+            bool fieldArrowPlotsRefs,
+            bool fieldTargetAngleRecordsRefs,
+          })
         > {
   $$FieldSessionTargetsTableTableManager(
     _$AppDatabase db,
@@ -51796,6 +54006,8 @@ class $$FieldSessionTargetsTableTableManager
                 Value<int?> station = const Value.absent(),
                 Value<bool?> wasHit = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
+                Value<double?> slopeAngle = const Value.absent(),
+                Value<String?> pegSightMarks = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FieldSessionTargetsCompanion(
                 id: id,
@@ -51809,6 +54021,8 @@ class $$FieldSessionTargetsTableTableManager
                 station: station,
                 wasHit: wasHit,
                 completedAt: completedAt,
+                slopeAngle: slopeAngle,
+                pegSightMarks: pegSightMarks,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -51824,6 +54038,8 @@ class $$FieldSessionTargetsTableTableManager
                 Value<int?> station = const Value.absent(),
                 Value<bool?> wasHit = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
+                Value<double?> slopeAngle = const Value.absent(),
+                Value<String?> pegSightMarks = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FieldSessionTargetsCompanion.insert(
                 id: id,
@@ -51837,6 +54053,8 @@ class $$FieldSessionTargetsTableTableManager
                 station: station,
                 wasHit: wasHit,
                 completedAt: completedAt,
+                slopeAngle: slopeAngle,
+                pegSightMarks: pegSightMarks,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -51847,64 +54065,116 @@ class $$FieldSessionTargetsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({sessionId = false, courseTargetId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (sessionId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.sessionId,
-                                referencedTable:
-                                    $$FieldSessionTargetsTableReferences
-                                        ._sessionIdTable(db),
-                                referencedColumn:
-                                    $$FieldSessionTargetsTableReferences
-                                        ._sessionIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
-                    if (courseTargetId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.courseTargetId,
-                                referencedTable:
-                                    $$FieldSessionTargetsTableReferences
-                                        ._courseTargetIdTable(db),
-                                referencedColumn:
-                                    $$FieldSessionTargetsTableReferences
-                                        ._courseTargetIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
+          prefetchHooksCallback:
+              ({
+                sessionId = false,
+                courseTargetId = false,
+                fieldArrowPlotsRefs = false,
+                fieldTargetAngleRecordsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (fieldArrowPlotsRefs) db.fieldArrowPlots,
+                    if (fieldTargetAngleRecordsRefs) db.fieldTargetAngleRecords,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (sessionId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.sessionId,
+                                    referencedTable:
+                                        $$FieldSessionTargetsTableReferences
+                                            ._sessionIdTable(db),
+                                    referencedColumn:
+                                        $$FieldSessionTargetsTableReferences
+                                            ._sessionIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (courseTargetId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.courseTargetId,
+                                    referencedTable:
+                                        $$FieldSessionTargetsTableReferences
+                                            ._courseTargetIdTable(db),
+                                    referencedColumn:
+                                        $$FieldSessionTargetsTableReferences
+                                            ._courseTargetIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (fieldArrowPlotsRefs)
+                        await $_getPrefetchedData<
+                          FieldSessionTarget,
+                          $FieldSessionTargetsTable,
+                          FieldArrowPlot
+                        >(
+                          currentTable: table,
+                          referencedTable: $$FieldSessionTargetsTableReferences
+                              ._fieldArrowPlotsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$FieldSessionTargetsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).fieldArrowPlotsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.sessionTargetId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (fieldTargetAngleRecordsRefs)
+                        await $_getPrefetchedData<
+                          FieldSessionTarget,
+                          $FieldSessionTargetsTable,
+                          FieldTargetAngleRecord
+                        >(
+                          currentTable: table,
+                          referencedTable: $$FieldSessionTargetsTableReferences
+                              ._fieldTargetAngleRecordsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$FieldSessionTargetsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).fieldTargetAngleRecordsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.sessionTargetId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -51921,7 +54191,12 @@ typedef $$FieldSessionTargetsTableProcessedTableManager =
       $$FieldSessionTargetsTableUpdateCompanionBuilder,
       (FieldSessionTarget, $$FieldSessionTargetsTableReferences),
       FieldSessionTarget,
-      PrefetchHooks Function({bool sessionId, bool courseTargetId})
+      PrefetchHooks Function({
+        bool sessionId,
+        bool courseTargetId,
+        bool fieldArrowPlotsRefs,
+        bool fieldTargetAngleRecordsRefs,
+      })
     >;
 typedef $$FieldSessionMetaTableCreateCompanionBuilder =
     FieldSessionMetaCompanion Function({
@@ -52368,6 +54643,1282 @@ typedef $$FieldSessionMetaTableProcessedTableManager =
       FieldSessionMetaData,
       PrefetchHooks Function({bool sessionId, bool courseId})
     >;
+typedef $$FieldArrowPlotsTableCreateCompanionBuilder =
+    FieldArrowPlotsCompanion Function({
+      required String id,
+      required String sessionTargetId,
+      required int arrowNumber,
+      required int pegIndex,
+      Value<double?> xMm,
+      Value<double?> yMm,
+      Value<double?> normalizedX,
+      Value<double?> normalizedY,
+      required int score,
+      Value<bool> isX,
+      Value<bool> isPoorShot,
+      Value<String?> poorShotDirection,
+      Value<bool> isPlotted,
+      Value<double?> slopeAngleDeg,
+      Value<String?> sightMarkUsed,
+      Value<int> rowid,
+    });
+typedef $$FieldArrowPlotsTableUpdateCompanionBuilder =
+    FieldArrowPlotsCompanion Function({
+      Value<String> id,
+      Value<String> sessionTargetId,
+      Value<int> arrowNumber,
+      Value<int> pegIndex,
+      Value<double?> xMm,
+      Value<double?> yMm,
+      Value<double?> normalizedX,
+      Value<double?> normalizedY,
+      Value<int> score,
+      Value<bool> isX,
+      Value<bool> isPoorShot,
+      Value<String?> poorShotDirection,
+      Value<bool> isPlotted,
+      Value<double?> slopeAngleDeg,
+      Value<String?> sightMarkUsed,
+      Value<int> rowid,
+    });
+
+final class $$FieldArrowPlotsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $FieldArrowPlotsTable, FieldArrowPlot> {
+  $$FieldArrowPlotsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $FieldSessionTargetsTable _sessionTargetIdTable(_$AppDatabase db) =>
+      db.fieldSessionTargets.createAlias(
+        $_aliasNameGenerator(
+          db.fieldArrowPlots.sessionTargetId,
+          db.fieldSessionTargets.id,
+        ),
+      );
+
+  $$FieldSessionTargetsTableProcessedTableManager get sessionTargetId {
+    final $_column = $_itemColumn<String>('session_target_id')!;
+
+    final manager = $$FieldSessionTargetsTableTableManager(
+      $_db,
+      $_db.fieldSessionTargets,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sessionTargetIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$FieldArrowPlotsTableFilterComposer
+    extends Composer<_$AppDatabase, $FieldArrowPlotsTable> {
+  $$FieldArrowPlotsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get arrowNumber => $composableBuilder(
+    column: $table.arrowNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get pegIndex => $composableBuilder(
+    column: $table.pegIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get xMm => $composableBuilder(
+    column: $table.xMm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get yMm => $composableBuilder(
+    column: $table.yMm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get normalizedX => $composableBuilder(
+    column: $table.normalizedX,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get normalizedY => $composableBuilder(
+    column: $table.normalizedY,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isX => $composableBuilder(
+    column: $table.isX,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isPoorShot => $composableBuilder(
+    column: $table.isPoorShot,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get poorShotDirection => $composableBuilder(
+    column: $table.poorShotDirection,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isPlotted => $composableBuilder(
+    column: $table.isPlotted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get slopeAngleDeg => $composableBuilder(
+    column: $table.slopeAngleDeg,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sightMarkUsed => $composableBuilder(
+    column: $table.sightMarkUsed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$FieldSessionTargetsTableFilterComposer get sessionTargetId {
+    final $$FieldSessionTargetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionTargetId,
+      referencedTable: $db.fieldSessionTargets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldSessionTargetsTableFilterComposer(
+            $db: $db,
+            $table: $db.fieldSessionTargets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FieldArrowPlotsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FieldArrowPlotsTable> {
+  $$FieldArrowPlotsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get arrowNumber => $composableBuilder(
+    column: $table.arrowNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get pegIndex => $composableBuilder(
+    column: $table.pegIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get xMm => $composableBuilder(
+    column: $table.xMm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get yMm => $composableBuilder(
+    column: $table.yMm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get normalizedX => $composableBuilder(
+    column: $table.normalizedX,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get normalizedY => $composableBuilder(
+    column: $table.normalizedY,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isX => $composableBuilder(
+    column: $table.isX,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isPoorShot => $composableBuilder(
+    column: $table.isPoorShot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get poorShotDirection => $composableBuilder(
+    column: $table.poorShotDirection,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isPlotted => $composableBuilder(
+    column: $table.isPlotted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get slopeAngleDeg => $composableBuilder(
+    column: $table.slopeAngleDeg,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sightMarkUsed => $composableBuilder(
+    column: $table.sightMarkUsed,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$FieldSessionTargetsTableOrderingComposer get sessionTargetId {
+    final $$FieldSessionTargetsTableOrderingComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.sessionTargetId,
+          referencedTable: $db.fieldSessionTargets,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldSessionTargetsTableOrderingComposer(
+                $db: $db,
+                $table: $db.fieldSessionTargets,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$FieldArrowPlotsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FieldArrowPlotsTable> {
+  $$FieldArrowPlotsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get arrowNumber => $composableBuilder(
+    column: $table.arrowNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get pegIndex =>
+      $composableBuilder(column: $table.pegIndex, builder: (column) => column);
+
+  GeneratedColumn<double> get xMm =>
+      $composableBuilder(column: $table.xMm, builder: (column) => column);
+
+  GeneratedColumn<double> get yMm =>
+      $composableBuilder(column: $table.yMm, builder: (column) => column);
+
+  GeneratedColumn<double> get normalizedX => $composableBuilder(
+    column: $table.normalizedX,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get normalizedY => $composableBuilder(
+    column: $table.normalizedY,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get score =>
+      $composableBuilder(column: $table.score, builder: (column) => column);
+
+  GeneratedColumn<bool> get isX =>
+      $composableBuilder(column: $table.isX, builder: (column) => column);
+
+  GeneratedColumn<bool> get isPoorShot => $composableBuilder(
+    column: $table.isPoorShot,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get poorShotDirection => $composableBuilder(
+    column: $table.poorShotDirection,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isPlotted =>
+      $composableBuilder(column: $table.isPlotted, builder: (column) => column);
+
+  GeneratedColumn<double> get slopeAngleDeg => $composableBuilder(
+    column: $table.slopeAngleDeg,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sightMarkUsed => $composableBuilder(
+    column: $table.sightMarkUsed,
+    builder: (column) => column,
+  );
+
+  $$FieldSessionTargetsTableAnnotationComposer get sessionTargetId {
+    final $$FieldSessionTargetsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.sessionTargetId,
+          referencedTable: $db.fieldSessionTargets,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldSessionTargetsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.fieldSessionTargets,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$FieldArrowPlotsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FieldArrowPlotsTable,
+          FieldArrowPlot,
+          $$FieldArrowPlotsTableFilterComposer,
+          $$FieldArrowPlotsTableOrderingComposer,
+          $$FieldArrowPlotsTableAnnotationComposer,
+          $$FieldArrowPlotsTableCreateCompanionBuilder,
+          $$FieldArrowPlotsTableUpdateCompanionBuilder,
+          (FieldArrowPlot, $$FieldArrowPlotsTableReferences),
+          FieldArrowPlot,
+          PrefetchHooks Function({bool sessionTargetId})
+        > {
+  $$FieldArrowPlotsTableTableManager(
+    _$AppDatabase db,
+    $FieldArrowPlotsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FieldArrowPlotsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FieldArrowPlotsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FieldArrowPlotsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> sessionTargetId = const Value.absent(),
+                Value<int> arrowNumber = const Value.absent(),
+                Value<int> pegIndex = const Value.absent(),
+                Value<double?> xMm = const Value.absent(),
+                Value<double?> yMm = const Value.absent(),
+                Value<double?> normalizedX = const Value.absent(),
+                Value<double?> normalizedY = const Value.absent(),
+                Value<int> score = const Value.absent(),
+                Value<bool> isX = const Value.absent(),
+                Value<bool> isPoorShot = const Value.absent(),
+                Value<String?> poorShotDirection = const Value.absent(),
+                Value<bool> isPlotted = const Value.absent(),
+                Value<double?> slopeAngleDeg = const Value.absent(),
+                Value<String?> sightMarkUsed = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldArrowPlotsCompanion(
+                id: id,
+                sessionTargetId: sessionTargetId,
+                arrowNumber: arrowNumber,
+                pegIndex: pegIndex,
+                xMm: xMm,
+                yMm: yMm,
+                normalizedX: normalizedX,
+                normalizedY: normalizedY,
+                score: score,
+                isX: isX,
+                isPoorShot: isPoorShot,
+                poorShotDirection: poorShotDirection,
+                isPlotted: isPlotted,
+                slopeAngleDeg: slopeAngleDeg,
+                sightMarkUsed: sightMarkUsed,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String sessionTargetId,
+                required int arrowNumber,
+                required int pegIndex,
+                Value<double?> xMm = const Value.absent(),
+                Value<double?> yMm = const Value.absent(),
+                Value<double?> normalizedX = const Value.absent(),
+                Value<double?> normalizedY = const Value.absent(),
+                required int score,
+                Value<bool> isX = const Value.absent(),
+                Value<bool> isPoorShot = const Value.absent(),
+                Value<String?> poorShotDirection = const Value.absent(),
+                Value<bool> isPlotted = const Value.absent(),
+                Value<double?> slopeAngleDeg = const Value.absent(),
+                Value<String?> sightMarkUsed = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldArrowPlotsCompanion.insert(
+                id: id,
+                sessionTargetId: sessionTargetId,
+                arrowNumber: arrowNumber,
+                pegIndex: pegIndex,
+                xMm: xMm,
+                yMm: yMm,
+                normalizedX: normalizedX,
+                normalizedY: normalizedY,
+                score: score,
+                isX: isX,
+                isPoorShot: isPoorShot,
+                poorShotDirection: poorShotDirection,
+                isPlotted: isPlotted,
+                slopeAngleDeg: slopeAngleDeg,
+                sightMarkUsed: sightMarkUsed,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$FieldArrowPlotsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({sessionTargetId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (sessionTargetId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.sessionTargetId,
+                                referencedTable:
+                                    $$FieldArrowPlotsTableReferences
+                                        ._sessionTargetIdTable(db),
+                                referencedColumn:
+                                    $$FieldArrowPlotsTableReferences
+                                        ._sessionTargetIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$FieldArrowPlotsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FieldArrowPlotsTable,
+      FieldArrowPlot,
+      $$FieldArrowPlotsTableFilterComposer,
+      $$FieldArrowPlotsTableOrderingComposer,
+      $$FieldArrowPlotsTableAnnotationComposer,
+      $$FieldArrowPlotsTableCreateCompanionBuilder,
+      $$FieldArrowPlotsTableUpdateCompanionBuilder,
+      (FieldArrowPlot, $$FieldArrowPlotsTableReferences),
+      FieldArrowPlot,
+      PrefetchHooks Function({bool sessionTargetId})
+    >;
+typedef $$FieldTargetAngleRecordsTableCreateCompanionBuilder =
+    FieldTargetAngleRecordsCompanion Function({
+      required String id,
+      required String sessionTargetId,
+      required int pegIndex,
+      required double angleDegrees,
+      required String source,
+      Value<DateTime> recordedAt,
+      Value<int> rowid,
+    });
+typedef $$FieldTargetAngleRecordsTableUpdateCompanionBuilder =
+    FieldTargetAngleRecordsCompanion Function({
+      Value<String> id,
+      Value<String> sessionTargetId,
+      Value<int> pegIndex,
+      Value<double> angleDegrees,
+      Value<String> source,
+      Value<DateTime> recordedAt,
+      Value<int> rowid,
+    });
+
+final class $$FieldTargetAngleRecordsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $FieldTargetAngleRecordsTable,
+          FieldTargetAngleRecord
+        > {
+  $$FieldTargetAngleRecordsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $FieldSessionTargetsTable _sessionTargetIdTable(_$AppDatabase db) =>
+      db.fieldSessionTargets.createAlias(
+        $_aliasNameGenerator(
+          db.fieldTargetAngleRecords.sessionTargetId,
+          db.fieldSessionTargets.id,
+        ),
+      );
+
+  $$FieldSessionTargetsTableProcessedTableManager get sessionTargetId {
+    final $_column = $_itemColumn<String>('session_target_id')!;
+
+    final manager = $$FieldSessionTargetsTableTableManager(
+      $_db,
+      $_db.fieldSessionTargets,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sessionTargetIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$FieldTargetAngleRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $FieldTargetAngleRecordsTable> {
+  $$FieldTargetAngleRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get pegIndex => $composableBuilder(
+    column: $table.pegIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get angleDegrees => $composableBuilder(
+    column: $table.angleDegrees,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$FieldSessionTargetsTableFilterComposer get sessionTargetId {
+    final $$FieldSessionTargetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionTargetId,
+      referencedTable: $db.fieldSessionTargets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldSessionTargetsTableFilterComposer(
+            $db: $db,
+            $table: $db.fieldSessionTargets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FieldTargetAngleRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FieldTargetAngleRecordsTable> {
+  $$FieldTargetAngleRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get pegIndex => $composableBuilder(
+    column: $table.pegIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get angleDegrees => $composableBuilder(
+    column: $table.angleDegrees,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$FieldSessionTargetsTableOrderingComposer get sessionTargetId {
+    final $$FieldSessionTargetsTableOrderingComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.sessionTargetId,
+          referencedTable: $db.fieldSessionTargets,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldSessionTargetsTableOrderingComposer(
+                $db: $db,
+                $table: $db.fieldSessionTargets,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$FieldTargetAngleRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FieldTargetAngleRecordsTable> {
+  $$FieldTargetAngleRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get pegIndex =>
+      $composableBuilder(column: $table.pegIndex, builder: (column) => column);
+
+  GeneratedColumn<double> get angleDegrees => $composableBuilder(
+    column: $table.angleDegrees,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => column,
+  );
+
+  $$FieldSessionTargetsTableAnnotationComposer get sessionTargetId {
+    final $$FieldSessionTargetsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.sessionTargetId,
+          referencedTable: $db.fieldSessionTargets,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldSessionTargetsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.fieldSessionTargets,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$FieldTargetAngleRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FieldTargetAngleRecordsTable,
+          FieldTargetAngleRecord,
+          $$FieldTargetAngleRecordsTableFilterComposer,
+          $$FieldTargetAngleRecordsTableOrderingComposer,
+          $$FieldTargetAngleRecordsTableAnnotationComposer,
+          $$FieldTargetAngleRecordsTableCreateCompanionBuilder,
+          $$FieldTargetAngleRecordsTableUpdateCompanionBuilder,
+          (FieldTargetAngleRecord, $$FieldTargetAngleRecordsTableReferences),
+          FieldTargetAngleRecord,
+          PrefetchHooks Function({bool sessionTargetId})
+        > {
+  $$FieldTargetAngleRecordsTableTableManager(
+    _$AppDatabase db,
+    $FieldTargetAngleRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FieldTargetAngleRecordsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$FieldTargetAngleRecordsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$FieldTargetAngleRecordsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> sessionTargetId = const Value.absent(),
+                Value<int> pegIndex = const Value.absent(),
+                Value<double> angleDegrees = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<DateTime> recordedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldTargetAngleRecordsCompanion(
+                id: id,
+                sessionTargetId: sessionTargetId,
+                pegIndex: pegIndex,
+                angleDegrees: angleDegrees,
+                source: source,
+                recordedAt: recordedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String sessionTargetId,
+                required int pegIndex,
+                required double angleDegrees,
+                required String source,
+                Value<DateTime> recordedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldTargetAngleRecordsCompanion.insert(
+                id: id,
+                sessionTargetId: sessionTargetId,
+                pegIndex: pegIndex,
+                angleDegrees: angleDegrees,
+                source: source,
+                recordedAt: recordedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$FieldTargetAngleRecordsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({sessionTargetId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (sessionTargetId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.sessionTargetId,
+                                referencedTable:
+                                    $$FieldTargetAngleRecordsTableReferences
+                                        ._sessionTargetIdTable(db),
+                                referencedColumn:
+                                    $$FieldTargetAngleRecordsTableReferences
+                                        ._sessionTargetIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$FieldTargetAngleRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FieldTargetAngleRecordsTable,
+      FieldTargetAngleRecord,
+      $$FieldTargetAngleRecordsTableFilterComposer,
+      $$FieldTargetAngleRecordsTableOrderingComposer,
+      $$FieldTargetAngleRecordsTableAnnotationComposer,
+      $$FieldTargetAngleRecordsTableCreateCompanionBuilder,
+      $$FieldTargetAngleRecordsTableUpdateCompanionBuilder,
+      (FieldTargetAngleRecord, $$FieldTargetAngleRecordsTableReferences),
+      FieldTargetAngleRecord,
+      PrefetchHooks Function({bool sessionTargetId})
+    >;
+typedef $$FieldCourseTargetAnglesTableCreateCompanionBuilder =
+    FieldCourseTargetAnglesCompanion Function({
+      required String id,
+      required String courseTargetId,
+      required int pegIndex,
+      required double angleDegrees,
+      Value<int> sessionCount,
+      Value<DateTime> lastUpdated,
+      Value<int> rowid,
+    });
+typedef $$FieldCourseTargetAnglesTableUpdateCompanionBuilder =
+    FieldCourseTargetAnglesCompanion Function({
+      Value<String> id,
+      Value<String> courseTargetId,
+      Value<int> pegIndex,
+      Value<double> angleDegrees,
+      Value<int> sessionCount,
+      Value<DateTime> lastUpdated,
+      Value<int> rowid,
+    });
+
+final class $$FieldCourseTargetAnglesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $FieldCourseTargetAnglesTable,
+          FieldCourseTargetAngle
+        > {
+  $$FieldCourseTargetAnglesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $FieldCourseTargetsTable _courseTargetIdTable(_$AppDatabase db) =>
+      db.fieldCourseTargets.createAlias(
+        $_aliasNameGenerator(
+          db.fieldCourseTargetAngles.courseTargetId,
+          db.fieldCourseTargets.id,
+        ),
+      );
+
+  $$FieldCourseTargetsTableProcessedTableManager get courseTargetId {
+    final $_column = $_itemColumn<String>('course_target_id')!;
+
+    final manager = $$FieldCourseTargetsTableTableManager(
+      $_db,
+      $_db.fieldCourseTargets,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_courseTargetIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$FieldCourseTargetAnglesTableFilterComposer
+    extends Composer<_$AppDatabase, $FieldCourseTargetAnglesTable> {
+  $$FieldCourseTargetAnglesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get pegIndex => $composableBuilder(
+    column: $table.pegIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get angleDegrees => $composableBuilder(
+    column: $table.angleDegrees,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sessionCount => $composableBuilder(
+    column: $table.sessionCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastUpdated => $composableBuilder(
+    column: $table.lastUpdated,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$FieldCourseTargetsTableFilterComposer get courseTargetId {
+    final $$FieldCourseTargetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.courseTargetId,
+      referencedTable: $db.fieldCourseTargets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldCourseTargetsTableFilterComposer(
+            $db: $db,
+            $table: $db.fieldCourseTargets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FieldCourseTargetAnglesTableOrderingComposer
+    extends Composer<_$AppDatabase, $FieldCourseTargetAnglesTable> {
+  $$FieldCourseTargetAnglesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get pegIndex => $composableBuilder(
+    column: $table.pegIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get angleDegrees => $composableBuilder(
+    column: $table.angleDegrees,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sessionCount => $composableBuilder(
+    column: $table.sessionCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastUpdated => $composableBuilder(
+    column: $table.lastUpdated,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$FieldCourseTargetsTableOrderingComposer get courseTargetId {
+    final $$FieldCourseTargetsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.courseTargetId,
+      referencedTable: $db.fieldCourseTargets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldCourseTargetsTableOrderingComposer(
+            $db: $db,
+            $table: $db.fieldCourseTargets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FieldCourseTargetAnglesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FieldCourseTargetAnglesTable> {
+  $$FieldCourseTargetAnglesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get pegIndex =>
+      $composableBuilder(column: $table.pegIndex, builder: (column) => column);
+
+  GeneratedColumn<double> get angleDegrees => $composableBuilder(
+    column: $table.angleDegrees,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sessionCount => $composableBuilder(
+    column: $table.sessionCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastUpdated => $composableBuilder(
+    column: $table.lastUpdated,
+    builder: (column) => column,
+  );
+
+  $$FieldCourseTargetsTableAnnotationComposer get courseTargetId {
+    final $$FieldCourseTargetsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.courseTargetId,
+          referencedTable: $db.fieldCourseTargets,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FieldCourseTargetsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.fieldCourseTargets,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$FieldCourseTargetAnglesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FieldCourseTargetAnglesTable,
+          FieldCourseTargetAngle,
+          $$FieldCourseTargetAnglesTableFilterComposer,
+          $$FieldCourseTargetAnglesTableOrderingComposer,
+          $$FieldCourseTargetAnglesTableAnnotationComposer,
+          $$FieldCourseTargetAnglesTableCreateCompanionBuilder,
+          $$FieldCourseTargetAnglesTableUpdateCompanionBuilder,
+          (FieldCourseTargetAngle, $$FieldCourseTargetAnglesTableReferences),
+          FieldCourseTargetAngle,
+          PrefetchHooks Function({bool courseTargetId})
+        > {
+  $$FieldCourseTargetAnglesTableTableManager(
+    _$AppDatabase db,
+    $FieldCourseTargetAnglesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FieldCourseTargetAnglesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$FieldCourseTargetAnglesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$FieldCourseTargetAnglesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> courseTargetId = const Value.absent(),
+                Value<int> pegIndex = const Value.absent(),
+                Value<double> angleDegrees = const Value.absent(),
+                Value<int> sessionCount = const Value.absent(),
+                Value<DateTime> lastUpdated = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldCourseTargetAnglesCompanion(
+                id: id,
+                courseTargetId: courseTargetId,
+                pegIndex: pegIndex,
+                angleDegrees: angleDegrees,
+                sessionCount: sessionCount,
+                lastUpdated: lastUpdated,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String courseTargetId,
+                required int pegIndex,
+                required double angleDegrees,
+                Value<int> sessionCount = const Value.absent(),
+                Value<DateTime> lastUpdated = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldCourseTargetAnglesCompanion.insert(
+                id: id,
+                courseTargetId: courseTargetId,
+                pegIndex: pegIndex,
+                angleDegrees: angleDegrees,
+                sessionCount: sessionCount,
+                lastUpdated: lastUpdated,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$FieldCourseTargetAnglesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({courseTargetId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (courseTargetId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.courseTargetId,
+                                referencedTable:
+                                    $$FieldCourseTargetAnglesTableReferences
+                                        ._courseTargetIdTable(db),
+                                referencedColumn:
+                                    $$FieldCourseTargetAnglesTableReferences
+                                        ._courseTargetIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$FieldCourseTargetAnglesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FieldCourseTargetAnglesTable,
+      FieldCourseTargetAngle,
+      $$FieldCourseTargetAnglesTableFilterComposer,
+      $$FieldCourseTargetAnglesTableOrderingComposer,
+      $$FieldCourseTargetAnglesTableAnnotationComposer,
+      $$FieldCourseTargetAnglesTableCreateCompanionBuilder,
+      $$FieldCourseTargetAnglesTableUpdateCompanionBuilder,
+      (FieldCourseTargetAngle, $$FieldCourseTargetAnglesTableReferences),
+      FieldCourseTargetAngle,
+      PrefetchHooks Function({bool courseTargetId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -52468,4 +56019,16 @@ class $AppDatabaseManager {
       $$FieldSessionTargetsTableTableManager(_db, _db.fieldSessionTargets);
   $$FieldSessionMetaTableTableManager get fieldSessionMeta =>
       $$FieldSessionMetaTableTableManager(_db, _db.fieldSessionMeta);
+  $$FieldArrowPlotsTableTableManager get fieldArrowPlots =>
+      $$FieldArrowPlotsTableTableManager(_db, _db.fieldArrowPlots);
+  $$FieldTargetAngleRecordsTableTableManager get fieldTargetAngleRecords =>
+      $$FieldTargetAngleRecordsTableTableManager(
+        _db,
+        _db.fieldTargetAngleRecords,
+      );
+  $$FieldCourseTargetAnglesTableTableManager get fieldCourseTargetAngles =>
+      $$FieldCourseTargetAnglesTableTableManager(
+        _db,
+        _db.fieldCourseTargetAngles,
+      );
 }

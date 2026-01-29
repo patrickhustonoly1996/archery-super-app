@@ -51,12 +51,44 @@ enum BraceHeightUnit {
   }
 }
 
+/// Unit for nocking point measurements
+enum NockingPointUnit {
+  millimeters('mm'),
+  inches('in');
+
+  final String abbreviation;
+  const NockingPointUnit(this.abbreviation);
+
+  static NockingPointUnit fromString(String? value) {
+    if (value == 'inches' || value == 'in') return NockingPointUnit.inches;
+    return NockingPointUnit.millimeters;
+  }
+
+  String toDbString() => this == NockingPointUnit.inches ? 'inches' : 'millimeters';
+
+  /// Get the opposite unit
+  NockingPointUnit get other => this == millimeters ? inches : millimeters;
+
+  /// Convert to millimeters (for consistent storage)
+  double toMillimeters(double value) {
+    if (this == inches) return value * 25.4;
+    return value;
+  }
+
+  /// Convert from millimeters to this unit
+  double fromMillimeters(double mm) {
+    if (this == inches) return mm / 25.4;
+    return mm;
+  }
+}
+
 /// Comprehensive bow specifications for recurve and compound bows
 class BowSpecifications {
   // === PRIMARY SETTINGS (Most Important) ===
   final double? braceHeight; // stored in mm internally
   final BraceHeightUnit braceHeightUnit; // user's preferred display unit
-  final double? nockingPoint; // mm above square (positive = above)
+  final double? nockingPoint; // stored in mm internally, above square (positive = above)
+  final NockingPointUnit nockingPointUnit; // user's preferred display unit
   final double? tillerTop; // mm
   final double? tillerBottom; // mm
 
@@ -114,6 +146,7 @@ class BowSpecifications {
     this.braceHeight,
     this.braceHeightUnit = BraceHeightUnit.millimeters,
     this.nockingPoint,
+    this.nockingPointUnit = NockingPointUnit.millimeters,
     this.tillerTop,
     this.tillerBottom,
     this.riserModel,
@@ -172,6 +205,7 @@ class BowSpecifications {
       braceHeight: bow.braceHeight as double? ?? base.braceHeight,
       braceHeightUnit: base.braceHeightUnit,
       nockingPoint: bow.nockingPointHeight as double? ?? base.nockingPoint,
+      nockingPointUnit: base.nockingPointUnit,
       tillerTop: bow.tillerTop as double? ?? base.tillerTop,
       tillerBottom: bow.tillerBottom as double? ?? base.tillerBottom,
       // Equipment - prefer dedicated columns
@@ -215,6 +249,7 @@ class BowSpecifications {
       braceHeight: _parseDouble(map['braceHeight']),
       braceHeightUnit: BraceHeightUnit.fromString(map['braceHeightUnit'] as String?),
       nockingPoint: _parseDouble(map['nockingPoint']),
+      nockingPointUnit: NockingPointUnit.fromString(map['nockingPointUnit'] as String?),
       tillerTop: _parseDouble(map['tillerTop']),
       tillerBottom: _parseDouble(map['tillerBottom']),
       riserModel: map['riserModel'] as String?,
@@ -272,6 +307,7 @@ class BowSpecifications {
       if (braceHeight != null) 'braceHeight': braceHeight,
       'braceHeightUnit': braceHeightUnit.toDbString(),
       if (nockingPoint != null) 'nockingPoint': nockingPoint,
+      'nockingPointUnit': nockingPointUnit.toDbString(),
       if (tillerTop != null) 'tillerTop': tillerTop,
       if (tillerBottom != null) 'tillerBottom': tillerBottom,
       if (riserModel != null) 'riserModel': riserModel,
@@ -317,6 +353,7 @@ class BowSpecifications {
     double? braceHeight,
     BraceHeightUnit? braceHeightUnit,
     double? nockingPoint,
+    NockingPointUnit? nockingPointUnit,
     double? tillerTop,
     double? tillerBottom,
     String? riserModel,
@@ -358,6 +395,7 @@ class BowSpecifications {
       braceHeight: clearBraceHeight ? null : (braceHeight ?? this.braceHeight),
       braceHeightUnit: braceHeightUnit ?? this.braceHeightUnit,
       nockingPoint: clearNockingPoint ? null : (nockingPoint ?? this.nockingPoint),
+      nockingPointUnit: nockingPointUnit ?? this.nockingPointUnit,
       tillerTop: clearTillerTop ? null : (tillerTop ?? this.tillerTop),
       tillerBottom: clearTillerBottom ? null : (tillerBottom ?? this.tillerBottom),
       riserModel: riserModel ?? this.riserModel,
@@ -464,6 +502,12 @@ class BowSpecifications {
   double? get braceHeightInPreferredUnit {
     if (braceHeight == null) return null;
     return braceHeightUnit.fromMillimeters(braceHeight!);
+  }
+
+  /// Get nocking point in the user's preferred unit
+  double? get nockingPointInPreferredUnit {
+    if (nockingPoint == null) return null;
+    return nockingPointUnit.fromMillimeters(nockingPoint!);
   }
 
   /// Get the primary draw weight (whichever is set)

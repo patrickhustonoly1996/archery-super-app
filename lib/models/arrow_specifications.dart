@@ -58,6 +58,9 @@ class ArrowSpecifications {
   // === NOTES ===
   final String? notes;
 
+  // === BARE SHAFTS ===
+  final String? bareShafts; // e.g., "11, 12" or "11-12"
+
   ArrowSpecifications({
     this.shaftModel,
     this.shaftSpine,
@@ -81,6 +84,7 @@ class ArrowSpecifications {
     this.wrapColor,
     this.wrapModel,
     this.notes,
+    this.bareShafts,
   });
 
   factory ArrowSpecifications.fromJson(String? jsonString) {
@@ -119,6 +123,7 @@ class ArrowSpecifications {
       wrapColor: map['wrapColor'] as String?,
       wrapModel: map['wrapModel'] as String?,
       notes: map['notes'] as String?,
+      bareShafts: map['bareShafts'] as String?,
     );
   }
 
@@ -162,6 +167,7 @@ class ArrowSpecifications {
       if (wrapColor != null) 'wrapColor': wrapColor,
       if (wrapModel != null) 'wrapModel': wrapModel,
       if (notes != null) 'notes': notes,
+      if (bareShafts != null) 'bareShafts': bareShafts,
     };
   }
 

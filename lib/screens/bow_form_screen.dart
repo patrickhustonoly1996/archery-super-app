@@ -85,6 +85,10 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
 
   bool _isLoading = false;
 
+  // Units
+  BraceHeightUnit _braceHeightUnit = BraceHeightUnit.millimeters;
+  NockingPointUnit _nockingPointUnit = NockingPointUnit.millimeters;
+
   // Track which optional sections are expanded
   bool _showEquipmentDetails = false;
   bool _showAccessories = false;
@@ -130,17 +134,30 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
     );
 
     // Tuning - basic (from dedicated columns)
+    _braceHeightUnit = specs.braceHeightUnit;
+    _nockingPointUnit = specs.nockingPointUnit;
+
+    // Convert brace height to preferred unit for display
+    final braceHeightDisplay = bow?.braceHeight != null
+        ? _braceHeightUnit.fromMillimeters(bow!.braceHeight!)
+        : null;
     _braceHeightController = TextEditingController(
-      text: bow?.braceHeight?.toStringAsFixed(1) ?? '',
+      text: braceHeightDisplay?.toStringAsFixed(_braceHeightUnit == BraceHeightUnit.inches ? 2 : 1) ?? '',
     );
+
     _tillerTopController = TextEditingController(
       text: bow?.tillerTop?.toStringAsFixed(1) ?? '',
     );
     _tillerBottomController = TextEditingController(
       text: bow?.tillerBottom?.toStringAsFixed(1) ?? '',
     );
+
+    // Convert nocking point to preferred unit for display
+    final nockingPointDisplay = bow?.nockingPointHeight != null
+        ? _nockingPointUnit.fromMillimeters(bow!.nockingPointHeight!)
+        : null;
     _nockingPointController = TextEditingController(
-      text: bow?.nockingPointHeight?.toStringAsFixed(1) ?? '',
+      text: nockingPointDisplay?.toStringAsFixed(_nockingPointUnit == NockingPointUnit.inches ? 2 : 1) ?? '',
     );
     _buttonPositionController = TextEditingController(
       text: bow?.buttonPosition?.toStringAsFixed(1) ?? '',
@@ -253,10 +270,22 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
 
       // Parse numeric values for dedicated columns
       final poundage = double.tryParse(_poundageController.text);
-      final braceHeight = double.tryParse(_braceHeightController.text);
+
+      // Convert brace height to mm for storage
+      final braceHeightInput = double.tryParse(_braceHeightController.text);
+      final braceHeight = braceHeightInput != null
+          ? _braceHeightUnit.toMillimeters(braceHeightInput)
+          : null;
+
       final tillerTop = double.tryParse(_tillerTopController.text);
       final tillerBottom = double.tryParse(_tillerBottomController.text);
-      final nockingPoint = double.tryParse(_nockingPointController.text);
+
+      // Convert nocking point to mm for storage
+      final nockingPointInput = double.tryParse(_nockingPointController.text);
+      final nockingPoint = nockingPointInput != null
+          ? _nockingPointUnit.toMillimeters(nockingPointInput)
+          : null;
+
       final buttonPosition = double.tryParse(_buttonPositionController.text);
       final clickerPosition = double.tryParse(_clickerPositionController.text);
 
@@ -284,8 +313,9 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
         restPositionPhotoPath: _restPositionPhotoPath,
         weightsSetupPhotoPath: existingSpecs.weightsSetupPhotoPath,
         vBarSetupPhotoPath: existingSpecs.vBarSetupPhotoPath,
-        // Keep brace height unit preference
-        braceHeightUnit: existingSpecs.braceHeightUnit,
+        // Keep unit preferences
+        braceHeightUnit: _braceHeightUnit,
+        nockingPointUnit: _nockingPointUnit,
         // Equipment extended
         riserLength: _riserLength,
         limbLength: _limbLength,
@@ -599,34 +629,87 @@ class _BowFormScreenState extends State<BowFormScreen> with FormValidationMixin 
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
-                    controller: _braceHeightController,
-                    decoration: const InputDecoration(
-                      labelText: 'Brace Height',
-                      hintText: '225',
-                      suffixText: 'mm',
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _braceHeightController,
+                          decoration: InputDecoration(
+                            labelText: 'Brace Height',
+                            hintText: _braceHeightUnit == BraceHeightUnit.inches ? '8.75' : '225',
+                            suffixText: _braceHeightUnit.abbreviation,
+                          ),
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      IconButton(
+                        icon: const Icon(Icons.swap_horiz, size: 20),
+                        tooltip: 'Toggle unit',
+                        onPressed: () {
+                          setState(() {
+                            final currentValue = double.tryParse(_braceHeightController.text);
+                            if (currentValue != null) {
+                              // Convert to other unit
+                              final converted = _braceHeightUnit.convert(currentValue);
+                              _braceHeightUnit = _braceHeightUnit.other;
+                              _braceHeightController.text = converted.toStringAsFixed(
+                                _braceHeightUnit == BraceHeightUnit.inches ? 2 : 1,
+                              );
+                            } else {
+                              _braceHeightUnit = _braceHeightUnit.other;
+                            }
+                          });
+                        },
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
-                  child: TextFormField(
-                    controller: _nockingPointController,
-                    decoration: const InputDecoration(
-                      labelText: 'Nocking Point',
-                      hintText: '3',
-                      suffixText: 'mm',
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                      signed: true,
-                    ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d*$')),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _nockingPointController,
+                          decoration: InputDecoration(
+                            labelText: 'Nocking Point',
+                            hintText: _nockingPointUnit == NockingPointUnit.inches ? '0.12' : '3',
+                            suffixText: _nockingPointUnit.abbreviation,
+                          ),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                            signed: true,
+                          ),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d*$')),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      IconButton(
+                        icon: const Icon(Icons.swap_horiz, size: 20),
+                        tooltip: 'Toggle unit',
+                        onPressed: () {
+                          setState(() {
+                            final currentValue = double.tryParse(_nockingPointController.text);
+                            if (currentValue != null) {
+                              // Convert between units
+                              final inMm = _nockingPointUnit.toMillimeters(currentValue);
+                              _nockingPointUnit = _nockingPointUnit.other;
+                              final converted = _nockingPointUnit.fromMillimeters(inMm);
+                              _nockingPointController.text = converted.toStringAsFixed(
+                                _nockingPointUnit == NockingPointUnit.inches ? 2 : 1,
+                              );
+                            } else {
+                              _nockingPointUnit = _nockingPointUnit.other;
+                            }
+                          });
+                        },
+                      ),
                     ],
                   ),
                 ),

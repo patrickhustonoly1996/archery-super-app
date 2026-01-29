@@ -918,6 +918,8 @@ class FieldSessionTargets extends Table {
   IntColumn get station => integer().nullable()(); // For animal rounds: which station scored
   BoolColumn get wasHit => boolean().nullable()(); // For animal rounds
   DateTimeColumn get completedAt => dateTime().nullable()();
+  RealColumn get slopeAngle => real().nullable()(); // primary angle for this target
+  TextColumn get pegSightMarks => text().nullable()(); // JSON: per-peg sight marks used
 
   @override
   Set<Column> get primaryKey => {id};
@@ -934,6 +936,54 @@ class FieldSessionMeta extends Table {
 
   @override
   Set<Column> get primaryKey => {sessionId};
+}
+
+/// Per-arrow plot data for field archery targets
+class FieldArrowPlots extends Table {
+  TextColumn get id => text()();
+  TextColumn get sessionTargetId => text().references(FieldSessionTargets, #id)();
+  IntColumn get arrowNumber => integer()(); // 1-4
+  IntColumn get pegIndex => integer()(); // 0-3 (which peg in walk-down)
+  RealColumn get xMm => real().nullable()(); // mm from center
+  RealColumn get yMm => real().nullable()(); // mm from center
+  RealColumn get normalizedX => real().nullable()(); // -1 to +1
+  RealColumn get normalizedY => real().nullable()(); // -1 to +1
+  IntColumn get score => integer()();
+  BoolColumn get isX => boolean().withDefault(const Constant(false))();
+  BoolColumn get isPoorShot => boolean().withDefault(const Constant(false))();
+  TextColumn get poorShotDirection => text().nullable()(); // high/low/left/right
+  BoolColumn get isPlotted => boolean().withDefault(const Constant(false))();
+  RealColumn get slopeAngleDeg => real().nullable()();
+  TextColumn get sightMarkUsed => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Per-peg angle recordings during field sessions
+class FieldTargetAngleRecords extends Table {
+  TextColumn get id => text()();
+  TextColumn get sessionTargetId => text().references(FieldSessionTargets, #id)();
+  IntColumn get pegIndex => integer()();
+  RealColumn get angleDegrees => real()();
+  TextColumn get source => text()(); // manual or gyroscope
+  DateTimeColumn get recordedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Persisted angles per course target for revisits (courses don't change)
+class FieldCourseTargetAngles extends Table {
+  TextColumn get id => text()();
+  TextColumn get courseTargetId => text().references(FieldCourseTargets, #id)();
+  IntColumn get pegIndex => integer()();
+  RealColumn get angleDegrees => real()(); // running average
+  IntColumn get sessionCount => integer().withDefault(const Constant(1))();
+  DateTimeColumn get lastUpdated => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }
 
 // ============================================================================
@@ -999,6 +1049,9 @@ class FieldSessionMeta extends Table {
   FieldCourseSightMarks,
   FieldSessionTargets,
   FieldSessionMeta,
+  FieldArrowPlots,
+  FieldTargetAngleRecords,
+  FieldCourseTargetAngles,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -1007,7 +1060,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 31;
+  int get schemaVersion => 32;
 
   @override
   MigrationStrategy get migration {
@@ -1285,6 +1338,15 @@ class AppDatabase extends _$AppDatabase {
             UPDATE skill_levels
             SET last_celebrated_level = current_level
           ''');
+        }
+        if (from <= 31) {
+          // IFAA Field Screen Overhaul - per-peg plotting and angle tracking
+          await m.createTable(fieldArrowPlots);
+          await m.createTable(fieldTargetAngleRecords);
+          await m.createTable(fieldCourseTargetAngles);
+          // New columns on FieldSessionTargets
+          await m.addColumn(fieldSessionTargets, fieldSessionTargets.slopeAngle);
+          await m.addColumn(fieldSessionTargets, fieldSessionTargets.pegSightMarks);
         }
       },
     );
@@ -3574,6 +3636,127 @@ class AppDatabase extends _$AppDatabase {
   /// Get all field session meta for sync
   Future<List<FieldSessionMetaData>> getAllFieldSessionMetaForSync() =>
       select(fieldSessionMeta).get();
+
+  // ===========================================================================
+  // FIELD ARROW PLOTS
+  // ===========================================================================
+
+  Future<int> insertFieldArrowPlot(FieldArrowPlotsCompanion plot) =>
+      into(fieldArrowPlots).insert(plot);
+
+  Future<List<FieldArrowPlot>> getFieldArrowPlotsForSessionTarget(
+    String sessionTargetId,
+  ) =>
+      (select(fieldArrowPlots)
+            ..where((t) => t.sessionTargetId.equals(sessionTargetId))
+            ..orderBy([(t) => OrderingTerm.asc(t.arrowNumber)]))
+          .get();
+
+  Future<List<FieldArrowPlot>> getFieldArrowPlotsForTarget(
+    String courseTargetId,
+    String bowId,
+  ) async {
+    // Get all session targets for this course target, join through sessions for bowId
+    final query = select(fieldArrowPlots).join([
+      innerJoin(
+        fieldSessionTargets,
+        fieldSessionTargets.id.equalsExp(fieldArrowPlots.sessionTargetId),
+      ),
+      innerJoin(
+        sessions,
+        sessions.id.equalsExp(fieldSessionTargets.sessionId),
+      ),
+    ])
+      ..where(fieldSessionTargets.courseTargetId.equals(courseTargetId) &
+          sessions.bowId.equals(bowId))
+      ..orderBy([OrderingTerm.desc(sessions.startedAt)]);
+
+    final results = await query.get();
+    return results.map((row) => row.readTable(fieldArrowPlots)).toList();
+  }
+
+  Future<List<FieldArrowPlot>> getLatestSessionFieldArrowPlots(
+    String courseTargetId,
+    String bowId,
+  ) async {
+    // Get plots from most recent session only
+    final query = select(fieldArrowPlots).join([
+      innerJoin(
+        fieldSessionTargets,
+        fieldSessionTargets.id.equalsExp(fieldArrowPlots.sessionTargetId),
+      ),
+      innerJoin(
+        sessions,
+        sessions.id.equalsExp(fieldSessionTargets.sessionId),
+      ),
+    ])
+      ..where(fieldSessionTargets.courseTargetId.equals(courseTargetId) &
+          sessions.bowId.equals(bowId))
+      ..orderBy([OrderingTerm.desc(sessions.startedAt)])
+      ..limit(4); // Max 4 arrows per target
+
+    final results = await query.get();
+    return results.map((row) => row.readTable(fieldArrowPlots)).toList();
+  }
+
+  Future<int> deleteFieldArrowPlots(String sessionTargetId) =>
+      (delete(fieldArrowPlots)
+            ..where((t) => t.sessionTargetId.equals(sessionTargetId)))
+          .go();
+
+  // ===========================================================================
+  // FIELD TARGET ANGLE RECORDS
+  // ===========================================================================
+
+  Future<int> insertFieldTargetAngleRecord(
+    FieldTargetAngleRecordsCompanion record,
+  ) =>
+      into(fieldTargetAngleRecords).insert(record);
+
+  Future<List<FieldTargetAngleRecord>> getFieldTargetAngleRecords(
+    String sessionTargetId,
+  ) =>
+      (select(fieldTargetAngleRecords)
+            ..where((t) => t.sessionTargetId.equals(sessionTargetId))
+            ..orderBy([(t) => OrderingTerm.asc(t.pegIndex)]))
+          .get();
+
+  // ===========================================================================
+  // FIELD COURSE TARGET ANGLES (learned angles for revisits)
+  // ===========================================================================
+
+  Future<List<FieldCourseTargetAngle>> getFieldCourseTargetAngles(
+    String courseTargetId,
+  ) =>
+      (select(fieldCourseTargetAngles)
+            ..where((t) => t.courseTargetId.equals(courseTargetId))
+            ..orderBy([(t) => OrderingTerm.asc(t.pegIndex)]))
+          .get();
+
+  Future<FieldCourseTargetAngle?> getFieldCourseTargetAngle(
+    String courseTargetId,
+    int pegIndex,
+  ) =>
+      (select(fieldCourseTargetAngles)
+            ..where((t) =>
+                t.courseTargetId.equals(courseTargetId) &
+                t.pegIndex.equals(pegIndex)))
+          .getSingleOrNull();
+
+  Future<void> upsertFieldCourseTargetAngle(
+    FieldCourseTargetAnglesCompanion angle,
+  ) =>
+      into(fieldCourseTargetAngles)
+          .insert(angle, mode: InsertMode.insertOrReplace);
+
+  Future<List<FieldArrowPlot>> getAllFieldArrowPlotsForSync() =>
+      select(fieldArrowPlots).get();
+
+  Future<List<FieldTargetAngleRecord>> getAllFieldTargetAngleRecordsForSync() =>
+      select(fieldTargetAngleRecords).get();
+
+  Future<List<FieldCourseTargetAngle>> getAllFieldCourseTargetAnglesForSync() =>
+      select(fieldCourseTargetAngles).get();
 
   // ===========================================================================
   // SYNC (continued)

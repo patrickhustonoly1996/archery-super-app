@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'arrow_coordinate.dart';
 import 'field_course.dart';
 
 /// Scoring zone for field archery targets
@@ -76,27 +77,89 @@ class FieldArrowScore {
   final int arrowNumber; // 1-4
   final FieldScoringZone zone;
   final int? pegPosition; // For walk-down: which peg (1-4)
+  final ArrowCoordinate? coordinate; // null if button-scored
+  final bool isPoorShot;
+  final String? poorShotDirection; // high/low/left/right
+  final double? slopeAngleDeg;
+  final String? sightMarkUsed;
 
   const FieldArrowScore({
     required this.arrowNumber,
     required this.zone,
     this.pegPosition,
+    this.coordinate,
+    this.isPoorShot = false,
+    this.poorShotDirection,
+    this.slopeAngleDeg,
+    this.sightMarkUsed,
   });
 
   int get score => zone.score;
   bool get isX => zone == FieldScoringZone.x;
 
-  Map<String, dynamic> toJson() => {
-        'arrowNumber': arrowNumber,
-        'zone': zone.name,
-        'pegPosition': pegPosition,
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{
+      'arrowNumber': arrowNumber,
+      'zone': zone.name,
+    };
+    if (pegPosition != null) map['pegPosition'] = pegPosition;
+    if (coordinate != null) {
+      map['coordinate'] = {
+        'xMm': coordinate!.xMm,
+        'yMm': coordinate!.yMm,
+        'faceSizeCm': coordinate!.faceSizeCm,
       };
+    }
+    if (isPoorShot) map['isPoorShot'] = true;
+    if (poorShotDirection != null) {
+      map['poorShotDirection'] = poorShotDirection;
+    }
+    if (slopeAngleDeg != null) map['slopeAngleDeg'] = slopeAngleDeg;
+    if (sightMarkUsed != null) map['sightMarkUsed'] = sightMarkUsed;
+    return map;
+  }
 
   factory FieldArrowScore.fromJson(Map<String, dynamic> json) {
+    ArrowCoordinate? coordinate;
+    if (json['coordinate'] != null) {
+      final coord = json['coordinate'] as Map<String, dynamic>;
+      coordinate = ArrowCoordinate(
+        xMm: (coord['xMm'] as num).toDouble(),
+        yMm: (coord['yMm'] as num).toDouble(),
+        faceSizeCm: coord['faceSizeCm'] as int,
+      );
+    }
     return FieldArrowScore(
       arrowNumber: json['arrowNumber'] as int,
       zone: FieldScoringZone.fromString(json['zone'] as String),
       pegPosition: json['pegPosition'] as int?,
+      coordinate: coordinate,
+      isPoorShot: json['isPoorShot'] as bool? ?? false,
+      poorShotDirection: json['poorShotDirection'] as String?,
+      slopeAngleDeg: (json['slopeAngleDeg'] as num?)?.toDouble(),
+      sightMarkUsed: json['sightMarkUsed'] as String?,
+    );
+  }
+
+  FieldArrowScore copyWith({
+    int? arrowNumber,
+    FieldScoringZone? zone,
+    int? pegPosition,
+    ArrowCoordinate? coordinate,
+    bool? isPoorShot,
+    String? poorShotDirection,
+    double? slopeAngleDeg,
+    String? sightMarkUsed,
+  }) {
+    return FieldArrowScore(
+      arrowNumber: arrowNumber ?? this.arrowNumber,
+      zone: zone ?? this.zone,
+      pegPosition: pegPosition ?? this.pegPosition,
+      coordinate: coordinate ?? this.coordinate,
+      isPoorShot: isPoorShot ?? this.isPoorShot,
+      poorShotDirection: poorShotDirection ?? this.poorShotDirection,
+      slopeAngleDeg: slopeAngleDeg ?? this.slopeAngleDeg,
+      sightMarkUsed: sightMarkUsed ?? this.sightMarkUsed,
     );
   }
 
